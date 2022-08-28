@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="QCUniversidad.AppClient.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:QCUniversidad.AppClient"
+    xmlns:viewmodel="clr-namespace:QCUniversidad.AppClient.ViewModels"
+    x:DataType="viewmodel:ShellViewModel"
+    Shell.FlyoutBehavior="Flyout">
+
+    <ShellContent Title="Inicio"
+                  ContentTemplate="{DataTemplate local:MainPage}"
+                  Route="MainPage" />
+
+    <FlyoutItem Title="Gestión"
+                FlyoutDisplayOptions="AsMultipleItems"
+                IsVisible="{Binding UserIsLogged}">
+        <ShellContent Title="Profesores" ContentTemplate="{DataTemplate local:TeachersPage}"
+                      Route="TeachersPage"/>
+    </FlyoutItem>
+
+
+    <MenuItem Text="{Binding LoginLogoutText}"
+              Command="{Binding LoginLogoutCommand}"
+              IsEnabled="{Binding UserLoggingInOut}"
+              />
+
+    <!--<FlyoutItem Title="Usuario"
+                FlyoutDisplayOptions="AsMultipleItems">
+        
+        <ShellContent Title="Iniciar sesión"
+                      ContentTemplate="{DataTemplate local:LoginPage}"
+                      Route="LoginPage"
+                      IsVisible="{Binding ShowLoginButton}"/>
+        <ShellContent Title="{Binding UserName, StringFormat='Perfil {0}'}"
+                      ContentTemplate="{DataTemplate local:ProfilePage}"
+                      Route="ProfilePage"
+                      IsVisible="{Binding UserIsLogged}"/>
+        <ShellContent Title="Cerrar sesión"
+                      ContentTemplate="{DataTemplate local:LogoutPage}"
+                      Route="LogoutPage"
+                      IsVisible="{Binding UserIsLogged}"/>
+    </FlyoutItem>-->
+</Shell>
