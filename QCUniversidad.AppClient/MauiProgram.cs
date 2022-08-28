@@ -31,7 +31,13 @@ public static class MauiProgram
 		builder.Services.AddTransient<MainPageViewModel>();
 		builder.Services.AddTransient<MainPage>();
 
+		builder.Services.AddTransient<TeachersViewModel>();
+		builder.Services.AddTransient<TeachersPage>();
+
 		#endregion
+
+		builder.Services.AddTransient<IHttpClientFactory, MauiHttpClientFactory>();
+		builder.Services.AddTransient<IApiCallerHttpClientFactory, ApiCallerHttpClientFactory>();
 		builder.Services.AddSingleton<IUserManager, UserManager>();
 		builder.Services.AddSingleton<ITokenManager, TokenManager>();
         builder.Services.AddSingleton<IConnectivity>(Connectivity.Current);

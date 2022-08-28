@@ -117,7 +117,7 @@ namespace QCUniversidad.AppClient.ViewModels
                 {
                     if (page is not null)
                     {
-                        Shell.Current.Navigation.RemovePage(page); 
+                        Shell.Current.Navigation.RemovePage(page);
                     }
                 }
             }
