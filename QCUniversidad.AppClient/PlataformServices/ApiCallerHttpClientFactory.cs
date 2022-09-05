@@ -27,7 +27,7 @@ namespace QCUniversidad.AppClient.PlataformServices
             if (_userManager.IsAuthenticated)
             {
                 var client = _clientFactory.CreateHttpClient();
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenManager.AccessToken);
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenManager.IdentityToken);
                 client.BaseAddress = new Uri(ApiConfiguration.BaseAddress);
                 return client;
             }

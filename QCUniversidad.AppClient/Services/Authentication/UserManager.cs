@@ -18,6 +18,8 @@ namespace QCUniversidad.AppClient.Services.Authentication
     public delegate void UserAuthenticationEventHandler(AuthenticationEvent authEvent, object args);
     public class UserManager : IUserManager
     {
+        public static IUserManager Current { get; private set; }
+
         public event UserAuthenticationEventHandler AuthenticationEvent;
 
         private readonly OidcClient _oidcClient;
@@ -32,6 +34,7 @@ namespace QCUniversidad.AppClient.Services.Authentication
             _oidcClient = oidcClient;
             _tokenManager = tokenManager;
             _connectivity = connectivity;
+            Current = this;
         }
 
         public async Task LoginAsync(Action successfullLoginCallback, Action<string> failedLoginCallback)

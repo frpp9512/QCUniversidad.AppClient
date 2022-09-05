@@ -9,5 +9,6 @@ public partial class AppShell : Shell
 		InitializeComponent();
 		BindingContext = viewModel;
 		Routing.RegisterRoute(nameof(LoadingPage), typeof(LoadingPage));
+		Routing.RegisterRoute(nameof(AddEditFacultyPage), typeof(AddEditFacultyPage));
 	}
 }

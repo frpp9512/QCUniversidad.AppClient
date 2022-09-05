@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Authentication;
 using QCUniversidad.AppClient.PlataformServices;
 using QCUniversidad.AppClient.Services.Authentication;
+using QCUniversidad.AppClient.Services.Data;
 using QCUniversidad.AppClient.ViewModels;
 using System.Net;
 
@@ -34,6 +35,12 @@ public static class MauiProgram
 		builder.Services.AddTransient<TeachersViewModel>();
 		builder.Services.AddTransient<TeachersPage>();
 
+		builder.Services.AddTransient<FacultiesPageViewModel>();
+		builder.Services.AddTransient<FacultiesPage>();
+
+		builder.Services.AddTransient<AddEditFacultyPageViewModel>();
+		builder.Services.AddTransient<AddEditFacultyPage>();
+
 		#endregion
 
 		builder.Services.AddTransient<IHttpClientFactory, MauiHttpClientFactory>();
@@ -41,6 +48,7 @@ public static class MauiProgram
 		builder.Services.AddSingleton<IUserManager, UserManager>();
 		builder.Services.AddSingleton<ITokenManager, TokenManager>();
         builder.Services.AddSingleton<IConnectivity>(Connectivity.Current);
+		builder.Services.AddTransient<IDataProvider, DataProvider>();
 
 		builder.Services.AddTransient<WebAuthenticatorBrowser>();
 		builder.Services.AddTransient<OidcClient>(sp => new OidcClient(
@@ -48,13 +56,16 @@ public static class MauiProgram
 			{
 				Authority = "https://10.0.2.2:5001",
 				ClientId = "QCUniversidad.AppClient",
-				Scope = "openid profile qcuniversidad.api",
+				Scope = "openid profile roles qcuniversidad.api",
 				RedirectUri = "qcuniversidadappclient://",
 				PostLogoutRedirectUri = "qcuniversidadappclient://",
 				ClientSecret = "qcforlife2022",
 				BackchannelHandler = new HttpsClientHandlerService().GetPlatformMessageHandler(),
 				Browser = sp.GetRequiredService<WebAuthenticatorBrowser>()
 			}));
-		return builder.Build();
+
+		builder.Services.AddAutoMapper(typeof(MauiProgram));
+
+        return builder.Build();
 	}
 }

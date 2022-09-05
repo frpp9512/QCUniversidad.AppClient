@@ -11,6 +11,8 @@ namespace QCUniversidad.AppClient.Services.Authentication
         string AccessToken { get; }
         string RefreshToken { get; }
         string IdentityToken { get; }
+        DateTimeOffset Expires { get; }
+        bool IsExpired { get; }
         void SetAccessToken(string token);
         void SetRefreshToken(string refreshToken);
         void SetIdentityToken(string identityToken);

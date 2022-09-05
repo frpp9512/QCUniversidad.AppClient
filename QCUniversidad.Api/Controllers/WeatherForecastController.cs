@@ -19,10 +19,12 @@ namespace QCUniversidad.Api.Controllers
             _logger = logger;
         }
 
-        [Authorize]
+        [Authorize(Roles = "QCUAdmin")]
         [HttpGet(Name = "GetWeatherForecast")]
         public IEnumerable<WeatherForecast> Get()
         {
+            User.Claims.ToList();
+            User.IsInRole("QCUAdmin");
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateTime.Now.AddDays(index),

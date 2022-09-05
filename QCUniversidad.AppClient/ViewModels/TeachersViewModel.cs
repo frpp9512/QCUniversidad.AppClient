@@ -23,25 +23,28 @@ namespace QCUniversidad.AppClient.ViewModels
         [ObservableProperty]
         string resultContent;
 
+        [ObservableProperty]
+        bool loading;
+
         [RelayCommand]
         public async Task LoadWeather()
         {
-            try
+            if (!Loading)
             {
-                var client = _clientFactory.CreateApiCallerHttpClient();
-                var response = await client.GetAsync("/weatherforecast");
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    ResultContent = await response.Content.ReadAsStringAsync();
+                    Loading = true;
+                    var client = _clientFactory.CreateApiCallerHttpClient();
+                    var response = await client.GetAsync("/weatherforecast");
+                    ResultContent = response.IsSuccessStatusCode
+                                        ? await response.Content.ReadAsStringAsync()
+                                        : "Error";
                 }
-                else
+                catch (UserNotAuthenticatedException)
                 {
-                    ResultContent = "Error";
+                    await Shell.Current.DisplayAlert("Error", "Debe de autenticarse primeramente.", "OK");
                 }
-            }
-            catch (UserNotAuthenticatedException)
-            {
-                await Shell.Current.DisplayAlert("Error", "Debe de autenticarse primeramente.", "OK");
+                Loading = false; 
             }
         }
     }
