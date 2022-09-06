@@ -33,17 +33,23 @@
                     <SwipeView Margin="5">
                         <SwipeView.RightItems>
                             <SwipeItems>
-                                <SwipeItem Text="Editar"
+                                <SwipeItem 
                                            BackgroundColor="Green"
+                                           IconImageSource="edit_icon.png"
                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:FacultiesPageViewModel}}, Path=EditFacultyCommand}"
                                            CommandParameter="{Binding Id}" />
-                                <SwipeItem Text="Eliminar"
+                                <SwipeItem 
                                            BackgroundColor="Red"
+                                           IconImageSource="delete_icon.png"
                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:FacultiesPageViewModel}}, Path=DeleteFacultyCommand}"
                                            CommandParameter="{Binding Id}" />
                             </SwipeItems>
                         </SwipeView.RightItems>
                         <Frame>
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:FacultiesPageViewModel}}, Path=GotoFacultyDetailsCommand}"
+                                                      CommandParameter="{Binding Id}" />
+                            </Frame.GestureRecognizers>
                             <Grid Padding="0.5" RowDefinitions="auto,auto">
                                 <Label Text="{Binding Name}"
                                        FontSize="Medium"

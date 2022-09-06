@@ -6,12 +6,11 @@ using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Shared.Dtos
 {
-    public record FacultyDto
+    public record DepartmentDto
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public string Campus { get; set; }
-        public int DepartmentCount { get; set; } = 0;
-        public int CareersCount { get; set; } = 0;
+        public string Description { get; set; }
+        public Guid FacultyId { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Newtonsoft.Json;
 using QCUniversidad.Api.Shared.Dtos;
+using QCUniversidad.AppClient.AutoMapperProfiles;
 using QCUniversidad.AppClient.Models;
 using QCUniversidad.AppClient.PlataformServices;
 using System;
@@ -21,6 +22,8 @@ namespace QCUniversidad.AppClient.Services.Data
             _apiCallerFactory = apiCallerFactory;
             _mapper = mapper;
         }
+
+        #region Faculties
 
         public async Task<IList<FacultyModel>> GetFacultiesAsync(int from = 0, int to = 0)
         {
@@ -83,5 +86,60 @@ namespace QCUniversidad.AppClient.Services.Data
             }
             throw new ArgumentNullException(nameof(id));
         }
+
+        #endregion
+
+        #region Deparments
+
+        public async Task<IList<DepartmentModel>> GetDeparmentsAsync(Guid facultyId)
+        {
+            if (facultyId != Guid.Empty)
+            {
+                var client = _apiCallerFactory.CreateApiCallerHttpClient();
+                var response = await client.GetAsync($"/department/list?facultyId={facultyId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var contentText = await response.Content.ReadAsStringAsync();
+                    var dtos = JsonConvert.DeserializeObject<List<DepartmentDto>>(contentText);
+                    var models = dtos.Select(dto => _mapper.Map<DepartmentModel>(dto)).ToList();
+                    return models;
+                }
+                throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+            }
+            throw new ArgumentNullException(nameof(facultyId));
+        }
+
+        public async Task<DepartmentModel> GetDeparmentAsync(Guid deparmentId)
+        {
+            if (deparmentId != Guid.Empty)
+            {
+                var client = _apiCallerFactory.CreateApiCallerHttpClient();
+                var response = await client.GetAsync($"/department?id={deparmentId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var contentText = await response.Content.ReadAsStringAsync();
+                    var dto = JsonConvert.DeserializeObject<DepartmentModel>(contentText);
+                    var model = _mapper.Map<DepartmentModel>(dto);
+                    return model;
+                }
+                throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+            }
+            throw new ArgumentNullException(nameof(deparmentId));
+        }
+
+        public async Task<bool> CreateDepartmentAsync(DepartmentModel newDepartment)
+        {
+            if (newDepartment is not null)
+            {
+                var dto = _mapper.Map<DepartmentDto>(newDepartment);
+                var serializedData = JsonConvert.SerializeObject(dto);
+                var client = _apiCallerFactory.CreateApiCallerHttpClient();
+                var response = await client.PutAsync("/department", new StringContent(serializedData, Encoding.UTF8, "application/json"));
+                return response.IsSuccessStatusCode;
+            }
+            throw new ArgumentNullException(nameof(newDepartment));
+        }
+
+        #endregion
     }
 }

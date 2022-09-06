@@ -10,6 +10,8 @@ namespace QCUniversidad.Api.Services
 {
     public interface IDataManager
     {
+        #region Faculties
+
         Task<FacultyModel> GetFacultyAsync(Guid id);
         Task<IList<FacultyModel>> GetFacultiesAsync(int from = 0, int to = 0);
         Task<bool> CreateFacultyAsync(FacultyModel faculty);
@@ -17,5 +19,19 @@ namespace QCUniversidad.Api.Services
         Task<int> GetFacultyDepartmentCountAsync(Guid facultyId);
         Task<int> GetFacultyCareerCountAsync(Guid facultyId);
         Task<bool> DeleteFacultyAsync(Guid facultyId);
+
+        #endregion
+
+        #region Deparments
+
+        Task<IList<DepartmentModel>> GetDepartmentsAsync();
+        Task<IList<DepartmentModel>> GetDepartmentsAsync(Guid facultyId);
+        Task<DepartmentModel> GetDeparmentAsync(Guid departmentId);
+        Task<int> GetDeparmentTeachersCount(Guid departmentId);
+        Task<bool> CreateDepartmentAsync(DepartmentModel department);
+        Task<bool> UpdateDeparment(DepartmentModel department);
+        Task<bool> DeleteDeparment(Guid deparmentId);
+
+        #endregion
     }
 }

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 namespace QCUniversidad.Api.Services
 {
     public class FacultyNotFoundException : Exception { }
+    public class DeparmentNotFoundException : Exception { }
 
     public class DataManager : IDataManager
     {
@@ -19,6 +20,8 @@ namespace QCUniversidad.Api.Services
         {
             _context = context;
         }
+
+        #region Faculties
 
         public async Task<FacultyModel> GetFacultyAsync(Guid id)
         {
@@ -83,5 +86,54 @@ namespace QCUniversidad.Api.Services
                 throw;
             }
         }
+
+        #endregion
+
+        #region Departments
+
+        public async Task<IList<DepartmentModel>> GetDepartmentsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<IList<DepartmentModel>> GetDepartmentsAsync(Guid facultyId)
+        {
+            var deparments = await _context.Departments.Where(d => d.FacultyId == facultyId).ToListAsync();
+            return deparments;
+        }
+
+        public async Task<DepartmentModel> GetDeparmentAsync(Guid departmentId)
+        {
+            var department = await _context.Departments.FindAsync(departmentId);
+            return department ?? throw new DeparmentNotFoundException();
+        }
+
+        public async Task<int> GetDeparmentTeachersCount(Guid departmentId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<bool> CreateDepartmentAsync(DepartmentModel department)
+        {
+            if (department is null)
+            {
+                throw new ArgumentNullException(nameof(department));
+            }
+            await _context.Departments.AddAsync(department);
+            var result = await _context.SaveChangesAsync();
+            return result > 0;
+        }
+
+        public async Task<bool> UpdateDeparment(DepartmentModel department)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<bool> DeleteDeparment(Guid deparmentId)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }

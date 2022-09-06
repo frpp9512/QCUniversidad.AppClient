@@ -41,6 +41,12 @@ public static class MauiProgram
 		builder.Services.AddTransient<AddEditFacultyPageViewModel>();
 		builder.Services.AddTransient<AddEditFacultyPage>();
 
+		builder.Services.AddTransient<FacultyDetailsPageViewModel>();
+		builder.Services.AddTransient<FacultyDetailsPage>();
+
+		builder.Services.AddTransient<AddEditDeparmentPageViewModel>();
+		builder.Services.AddTransient<AddEditDeparmentPage>();
+
 		#endregion
 
 		builder.Services.AddTransient<IHttpClientFactory, MauiHttpClientFactory>();

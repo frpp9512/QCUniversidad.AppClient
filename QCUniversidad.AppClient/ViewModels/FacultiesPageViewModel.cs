@@ -18,6 +18,7 @@ namespace QCUniversidad.AppClient.ViewModels
         public FacultiesPageViewModel(IDataProvider dataProvider)
         {
             _dataProvider = dataProvider;
+            LoadFaculties();
         }
 
         [ObservableProperty]
@@ -80,6 +81,18 @@ namespace QCUniversidad.AppClient.ViewModels
                 }
                 Loading = false;
                 await LoadFaculties();
+            }
+        }
+
+        [RelayCommand]
+        public async Task GotoFacultyDetails(Guid facultyId)
+        {
+            if (facultyId != Guid.Empty)
+            {
+                await Shell.Current.GoToAsync(nameof(FacultyDetailsPage), true, new Dictionary<string, object> 
+                {
+                    { "facultyId", facultyId }
+                });
             }
         }
 
