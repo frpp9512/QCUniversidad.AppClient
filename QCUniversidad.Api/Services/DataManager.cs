@@ -108,7 +108,7 @@ namespace QCUniversidad.Api.Services
             return department ?? throw new DeparmentNotFoundException();
         }
 
-        public async Task<int> GetDeparmentTeachersCount(Guid departmentId)
+        public async Task<int> GetDeparmentTeachersCountAsync(Guid departmentId)
         {
             throw new NotImplementedException();
         }
@@ -124,14 +124,27 @@ namespace QCUniversidad.Api.Services
             return result > 0;
         }
 
-        public async Task<bool> UpdateDeparment(DepartmentModel department)
+        public async Task<bool> UpdateDeparmentAsync(DepartmentModel department)
         {
-            throw new NotImplementedException();
+            if (department is null)
+            {
+                throw new ArgumentNullException(nameof(department));
+            }
+            _context.Departments.Update(department);
+            var result = await _context.SaveChangesAsync();
+            return result > 0;
         }
 
-        public async Task<bool> DeleteDeparment(Guid deparmentId)
+        public async Task<bool> DeleteDeparmentAsync(Guid departmentId)
         {
-            throw new NotImplementedException();
+            if (departmentId == Guid.Empty)
+            {
+                throw new ArgumentNullException(nameof(departmentId));
+            }
+            var department = await GetDeparmentAsync(departmentId);
+            _context.Departments.Remove(department);
+            var result = await _context.SaveChangesAsync();
+            return result > 0;
         }
 
         #endregion

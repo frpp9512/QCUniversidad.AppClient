@@ -11,6 +11,9 @@
              Shell.PresentationMode="ModalAnimated">
     
     <VerticalStackLayout Spacing="10">
+        <Image Source="Resources/Images/qclogo.png"
+               WidthRequest="75"
+               Margin="25"/>
         <ActivityIndicator IsRunning="True"
                            Margin="100, 100"
                            HorizontalOptions="Center" />

@@ -6,16 +6,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IAuthenticationHandler = QCUniversidad.AppClient.PlataformServices.IAuthenticationHandler;
 
 namespace QCUniversidad.AppClient.ViewModels
 {
     public partial class ShellViewModel : ObservableObject
     {
         private readonly IUserManager _userManager;
+        private readonly IAuthenticationHandler _authenticationHandler;
 
-        public ShellViewModel(IUserManager userManager)
+        public ShellViewModel(IUserManager userManager, IAuthenticationHandler authenticationHandler)
         {
             _userManager = userManager;
+            _authenticationHandler = authenticationHandler;
             _userManager.AuthenticationEvent += _userManager_AuthenticationEvent;
             ShowLoginButton = true;
             UserIsLogged = false;
@@ -64,75 +67,16 @@ namespace QCUniversidad.AppClient.ViewModels
         public async Task Login()
         {
             UserLoggingInOut = true;
-            Shell.Current.FlyoutIsPresented = false;
-            Shell.Current.GoToAsync(nameof(LoadingPage), true, new Dictionary<string, object> 
-            {
-                { "activity", "Iniciando sesión" },
-                { "description", "Espere mientras contactamos al servidor para iniciar su sesión." }
-            }).GetAwaiter();
-
-            await _userManager.LoginAsync(
-                () => { },
-                async message => await Shell.Current.DisplayAlert("Error", message, "OK"));
-            await Shell.Current.GoToAsync("..");
-            ClearLoadingPageFromNavigationStack();
+            await _authenticationHandler.Login();
             UserLoggingInOut = false;
         }
 
         [RelayCommand]
         public async Task Logout()
         {
-            if (await Shell.Current.DisplayAlert("Cerrar sesión", "¿Desea cerrar sesión de la aplicación?", "Si", "No"))
-            {
-                UserLoggingInOut = true;
-                Shell.Current.FlyoutIsPresented = false;
-                Shell.Current.GoToAsync(nameof(LoadingPage), true, new Dictionary<string, object> 
-                {
-                    { "activity", "Cerrando sesión" },
-                    { "description", "Espere mientras cerramos su sesión." }
-                }).GetAwaiter();
-                await _userManager.LogoutAsync(
-                    async () =>
-                    {
-                        Shell.Current.DisplayAlert("Cerrar sesión", "Se ha cerrado sesión satisfactoriamente.", "OK").GetAwaiter();
-                        ClearNavigationStack();
-                        await Shell.Current.GoToAsync("//MainPage");
-                    },
-                    async message =>
-                    {
-                        Shell.Current.DisplayAlert("Error", $"Ha ocurrido un error cerrando sesión.\r\nMensaje de error: {message}", "OK").GetAwaiter();
-                        await Shell.Current.GoToAsync("..");
-                    });
-                ClearLoadingPageFromNavigationStack();
-                UserLoggingInOut = false;
-            }
-        }
-
-        private void ClearNavigationStack()
-        {
-            var pages = Shell.Current.Navigation.NavigationStack.ToList();
-            if (pages?.Any() == true)
-            {
-                foreach (var page in pages)
-                {
-                    if (page is not null)
-                    {
-                        Shell.Current.Navigation.RemovePage(page);
-                    }
-                }
-            }
-        }
-
-        private void ClearLoadingPageFromNavigationStack()
-        {
-            if (Shell.Current.Navigation.NavigationStack.Any(p => p is not null))
-            {
-                var loadingPage = Shell.Current.Navigation.NavigationStack.FirstOrDefault(p => p?.GetType() == typeof(LoadingPage));
-                if (loadingPage is not null)
-                {
-                    Shell.Current.Navigation.RemovePage(loadingPage);
-                }
-            }
+            UserLoggingInOut = true;
+            await _authenticationHandler.Logout();
+            UserLoggingInOut = false;
         }
 
         [RelayCommand]

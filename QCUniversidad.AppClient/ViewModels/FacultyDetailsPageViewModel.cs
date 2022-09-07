@@ -22,6 +22,8 @@ namespace QCUniversidad.AppClient.ViewModels
 
         private Guid FacultyId { get; set; }
 
+        private bool Loading => LoadingCareers || LoadingDeparments || LoadingFaculty;
+
         [ObservableProperty]
         bool loadingFaculty;
 
@@ -49,47 +51,95 @@ namespace QCUniversidad.AppClient.ViewModels
         [RelayCommand]
         public async Task LoadDepartments()
         {
-            LoadingDeparments = true;
-            try
+            if (!Loading)
             {
-                var departments = await _dataProvider.GetDeparmentsAsync(FacultyId);
-                Departments ??= new ObservableCollection<DepartmentModel>();
-                Departments.Clear();
-                foreach (var department in departments)
+                LoadingDeparments = true;
+                try
                 {
-                    Departments.Add(department);
+                    var departments = await _dataProvider.GetDeparmentsAsync(FacultyId);
+                    Departments ??= new ObservableCollection<DepartmentModel>();
+                    Departments.Clear();
+                    foreach (var department in departments)
+                    {
+                        Departments.Add(department);
+                    }
+                    NoDeparments = !Departments.Any();
                 }
-                NoDeparments = !Departments.Any();
+                catch (Exception ex)
+                {
+                    await Shell.Current.DisplayAlert("Error cargando departamentos", ex.Message, "OK");
+                }
+                LoadingDeparments = false;
             }
-            catch (Exception ex)
-            {
-                await Shell.Current.DisplayAlert("Error cargando departamentos", ex.Message, "OK");
-            }
-            LoadingDeparments = false;
         }
 
         [RelayCommand]
         public async Task CreateDeparment()
         {
-            await Shell.Current.GoToAsync(nameof(AddEditDeparmentPage), true, new Dictionary<string, object> 
+            await Shell.Current.GoToAsync(nameof(AddEditDeparmentPage), true, new Dictionary<string, object>
             {
                 { "facultyId", FacultyId },
-                { "mode", "new" },
-                //{ "return_to", nameof(FacultyDetailsPage) }
+                { "mode", "new" }
             });
+        }
+
+        [RelayCommand]
+        public async Task EditDepartment(Guid departmentId)
+        {
+            if (!Loading)
+            {
+                await Shell.Current.GoToAsync(nameof(AddEditDeparmentPage), true, new Dictionary<string, object>
+                {
+                    { "facultyId", FacultyId },
+                    { "departmentId", departmentId },
+                    { "mode", "edit" },
+                });
+            }
+        }
+
+        [RelayCommand]
+        public async Task DeleteDeparment(Guid departmentId)
+        {
+            if (!Loading)
+            {
+                if (await Shell.Current.DisplayAlert("Eliminar departamento", "¿Esta seguro que desea eliminar el departamento?", "Si", "No"))
+                {
+                    LoadingDeparments = true;
+                    try
+                    {
+                        var result = await _dataProvider.DeleteDepartmentAsync(departmentId);
+                        if (result)
+                        {
+                            LoadingDeparments = false;
+                            await LoadDepartments();
+                        }
+                        else
+                        {
+                            await Shell.Current.DisplayAlert("Error", "Ha ocurrido un error al intentar eliminar el departamento.", "OK");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
+                    }
+                }
+            }
         }
 
         private async Task LoadFaculty()
         {
-            if (FacultyId != Guid.Empty)
+            if (!Loading)
             {
-                LoadingFaculty = true;
-                var faculty = await _dataProvider.GetFacultyAsync(FacultyId);
-                FacultyName = faculty.Name;
-                FacultyCampus = faculty.Campus;
-                LoadingFaculty = false;
-                await LoadDepartments();
-                NoCareers = true;
+                if (FacultyId != Guid.Empty)
+                {
+                    LoadingFaculty = true;
+                    var faculty = await _dataProvider.GetFacultyAsync(FacultyId);
+                    FacultyName = faculty.Name;
+                    FacultyCampus = faculty.Campus;
+                    LoadingFaculty = false;
+                    await LoadDepartments();
+                    NoCareers = true;
+                }
             }
         }
 

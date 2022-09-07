@@ -109,12 +109,12 @@ namespace QCUniversidad.AppClient.Services.Data
             throw new ArgumentNullException(nameof(facultyId));
         }
 
-        public async Task<DepartmentModel> GetDeparmentAsync(Guid deparmentId)
+        public async Task<DepartmentModel> GetDeparmentAsync(Guid departmentId)
         {
-            if (deparmentId != Guid.Empty)
+            if (departmentId != Guid.Empty)
             {
                 var client = _apiCallerFactory.CreateApiCallerHttpClient();
-                var response = await client.GetAsync($"/department?id={deparmentId}");
+                var response = await client.GetAsync($"/department?id={departmentId}");
                 if (response.IsSuccessStatusCode)
                 {
                     var contentText = await response.Content.ReadAsStringAsync();
@@ -124,7 +124,7 @@ namespace QCUniversidad.AppClient.Services.Data
                 }
                 throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
             }
-            throw new ArgumentNullException(nameof(deparmentId));
+            throw new ArgumentNullException(nameof(departmentId));
         }
 
         public async Task<bool> CreateDepartmentAsync(DepartmentModel newDepartment)
@@ -138,6 +138,30 @@ namespace QCUniversidad.AppClient.Services.Data
                 return response.IsSuccessStatusCode;
             }
             throw new ArgumentNullException(nameof(newDepartment));
+        }
+
+        public async Task<bool> UpdateDepartmentAsync(DepartmentModel department)
+        {
+            if (department is not null)
+            {
+                var dto = _mapper.Map<DepartmentDto>(department);
+                var serializedData = JsonConvert.SerializeObject(dto);
+                var client = _apiCallerFactory.CreateApiCallerHttpClient();
+                var response = await client.PostAsync("/department/update", new StringContent(serializedData, Encoding.UTF8, "application/json"));
+                return response.IsSuccessStatusCode;
+            }
+            throw new ArgumentNullException(nameof(department));
+        }
+
+        public async Task<bool> DeleteDepartmentAsync(Guid departmentId)
+        {
+            if (departmentId != Guid.Empty)
+            {
+                var client = _apiCallerFactory.CreateApiCallerHttpClient();
+                var response = await client.DeleteAsync($"/department?id={departmentId}");
+                return response.IsSuccessStatusCode;
+            }
+            throw new ArgumentNullException(nameof(departmentId));
         }
 
         #endregion

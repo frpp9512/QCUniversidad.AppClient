@@ -22,7 +22,7 @@ namespace QCUniversidad.AppClient.ViewModels
         private Guid FacultyId { get; set; }
         private Guid DeparmentId { get; set; } = Guid.Empty;
         private string Mode { get; set; }
-        private string ReturnTo { get; set; } = "..";
+        private string ReturnTo { get; set; } = $"../{nameof(FacultyDetailsPage)}";
 
         [ObservableProperty]
         bool loading;
@@ -48,7 +48,7 @@ namespace QCUniversidad.AppClient.ViewModels
                         var model = new DepartmentModel
                         {
                             Name = Name,
-                            Description = Description,
+                            Description = Description ?? string.Empty,
                             FacultyId = FacultyId
                         };
                         try
@@ -76,6 +76,39 @@ namespace QCUniversidad.AppClient.ViewModels
                     }
                     return;
                 case "edit":
+                    if (!string.IsNullOrEmpty(Name))
+                    {
+                        Loading = true;
+                        var model = new DepartmentModel
+                        {
+                            Name = Name,
+                            Description = Description ?? string.Empty,
+                            FacultyId = FacultyId,
+                            Id = DeparmentId
+                        };
+                        try
+                        {
+                            var result = await _dataProvider.UpdateDepartmentAsync(model);
+                            if (result)
+                            {
+                                await GoBack();
+                            }
+                            else
+                            {
+                                await Shell.Current.DisplayAlert("Error actualizando el departamento", "Ha ocurrido un error mientras se actualizaba el departamento. Vuelva a intentarlo y si el error persiste contacte al administrador del sistema.", "OK");
+                            }
+                            Loading = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            await Shell.Current.DisplayAlert("Error actualizaba el departamento", ex.Message, "OK");
+                        }
+                        finally
+                        {
+                            Loading = false;
+                            await GoBack();
+                        }
+                    }
                     return;
                 default:
                     await GoBack();
@@ -86,11 +119,12 @@ namespace QCUniversidad.AppClient.ViewModels
         [RelayCommand]
         public async Task GoBack()
         {
-            await Shell.Current.GoToAsync(ReturnTo, true, new Dictionary<string, object>
+            var parameters = new Dictionary<string, object> 
             {
                 { "refresh", true },
                 { "facultyId", FacultyId }
-            });
+            };
+            await Shell.Current.GoToAsync(ReturnTo, true, parameters);
         }
 
         private async Task SetMode()
@@ -109,9 +143,6 @@ namespace QCUniversidad.AppClient.ViewModels
                     catch (Exception ex)
                     {
                         await Shell.Current.DisplayAlert("Error cargando el departamento", ex.Message, "OK");
-                    }
-                    finally
-                    {
                         Loading = false;
                         await GoBack();
                     }
@@ -139,7 +170,7 @@ namespace QCUniversidad.AppClient.ViewModels
                 }
                 if (query.ContainsKey("departmentId"))
                 {
-                    DeparmentId = (Guid)query["deparmentId"];
+                    DeparmentId = (Guid)query["departmentId"];
                 }
                 if (query.ContainsKey("return_to"))
                 {

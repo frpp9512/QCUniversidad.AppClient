@@ -27,10 +27,10 @@ namespace QCUniversidad.Api.Services
         Task<IList<DepartmentModel>> GetDepartmentsAsync();
         Task<IList<DepartmentModel>> GetDepartmentsAsync(Guid facultyId);
         Task<DepartmentModel> GetDeparmentAsync(Guid departmentId);
-        Task<int> GetDeparmentTeachersCount(Guid departmentId);
+        Task<int> GetDeparmentTeachersCountAsync(Guid departmentId);
         Task<bool> CreateDepartmentAsync(DepartmentModel department);
-        Task<bool> UpdateDeparment(DepartmentModel department);
-        Task<bool> DeleteDeparment(Guid deparmentId);
+        Task<bool> UpdateDeparmentAsync(DepartmentModel department);
+        Task<bool> DeleteDeparmentAsync(Guid deparmentId);
 
         #endregion
     }

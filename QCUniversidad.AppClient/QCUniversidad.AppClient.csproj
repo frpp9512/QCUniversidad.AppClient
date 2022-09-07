@@ -32,11 +32,11 @@
 
 	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\qcappiconwhite.svg" Color="#512BD4" />
 
 		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
-
+		<MauiSplashScreen Include="Resources\Splash\qcappicon.svg" Color="#FFFFFF" BaseSize="128,128" />
+		
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
 		<MauiImage Update="Resources\Images\dotnet_bot.svg" BaseSize="168,208" />
@@ -57,6 +57,7 @@
 	  <None Remove="Resources\Images\add_icon.svg" />
 	  <None Remove="Resources\Images\delete_icon.svg" />
 	  <None Remove="Resources\Images\edit_icon.svg" />
+	  <None Remove="Resources\Images\qclogo.svg" />
 	  <None Remove="Resources\Images\refresh_icon.svg" />
 	  <None Remove="Resources\Images\save_icon.svg" />
 	</ItemGroup>

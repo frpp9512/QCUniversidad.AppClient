@@ -52,9 +52,11 @@ public static class MauiProgram
 		builder.Services.AddTransient<IHttpClientFactory, MauiHttpClientFactory>();
 		builder.Services.AddTransient<IApiCallerHttpClientFactory, ApiCallerHttpClientFactory>();
 		builder.Services.AddSingleton<IUserManager, UserManager>();
+		builder.Services.AddTransient<IAuthenticationHandler, AuthenticationHandler>();
 		builder.Services.AddSingleton<ITokenManager, TokenManager>();
         builder.Services.AddSingleton<IConnectivity>(Connectivity.Current);
 		builder.Services.AddTransient<IDataProvider, DataProvider>();
+		builder.Services.AddSingleton<ITimersHandler, TimersHandler>();
 
 		builder.Services.AddTransient<WebAuthenticatorBrowser>();
 		builder.Services.AddTransient<OidcClient>(sp => new OidcClient(

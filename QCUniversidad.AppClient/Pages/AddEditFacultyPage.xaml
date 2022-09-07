@@ -6,9 +6,10 @@
              x:DataType="viewmodel:AddEditFacultyPageViewModel"
              Title="{Binding Title}"
              Shell.PresentationMode="ModalAnimated">
-    <VerticalStackLayout Padding="10" 
-                         Spacing="10"
-                         VerticalOptions="Center">
+    <StackLayout Padding="10"
+                 Spacing="10"
+                 Orientation="Vertical"
+                 VerticalOptions="Center">
         <ActivityIndicator IsVisible="{Binding Loading}"
                            IsRunning="{Binding Loading}"
                            HorizontalOptions="Center" />
@@ -21,10 +22,10 @@
                Text="{Binding Name}" />
         <Entry Placeholder="Sede"
                Text="{Binding Campus}" />
-        
+
         <Button Text="Guardar cambios"
                 Command="{Binding SaveChangesCommand}" />
         <Button Text="Regresar"
                 Command="{Binding GoBackCommand}" />
-    </VerticalStackLayout>
+    </StackLayout>
 </ContentPage>

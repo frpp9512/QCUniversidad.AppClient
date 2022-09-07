@@ -7,6 +7,7 @@ using QCUniversidad.Api.Shared.Dtos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -79,6 +80,30 @@ namespace QCUniversidad.Api.Controllers
                 }
             }
             return BadRequest("You should provide a department.");
+        }
+
+        [HttpPost]
+        [Route("update")]
+        public async Task<IActionResult> UpdateDepartment(DepartmentDto department)
+        {
+            if (department is not null)
+            {
+                var model = _mapper.Map<DepartmentModel>(department);
+                var result = await _dataManager.UpdateDeparmentAsync(model);
+                return result ? Ok(result) : (IActionResult)Problem("Error while updating department in database.");
+            }
+            return BadRequest("You should provide a department.");
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteDepartment(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                var result = await _dataManager.DeleteDeparmentAsync(id);
+                return result ? Ok(result) : (IActionResult)Problem("Error while deleting department from database.");
+            }
+            return BadRequest("You should provide a department id.");
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QCUniversidad.AppClient.Models;
+using QCUniversidad.AppClient.PlataformServices;
+using QCUniversidad.AppClient.Services.Authentication;
 using QCUniversidad.AppClient.Services.Data;
 using System;
 using System.Collections.Generic;
@@ -8,17 +10,24 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
+using Timer = System.Timers.Timer;
 
 namespace QCUniversidad.AppClient.ViewModels
 {
     public partial class FacultiesPageViewModel : ObservableObject, IQueryAttributable
     {
         private readonly IDataProvider _dataProvider;
+        private readonly ITimersHandler _timersHandler;
+        private readonly Guid _timerId;
 
-        public FacultiesPageViewModel(IDataProvider dataProvider)
+        public FacultiesPageViewModel(IDataProvider dataProvider, ITimersHandler timersHandler)
         {
             _dataProvider = dataProvider;
+            _timersHandler = timersHandler;
+            _timerId = _timersHandler.CreateTimer(async d => await LoadFaculties(), 30000);
             LoadFaculties();
+            _timersHandler.StartTimer(_timerId);
         }
 
         [ObservableProperty]
@@ -35,10 +44,18 @@ namespace QCUniversidad.AppClient.ViewModels
                 Loading = true;
                 Faculties ??= new ObservableCollection<FacultyModel>();
                 Faculties.Clear();
-                var faculties = await _dataProvider.GetFacultiesAsync();
-                foreach (var facutly in faculties)
+                try
                 {
-                    Faculties.Add(facutly);
+
+                    var faculties = await _dataProvider.GetFacultiesAsync();
+                    foreach (var facutly in faculties)
+                    {
+                        Faculties.Add(facutly);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await Shell.Current.DisplayAlert("Error cargando facultades", ex.Message, "OK");
                 }
                 Loading = false;
             }
@@ -70,14 +87,17 @@ namespace QCUniversidad.AppClient.ViewModels
             {
                 Loading = true;
                 var faculty = await _dataProvider.GetFacultyAsync(id);
-                if (faculty.CareersCount > 0 && faculty.DepartmentCount > 0)
+                if (faculty.CareersCount > 0 || faculty.DepartmentCount > 0)
                 {
                     await Shell.Current.DisplayAlert("Eliminar facultad", "La facultad tiene información asociada (Deparamentos y/o carreras).", "OK");
                 }
-                var result = await _dataProvider.DeleteFacultyAsync(faculty.Id);
-                if (!result)
+                else
                 {
-                    await Shell.Current.DisplayAlert("Eliminar facultad", "Ha ocurrido un error eliminando la facultad.", "OK");
+                    var result = await _dataProvider.DeleteFacultyAsync(faculty.Id);
+                    if (!result)
+                    {
+                        await Shell.Current.DisplayAlert("Eliminar facultad", "Ha ocurrido un error eliminando la facultad.", "OK");
+                    }
                 }
                 Loading = false;
                 await LoadFaculties();
