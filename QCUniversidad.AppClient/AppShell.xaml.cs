@@ -1,4 +1,5 @@
-﻿using QCUniversidad.AppClient.ViewModels;
+﻿using QCUniversidad.AppClient.Pages;
+using QCUniversidad.AppClient.ViewModels;
 
 namespace QCUniversidad.AppClient;
 
@@ -12,5 +13,7 @@ public partial class AppShell : Shell
 		Routing.RegisterRoute(nameof(AddEditFacultyPage), typeof(AddEditFacultyPage));
 		Routing.RegisterRoute(nameof(FacultyDetailsPage), typeof(FacultyDetailsPage));
 		Routing.RegisterRoute(nameof(AddEditDeparmentPage), typeof(AddEditDeparmentPage));
+		Routing.RegisterRoute(nameof(AddEditCareerPage), typeof(AddEditCareerPage));
+		Routing.RegisterRoute(nameof(AddEditDisciplinePage), typeof(AddEditDisciplinePage));
 	}
 }

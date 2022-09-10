@@ -96,8 +96,10 @@
                         <HorizontalStackLayout HorizontalOptions="EndAndExpand"
                                                Spacing="5">
                             <Button Text="Nueva"
-                                    ImageSource="add_icon.png" />
-                            <Button ImageSource="refresh_icon.png" />
+                                    ImageSource="add_icon.png" 
+                                    Command="{Binding CreateCareerCommand}" />
+                            <Button ImageSource="refresh_icon.png"
+                                    Command="{Binding LoadCareersCommand}" />
                         </HorizontalStackLayout>
                         
                     </StackLayout>
@@ -111,6 +113,40 @@
                             <Label Text="No existen carreras." />
                         </VerticalStackLayout>
                     </Frame>
+
+                    <CollectionView ItemsSource="{Binding Careers}"
+                                    Margin="0,10">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="model:CareerModel">
+                                <SwipeView Margin="5">
+                                    <SwipeView.RightItems>
+                                        <SwipeItems>
+                                            <SwipeItem IconImageSource="edit_icon.png"
+                                                       BackgroundColor="Green"
+                                                       Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:FacultyDetailsPageViewModel}}, Path=EditCareerCommand}"
+                                                       CommandParameter="{Binding Id}"/>
+                                        </SwipeItems>
+                                    </SwipeView.RightItems>
+                                    <SwipeView.LeftItems>
+                                        <SwipeItems>
+                                            <SwipeItem IconImageSource="delete_icon.png"
+                                                       BackgroundColor="Red"
+                                                       Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:FacultyDetailsPageViewModel}}, Path=DeleteCareerCommand}"
+                                                       CommandParameter="{Binding Id}" />
+                                        </SwipeItems>
+                                    </SwipeView.LeftItems>
+                                    <Frame>
+                                        <VerticalStackLayout Spacing="5">
+                                            <Label Text="{Binding Name}"
+                                                   FontSize="Medium" />
+                                            <Label Text="{Binding Description, FallbackValue='- Sin descripción -'}"
+                                                   FontSize="Default" />
+                                        </VerticalStackLayout>
+                                    </Frame>
+                                </SwipeView>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
                 </StackLayout>
             </Grid>
         </VerticalStackLayout>

@@ -26,6 +26,8 @@ namespace QCUniversidad.Api.Data.Models
         /// </summary>
         public string? Description { get; set; }
 
-        public IList<TeacherDiscipline> DisciplineTeachers { get; set; }
+        public IList<SubjectModel>? Subjects { get; set; }
+
+        public IList<TeacherDiscipline>? DisciplineTeachers { get; set; }
     }
 }

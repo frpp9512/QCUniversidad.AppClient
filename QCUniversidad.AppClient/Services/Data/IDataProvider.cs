@@ -28,5 +28,25 @@ namespace QCUniversidad.AppClient.Services.Data
         Task<bool> DeleteDepartmentAsync(Guid departmentId);
 
         #endregion
+
+        #region Careers
+
+        Task<IList<CareerModel>> GetCareersAsync(Guid facultyId);
+        Task<CareerModel> GetCareerAsync(Guid careerId);
+        Task<bool> CreateCareerAsync(CareerModel newCareer);
+        Task<bool> UpdateCareerAsync(CareerModel career);
+        Task<bool> DeleteCareerAsync(Guid careerId);
+
+        #endregion
+
+        #region Disciplines
+
+        Task<IList<DisciplineModel>> GetDisciplinesAsync();
+        Task<DisciplineModel> GetDisciplineAsync(Guid disciplineId);
+        Task<bool> CreateDisciplineAsync(DisciplineModel newDiscipline);
+        Task<bool> UpdateDisciplineAsync(DisciplineModel discipline);
+        Task<bool> DeleteDisciplineAsync(Guid disciplineId);
+
+        #endregion
     }
 }

@@ -165,5 +165,148 @@ namespace QCUniversidad.AppClient.Services.Data
         }
 
         #endregion
+
+        #region Careers
+
+        public async Task<IList<CareerModel>> GetCareersAsync(Guid facultyId)
+        {
+            if (facultyId != Guid.Empty)
+            {
+                var client = _apiCallerFactory.CreateApiCallerHttpClient();
+                var response = await client.GetAsync($"/career/list?facultyId={facultyId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var contentText = await response.Content.ReadAsStringAsync();
+                    var dtos = JsonConvert.DeserializeObject<List<CareerDto>>(contentText);
+                    var models = dtos.Select(dto => _mapper.Map<CareerModel>(dto)).ToList();
+                    return models;
+                }
+                throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+            }
+            throw new ArgumentNullException(nameof(facultyId));
+        }
+
+        public async Task<CareerModel> GetCareerAsync(Guid careerId)
+        {
+            if (careerId != Guid.Empty)
+            {
+                var client = _apiCallerFactory.CreateApiCallerHttpClient();
+                var response = await client.GetAsync($"/career?id={careerId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var contextText = await response.Content.ReadAsStringAsync();
+                    var dto = JsonConvert.DeserializeObject<CareerDto>(contextText);
+                    var model = _mapper.Map<CareerModel>(dto);
+                    return model;
+                }
+                throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+            }
+            throw new ArgumentNullException(nameof(careerId));
+        }
+
+        public async Task<bool> CreateCareerAsync(CareerModel newCareer)
+        {
+            if (newCareer is not null)
+            {
+                var dto = _mapper.Map<CareerDto>(newCareer);
+                var serializedData = JsonConvert.SerializeObject(dto);
+                var client = _apiCallerFactory.CreateApiCallerHttpClient();
+                var response = await client.PutAsync("/career", new StringContent(serializedData, Encoding.UTF8, "application/json"));
+                return response.IsSuccessStatusCode;
+            }
+            throw new ArgumentNullException(nameof(newCareer));
+        }
+
+        public async Task<bool> UpdateCareerAsync(CareerModel career)
+        {
+            if (career is not null)
+            {
+                var dto = _mapper.Map<CareerDto>(career);
+                var serializedData = JsonConvert.SerializeObject(dto);
+                var client = _apiCallerFactory.CreateApiCallerHttpClient();
+                var response = await client.PostAsync("/career/update", new StringContent(serializedData, Encoding.UTF8, "application/json"));
+                return response.IsSuccessStatusCode;
+            }
+            throw new ArgumentNullException(nameof(career));
+        }
+
+        public async Task<bool> DeleteCareerAsync(Guid careerId)
+        {
+            if (careerId != Guid.Empty)
+            {
+                var client = _apiCallerFactory.CreateApiCallerHttpClient();
+                var response = await client.DeleteAsync($"/career?id={careerId}");
+                return response.IsSuccessStatusCode;
+            }
+            throw new ArgumentNullException(nameof(careerId));
+        }
+
+        #endregion
+
+        #region Disciplines
+
+        public async Task<IList<DisciplineModel>> GetDisciplinesAsync()
+        {
+            var client = _apiCallerFactory.CreateApiCallerHttpClient();
+            var response = await client.GetAsync($"/discipline/list");
+            if (response.IsSuccessStatusCode)
+            {
+                var contentText = await response.Content.ReadAsStringAsync();
+                var disciplines = JsonConvert.DeserializeObject<IList<DisciplineDto>>(contentText);
+                return disciplines.Select(f => _mapper.Map<DisciplineModel>(f)).ToList();
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+
+        public async Task<DisciplineModel> GetDisciplineAsync(Guid disciplineId)
+        {
+            var client = _apiCallerFactory.CreateApiCallerHttpClient();
+            var response = await client.GetAsync($"/discipline?id={disciplineId}");
+            if (response.IsSuccessStatusCode)
+            {
+                var discipline = JsonConvert.DeserializeObject<DisciplineModel>(await response.Content.ReadAsStringAsync());
+                return _mapper.Map<DisciplineModel>(discipline);
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+
+        public async Task<bool> CreateDisciplineAsync(DisciplineModel newDiscipline)
+        {
+            if (newDiscipline is not null)
+            {
+                var dto = _mapper.Map<DisciplineModel>(newDiscipline);
+                var serializedDtos = JsonConvert.SerializeObject(dto);
+                var client = _apiCallerFactory.CreateApiCallerHttpClient();
+                var response = await client.PutAsync("/discipline", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
+                return response.IsSuccessStatusCode;
+            }
+            throw new ArgumentNullException(nameof(newDiscipline));
+        }
+
+        public async Task<bool> UpdateDisciplineAsync(DisciplineModel discipline)
+        {
+            if (discipline is not null)
+            {
+                var dto = _mapper.Map<DisciplineDto>(discipline);
+                var serializedDto = JsonConvert.SerializeObject(dto);
+                var client = _apiCallerFactory.CreateApiCallerHttpClient();
+                var response = await client.PostAsync("/discipline/update", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+                return response.IsSuccessStatusCode;
+            }
+            throw new ArgumentNullException(nameof(discipline));
+        }
+
+        public async Task<bool> DeleteDisciplineAsync(Guid disciplineId)
+        {
+            if (disciplineId != Guid.Empty)
+            {
+                var client = _apiCallerFactory.CreateApiCallerHttpClient();
+                var response = await client.DeleteAsync($"/discipline?id={disciplineId}");
+                return response.IsSuccessStatusCode;
+            }
+            throw new ArgumentNullException(nameof(disciplineId));
+        }
+
+        #endregion
     }
 }

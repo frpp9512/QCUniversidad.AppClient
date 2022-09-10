@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodel="clr-namespace:QCUniversidad.AppClient.ViewModels"
+             xmlns:model="clr-namespace:QCUniversidad.AppClient.Models"
+             x:Class="QCUniversidad.AppClient.Pages.DisciplinesPage"
+             x:DataType="viewmodel:DisciplinesPageViewModel"
+             Title="Listado de disciplinas"
+             Shell.TabBarIsVisible="False">
+    <VerticalStackLayout>
+        <HorizontalStackLayout Padding="5" 
+                               HorizontalOptions="End" 
+                               Spacing="5">
+            <Button Text="Nueva disciplina"
+                    ImageSource="add_icon.png"
+                    Command="{Binding CreateDisciplineCommand}"
+                    HorizontalOptions="Start"/>
+            <Button ImageSource="refresh_icon.png"
+                    Command="{Binding LoadDisciplinesCommand}"
+                    HorizontalOptions="End"/>
+        </HorizontalStackLayout>
+
+        <ActivityIndicator IsVisible="{Binding Loading}" 
+                           IsRunning="{Binding Loading}" 
+                           HorizontalOptions="Center" 
+                           VerticalOptions="Center" />
+
+        <Frame Margin="15"
+               IsVisible="{Binding NoDisciplines}">
+            <VerticalStackLayout HorizontalOptions="Center"
+                                 VerticalOptions="Center">
+                <Image Source="dotnet_bot.png" WidthRequest="75" />
+                <Label Text="No existen disciplinas." />
+            </VerticalStackLayout>
+        </Frame>
+
+        <CollectionView ItemsSource="{Binding Disciplines}" MaximumHeightRequest="600">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="model:DisciplineModel">
+                    <SwipeView Margin="5">
+                        <SwipeView.RightItems>
+                            <SwipeItems>
+                                <SwipeItem BackgroundColor="Green"
+                                           IconImageSource="edit_icon.png"
+                                           Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:DisciplinesPageViewModel}}, Path=EditDisciplineCommand}"
+                                           CommandParameter="{Binding Id}" />
+                            </SwipeItems>
+                        </SwipeView.RightItems>
+                        <SwipeView.LeftItems>
+                            <SwipeItems>
+                                <SwipeItem BackgroundColor="Red"
+                                           IconImageSource="delete_icon.png"
+                                           Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:DisciplinesPageViewModel}}, Path=DeleteDisciplineCommand}"
+                                           CommandParameter="{Binding Id}" />
+                            </SwipeItems>
+                        </SwipeView.LeftItems>
+                        <Frame>
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:DisciplinesPageViewModel}}, Path=GotoDisciplineDetailsCommand}"
+                                                      CommandParameter="{Binding Id}" />
+                            </Frame.GestureRecognizers>
+                            <Grid Padding="0.5" RowDefinitions="auto,auto">
+                                <Label Text="{Binding Name}"
+                                       FontSize="Medium"
+                                       Grid.Row="0"/>
+                                <HorizontalStackLayout Spacing="5"
+                                                       Grid.Row="1">
+                                    <Label Text="{Binding Description}"
+                                           Style="{StaticResource MutedSubtext}"
+                                           Margin="0,5" FontAttributes="Bold"
+                                           Grid.Row="1" />
+                                </HorizontalStackLayout>
+                            </Grid>
+                        </Frame>
+                    </SwipeView>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </VerticalStackLayout>
+</ContentPage>

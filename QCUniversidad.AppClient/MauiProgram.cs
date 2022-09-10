@@ -1,6 +1,7 @@
 ﻿using IdentityModel.OidcClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Authentication;
+using QCUniversidad.AppClient.Pages;
 using QCUniversidad.AppClient.PlataformServices;
 using QCUniversidad.AppClient.Services.Authentication;
 using QCUniversidad.AppClient.Services.Data;
@@ -47,9 +48,18 @@ public static class MauiProgram
 		builder.Services.AddTransient<AddEditDeparmentPageViewModel>();
 		builder.Services.AddTransient<AddEditDeparmentPage>();
 
-		#endregion
+		builder.Services.AddTransient<AddEditCareerPageViewModel>();
+		builder.Services.AddTransient<AddEditCareerPage>();
 
-		builder.Services.AddTransient<IHttpClientFactory, MauiHttpClientFactory>();
+		builder.Services.AddTransient<DisciplinesPageViewModel>();
+		builder.Services.AddTransient<DisciplinesPage>();
+
+		builder.Services.AddTransient<AddEditDisciplinePageViewModel>();
+		builder.Services.AddTransient<AddEditDisciplinePage>();
+
+        #endregion
+
+        builder.Services.AddTransient<IHttpClientFactory, MauiHttpClientFactory>();
 		builder.Services.AddTransient<IApiCallerHttpClientFactory, ApiCallerHttpClientFactory>();
 		builder.Services.AddSingleton<IUserManager, UserManager>();
 		builder.Services.AddTransient<IAuthenticationHandler, AuthenticationHandler>();

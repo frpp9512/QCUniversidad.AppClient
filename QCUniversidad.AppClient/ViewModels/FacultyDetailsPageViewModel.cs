@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QCUniversidad.AppClient.Models;
+using QCUniversidad.AppClient.Pages;
 using QCUniversidad.AppClient.Services.Data;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,6 @@ namespace QCUniversidad.AppClient.ViewModels
         }
 
         private Guid FacultyId { get; set; }
-
         private bool Loading => LoadingCareers || LoadingDeparments || LoadingFaculty;
 
         [ObservableProperty]
@@ -41,6 +41,9 @@ namespace QCUniversidad.AppClient.ViewModels
 
         [ObservableProperty]
         ObservableCollection<DepartmentModel> departments;
+
+        [ObservableProperty]
+        ObservableCollection<CareerModel> careers;
 
         [ObservableProperty]
         bool noDeparments;
@@ -138,7 +141,89 @@ namespace QCUniversidad.AppClient.ViewModels
                     FacultyCampus = faculty.Campus;
                     LoadingFaculty = false;
                     await LoadDepartments();
-                    NoCareers = true;
+                    await LoadCareers();
+                }
+            }
+        }
+
+        [RelayCommand]
+        public async Task CreateCareer()
+        {
+            await Shell.Current.GoToAsync(nameof(AddEditCareerPage), true, new Dictionary<string, object>
+            {
+                { "facultyId", FacultyId },
+                { "mode", "new" }
+            });
+        }
+
+        [RelayCommand]
+        public async Task EditCareer(Guid id)
+        {
+            if (!Loading)
+            {
+                await Shell.Current.GoToAsync(nameof(AddEditCareerPage), true, new Dictionary<string, object>
+                {
+                    { "facultyId", FacultyId },
+                    { "departmentId", id },
+                    { "mode", "edit" },
+                });
+            }
+        }
+
+        [RelayCommand]
+        public async Task DeleteCareer(Guid id)
+        {
+            if (!Loading)
+            {
+                if (await Shell.Current.DisplayAlert("Eliminar carrera", "¿Esta seguro que desea eliminar la carrera?", "Si", "No"))
+                {
+                    LoadingCareers = true;
+                    try
+                    {
+                        var result = await _dataProvider.DeleteCareerAsync(id);
+                        if (result)
+                        {
+                            LoadingCareers = false;
+                            await LoadCareers();
+                        }
+                        else
+                        {
+                            await Shell.Current.DisplayAlert("Error", "Ha ocurrido un error al intentar eliminar la carrera.", "OK");
+                            LoadingCareers = false;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
+                    }
+                }
+            }
+        }
+
+        [RelayCommand]
+        public async Task LoadCareers()
+        {
+            if (!Loading)
+            {
+                if (FacultyId != Guid.Empty)
+                {
+                    LoadingCareers = true;
+                    try
+                    {
+                        var careers = await _dataProvider.GetCareersAsync(FacultyId);
+                        Careers ??= new ObservableCollection<CareerModel>();
+                        Careers.Clear();
+                        foreach (var career in careers)
+                        {
+                            Careers.Add(career);
+                        }
+                        NoCareers = !Careers.Any();
+                    }
+                    catch (Exception ex)
+                    {
+                        await Shell.Current.DisplayAlert("Error cargando las carreras", ex.Message, "OK");
+                    }
+                    LoadingCareers = false;
                 }
             }
         }
@@ -163,6 +248,11 @@ namespace QCUniversidad.AppClient.ViewModels
         partial void OnDepartmentsChanged(ObservableCollection<DepartmentModel> value)
         {
             NoDeparments = value.Any();
+        }
+
+        partial void OnCareersChanged(ObservableCollection<CareerModel> value)
+        {
+            NoCareers = value.Any();
         }
     }
 }

@@ -56,6 +56,11 @@ namespace QCUniversidad.Api.Data.Context
                         .HasMany(d => d.DisciplineTeachers)
                         .WithOne(d => d.Discipline)
                         .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SubjectModel>()
+                        .HasOne(s => s.Discipline)
+                        .WithMany(d => d.Subjects)
+                        .OnDelete(DeleteBehavior.Cascade);
             
             modelBuilder.Entity<TeacherDiscipline>()
                         .HasKey(td => new { td.TeacherId, td.DisciplineId });

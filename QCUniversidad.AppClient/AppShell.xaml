@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:QCUniversidad.AppClient"
+    xmlns:pages="clr-namespace:QCUniversidad.AppClient.Pages"
     xmlns:viewmodel="clr-namespace:QCUniversidad.AppClient.ViewModels"
     x:DataType="viewmodel:ShellViewModel"
     Shell.FlyoutBehavior="Flyout">
@@ -16,16 +17,21 @@
                 FlyoutDisplayOptions="AsMultipleItems"
                 IsVisible="{Binding UserIsLogged}">
         <ShellContent Title="Facultades" ContentTemplate="{DataTemplate local:FacultiesPage}"
-                      Route="FacultiesPage"/>
+                      Route="FacultiesPage" />
+        <ShellContent Title="Disciplinas" ContentTemplate="{DataTemplate pages:DisciplinesPage}"
+                      Route="DisciplinesPage" />
         <ShellContent Title="Profesores" ContentTemplate="{DataTemplate local:TeachersPage}"
-                      Route="TeachersPage"/>
+                      Route="TeachersPage" />
     </FlyoutItem>
+
 
 
     <MenuItem Text="{Binding LoginLogoutText}"
               Command="{Binding LoginLogoutCommand}"
               IsEnabled="{Binding UserLoggingInOut}"
               />
+
+
 
     <!--<FlyoutItem Title="Usuario"
                 FlyoutDisplayOptions="AsMultipleItems">
