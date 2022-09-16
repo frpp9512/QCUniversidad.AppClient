@@ -14,6 +14,7 @@ namespace QCUniversidad.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize]
     public class FacultyController : ControllerBase
     {
         private readonly IDataManager _dataManager;
@@ -26,7 +27,6 @@ namespace QCUniversidad.Api.Controllers
         }
 
         [HttpGet("list")]
-        [Authorize(Roles = "QCUAdmin")]
         public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
         {
             var faculties = await _dataManager.GetFacultiesAsync(from, to);
@@ -34,8 +34,28 @@ namespace QCUniversidad.Api.Controllers
             return Ok(dtos);
         }
 
+        [HttpGet("count")]
+        public async Task<IActionResult> CountAsync()
+        {
+            var total = await _dataManager.GetFacultiesTotalAsync();
+            return Ok(total);
+        }
+
+        [HttpGet("exists")]
+        public async Task<IActionResult> ExistsAsync(Guid id)
+        {
+            try
+            {
+                var result = await _dataManager.ExistFacultyAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
+
         [HttpPut]
-        [Authorize(Roles = "QCUAdmin")]
         public async Task<IActionResult> CreateAsync(FacultyDto facultyDto)
         {
             if (facultyDto is not null)

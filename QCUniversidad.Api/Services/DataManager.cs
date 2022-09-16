@@ -34,10 +34,22 @@ namespace QCUniversidad.Api.Services
         public async Task<IList<FacultyModel>> GetFacultiesAsync(int from = 0, int to = 0)
         {
             var faculties =
-                from >= 0 && to > from
+                from >= 0 && to >= from
                 ? await _context.Faculties.Skip(from).Take(to).ToListAsync()
                 : await _context.Faculties.ToListAsync();
             return faculties;
+        }
+
+        public async Task<int> GetFacultiesTotalAsync()
+        {
+            var total = await _context.Faculties.CountAsync();
+            return total;
+        }
+
+        public async Task<bool> ExistFacultyAsync(Guid id)
+        {
+            var result = await _context.Faculties.AnyAsync(f => f.Id == id);
+            return result;
         }
 
         public async Task<bool> CreateFacultyAsync(FacultyModel faculty)

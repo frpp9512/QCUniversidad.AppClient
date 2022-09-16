@@ -1,0 +1,91 @@
+﻿@using System.Security.Claims
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - QCUniversidad</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/QCUniversidad.WebClient.styles.css" asp-append-version="true" />
+    <link href="/lib/fontawesome/css/fontawesome.css" rel="stylesheet">
+    <link href="/lib/fontawesome/css/brands.css" rel="stylesheet">
+    <link href="/lib/fontawesome/css/solid.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img width="50" src="/img/site/logo.svg" />
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Faculties" asp-action="Index">Facultades</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacidad</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav mr-sm-2">
+
+                        @if (!User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a href="/accounts/login?returnUrl=@Context.Request.Path" class="btn btn-outline-primary" type="submit"><span class="fa-solid fa-user"></span> Iniciar sesión</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span>
+                                        @User.Claims.First(c => c.Type == ClaimTypes.Name).Value
+                                        <br>
+                                        <small>@User.Claims.First(c => c.Type == ClaimTypes.Email).Value</small>
+                                    </span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-lg-end dropdown-menu-xl-end dropdown-xxl-end" aria-labelledby="navbarDropdownMenuLink">
+                                    @if (User.IsInRole("Administrador"))
+                                    {
+                                        <a class="dropdown-item" asp-action="Index" asp-controller="Accounts"><span class="fa fa-users"></span> Usuarios</a>
+                                    }
+                                    <li><a class="dropdown-item" href="/accounts/logout"><span class="fa fa-door-open"></span> Cerrar sesión</a></li>
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2022 - QCUniversidad.WebClient - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <a href="https://facebook.com/frankinformaticservices"><span class="fa-brands fa-facebook"></span></a>
+            <a href="https://twitter.com/frankinformaticservices"><span class="fa-brands fa-twitter"></span></a>
+            <a href="https://instagram.com/frankinformaticservices"><span class="fa-brands fa-instagram"></span></a>
+            <a href="https://wa.me/5358591754"><span class="fa-brands fa-whatsapp"></span></a>
+            <a href="https://t.me/frankinformaticservices"><span class="fa-brands fa-telegram"></span></a>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

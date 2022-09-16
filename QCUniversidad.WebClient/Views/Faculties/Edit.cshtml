@@ -1,0 +1,34 @@
+﻿@model FacultyModel
+@{
+    ViewData["Title"] = "Editar facultad";
+}
+
+<h1>Editar facultad</h1>
+<p>Actualice los datos de la facultad en el formulario</p>
+
+<div class="container">
+    <div class="col-12 col-md-6 col-xl-4">
+        <form asp-action="Edit" asp-controller="Faculties" method="post">
+            <div>
+                <div asp-validation-summary="All" class="text-danger"></div>
+            </div>
+            <fieldset>
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-control" autofocus />
+                    <span asp-validation-for="Name" />
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Campus" class="form-label"></label>
+                    <input asp-for="Campus" class="form-control" />
+                    <span asp-validation-for="Campus" />
+                </div>
+            </fieldset>
+            <div class="form-footer mt-3">
+                <input asp-for="Id" type="hidden" />
+                <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                <button type="submit" class="btn btn-primary"><span class="fa fa-floppy-disk"></span> Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>

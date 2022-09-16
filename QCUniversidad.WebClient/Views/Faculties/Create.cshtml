@@ -1,0 +1,33 @@
+﻿@model FacultyModel
+@{
+    ViewData["Title"] = "Crear facultad";
+}
+
+<h1>Crear facultad</h1>
+<p>Rellene el forumlario para crear una nueva facultad</p>
+
+<div class="container">
+    <div class="col-12 col-md-6 col-xl-4">
+        <form asp-action="Create" asp-controller="Faculties" method="post">
+            <div>
+                <div asp-validation-summary="All" class="text-danger"></div>
+            </div>
+            <fieldset>
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-control" autofocus />
+                    <span asp-validation-for="Name" />
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Campus" class="form-label"></label>
+                    <input asp-for="Campus" class="form-control" />
+                    <span asp-validation-for="Campus" />
+                </div>
+            </fieldset>
+            <div class="form-footer mt-3">
+                <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                <button type="submit" class="btn btn-primary"><span class="fa fa-plus"></span> Agregar</button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -7,7 +7,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QCUniversidad.AppClient", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QCUniversidad.Api", "QCUniversidad.Api\QCUniversidad.Api.csproj", "{B8ACD3ED-B1B9-4CFD-91E4-C3336253B81C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QCUniversidad.Api.Shared", "QCUniversidad.Api.Shared\QCUniversidad.Api.Shared.csproj", "{77DFB00C-C61F-447D-8196-990B3528E0E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QCUniversidad.Api.Shared", "QCUniversidad.Api.Shared\QCUniversidad.Api.Shared.csproj", "{77DFB00C-C61F-447D-8196-990B3528E0E6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QCUniversidad.WebClient", "QCUniversidad.WebClient\QCUniversidad.WebClient.csproj", "{34B63EAB-CD2D-4FC6-83E3-C08E607F4C6D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartB1t.Security", "SmartB1t.Security\SmartB1t.Security.csproj", "{3AB10BEA-0314-4FF9-AD58-BFFB5A8EB444}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartB1t.Security.Extensions", "SmartB1t.Security.Extensions\SmartB1t.Security.Extensions.csproj", "{3A9F2B82-0F36-495B-A557-2BDC07E25FB0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartB1t.Security.WebSecurity.Local", "SmartB1t.Security.WebSecurity.Local\SmartB1t.Security.WebSecurity.Local.csproj", "{24CB2CCB-193C-48F8-BF7F-E8FEFEBA74B6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartB1t.Web.Extensions", "SmartB1t.Web.Extensions\SmartB1t.Web.Extensions.csproj", "{932AABF1-74B0-45AE-985B-B0691B763F58}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,6 +39,26 @@ Global
 		{77DFB00C-C61F-447D-8196-990B3528E0E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77DFB00C-C61F-447D-8196-990B3528E0E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77DFB00C-C61F-447D-8196-990B3528E0E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34B63EAB-CD2D-4FC6-83E3-C08E607F4C6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34B63EAB-CD2D-4FC6-83E3-C08E607F4C6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34B63EAB-CD2D-4FC6-83E3-C08E607F4C6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34B63EAB-CD2D-4FC6-83E3-C08E607F4C6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AB10BEA-0314-4FF9-AD58-BFFB5A8EB444}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AB10BEA-0314-4FF9-AD58-BFFB5A8EB444}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AB10BEA-0314-4FF9-AD58-BFFB5A8EB444}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AB10BEA-0314-4FF9-AD58-BFFB5A8EB444}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A9F2B82-0F36-495B-A557-2BDC07E25FB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A9F2B82-0F36-495B-A557-2BDC07E25FB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A9F2B82-0F36-495B-A557-2BDC07E25FB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A9F2B82-0F36-495B-A557-2BDC07E25FB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24CB2CCB-193C-48F8-BF7F-E8FEFEBA74B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24CB2CCB-193C-48F8-BF7F-E8FEFEBA74B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24CB2CCB-193C-48F8-BF7F-E8FEFEBA74B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24CB2CCB-193C-48F8-BF7F-E8FEFEBA74B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{932AABF1-74B0-45AE-985B-B0691B763F58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{932AABF1-74B0-45AE-985B-B0691B763F58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{932AABF1-74B0-45AE-985B-B0691B763F58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{932AABF1-74B0-45AE-985B-B0691B763F58}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
