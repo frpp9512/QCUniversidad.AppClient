@@ -27,6 +27,11 @@ namespace QCUniversidad.Api.Data.Models
         public string? Description { get; set; }
 
         /// <summary>
+        /// The disciplines managed by the department.
+        /// </summary>
+        public IList<DisciplineModel> Disciplines { get; set; }
+
+        /// <summary>
         /// The id of the faculty where the department belongs to.
         /// </summary>
         public Guid FacultyId { get; init; }

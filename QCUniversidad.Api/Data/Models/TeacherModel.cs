@@ -39,16 +39,6 @@ namespace QCUniversidad.Api.Data.Models
         public bool ServiceProvider { get; set; }
 
         /// <summary>
-        /// The id of the department where the teacher belongs.
-        /// </summary>
-        public Guid DepartmentId { get; set; }
-
-        /// <summary>
-        /// The department where the teacher belongs.
-        /// </summary>
-        public DepartmentModel Department { get; set; }
-
-        /// <summary>
         /// The disciplines whose the teacher can teach.
         /// </summary>
         public IList<TeacherDiscipline> TeacherDisciplines { get; set; }

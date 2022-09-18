@@ -3,6 +3,7 @@ using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -34,7 +35,7 @@ namespace QCUniversidad.Api.Services
         public async Task<IList<FacultyModel>> GetFacultiesAsync(int from = 0, int to = 0)
         {
             var faculties =
-                from >= 0 && to >= from
+                (from != 0 && from == to) && (from >= 0 && to >= from)
                 ? await _context.Faculties.Skip(from).Take(to).ToListAsync()
                 : await _context.Faculties.ToListAsync();
             return faculties;
@@ -105,9 +106,24 @@ namespace QCUniversidad.Api.Services
 
         #region Departments
 
-        public async Task<IList<DepartmentModel>> GetDepartmentsAsync()
+        public async Task<IList<DepartmentModel>> GetDepartmentsAsync(int from, int to)
         {
-            throw new NotImplementedException();
+            var deparments = from >= 0 && to >= from
+                             ? await _context.Departments.Skip(from).Take(to).Include(d => d.Faculty).ToListAsync()
+                             : await _context.Departments.ToListAsync();
+            return deparments;
+        }
+
+        public async Task<int> GetDepartmentDisciplinesCount(Guid departmentId)
+        {
+            var count = await _context.Disciplines.CountAsync(d => d.Id == departmentId);
+            return count;
+        }
+
+        public async Task<bool> ExistDepartmentAsync(Guid id)
+        {
+            var result = await _context.Departments.AnyAsync(f => f.Id == id);
+            return result;
         }
 
         public async Task<IList<DepartmentModel>> GetDepartmentsAsync(Guid facultyId)
@@ -116,9 +132,23 @@ namespace QCUniversidad.Api.Services
             return deparments;
         }
 
-        public async Task<DepartmentModel> GetDeparmentAsync(Guid departmentId)
+        public async Task<int> GetDepartmentsCountAsync()
         {
-            var department = await _context.Departments.FindAsync(departmentId);
+            var count = await _context.Departments.CountAsync();
+            return count;
+        }
+
+        public async Task<int> GetDepartmentsCountAsync(Guid facultyId)
+        {
+            var count = await _context.Departments.CountAsync(d => d.FacultyId == facultyId);
+            return count;
+        }
+
+        public async Task<DepartmentModel> GetDepartmentAsync(Guid departmentId)
+        {
+            var department = await _context.Departments.Where(d => d.Id == departmentId)
+                                                       .Include(d => d.Faculty)
+                                                       .FirstOrDefaultAsync();
             return department ?? throw new DeparmentNotFoundException();
         }
 
@@ -155,7 +185,7 @@ namespace QCUniversidad.Api.Services
             {
                 throw new ArgumentNullException(nameof(departmentId));
             }
-            var department = await GetDeparmentAsync(departmentId);
+            var department = await GetDepartmentAsync(departmentId);
             _context.Departments.Remove(department);
             var result = await _context.SaveChangesAsync();
             return result > 0;

@@ -1,0 +1,113 @@
+﻿@model NavigationListViewModel<DepartmentModel>
+
+@{
+    ViewData["Title"] = "Departamentos";
+    bool departmentCreated = (bool?)TempData["department-created"] ?? false;
+    bool departmentEdited = (bool?)TempData["department-edited"] ?? false;
+    bool departmentDeleted = (bool?)TempData["department-deleted"] ?? false;
+}
+
+<h1>Departamentos</h1>
+
+@if (departmentCreated)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-info-circle"></span> Departamento creado</strong> Se ha creado un nuevo departamento satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (departmentEdited)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-pencil-square"></span> Departamento editado</strong> Se ha editado un departamento satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (departmentDeleted)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-trash-can"></span> Departamento eliminado</strong> Se ha eliminado un departamento satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-success"><span class="fa fa-plus-circle"></span> Crear nuevo</a>
+</p>
+
+@if (Model.ItemsCount > 0)
+{
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Disciplinas</th>
+                <th>Facultad</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr id="@item.Id">
+                    <td>
+                        @item.Name
+                    </td>
+                    <td>
+                        @item.Description
+                    </td>
+                    <td>
+                        @item.DisciplinesCount
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-controller="Faculties" asp-route-id="@item.Faculty.Id">@item.Faculty?.Name</a>
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-controller="Departments" asp-route-id="@item.Id" class="btn-sm btn-outline-warning">
+                            <span class="fa fa-edit" />
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">
+                            <span class="fa fa-trash" />
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Navigation -->
+
+    <partial name="_PageNavigation" model="Model" />
+
+    <!-- Modals -->
+
+    <div class="modal fade" id="deleteDepartmentModal" tabindex="-1" aria-labelledby="deleteDepartmentModalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteDepartmentModalTitle"><span class="fa fa-trash"></span> Eliminar departamento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="modal-delete-content" class="modal-body">
+                    ¿Esta seguro que desea eliminar el departamento?
+                </div>
+                <div id="deleteModalFooter" class="modal-footer">
+                    <div id="deleteModalLoadingSpinner" class="spinner-border text-primary" role="status" hidden>
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <button id="modal-delete-primarybutton" type="button" class="btn btn-danger"><span class="fa fa-trash-can"></span> Eliminar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span class="fa fa-ban"></span> Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script src="~/js/department-index.js"></script>
+    }
+}
+else
+{
+    <h1>No existen departamentos en el sistema</h1>
+}

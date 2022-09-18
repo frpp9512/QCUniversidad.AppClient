@@ -8,18 +8,15 @@ using System.Xml.Linq;
 
 namespace QCUniversidad.WebClient.Models
 {
-    public class DepartmentModel
+    public class EditDepartmentModel
     {
         public Guid Id { get; set; }
-
         [Required]
         [Display(Name = "Nombre", Prompt = "Nombre del departamento", Description = "El nombre del departamento")]
         public string Name { get; set; }
-
         [Display(Name = "Descripción", Prompt = "Descripción del departamento", Description = "La descripción del departamento.")]
         public string? Description { get; set; }
-        public int DisciplinesCount { get; set; }
         public Guid FacultyId { get; set; }
-        public FacultyModel? Faculty { get; set; }
+        public string FacultyName { get; set; }
     }
 }

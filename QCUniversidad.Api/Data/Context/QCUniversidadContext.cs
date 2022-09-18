@@ -92,6 +92,12 @@ namespace QCUniversidad.Api.Data.Context
                         .HasForeignKey(cs => cs.SubjectId)
                         .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<DepartmentModel>()
+                        .HasMany(d => d.Disciplines)
+                        .WithOne(d => d.Department)
+                        .HasForeignKey(d => d.DepartmentId)
+                        .OnDelete(DeleteBehavior.Cascade);
+
             base.OnModelCreating(modelBuilder);
         }
     }

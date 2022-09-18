@@ -15,6 +15,12 @@ namespace QCUniversidad.WebClient.AutoMapperProfiles
         {
             CreateMap<DepartmentDto, DepartmentModel>();
             CreateMap<DepartmentModel, DepartmentDto>();
+            CreateMap<NewDepartmentDto, DepartmentModel>();
+            CreateMap<DepartmentModel, NewDepartmentDto>();
+            CreateMap<EditDepartmentModel, DepartmentModel>();
+            CreateMap<DepartmentModel, EditDepartmentModel>().ForMember(d => d.FacultyName, opt => opt.MapFrom(d => d.Faculty.Name));
+            CreateMap<EditDepartmentDto, DepartmentModel>();
+            CreateMap<DepartmentModel, EditDepartmentDto>();
         }
     }
 }

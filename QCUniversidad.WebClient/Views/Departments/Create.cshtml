@@ -1,0 +1,45 @@
+﻿@model CreateDepartmentModel
+@{
+    ViewData["Title"] = "Nuevo departamento";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-xl-4">
+            <h1>Crear departamento</h1>
+            <p>Rellene el forumlario para crear un nuevo departamento</p>
+            <hr />
+            <form asp-action="Create" asp-controller="Departments" method="post">
+                <div>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+                <fieldset>
+                    <div class="mb-3">
+                        <label for="FacultyId" class="form-label">Seleccionar facultad</label>
+                        <select asp-for="FacultyId" class="form-select" aria-label="Seleccionar facultad" autofocus>
+                            <option selected>Seleccione una facultad</option>
+                            @foreach (var item in Model.Faculties)
+                            {
+                                <option value="@item.Id">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label"></label>
+                        <input asp-for="Description" class="form-control" />
+                        <span asp-validation-for="Description" />
+                    </div>
+                </fieldset>
+                <div class="form-footer mt-3">
+                    <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    <button type="submit" class="btn btn-primary"><span class="fa fa-plus"></span> Agregar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

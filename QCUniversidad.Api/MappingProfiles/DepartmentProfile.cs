@@ -15,6 +15,10 @@ namespace QCUniversidad.Api.MappingProfiles
         {
             CreateMap<DepartmentModel, DepartmentDto>();
             CreateMap<DepartmentDto, DepartmentModel>();
+            CreateMap<NewDepartmentDto, DepartmentModel>();
+            CreateMap<DepartmentModel, NewDepartmentDto>();
+            CreateMap<EditDepartmentDto, DepartmentModel>();
+            CreateMap<DepartmentModel, EditDepartmentDto>();
         }
     }
 }

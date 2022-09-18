@@ -17,10 +17,15 @@ html {
 html {
   position: relative;
   min-height: 100%;
+  background-image: url('../img/site/qcu_bg.svg');
+  background-clip: border-box;
+  background-size: 500px;   
 }
 
 body {
   margin-bottom: 60px;
+  background-color: transparent;
+  background-blend-mode: difference;
 }
 
 h1, h2 {
@@ -39,6 +44,26 @@ thead {
     color: var(--main-color);
 }
 
+main {
+    padding: 15px;
+    border-radius: 5px;
+}
+
+#main-container {
+    background-color: white;
+    box-shadow: 1px 1px 10px #ccc;
+    border-radius: 5px;
+}
+
+footer {
+    background-color: var(--main-color);
+    color: white;
+}
+
+footer * {
+    color: white;
+}
+
 .login-container {
     display: grid;
     grid-template: "login-image login-form";
@@ -48,9 +73,10 @@ thead {
     width: 80%;
     margin: auto;
     box-shadow: 1px 1px 10px #ddd;
+    min-width: 320px;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 990px) {
     .login-container {
         grid-template: "login-image"
             "login-form";

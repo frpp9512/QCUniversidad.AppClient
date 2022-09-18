@@ -6,6 +6,7 @@ using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
@@ -28,6 +29,19 @@ namespace QCUniversidad.Api.Controllers
         }
 
         [HttpGet]
+        [Route("listall")]
+        public async Task<IActionResult> GetList(int from = 0, int to = 0)
+        {
+            var deparments = await _dataManager.GetDepartmentsAsync(from, to);
+            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d));
+            foreach (var dto in dtos)
+            {
+                dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
+            }
+            return Ok(dtos);
+        }
+
+        [HttpGet]
         [Route("list")]
         public async Task<IActionResult> GetList(Guid facultyId)
         {
@@ -35,9 +49,72 @@ namespace QCUniversidad.Api.Controllers
             {
                 var deparments = await _dataManager.GetDepartmentsAsync(facultyId);
                 var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d));
+                foreach (var dto in dtos)
+                {
+                    dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
+                }
                 return Ok(dtos);
             }
             return BadRequest("You should provide a faculty id to load the departments from.");
+        }
+
+        [HttpGet]
+        [Route("countall")]
+        public async Task<IActionResult> GetCount()
+        {
+            try
+            {
+                var count = await _dataManager.GetDepartmentsCountAsync();
+                return Ok(count);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("countdisciplines")]
+        public async Task<IActionResult> GetDisciplinesCount(Guid departmentId)
+        {
+            try
+            {
+                var count = await _dataManager.GetDepartmentsCountAsync(departmentId);
+                return Ok(count);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("count")]
+        public async Task<IActionResult> GetCount(Guid facultyId)
+        {
+            try
+            {
+                var count = await _dataManager.GetDepartmentsCountAsync(facultyId);
+                return Ok(count);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
+
+        [HttpGet("exists")]
+        public async Task<IActionResult> ExistsAsync(Guid id)
+        {
+            try
+            {
+                var result = await _dataManager.ExistDepartmentAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
         }
 
         [HttpGet]
@@ -47,7 +124,7 @@ namespace QCUniversidad.Api.Controllers
             {
                 try
                 {
-                    var department = await _dataManager.GetDeparmentAsync(id);
+                    var department = await _dataManager.GetDepartmentAsync(id);
                     var dto = _mapper.Map<DepartmentDto>(department);
                     return Ok(dto);
                 }
@@ -64,7 +141,7 @@ namespace QCUniversidad.Api.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> CreateDeparment(DepartmentDto department)
+        public async Task<IActionResult> CreateDeparment(NewDepartmentDto department)
         {
             if (department is not null)
             {
@@ -84,7 +161,7 @@ namespace QCUniversidad.Api.Controllers
 
         [HttpPost]
         [Route("update")]
-        public async Task<IActionResult> UpdateDepartment(DepartmentDto department)
+        public async Task<IActionResult> UpdateDepartment(EditDepartmentDto department)
         {
             if (department is not null)
             {

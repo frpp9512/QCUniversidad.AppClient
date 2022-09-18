@@ -26,9 +26,13 @@ namespace QCUniversidad.Api.Services
 
         #region Deparments
 
-        Task<IList<DepartmentModel>> GetDepartmentsAsync();
+        Task<IList<DepartmentModel>> GetDepartmentsAsync(int from = 0, int to = 0);
         Task<IList<DepartmentModel>> GetDepartmentsAsync(Guid facultyId);
-        Task<DepartmentModel> GetDeparmentAsync(Guid departmentId);
+        Task<bool> ExistDepartmentAsync(Guid id);
+        Task<int> GetDepartmentsCountAsync();
+        Task<int> GetDepartmentsCountAsync(Guid facultyId);
+        Task<int> GetDepartmentDisciplinesCount(Guid departmentId);
+        Task<DepartmentModel> GetDepartmentAsync(Guid departmentId);
         Task<int> GetDeparmentTeachersCountAsync(Guid departmentId);
         Task<bool> CreateDepartmentAsync(DepartmentModel department);
         Task<bool> UpdateDeparmentAsync(DepartmentModel department);
