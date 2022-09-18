@@ -108,15 +108,21 @@ namespace QCUniversidad.Api.Services
 
         public async Task<IList<DepartmentModel>> GetDepartmentsAsync(int from, int to)
         {
-            var deparments = from >= 0 && to >= from
+            var deparments = (from != 0 && from == to) && from >= 0 && to >= from
                              ? await _context.Departments.Skip(from).Take(to).Include(d => d.Faculty).ToListAsync()
-                             : await _context.Departments.ToListAsync();
+                             : await _context.Departments.Include(d => d.Faculty).ToListAsync();
             return deparments;
+        }
+
+        public async Task<bool> ExistsDisciplineAsync(Guid id)
+        {
+            var result = await _context.Disciplines.AnyAsync(d => d.Id == id);
+            return result;
         }
 
         public async Task<int> GetDepartmentDisciplinesCount(Guid departmentId)
         {
-            var count = await _context.Disciplines.CountAsync(d => d.Id == departmentId);
+            var count = await _context.Disciplines.CountAsync(d => d.DepartmentId == departmentId);
             return count;
         }
 
@@ -271,9 +277,28 @@ namespace QCUniversidad.Api.Services
             throw new ArgumentNullException(nameof(discipline));
         }
 
-        public async Task<IList<DisciplineModel>> GetDisciplinesAsync()
+        public async Task<IList<DisciplineModel>> GetDisciplinesAsync(int from, int to)
         {
-            var result = await _context.Disciplines.ToListAsync();
+            var result = 
+                (from != 0 && from == to) && (from >= 0 && to >= from) 
+                ? await _context.Disciplines.Skip(from).Take(to).Include(d => d.Department).ToListAsync()
+                : await _context.Disciplines.Include(d => d.Department).ToListAsync();
+            return result;
+        }
+
+        public async Task<int> GetDisciplinesCountAsync()
+        {
+            return await _context.Disciplines.CountAsync();
+        }
+
+        public async Task<int> GetDisciplineSubjectsCountAsync(Guid disciplineId)
+        {
+            var result = await _context.Subjects.CountAsync(s => s.DisciplineId == disciplineId);
+            return result;
+        }
+        public async Task<int> GetDisciplineTeachersCountAsync(Guid disciplineId)
+        {
+            var result = await _context.TeachersDisciplines.CountAsync(td => td.DisciplineId == disciplineId);
             return result;
         }
 
@@ -281,7 +306,9 @@ namespace QCUniversidad.Api.Services
         {
             if (disciplineId != Guid.Empty)
             {
-                var result = await _context.Disciplines.FindAsync(disciplineId);
+                var result = await _context.Disciplines.Where(d => d.Id == disciplineId)
+                                                       .Include(d => d.Department)
+                                                       .FirstOrDefaultAsync();
                 return result ?? throw new CareerNotFoundException();
             }
             throw new ArgumentNullException(nameof(disciplineId));

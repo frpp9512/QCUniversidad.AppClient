@@ -8,19 +8,17 @@ using System.Xml.Linq;
 
 namespace QCUniversidad.WebClient.Models
 {
-    public record DisciplineModel
+    public record EditDisciplineModel : CreateDisciplineModel
     {
         public Guid Id { get; set; }
-        
+
         [Required]
         [Display(Name = "Nombre", Prompt = "Nombre de la disciplina", Description = "El nombre de la disciplina")]
         public string Name { get; set; }
 
         [Display(Name = "Disciplina", Prompt = "Descripción de la disciplina", Description = "La descripción de la disciplina")]
         public string? Description { get; set; }
-        public int? TeachersCount { get; set; }
-        public int? SubjectsCount { get; set; }
         public Guid DepartmentId { get; set; }
-        public DepartmentModel? Department { get; set; }
+        public string? DepartmentName { get; set; }
     }
 }

@@ -1,38 +1,38 @@
-﻿@model NavigationListViewModel<DepartmentModel>
+﻿@model NavigationListViewModel<DisciplineModel>
 
 @{
-    ViewData["Title"] = "Departamentos";
-    bool departmentCreated = (bool?)TempData["department-created"] ?? false;
-    bool departmentEdited = (bool?)TempData["department-edited"] ?? false;
-    bool departmentDeleted = (bool?)TempData["department-deleted"] ?? false;
+    ViewData["Title"] = "Disciplinas";
+    bool disciplineAdded = (bool?)TempData["discipline-added"] ?? false;
+    bool disciplineEdited = (bool?)TempData["discipline-edited"] ?? false;
+    bool disciplineDeleted = (bool?)TempData["discipline-deleted"] ?? false;
 }
 
-<h1>Departamentos</h1>
+<h1>Disciplinas</h1>
 
-@if (departmentCreated)
+@if (disciplineAdded)
 {
     <div class="alert alert-info alert-dismissible fade show" role="alert">
-        <strong><span class="fa fa-info-circle"></span> Departamento creado</strong> Se ha creado un nuevo departamento satisfactoriamente.
+        <strong><span class="fa fa-info-circle"></span> Disciplina creada</strong> Se ha creado una nueva disciplina satisfactoriamente.
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
-@if (departmentEdited)
+@if (disciplineEdited)
 {
     <div class="alert alert-info alert-dismissible fade show" role="alert">
-        <strong><span class="fa fa-pencil-square"></span> Departamento editado</strong> Se ha editado un departamento satisfactoriamente.
+        <strong><span class="fa fa-pencil-square"></span> Disciplina editada</strong> Se ha editado una nueva disciplina satisfactoriamente.
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
-@if (departmentDeleted)
+@if (disciplineDeleted)
 {
     <div class="alert alert-info alert-dismissible fade show" role="alert">
-        <strong><span class="fa fa-trash-can"></span> Departamento eliminado</strong> Se ha eliminado un departamento satisfactoriamente.
+        <strong><span class="fa fa-trash-can"></span> Disciplina eliminada</strong> Se ha eliminado una disciplina satisfactoriamente.
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
 
 <p>
-    <a asp-action="Create" class="btn btn-success"><span class="fa fa-plus-circle"></span> Crear nuevo</a>
+    <a asp-action="Create" class="btn btn-success"><span class="fa fa-plus-circle"></span> Crear nueva</a>
 </p>
 
 @if (Model.ItemsCount > 0)
@@ -42,8 +42,9 @@
             <tr>
                 <th>Nombre</th>
                 <th>Descripción</th>
-                <th>Disciplinas</th>
-                <th>Facultad</th>
+                <th>Departamento</th>
+                <th>Profesores</th>
+                <th>Asignaturas</th>
                 <th></th>
             </tr>
         </thead>
@@ -58,16 +59,19 @@
                         @item.Description
                     </td>
                     <td>
-                        @item.DisciplinesCount
+                        <a asp-action="Deatils" asp-controller="Departments" asp-route-id="@item.DepartmentId">@item.Department?.Name</a>
                     </td>
                     <td>
-                        <a asp-action="Details" asp-controller="Faculties" asp-route-id="@item.Faculty?.Id">@item.Faculty?.Name</a>
+                        @item.TeachersCount
                     </td>
                     <td>
-                        <a asp-action="Edit" asp-controller="Departments" asp-route-id="@item.Id" class="btn-sm btn-outline-warning">
+                        @item.SubjectsCount
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-controller="Disciplines" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
                             <span class="fa fa-edit" />
                         </a>
-                        <button class="btn btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">
+                        <button class="btn btn-sm btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">
                             <span class="fa fa-trash" />
                         </button>
                     </td>
@@ -82,15 +86,15 @@
 
     <!-- Modals -->
 
-    <div class="modal fade" id="deleteDepartmentModal" tabindex="-1" aria-labelledby="deleteDepartmentModalTitle" aria-hidden="true">
+    <div class="modal fade" id="deleteDisciplineModal" tabindex="-1" aria-labelledby="deleteDisciplineModalTitle" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="deleteDepartmentModalTitle"><span class="fa fa-trash"></span> Eliminar departamento</h5>
+                    <h5 class="modal-title" id="deleteDisciplineModalTitle"><span class="fa fa-trash"></span> Eliminar disciplina</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div id="modal-delete-content" class="modal-body">
-                    ¿Esta seguro que desea eliminar el departamento?
+                    ¿Esta seguro que desea eliminar la disciplina?
                 </div>
                 <div id="deleteModalFooter" class="modal-footer">
                     <div id="deleteModalLoadingSpinner" class="spinner-border text-primary" role="status" hidden>
@@ -104,10 +108,10 @@
     </div>
 
     @section Scripts {
-        <script src="~/js/department-index.js"></script>
+        <script src="~/js/discipline-index.js"></script>
     }
 }
 else
 {
-    <h1>No existen departamentos en el sistema</h1>
+    <h1>No existen disciplinas en el sistema</h1>
 }

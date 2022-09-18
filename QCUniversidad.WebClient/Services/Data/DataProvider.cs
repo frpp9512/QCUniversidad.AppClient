@@ -6,6 +6,7 @@ using QCUniversidad.WebClient.Services.Platform;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -115,7 +116,7 @@ namespace QCUniversidad.WebClient.Services.Data
 
         #region Deparments
 
-        public async Task<IList<DepartmentModel>> GetDepartmentsAsync(int from, int to)
+        public async Task<IList<DepartmentModel>> GetDepartmentsAsync(int from = 0, int to = 0)
         {
             var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
             var response = await client.GetAsync($"/department/listall?from={from}&to={to}");
@@ -332,15 +333,27 @@ namespace QCUniversidad.WebClient.Services.Data
 
         #region Disciplines
 
-        public async Task<IList<DisciplineModel>> GetDisciplinesAsync()
+        public async Task<IList<DisciplineModel>> GetDisciplinesAsync(int from, int to)
         {
             var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-            var response = await client.GetAsync($"/discipline/list");
+            var response = await client.GetAsync($"/discipline/list?from={from}&to={to}");
             if (response.IsSuccessStatusCode)
             {
                 var contentText = await response.Content.ReadAsStringAsync();
                 var disciplines = JsonConvert.DeserializeObject<IList<DisciplineDto>>(contentText);
-                return disciplines.Select(f => _mapper.Map<DisciplineModel>(f)).ToList();
+                return disciplines?.Select(f => _mapper.Map<DisciplineModel>(f)).ToList() ?? new List<DisciplineModel>();
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+
+        public async Task<int> GetDisciplinesCountAsync()
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/discipline/count");
+            if (response.IsSuccessStatusCode)
+            {
+                var total = int.Parse(await response.Content.ReadAsStringAsync());
+                return total;
             }
             throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
         }
@@ -357,11 +370,24 @@ namespace QCUniversidad.WebClient.Services.Data
             throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
         }
 
+        public async Task<bool> ExistsDisciplineAsync(Guid id)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/discipline/exists?id={id}");
+            if (response.IsSuccessStatusCode)
+            {
+                var contentText = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<bool>(contentText);
+                return result;
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+
         public async Task<bool> CreateDisciplineAsync(DisciplineModel newDiscipline)
         {
             if (newDiscipline is not null)
             {
-                var dto = _mapper.Map<DisciplineModel>(newDiscipline);
+                var dto = _mapper.Map<NewDisciplineDto>(newDiscipline);
                 var serializedDtos = JsonConvert.SerializeObject(dto);
                 var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
                 var response = await client.PutAsync("/discipline", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
@@ -374,7 +400,7 @@ namespace QCUniversidad.WebClient.Services.Data
         {
             if (discipline is not null)
             {
-                var dto = _mapper.Map<DisciplineDto>(discipline);
+                var dto = _mapper.Map<EditDisciplineDto>(discipline);
                 var serializedDto = JsonConvert.SerializeObject(dto);
                 var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
                 var response = await client.PostAsync("/discipline/update", new StringContent(serializedDto, Encoding.UTF8, "application/json"));

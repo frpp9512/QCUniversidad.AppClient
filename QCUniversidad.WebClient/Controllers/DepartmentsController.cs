@@ -147,7 +147,7 @@ namespace QCUniversidad.WebClient.Controllers
         [HttpDelete]
         public async Task<IActionResult> DeleteAsync(Guid id)
         {
-            try 
+            try
             {
                 if (await _dataProvider.ExistsDepartmentAsync(id))
                 {

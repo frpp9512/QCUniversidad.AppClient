@@ -15,6 +15,12 @@ namespace QCUniversidad.WebClient.AutoMapperProfiles
         {
             CreateMap<DisciplineDto, DisciplineModel>();
             CreateMap<DisciplineModel, DisciplineDto>();
+            CreateMap<NewDisciplineDto, DisciplineModel>();
+            CreateMap<DisciplineModel, NewDisciplineDto>();
+            CreateMap<EditDisciplineModel, DisciplineModel>();
+            CreateMap<DisciplineModel, EditDisciplineModel>();
+            CreateMap<EditDisciplineDto, DisciplineModel>();
+            CreateMap<DisciplineModel, EditDisciplineDto>();
         }
     }
 }

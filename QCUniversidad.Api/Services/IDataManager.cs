@@ -2,6 +2,7 @@
 using QCUniversidad.Api.Data.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -53,7 +54,11 @@ namespace QCUniversidad.Api.Services
         #region Disciplines
 
         Task<bool> CreateDisciplineAsync(DisciplineModel discipline);
-        Task<IList<DisciplineModel>> GetDisciplinesAsync();
+        Task<bool> ExistsDisciplineAsync(Guid id);
+        Task<int> GetDisciplinesCountAsync();
+        Task<int> GetDisciplineSubjectsCountAsync(Guid disciplineId);
+        Task<int> GetDisciplineTeachersCountAsync(Guid disciplineId);
+        Task<IList<DisciplineModel>> GetDisciplinesAsync(int from, int to);
         Task<DisciplineModel> GetDisciplineAsync(Guid disciplineId);
         Task<bool> UpdateDisciplineAsync(DisciplineModel discipline);
         Task<bool> DeleteDisciplineAsync(Guid disciplineId);

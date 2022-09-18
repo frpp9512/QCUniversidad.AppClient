@@ -1,28 +1,24 @@
-﻿@model CreateDepartmentModel
+﻿@model EditDisciplineModel
 @{
-    ViewData["Title"] = "Nuevo departamento";
+    ViewData["Title"] = "Editar disciplina";
 }
 
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-12 col-md-6 col-xl-4">
-            <h1>Crear departamento</h1>
-            <p>Rellene el forumlario para crear un nuevo departamento</p>
+            <h1>Editar disciplina</h1>
+            <p>Actualize los datos de la disciplina en el formulario</p>
             <hr />
-            <form asp-action="Create" asp-controller="Departments" method="post">
+            <form asp-action="Edit" asp-controller="Disciplines" method="post">
                 <div>
                     <div asp-validation-summary="All" class="text-danger"></div>
                 </div>
                 <fieldset>
                     <div class="mb-3">
-                        <label for="FacultyId" class="form-label">Seleccionar facultad</label>
-                        <select asp-for="FacultyId" class="form-select" aria-label="Seleccionar facultad" autofocus>
-                            <option selected>Seleccione una facultad</option>
-                            @foreach (var item in Model.Faculties)
-                            {
-                                <option value="@item.Id">@item.Name</option>
-                            }
-                        </select>
+                        <div class="col-sm-10">
+                            <input asp-for="DepartmentName" readonly class="form-control-plaintext">
+                            <input asp-for="DepartmentId" type="hidden" />
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label asp-for="Name" class="form-label"></label>
@@ -36,8 +32,9 @@
                     </div>
                 </fieldset>
                 <div class="form-footer mt-3">
+                    <input asp-for="Id" type="hidden" />
                     <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
-                    <button type="submit" class="btn btn-primary"><span class="fa fa-plus"></span> Crear</button>
+                    <button type="submit" class="btn btn-primary"><span class="fa fa-floppy-disk"></span> Guardar cambios</button>
                 </div>
             </form>
         </div>

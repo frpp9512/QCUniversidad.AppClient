@@ -1,26 +1,27 @@
-﻿@model CreateDepartmentModel
+﻿@model CreateDisciplineModel
+
 @{
-    ViewData["Title"] = "Nuevo departamento";
+    ViewData["Title"] = "Nueva disciplina";
 }
 
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-12 col-md-6 col-xl-4">
-            <h1>Crear departamento</h1>
-            <p>Rellene el forumlario para crear un nuevo departamento</p>
+            <h1>Crear disciplina</h1>
+            <p>Rellene el forumlario para crear una nueva disciplina</p>
             <hr />
-            <form asp-action="Create" asp-controller="Departments" method="post">
+            <form asp-action="Create" asp-controller="Disciplines" method="post">
                 <div>
                     <div asp-validation-summary="All" class="text-danger"></div>
                 </div>
                 <fieldset>
                     <div class="mb-3">
-                        <label for="FacultyId" class="form-label">Seleccionar facultad</label>
-                        <select asp-for="FacultyId" class="form-select" aria-label="Seleccionar facultad" autofocus>
-                            <option selected>Seleccione una facultad</option>
-                            @foreach (var item in Model.Faculties)
+                        <label for="DepartmentId" class="form-label">Seleccionar departamento</label>
+                        <select asp-for="DepartmentId" class="form-select" aria-label="Seleccionar departamento" autofocus>
+                            <option selected>Seleccione un departamento...</option>
+                            @foreach (var item in Model.Departments)
                             {
-                                <option value="@item.Id">@item.Name</option>
+                                <option value="@item.Id">@item.Name > @item.Faculty?.Name</option>
                             }
                         </select>
                     </div>

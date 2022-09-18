@@ -33,11 +33,10 @@ namespace QCUniversidad.Api.Controllers
         public async Task<IActionResult> GetList(int from = 0, int to = 0)
         {
             var deparments = await _dataManager.GetDepartmentsAsync(from, to);
-            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d));
-            foreach (var dto in dtos)
+            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d, opts => opts.AfterMap(async (o, d) =>
             {
-                dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
-            }
+                d.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(d.Id);
+            })));
             return Ok(dtos);
         }
 
@@ -48,11 +47,10 @@ namespace QCUniversidad.Api.Controllers
             if (facultyId != Guid.Empty)
             {
                 var deparments = await _dataManager.GetDepartmentsAsync(facultyId);
-                var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d));
-                foreach (var dto in dtos)
+                var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d, opts => opts.AfterMap(async (o, d) => 
                 {
-                    dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
-                }
+                    d.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(d.Id);
+                })));
                 return Ok(dtos);
             }
             return BadRequest("You should provide a faculty id to load the departments from.");

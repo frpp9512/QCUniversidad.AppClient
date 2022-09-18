@@ -9,8 +9,13 @@ using SmartB1t.Security.WebSecurity.Local.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddEventSourceLogger();
+builder.Logging.AddEventLog();
 
+// Add services to the container.
 
 builder.Services.AddAuthentication(Constants.AUTH_SCHEME)
                 .AddCookie(Constants.AUTH_SCHEME, options =>

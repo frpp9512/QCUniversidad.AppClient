@@ -15,6 +15,10 @@ namespace QCUniversidad.Api.MappingProfiles
         {
             CreateMap<DisciplineModel, DisciplineDto>();
             CreateMap<DisciplineDto, DisciplineModel>();
+            CreateMap<NewDisciplineDto, DisciplineModel>();
+            CreateMap<DisciplineModel, NewDisciplineDto>();
+            CreateMap<EditDisciplineDto, DisciplineModel>();
+            CreateMap<DisciplineModel, EditDisciplineDto>();
         }
     }
 }

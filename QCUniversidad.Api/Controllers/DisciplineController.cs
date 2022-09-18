@@ -27,17 +27,50 @@ namespace QCUniversidad.Api.Controllers
         }
 
         [HttpGet("list")]
-        [Authorize(Roles = "QCUAdmin")]
         public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
         {
-            var disciplines = await _dataManager.GetDisciplinesAsync();
-            var dtos = disciplines.Select(d => _mapper.Map<DisciplineDto>(d)); //disciplines.Select(f => GetFacultyDto(f).GetAwaiter().GetResult());
+            var disciplines = await _dataManager.GetDisciplinesAsync(from, to);
+            var dtos = disciplines.Select(d => _mapper.Map<DisciplineDto>(d));
+            foreach (var dto in dtos)
+            {
+                dto.TeachersCount = await _dataManager.GetDisciplineTeachersCountAsync(dto.Id);
+                dto.SubjectsCount = await _dataManager.GetDisciplineSubjectsCountAsync(dto.Id);
+            }
             return Ok(dtos);
         }
 
+        [HttpGet]
+        [Route("count")]
+        public async Task<IActionResult> GetCount()
+        {
+            try
+            {
+                var count = await _dataManager.GetDisciplinesCountAsync();
+                return Ok(count);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("exists")]
+        public async Task<IActionResult> ExistsAsync(Guid id)
+        {
+            try
+            {
+                var result = await _dataManager.ExistsDisciplineAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
+
         [HttpPut]
-        [Authorize(Roles = "QCUAdmin")]
-        public async Task<IActionResult> CreateAsync(DisciplineDto disciplineDto)
+        public async Task<IActionResult> CreateAsync(NewDisciplineDto disciplineDto)
         {
             if (disciplineDto is not null)
             {
@@ -57,7 +90,9 @@ namespace QCUniversidad.Api.Controllers
             try
             {
                 var result = await _dataManager.GetDisciplineAsync(id);
-                var dto = _mapper.Map<DisciplineDto>(result); //await GetFacultyDto(result);
+                var dto = _mapper.Map<DisciplineDto>(result);
+                dto.SubjectsCount = await _dataManager.GetDisciplineSubjectsCountAsync(dto.Id);
+                dto.TeachersCount = await _dataManager.GetDisciplineTeachersCountAsync(dto.Id);
                 return Ok(dto);
             }
             catch (DisciplineNotFoundException)
@@ -67,7 +102,7 @@ namespace QCUniversidad.Api.Controllers
         }
 
         [HttpPost("update")]
-        public async Task<IActionResult> UpdateAsync(DisciplineDto discipline)
+        public async Task<IActionResult> UpdateAsync(EditDisciplineDto discipline)
         {
             if (discipline is not null)
             {
