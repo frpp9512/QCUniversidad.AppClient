@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using QCUniversidad.WebClient.Models;
+using QCUniversidad.WebClient.Models.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using QCUniversidad.WebClient.Data.Contexts;
 using QCUniversidad.WebClient.Models;
+using QCUniversidad.WebClient.Models.Shared;
 using SmartB1t.Security.WebSecurity.Local;
 using System.Diagnostics;
 

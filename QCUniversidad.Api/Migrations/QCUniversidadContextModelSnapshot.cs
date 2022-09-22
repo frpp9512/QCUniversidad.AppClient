@@ -249,6 +249,9 @@ namespace QCUniversidad.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid>("DepartmentId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Fullname")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -260,10 +263,9 @@ namespace QCUniversidad.Api.Migrations
                     b.Property<string>("Position")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("ServiceProvider")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
 
                     b.ToTable("Teachers");
                 });
@@ -380,6 +382,17 @@ namespace QCUniversidad.Api.Migrations
                     b.Navigation("Teacher");
                 });
 
+            modelBuilder.Entity("QCUniversidad.Api.Data.Models.TeacherModel", b =>
+                {
+                    b.HasOne("QCUniversidad.Api.Data.Models.DepartmentModel", "Department")
+                        .WithMany("Teachers")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+                });
+
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.CurriculumModel", b =>
                 {
                     b.Navigation("CurriculumSubjects");
@@ -388,6 +401,8 @@ namespace QCUniversidad.Api.Migrations
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.DepartmentModel", b =>
                 {
                     b.Navigation("Disciplines");
+
+                    b.Navigation("Teachers");
                 });
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.DisciplineModel", b =>

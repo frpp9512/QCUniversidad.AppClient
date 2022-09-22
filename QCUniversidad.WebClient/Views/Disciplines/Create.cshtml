@@ -17,11 +17,18 @@
                 <fieldset>
                     <div class="mb-3">
                         <label for="DepartmentId" class="form-label">Seleccionar departamento</label>
-                        <select asp-for="DepartmentId" class="form-select" aria-label="Seleccionar departamento" autofocus>
-                            <option selected>Seleccione un departamento...</option>
-                            @foreach (var item in Model.Departments)
-                            {
-                                <option value="@item.Id">@item.Name > @item.Faculty?.Name</option>
+                        <select asp-for="DepartmentId" class="form-select select-department" aria-label="Seleccionar departamento" autofocus>
+                            @{
+                                var groups = Model.Departments.GroupBy(d => d.FacultyId);
+                                foreach (var group in groups)
+                                {
+                                        <optgroup label="@group.First().Faculty.Name">
+                                            @foreach (var department in group)
+                                        {
+                                                <option value="@department.Id">@department.Name</option>
+                                        }
+                                        </optgroup>
+                                }
                             }
                         </select>
                     </div>
@@ -44,3 +51,13 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.select-department').select2({
+                placeholder: "Seleccione el departamento"
+            });
+        });
+    </script>
+}

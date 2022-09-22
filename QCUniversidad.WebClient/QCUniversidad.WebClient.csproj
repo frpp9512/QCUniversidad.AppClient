@@ -35,4 +35,11 @@
     <Folder Include="wwwroot\img\tmp\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="wwwroot\js\teacher-index.js">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

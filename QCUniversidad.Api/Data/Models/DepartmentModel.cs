@@ -32,6 +32,11 @@ namespace QCUniversidad.Api.Data.Models
         public IList<DisciplineModel> Disciplines { get; set; }
 
         /// <summary>
+        /// The teachers of the department.
+        /// </summary>
+        public IList<TeacherModel> Teachers { get; set; }
+
+        /// <summary>
         /// The id of the faculty where the department belongs to.
         /// </summary>
         public Guid FacultyId { get; init; }

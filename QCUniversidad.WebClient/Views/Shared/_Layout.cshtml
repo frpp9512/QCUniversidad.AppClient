@@ -11,6 +11,7 @@
     <link href="/lib/fontawesome/css/fontawesome.css" rel="stylesheet">
     <link href="/lib/fontawesome/css/brands.css" rel="stylesheet">
     <link href="/lib/fontawesome/css/solid.css" rel="stylesheet">
+    <link href="/lib/select2/select2.min.css" rel="stylesheet" />
     @await RenderSectionAsync("PageStyles", required: false)
 </head>
 <body>
@@ -37,6 +38,9 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Disciplines" asp-action="Index">Disciplinas</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Teachers" asp-action="Index">Profesores</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Home" asp-action="Privacy">Privacidad</a>
@@ -93,6 +97,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/lib/select2/select2.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

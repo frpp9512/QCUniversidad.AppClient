@@ -1,0 +1,87 @@
+﻿@model CreateTeacherModel
+@{
+    ViewData["Title"] = "Crear profesor";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-xl-4">
+            <h1>Crear profesor</h1>
+            <p>Rellene el forumlario para crear un nuevo profesor</p>
+            <hr />
+            <form asp-action="Create" asp-controller="Teachers" method="post">
+                <div>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+                <fieldset>
+                    <div class="mb-3">
+                        @{
+                            var departmentGroups = Model.DepartmentList.GroupBy(d => d.FacultyId);
+                            <label for="SelectedDisciplines">Departamento al que pertenece</label>
+                            <select asp-for="DepartmentId" class="form-control selected-department" aria-label="select">
+                                @foreach (var group in departmentGroups)
+                                {
+                                    <optgroup label="@group.FirstOrDefault()?.Faculty?.Name">
+                                        @foreach (var d in group)
+                                        {
+                                            <option value="@d.Id">@d.Name</option>
+                                        }
+                                    </optgroup>
+                                }
+                            </select>
+                        }
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Fullname" class="form-label"></label>
+                        <input asp-for="Fullname" class="form-control" />
+                        <span asp-validation-for="Fullname" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="PersonalId" class="form-label"></label>
+                        <input asp-for="PersonalId" class="form-control" />
+                        <span asp-validation-for="PersonalId" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Position" class="form-label"></label>
+                        <input asp-for="Position" class="form-control" />
+                        <span asp-validation-for="PersonalId" />
+                    </div>
+                    <div class="mb-3">
+                        @{
+                            var groups = Model.Disciplines.GroupBy(d => d.DepartmentId);
+                            <label for="SelectedDisciplines">Disciplinas a la que pertenece</label>
+                            <select asp-for="SelectedDisciplines" class="form-control selected-disciplines" multiple aria-label="multiple select example">
+                                @foreach (var group in groups)
+                                {
+                                    <optgroup label="@group.FirstOrDefault()?.Name">
+                                        @foreach (var d in group)
+                                        {
+                                            <option value="@d.Id">@d.Name</option>
+                                        }
+                                    </optgroup>
+                                }
+                            </select>
+                        }
+                    </div>
+                </fieldset>
+                <div class="form-footer mt-3">
+                    <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    <button type="submit" class="btn btn-primary"><span class="fa fa-plus"></span> Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.selected-disciplines').select2({
+                placeholder: "Seleccione las disciplinas"
+            });
+            $('.selected-department').select2({
+                placeholder: "Seleccione el departamento"
+            });
+        });
+    </script>
+}

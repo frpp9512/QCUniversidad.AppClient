@@ -14,6 +14,7 @@ namespace QCUniversidad.Api.Services
     public class DeparmentNotFoundException : Exception { }
     public class CareerNotFoundException : Exception { }
     public class DisciplineNotFoundException : Exception { }
+    public class TeacherNotFoundException : Exception { }
 
     public class DataManager : IDataManager
     {
@@ -112,12 +113,6 @@ namespace QCUniversidad.Api.Services
                              ? await _context.Departments.Skip(from).Take(to).Include(d => d.Faculty).ToListAsync()
                              : await _context.Departments.Include(d => d.Faculty).ToListAsync();
             return deparments;
-        }
-
-        public async Task<bool> ExistsDisciplineAsync(Guid id)
-        {
-            var result = await _context.Disciplines.AnyAsync(d => d.Id == id);
-            return result;
         }
 
         public async Task<int> GetDepartmentDisciplinesCount(Guid departmentId)
@@ -277,10 +272,16 @@ namespace QCUniversidad.Api.Services
             throw new ArgumentNullException(nameof(discipline));
         }
 
+        public async Task<bool> ExistsDisciplineAsync(Guid id)
+        {
+            var result = await _context.Disciplines.AnyAsync(d => d.Id == id);
+            return result;
+        }
+
         public async Task<IList<DisciplineModel>> GetDisciplinesAsync(int from, int to)
         {
-            var result = 
-                (from != 0 && from == to) && (from >= 0 && to >= from) 
+            var result =
+                (from != 0 && from == to) && (from >= 0 && to >= from)
                 ? await _context.Disciplines.Skip(from).Take(to).Include(d => d.Department).ToListAsync()
                 : await _context.Disciplines.Include(d => d.Department).ToListAsync();
             return result;
@@ -309,7 +310,7 @@ namespace QCUniversidad.Api.Services
                 var result = await _context.Disciplines.Where(d => d.Id == disciplineId)
                                                        .Include(d => d.Department)
                                                        .FirstOrDefaultAsync();
-                return result ?? throw new CareerNotFoundException();
+                return result ?? throw new DisciplineNotFoundException();
             }
             throw new ArgumentNullException(nameof(disciplineId));
         }
@@ -342,6 +343,112 @@ namespace QCUniversidad.Api.Services
                 }
             }
             throw new ArgumentNullException(nameof(disciplineId));
+        }
+
+        #endregion
+
+        #region Teachers
+
+        public async Task<bool> CreateTeacherAsync(TeacherModel teacher)
+        {
+            if (teacher is not null)
+            {
+                await _context.Teachers.AddAsync(teacher);
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            throw new ArgumentNullException(nameof(teacher));
+        }
+
+        public async Task<bool> ExistsTeacherAsync(Guid id)
+        {
+            var result = await _context.Teachers.AnyAsync(t => t.Id == id);
+            return result;
+        }
+
+        public async Task<int> GetTeachersCountAsync()
+        {
+            return await _context.Teachers.CountAsync();
+        }
+
+        public async Task<int> GetTeacherDisciplinesCountAsync(Guid id)
+        {
+            var result = await _context.TeachersDisciplines.CountAsync(td => td.TeacherId == id);
+            return result;
+        }
+
+        public async Task<IList<TeacherModel>> GetTeachersAsync(int from, int to)
+        {
+            var result =
+                (from != 0 && from == to) && (from >= 0 && to >= from)
+                ? await _context.Teachers.Skip(from).Take(to).Include(d => d.Department).Include(d => d.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync()
+                : await _context.Teachers.Include(d => d.Department).Include(d => d.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync();
+            return result;
+        }
+
+        public async Task<TeacherModel> GetTeacherAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                var result = await _context.Teachers.Where(t => t.Id == id)
+                                                    .Include(d => d.Department)
+                                                    .Include(d => d.TeacherDisciplines).ThenInclude(td => td.Discipline)
+                                                    .FirstOrDefaultAsync();
+                return result ?? throw new TeacherNotFoundException();
+            }
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        public async Task<bool> UpdateTeacherAsync(TeacherModel teacher)
+        {
+            if (teacher is not null)
+            {
+                await _context.TeachersDisciplines.Where(td => td.TeacherId == teacher.Id)
+                                                  .ForEachAsync(td => _context.Remove(td));
+                await _context.TeachersDisciplines.AddRangeAsync(teacher.TeacherDisciplines);
+                _context.Teachers.Update(teacher);
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            throw new ArgumentNullException(nameof(teacher));
+        }
+
+        public async Task<bool> DeleteTeacherAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                try
+                {
+                    var teacher = await GetTeacherAsync(id);
+                    _context.Teachers.Remove(teacher);
+                    var result = await _context.SaveChangesAsync();
+                    return result > 0;
+                }
+                catch (TeacherNotFoundException)
+                {
+                    throw;
+                }
+            }
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        #endregion
+
+        #region Teachers - Disciplines
+
+        public async Task<IList<DisciplineModel>> GetDisciplinesForTeacher(Guid teacherId)
+        {
+            if (await ExistsTeacherAsync(teacherId))
+            {
+                var disciplines = from td in _context.TeachersDisciplines
+                                  join discipline in _context.Disciplines
+                                  on td.DisciplineId equals discipline.Id
+                                  where td.TeacherId == teacherId
+                                  select discipline;
+                disciplines = disciplines.Include(d => d.Department);
+                return await disciplines.ToListAsync();
+            }
+            throw new TeacherNotFoundException();
         }
 
         #endregion

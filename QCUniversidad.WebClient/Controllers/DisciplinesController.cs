@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using QCUniversidad.WebClient.Models;
+using QCUniversidad.WebClient.Models.Configuration;
+using QCUniversidad.WebClient.Models.Disciplines;
+using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Services.Data;
 
 namespace QCUniversidad.WebClient.Controllers
@@ -88,6 +91,7 @@ namespace QCUniversidad.WebClient.Controllers
             {
                 if (await _dataProvider.ExistsDepartmentAsync(model.DepartmentId))
                 {
+
                     var result = await _dataProvider.CreateDisciplineAsync(model);
                     if (result)
                     {

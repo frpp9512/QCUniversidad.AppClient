@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using QCUniversidad.WebClient.Data.Contexts;
 using QCUniversidad.WebClient.Data.Helpers;
-using QCUniversidad.WebClient.Models;
+using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Services.Data;
 using QCUniversidad.WebClient.Services.Platform;
 using SmartB1t.Security.WebSecurity.Local.Interfaces;

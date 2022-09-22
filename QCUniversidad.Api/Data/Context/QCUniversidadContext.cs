@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using QCUniversidad.Api.Data.Models;
@@ -61,7 +62,13 @@ namespace QCUniversidad.Api.Data.Context
                         .HasOne(s => s.Discipline)
                         .WithMany(d => d.Subjects)
                         .OnDelete(DeleteBehavior.Cascade);
-            
+
+            modelBuilder.Entity<TeacherModel>()
+                        .HasOne(t => t.Department)
+                        .WithMany(d => d.Teachers)
+                        .HasForeignKey(t => t.DepartmentId)
+                        .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<TeacherDiscipline>()
                         .HasKey(td => new { td.TeacherId, td.DisciplineId });
 
@@ -97,6 +104,8 @@ namespace QCUniversidad.Api.Data.Context
                         .WithOne(d => d.Department)
                         .HasForeignKey(d => d.DepartmentId)
                         .OnDelete(DeleteBehavior.Cascade);
+
+
 
             base.OnModelCreating(modelBuilder);
         }

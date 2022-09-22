@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Writers;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
-using QCUniversidad.Api.Shared.Dtos;
+using QCUniversidad.Api.Shared.Dtos.Career;
 using System;
 using System.Collections.Generic;
 using System.Linq;

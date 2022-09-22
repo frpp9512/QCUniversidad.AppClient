@@ -1,4 +1,8 @@
-﻿using QCUniversidad.WebClient.Models;
+﻿using QCUniversidad.WebClient.Models.Careers;
+using QCUniversidad.WebClient.Models.Departments;
+using QCUniversidad.WebClient.Models.Disciplines;
+using QCUniversidad.WebClient.Models.Faculties;
+using QCUniversidad.WebClient.Models.Teachers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,13 +52,25 @@ namespace QCUniversidad.WebClient.Services.Data
 
         #region Disciplines
 
-        Task<IList<DisciplineModel>> GetDisciplinesAsync(int from, int to);
+        Task<IList<DisciplineModel>> GetDisciplinesAsync(int from = 0, int to = 0);
         Task<int> GetDisciplinesCountAsync();
         Task<bool> ExistsDisciplineAsync(Guid id);
         Task<DisciplineModel> GetDisciplineAsync(Guid disciplineId);
         Task<bool> CreateDisciplineAsync(DisciplineModel newDiscipline);
         Task<bool> UpdateDisciplineAsync(DisciplineModel discipline);
         Task<bool> DeleteDisciplineAsync(Guid disciplineId);
+
+        #endregion
+
+        #region Teachers
+
+        Task<IList<TeacherModel>> GetTeachersAsync(int from, int to);
+        Task<int> GetTeachersCountAsync();
+        Task<bool> ExistsTeacherAsync(Guid id);
+        Task<TeacherModel> GetTeacherAsync(Guid teacherId);
+        Task<bool> CreateTeacherAsync(TeacherModel newTeacher);
+        Task<bool> UpdateTeacherAsync(TeacherModel teacher);
+        Task<bool> DeleteTeacherAsync(Guid teacherId);
 
         #endregion
     }

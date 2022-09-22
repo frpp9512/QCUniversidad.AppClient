@@ -1,7 +1,15 @@
 ﻿using AutoMapper;
 using Newtonsoft.Json;
-using QCUniversidad.Api.Shared.Dtos;
-using QCUniversidad.WebClient.Models;
+using QCUniversidad.Api.Shared.Dtos.Career;
+using QCUniversidad.Api.Shared.Dtos.Department;
+using QCUniversidad.Api.Shared.Dtos.Discipline;
+using QCUniversidad.Api.Shared.Dtos.Faculty;
+using QCUniversidad.Api.Shared.Dtos.Teacher;
+using QCUniversidad.WebClient.Models.Careers;
+using QCUniversidad.WebClient.Models.Departments;
+using QCUniversidad.WebClient.Models.Disciplines;
+using QCUniversidad.WebClient.Models.Faculties;
+using QCUniversidad.WebClient.Models.Teachers;
 using QCUniversidad.WebClient.Services.Platform;
 using System;
 using System.Collections.Generic;
@@ -330,17 +338,17 @@ namespace QCUniversidad.WebClient.Services.Data
         }
 
         #endregion
-
+        
         #region Disciplines
 
-        public async Task<IList<DisciplineModel>> GetDisciplinesAsync(int from, int to)
+        public async Task<IList<DisciplineModel>> GetDisciplinesAsync(int from = 0 , int to = 0)
         {
             var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
             var response = await client.GetAsync($"/discipline/list?from={from}&to={to}");
             if (response.IsSuccessStatusCode)
             {
                 var contentText = await response.Content.ReadAsStringAsync();
-                var disciplines = JsonConvert.DeserializeObject<IList<DisciplineDto>>(contentText);
+                var disciplines = JsonConvert.DeserializeObject<IList<PopulatedDisciplineDto>>(contentText);
                 return disciplines?.Select(f => _mapper.Map<DisciplineModel>(f)).ToList() ?? new List<DisciplineModel>();
             }
             throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
@@ -418,6 +426,97 @@ namespace QCUniversidad.WebClient.Services.Data
                 return response.IsSuccessStatusCode;
             }
             throw new ArgumentNullException(nameof(disciplineId));
+        }
+
+        #endregion
+
+        #region Teachers
+
+        public async Task<IList<TeacherModel>> GetTeachersAsync(int from, int to)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/teacher/list?from={from}&to={to}");
+            if (response.IsSuccessStatusCode)
+            {
+                var contentText = await response.Content.ReadAsStringAsync();
+                var teachers = JsonConvert.DeserializeObject<IList<TeacherDto>>(contentText);
+                return teachers?.Select(f => _mapper.Map<TeacherModel>(f)).ToList() ?? new List<TeacherModel>();
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+
+        public async Task<int> GetTeachersCountAsync()
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/teacher/count");
+            if (response.IsSuccessStatusCode)
+            {
+                var total = int.Parse(await response.Content.ReadAsStringAsync());
+                return total;
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+
+        public async Task<bool> ExistsTeacherAsync(Guid id)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/teacher/exists?id={id}");
+            if (response.IsSuccessStatusCode)
+            {
+                var contentText = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<bool>(contentText);
+                return result;
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+
+        public async Task<TeacherModel> GetTeacherAsync(Guid teacherId)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/teacher?id={teacherId}");
+            if (response.IsSuccessStatusCode)
+            {
+                var discipline = JsonConvert.DeserializeObject<TeacherModel>(await response.Content.ReadAsStringAsync());
+                return _mapper.Map<TeacherModel>(discipline);
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+
+        public async Task<bool> CreateTeacherAsync(TeacherModel newTeacher)
+        {
+            if (newTeacher is not null)
+            {
+                var dto = _mapper.Map<NewTeacherDto>(newTeacher);
+                var serializedDtos = JsonConvert.SerializeObject(dto);
+                var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+                var response = await client.PutAsync("/teacher", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
+                return response.IsSuccessStatusCode;
+            }
+            throw new ArgumentNullException(nameof(newTeacher));
+        }
+
+        public async Task<bool> UpdateTeacherAsync(TeacherModel teacher)
+        {
+            if (teacher is not null)
+            {
+                var dto = _mapper.Map<EditTeacherDto>(teacher);
+                var serializedDto = JsonConvert.SerializeObject(dto);
+                var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+                var response = await client.PostAsync("/teacher/update", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+                return response.IsSuccessStatusCode;
+            }
+            throw new ArgumentNullException(nameof(teacher));
+        }
+
+        public async Task<bool> DeleteTeacherAsync(Guid teacherId)
+        {
+            if (teacherId != Guid.Empty)
+            {
+                var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+                var response = await client.DeleteAsync($"/teacher?id={teacherId}");
+                return response.IsSuccessStatusCode;
+            }
+            throw new ArgumentNullException(nameof(teacherId));
         }
 
         #endregion

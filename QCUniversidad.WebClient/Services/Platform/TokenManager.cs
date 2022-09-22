@@ -1,6 +1,6 @@
 ﻿using IdentityModel.Client;
 using Microsoft.Extensions.Options;
-using QCUniversidad.WebClient.Models;
+using QCUniversidad.WebClient.Models.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,7 +72,7 @@ namespace QCUniversidad.WebClient.Services.Platform
                     ClientSecret = _configuration.Secret,
                     Scope = _configuration.Scope
                 });
-            if (tokenReponse.HttpResponse.IsSuccessStatusCode)
+            if (tokenReponse.HttpResponse?.IsSuccessStatusCode == true)
             {
                 AccessToken = tokenReponse.AccessToken;
                 RefreshToken = tokenReponse.RefreshToken;

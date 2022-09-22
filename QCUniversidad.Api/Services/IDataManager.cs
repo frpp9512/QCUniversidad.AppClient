@@ -64,5 +64,24 @@ namespace QCUniversidad.Api.Services
         Task<bool> DeleteDisciplineAsync(Guid disciplineId);
 
         #endregion
+
+        #region Teachers
+
+        Task<bool> CreateTeacherAsync(TeacherModel teacher);
+        Task<bool> ExistsTeacherAsync(Guid id);
+        Task<int> GetTeachersCountAsync();
+        Task<int> GetTeacherDisciplinesCountAsync(Guid id);
+        Task<IList<TeacherModel>> GetTeachersAsync(int from, int to);
+        Task<TeacherModel> GetTeacherAsync(Guid id);
+        Task<bool> UpdateTeacherAsync(TeacherModel teacher);
+        Task<bool> DeleteTeacherAsync(Guid id);
+
+        #endregion
+
+        #region Teachers - Disciplines
+
+        Task<IList<DisciplineModel>> GetDisciplinesForTeacher(Guid teacherId);
+
+        #endregion
     }
 }

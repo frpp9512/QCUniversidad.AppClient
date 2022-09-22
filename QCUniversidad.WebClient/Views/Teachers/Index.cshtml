@@ -1,0 +1,128 @@
+﻿@model NavigationListViewModel<TeacherModel>
+@{
+    ViewData["Title"] = "Profesores";
+    bool teacherAdded = (bool?)TempData["teacher-created"] ?? false;
+    bool teacherEdited = (bool?)TempData["teacher-edited"] ?? false;
+    bool teacherDeleted = (bool?)TempData["teacher-deleted"] ?? false;
+}
+
+<h1>Profesores</h1>
+
+@if (teacherAdded)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-info-circle"></span> Profesor creado</strong> Se ha creado un nuevo profesor satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (teacherEdited)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-pencil-square"></span> Profesor editado</strong> Se ha editado un profesor satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (teacherDeleted)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-trash-can"></span> Profesor eliminada</strong> Se ha eliminado un profesor satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-success"><span class="fa fa-plus-circle"></span> Crear nuevo</a>
+</p>
+
+@if (Model.ItemsCount > 0)
+{
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Carné de identidad</th>
+                <th>Cargo</th>
+                <th>Departamento</th>
+                <th>Disciplinas</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr id="@item.Id">
+                    <td>
+                        @item.Fullname
+                    </td>
+                    <td>
+                        @item.PersonalId
+                    </td>
+                    <td>
+                        @item.Position
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-controller="Departments" asp-route-id="@item.DepartmentId" class="">
+                            @item.Department?.Name
+                        </a>
+                    </td>
+                    <td>
+                        @if (item.Disciplines?.Any() == true)
+                        {
+                            foreach (var discipline in item.Disciplines)
+                            {
+                                <span class="badge bg-info">@discipline.Name</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Sin disciplina</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-controller="Teachers" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
+                            <span class="fa fa-edit" />
+                        </a>
+                        <button class="btn btn-sm btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">
+                            <span class="fa fa-trash" />
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Navigation -->
+
+    <partial name="_PageNavigation" model="Model" />
+
+    <!-- Modals -->
+
+    <div class="modal fade" id="deleteTeacherModal" tabindex="-1" aria-labelledby="deleteTeacherModalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteTeacherModalTitle"><span class="fa fa-trash"></span> Eliminar profesor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="modal-delete-content" class="modal-body">
+                    ¿Esta seguro que desea eliminar el profesor?
+                </div>
+                <div id="deleteModalFooter" class="modal-footer">
+                    <div id="deleteModalLoadingSpinner" class="spinner-border text-primary" role="status" hidden>
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <button id="modal-delete-primarybutton" type="button" class="btn btn-danger"><span class="fa fa-trash-can"></span> Eliminar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span class="fa fa-ban"></span> Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+    <script src="~/js/teacher-index.js"></script>
+    }
+}
+else
+{
+    <h1>No existen profesores en el sistema</h1>
+}

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
-using QCUniversidad.Api.Shared.Dtos;
+using QCUniversidad.Api.Shared.Dtos.Discipline;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +30,7 @@ namespace QCUniversidad.Api.Controllers
         public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
         {
             var disciplines = await _dataManager.GetDisciplinesAsync(from, to);
-            var dtos = disciplines.Select(d => _mapper.Map<DisciplineDto>(d));
+            var dtos = disciplines.Select(d => _mapper.Map<PopulatedDisciplineDto>(d));
             foreach (var dto in dtos)
             {
                 dto.TeachersCount = await _dataManager.GetDisciplineTeachersCountAsync(dto.Id);
@@ -90,7 +90,7 @@ namespace QCUniversidad.Api.Controllers
             try
             {
                 var result = await _dataManager.GetDisciplineAsync(id);
-                var dto = _mapper.Map<DisciplineDto>(result);
+                var dto = _mapper.Map<PopulatedDisciplineDto>(result);
                 dto.SubjectsCount = await _dataManager.GetDisciplineSubjectsCountAsync(dto.Id);
                 dto.TeachersCount = await _dataManager.GetDisciplineTeachersCountAsync(dto.Id);
                 return Ok(dto);

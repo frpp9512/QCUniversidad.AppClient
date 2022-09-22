@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using QCUniversidad.Api.Data.Models;
-using QCUniversidad.Api.Shared.Dtos;
+using QCUniversidad.Api.Shared.Dtos.Faculty;
 using System;
 using System.Collections.Generic;
 using System.Linq;

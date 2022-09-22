@@ -34,9 +34,14 @@ namespace QCUniversidad.Api.Data.Models
         public string? Position { get; set; }
 
         /// <summary>
-        /// Defines if the teacher provides services for other faculties.
+        /// The id department which the teacher belongs to.
         /// </summary>
-        public bool ServiceProvider { get; set; }
+        public Guid DepartmentId { get; set; }
+
+        /// <summary>
+        /// The department which the teacher belongs to.
+        /// </summary>
+        public DepartmentModel Department { get; set; }
 
         /// <summary>
         /// The disciplines whose the teacher can teach.

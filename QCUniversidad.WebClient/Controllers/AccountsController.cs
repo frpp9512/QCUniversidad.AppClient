@@ -9,10 +9,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using QCUniversidad.WebClient.Models;
 using QCUniversidad.WebClient.Data.Helpers;
 using SmartB1t.Security.Extensions.AspNetCore;
 using Microsoft.Net.Http.Headers;
+using QCUniversidad.WebClient.Models.Accounts;
+using QCUniversidad.WebClient.Models.Shared;
 
 namespace QCUniversidad.WebClient.Controllers
 {

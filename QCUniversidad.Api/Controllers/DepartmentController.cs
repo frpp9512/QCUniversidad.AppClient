@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
-using QCUniversidad.Api.Shared.Dtos;
+using QCUniversidad.Api.Shared.Dtos.Department;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
