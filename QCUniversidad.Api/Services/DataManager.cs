@@ -196,6 +196,16 @@ namespace QCUniversidad.Api.Services
 
         #region Careers
 
+        public async Task<bool> ExistsCareerAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                var result = await _context.Careers.AnyAsync(c => c.Id == id);
+                return result;
+            }
+            throw new ArgumentException(nameof(id));
+        }
+
         public async Task<bool> CreateCareerAsync(CareerModel career)
         {
             if (career is not null)
@@ -207,11 +217,19 @@ namespace QCUniversidad.Api.Services
             throw new ArgumentNullException(nameof(career));
         }
 
+        public async Task<IList<CareerModel>> GetCareersAsync(int from = 0, int to = 0)
+        {
+            var result = (from != 0 && from == to) && from >= 0 && to >= from
+                         ? await _context.Careers.Skip(from).Take(to).Include(c => c.Faculty).ToListAsync()
+                         : await _context.Careers.Include(c => c.Faculty).ToListAsync();
+            return result;
+        }
+
         public async Task<IList<CareerModel>> GetCareersAsync(Guid facultyId)
         {
             if (facultyId != Guid.Empty)
             {
-                var result = await _context.Careers.Where(c => c.FacultyId == facultyId).ToListAsync();
+                var result = await _context.Careers.Where(c => c.FacultyId == facultyId).Include(c => c.Faculty).ToListAsync();
                 return result;
             }
             throw new ArgumentNullException(nameof(facultyId));
@@ -221,10 +239,16 @@ namespace QCUniversidad.Api.Services
         {
             if (careerId != Guid.Empty)
             {
-                var result = await _context.Careers.FindAsync(careerId);
+                var result = await _context.Careers.Where(c => c.Id == careerId).Include(c => c.Faculty).FirstOrDefaultAsync();
                 return result ?? throw new CareerNotFoundException();
             }
             throw new ArgumentNullException(nameof(careerId));
+        }
+
+        public async Task<int> GetCareersCountAsync()
+        {
+            var result = await _context.Careers.CountAsync();
+            return result;
         }
 
         public async Task<bool> UpdateCareerAsync(CareerModel career)

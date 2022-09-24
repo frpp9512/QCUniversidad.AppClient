@@ -29,7 +29,7 @@ namespace QCUniversidad.Api.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> CreateCareer(CareerDto career)
+        public async Task<IActionResult> CreateCareer(NewCareerDto career)
         {
             if (career is not null)
             {
@@ -94,9 +94,55 @@ namespace QCUniversidad.Api.Controllers
             return BadRequest("You must provide a faculty id.");
         }
 
+        [HttpGet]
+        [Route("exists")]
+        public async Task<IActionResult> ExistsAsync(Guid id)
+        {
+            try
+            {
+                var result = await _dataManager.ExistsCareerAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("listall")]
+        public async Task<IActionResult> GetCareers(int from = 0, int to = 0)
+        {
+            try
+            {
+                var careers = await _dataManager.GetCareersAsync(from, to);
+                var dtos = careers.Select(c => _mapper.Map<CareerDto>(c)).ToList();
+                return Ok(dtos);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("countall")]
+        public async Task<IActionResult> GetCount()
+        {
+            try
+            {
+                var count = await _dataManager.GetCareersCountAsync();
+                return Ok(count);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
+
         [HttpPost]
         [Route("update")]
-        public async Task<IActionResult> UpdateCareer(CareerDto career)
+        public async Task<IActionResult> UpdateCareer(EditCareerDto career)
         {
             if (career is not null)
             {

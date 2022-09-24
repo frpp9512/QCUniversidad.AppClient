@@ -1,14 +1,14 @@
-﻿using QCUniversidad.WebClient.Models.Faculties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace QCUniversidad.WebClient.Models.Careers
 {
-    public class CareerModel
+    public class EditCareerModel
     {
         public Guid Id { get; set; }
 
@@ -20,6 +20,6 @@ namespace QCUniversidad.WebClient.Models.Careers
         public string Description { get; set; }
 
         public Guid FacultyId { get; set; }
-        public FacultyModel? Faculty { get; set; }
+        public string FacultyName { get; set; }
     }
 }

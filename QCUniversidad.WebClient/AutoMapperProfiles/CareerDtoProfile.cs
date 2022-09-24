@@ -15,6 +15,12 @@ namespace QCUniversidad.WebClient.AutoMapperProfiles
         {
             CreateMap<CareerDto, CareerModel>();
             CreateMap<CareerModel, CareerDto>();
+            CreateMap<CareerModel, NewCareerDto>();
+            CreateMap<NewCareerDto, CareerModel>();
+            CreateMap<CareerModel, EditCareerDto>();
+            CreateMap<EditCareerDto, CareerModel>();
+            CreateMap<CareerModel, EditCareerModel>().ForMember(c => c.FacultyName, opt => opt.MapFrom(e => e.Faculty.Name));
+            CreateMap<EditCareerModel, CareerModel>();
         }
     }
 }

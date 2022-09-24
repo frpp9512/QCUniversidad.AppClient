@@ -42,8 +42,11 @@ namespace QCUniversidad.WebClient.Services.Data
 
         #region Careers
 
+        Task<IList<CareerModel>> GetCareersAsync(int from = 0, int to = 0);
         Task<IList<CareerModel>> GetCareersAsync(Guid facultyId);
+        Task<int> GetCareersCountAsync();
         Task<CareerModel> GetCareerAsync(Guid careerId);
+        Task<bool> ExistsCareerAsync(Guid id);
         Task<bool> CreateCareerAsync(CareerModel newCareer);
         Task<bool> UpdateCareerAsync(CareerModel career);
         Task<bool> DeleteCareerAsync(Guid careerId);

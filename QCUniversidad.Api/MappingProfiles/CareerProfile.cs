@@ -15,6 +15,10 @@ namespace QCUniversidad.Api.MappingProfiles
         {
             CreateMap<CareerModel, CareerDto>();
             CreateMap<CareerDto, CareerModel>();
+            CreateMap<CareerModel, NewCareerDto>();
+            CreateMap<NewCareerDto, CareerModel>();
+            CreateMap<CareerModel, EditCareerDto>();
+            CreateMap<EditCareerDto, CareerModel>();
         }
     }
 }

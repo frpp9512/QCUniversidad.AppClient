@@ -4,9 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using QCUniversidad.WebClient.Models;
 using QCUniversidad.WebClient.Models.Configuration;
+using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Disciplines;
+using QCUniversidad.WebClient.Models.Faculties;
 using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Services.Data;
+using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers
 {
@@ -31,7 +34,7 @@ namespace QCUniversidad.WebClient.Controllers
 
         public async Task<IActionResult> IndexAsync(int page = 1)
         {
-            _logger.LogInformation($"Requested {HttpContext.Request.Path} - {HttpContext.Request.Method}");
+            _logger.LogRequest(HttpContext);
             try
             {
                 _logger.LogInformation($"Loading total disciplines count.");
@@ -67,7 +70,7 @@ namespace QCUniversidad.WebClient.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateAsync()
         {
-            _logger.LogInformation($"Requested {HttpContext.Request.Path} - {HttpContext.Request.Method}");
+            _logger.LogRequest(HttpContext);
             try
             {
                 var model = new CreateDisciplineModel();
@@ -86,12 +89,12 @@ namespace QCUniversidad.WebClient.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAsync(CreateDisciplineModel model)
         {
-            _logger.LogInformation($"Requested {HttpContext.Request.Path} - {HttpContext.Request.Method}");
+            _logger.LogRequest(HttpContext);
             if (ModelState.IsValid)
             {
+                _logger.LogCheckModelExistence<DisciplinesController, DepartmentModel>(HttpContext, nameof(DepartmentModel), model.DepartmentId.ToString());
                 if (await _dataProvider.ExistsDepartmentAsync(model.DepartmentId))
                 {
-
                     var result = await _dataProvider.CreateDisciplineAsync(model);
                     if (result)
                     {

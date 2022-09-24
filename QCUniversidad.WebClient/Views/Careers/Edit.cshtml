@@ -1,0 +1,43 @@
+﻿@model EditCareerModel
+@{
+    ViewData["Title"] = "Editar carrera";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-xl-4">
+            <h1>Editar departamento</h1>
+            <p>Actualize los datos del departamento en el formulario</p>
+            <hr />
+            <form asp-action="Edit" method="post">
+                <div>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+                <fieldset>
+                    <div class="mb-3">
+                        <div class="col-sm-10">
+                            <input asp-for="FacultyName" readonly class="form-control-plaintext">
+                            <input asp-for="FacultyId" type="hidden" />
+                            <input name="FacultyName" type="hidden" value="@Model.FacultyName" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label"></label>
+                        <input asp-for="Description" class="form-control" />
+                        <span asp-validation-for="Description" />
+                    </div>
+                </fieldset>
+                <div class="form-footer mt-3">
+                    <input asp-for="Id" type="hidden" />
+                    <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    <button type="submit" class="btn btn-primary"><span class="fa fa-floppy-disk"></span> Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

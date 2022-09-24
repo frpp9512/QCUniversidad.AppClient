@@ -264,6 +264,20 @@ namespace QCUniversidad.WebClient.Services.Data
 
         #region Careers
 
+        public async Task<IList<CareerModel>> GetCareersAsync(int from = 0, int to = 0)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/career/listall?from={from}&to={to}");
+            if (response.IsSuccessStatusCode)
+            {
+                var contentText = await response.Content.ReadAsStringAsync();
+                var dtos = JsonConvert.DeserializeObject<List<CareerDto>>(contentText);
+                var models = dtos.Select(dto => _mapper.Map<CareerModel>(dto)).ToList();
+                return models;
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+
         public async Task<IList<CareerModel>> GetCareersAsync(Guid facultyId)
         {
             if (facultyId != Guid.Empty)
@@ -280,6 +294,18 @@ namespace QCUniversidad.WebClient.Services.Data
                 throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
             }
             throw new ArgumentNullException(nameof(facultyId));
+        }
+
+        public async Task<int> GetCareersCountAsync()
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/career/countall");
+            if (response.IsSuccessStatusCode)
+            {
+                var total = int.Parse(await response.Content.ReadAsStringAsync());
+                return total;
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
         }
 
         public async Task<CareerModel> GetCareerAsync(Guid careerId)
@@ -300,11 +326,27 @@ namespace QCUniversidad.WebClient.Services.Data
             throw new ArgumentNullException(nameof(careerId));
         }
 
+        public async Task<bool> ExistsCareerAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+                var response = await client.GetAsync($"/career/exists?id={id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var contentText = await response.Content.ReadAsStringAsync();
+                    var result = JsonConvert.DeserializeObject<bool>(contentText);
+                    return result;
+                }
+            }
+            throw new ArgumentNullException(nameof(id));
+        }
+
         public async Task<bool> CreateCareerAsync(CareerModel newCareer)
         {
             if (newCareer is not null)
             {
-                var dto = _mapper.Map<CareerDto>(newCareer);
+                var dto = _mapper.Map<NewCareerDto>(newCareer);
                 var serializedData = JsonConvert.SerializeObject(dto);
                 var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
                 var response = await client.PutAsync("/career", new StringContent(serializedData, Encoding.UTF8, "application/json"));
@@ -317,7 +359,7 @@ namespace QCUniversidad.WebClient.Services.Data
         {
             if (career is not null)
             {
-                var dto = _mapper.Map<CareerDto>(career);
+                var dto = _mapper.Map<EditCareerDto>(career);
                 var serializedData = JsonConvert.SerializeObject(dto);
                 var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
                 var response = await client.PostAsync("/career/update", new StringContent(serializedData, Encoding.UTF8, "application/json"));
@@ -338,10 +380,10 @@ namespace QCUniversidad.WebClient.Services.Data
         }
 
         #endregion
-        
+
         #region Disciplines
 
-        public async Task<IList<DisciplineModel>> GetDisciplinesAsync(int from = 0 , int to = 0)
+        public async Task<IList<DisciplineModel>> GetDisciplinesAsync(int from = 0, int to = 0)
         {
             var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
             var response = await client.GetAsync($"/discipline/list?from={from}&to={to}");
