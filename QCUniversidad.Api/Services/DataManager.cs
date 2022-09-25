@@ -15,6 +15,7 @@ namespace QCUniversidad.Api.Services
     public class CareerNotFoundException : Exception { }
     public class DisciplineNotFoundException : Exception { }
     public class TeacherNotFoundException : Exception { }
+    public class SubjectNotFoundException : Exception { }
 
     public class DataManager : IDataManager
     {
@@ -449,6 +450,89 @@ namespace QCUniversidad.Api.Services
                     return result > 0;
                 }
                 catch (TeacherNotFoundException)
+                {
+                    throw;
+                }
+            }
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        #endregion
+
+        #region Subject
+
+        public async Task<bool> CreateSubjectAsync(SubjectModel subject)
+        {
+            if (subject is not null)
+            {
+                await _context.Subjects.AddAsync(subject);
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            throw new ArgumentNullException(nameof(subject));
+        }
+
+        public async Task<bool> ExistsSubjectAsync(Guid id)
+        {
+            var result = await _context.Subjects.AnyAsync(t => t.Id == id);
+            return result;
+        }
+
+        public async Task<int> GetSubjectsCountAsync()
+        {
+            return await _context.Subjects.CountAsync();
+        }
+
+        public async Task<int> GetSubjectCurriculumsCountAsync(Guid id)
+        {
+            var result = await _context.CurriculumsSubjects.CountAsync(td => td.SubjectId == id);
+            return result;
+        }
+
+        public async Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to)
+        {
+            var result =
+                (from != 0 && from == to) && (from >= 0 && to >= from)
+                ? await _context.Subjects.Skip(from).Take(to).Include(d => d.Discipline).ToListAsync()
+                : await _context.Subjects.Include(d => d.Discipline).ToListAsync();
+            return result;
+        }
+
+        public async Task<SubjectModel> GetSubjectAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                var result = await _context.Subjects.Where(t => t.Id == id)
+                                                    .Include(s => s.Discipline)
+                                                    .FirstOrDefaultAsync();
+                return result ?? throw new SubjectNotFoundException();
+            }
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        public async Task<bool> UpdateSubjectAsync(SubjectModel subject)
+        {
+            if (subject is not null)
+            {
+                _context.Subjects.Update(subject);
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            throw new ArgumentNullException(nameof(subject));
+        }
+
+        public async Task<bool> DeleteSubjectAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                try
+                {
+                    var subject = await GetSubjectAsync(id);
+                    _context.Subjects.Remove(subject);
+                    var result = await _context.SaveChangesAsync();
+                    return result > 0;
+                }
+                catch (SubjectNotFoundException)
                 {
                     throw;
                 }

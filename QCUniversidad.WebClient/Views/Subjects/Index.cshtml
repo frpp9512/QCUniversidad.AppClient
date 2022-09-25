@@ -1,0 +1,111 @@
+﻿@model NavigationListViewModel<SubjectModel>
+
+@{
+    ViewData["Title"] = "Asignaturas";
+    bool subjectCreated = (bool?)TempData["subject-created"] ?? false;
+    bool subjectEdited = (bool?)TempData["subject-edited"] ?? false;
+    bool subjectDeleted = (bool?)TempData["subject-deleted"] ?? false;
+}
+
+<h1>Asignaturas</h1>
+
+@if (subjectCreated)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-info-circle"></span> Asignatura creada</strong> Se ha creado una nueva asignatura satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (subjectEdited)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-pencil-square"></span> Asignatura editado</strong> Se ha editado una asignatura satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (subjectDeleted)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-trash-can"></span> Asignatura eliminada</strong> Se ha eliminado una asignatura satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-success"><span class="fa fa-plus-circle"></span> Crear nueva</a>
+</p>
+
+@if (Model.ItemsCount > 0)
+{
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Disciplina</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr id="@item.Id">
+                    <td>
+                        @item.Name
+                    </td>
+                    <td>
+                        @item.Description
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-controller="Disciplines" asp-route-id="@item.Id" class="link-info">
+                            @item.Discipline?.Name
+                        </a>
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
+                            <span class="fa fa-edit" />
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">
+                            <span class="fa fa-trash" />
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Navigation -->
+
+    <partial name="_PageNavigation" model="Model" />
+
+    <!-- Modals -->
+
+    <div class="modal fade" id="deleteSubjectModal" tabindex="-1" aria-labelledby="deleteSubjectModalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteSubjectModalTitle"><span class="fa fa-trash"></span> Eliminar asignatura</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="modal-delete-content" class="modal-body">
+                    ¿Esta seguro que desea eliminar la asignatura?
+                </div>
+                <div id="deleteModalFooter" class="modal-footer">
+                    <div id="deleteModalLoadingSpinner" class="spinner-border text-primary" role="status" hidden>
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <button id="modal-delete-primarybutton" type="button" class="btn btn-danger"><span class="fa fa-trash-can"></span> Eliminar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span class="fa fa-ban"></span> Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script src="~/js/subject-index.js"></script>
+    }
+}
+else
+{
+    <h1>No existen asignaturas en el sistema</h1>
+}

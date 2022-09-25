@@ -81,6 +81,19 @@ namespace QCUniversidad.Api.Services
 
         #endregion
 
+        #region Subjects
+
+        Task<bool> CreateSubjectAsync(SubjectModel subject);
+        Task<bool> ExistsSubjectAsync(Guid id);
+        Task<int> GetSubjectsCountAsync();
+        Task<int> GetSubjectCurriculumsCountAsync(Guid id);
+        Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to);
+        Task<SubjectModel> GetSubjectAsync(Guid id);
+        Task<bool> UpdateSubjectAsync(SubjectModel subject);
+        Task<bool> DeleteSubjectAsync(Guid id);
+
+        #endregion
+
         #region Teachers - Disciplines
 
         Task<IList<DisciplineModel>> GetDisciplinesForTeacher(Guid teacherId);

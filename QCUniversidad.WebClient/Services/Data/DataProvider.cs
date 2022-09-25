@@ -4,12 +4,14 @@ using QCUniversidad.Api.Shared.Dtos.Career;
 using QCUniversidad.Api.Shared.Dtos.Department;
 using QCUniversidad.Api.Shared.Dtos.Discipline;
 using QCUniversidad.Api.Shared.Dtos.Faculty;
+using QCUniversidad.Api.Shared.Dtos.Subject;
 using QCUniversidad.Api.Shared.Dtos.Teacher;
 using QCUniversidad.WebClient.Models.Careers;
 using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Faculties;
 using QCUniversidad.WebClient.Models.Teachers;
+using QCUniversidad.WebClient.Models.Subjects;
 using QCUniversidad.WebClient.Services.Platform;
 using System;
 using System.Collections.Generic;
@@ -559,6 +561,97 @@ namespace QCUniversidad.WebClient.Services.Data
                 return response.IsSuccessStatusCode;
             }
             throw new ArgumentNullException(nameof(teacherId));
+        }
+
+        #endregion
+
+        #region Subjects
+
+        public async Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/subject/list?from={from}&to={to}");
+            if (response.IsSuccessStatusCode)
+            {
+                var contentText = await response.Content.ReadAsStringAsync();
+                var teachers = JsonConvert.DeserializeObject<IList<SubjectDto>>(contentText);
+                return teachers?.Select(f => _mapper.Map<SubjectModel>(f)).ToList() ?? new List<SubjectModel>();
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+
+        public async Task<int> GetSubjectsCountAsync()
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/subject/count");
+            if (response.IsSuccessStatusCode)
+            {
+                var total = int.Parse(await response.Content.ReadAsStringAsync());
+                return total;
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+
+        public async Task<bool> ExistsSubjectAsync(Guid id)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/subject/exists?id={id}");
+            if (response.IsSuccessStatusCode)
+            {
+                var contentText = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<bool>(contentText);
+                return result;
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+
+        public async Task<SubjectModel> GetSubjectAsync(Guid subjectId)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/subject?id={subjectId}");
+            if (response.IsSuccessStatusCode)
+            {
+                var subject = JsonConvert.DeserializeObject<SubjectModel>(await response.Content.ReadAsStringAsync());
+                return _mapper.Map<SubjectModel>(subject);
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+
+        public async Task<bool> CreateSubjectAsync(SubjectModel newSubject)
+        {
+            if (newSubject is not null)
+            {
+                var dto = _mapper.Map<NewSubjectDto>(newSubject);
+                var serializedDtos = JsonConvert.SerializeObject(dto);
+                var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+                var response = await client.PutAsync("/subject", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
+                return response.IsSuccessStatusCode;
+            }
+            throw new ArgumentNullException(nameof(newSubject));
+        }
+
+        public async Task<bool> UpdateSubjectAsync(SubjectModel subject)
+        {
+            if (subject is not null)
+            {
+                var dto = _mapper.Map<EditSubjectDto>(subject);
+                var serializedDto = JsonConvert.SerializeObject(dto);
+                var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+                var response = await client.PostAsync("/subject/update", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+                return response.IsSuccessStatusCode;
+            }
+            throw new ArgumentNullException(nameof(subject));
+        }
+
+        public async Task<bool> DeleteSubjectAsync(Guid subjectId)
+        {
+            if (subjectId != Guid.Empty)
+            {
+                var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+                var response = await client.DeleteAsync($"/subject?id={subjectId}");
+                return response.IsSuccessStatusCode;
+            }
+            throw new ArgumentNullException(nameof(subjectId));
         }
 
         #endregion
