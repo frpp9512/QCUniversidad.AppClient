@@ -26,11 +26,19 @@ namespace QCUniversidad.Api.Data.Models
         /// </summary>
         public string? Description { get; set; }
 
+        /// <summary>
+        /// The id of the career of the curriculum
+        /// </summary>
+        public Guid CareerId { get; set; }
 
+        /// <summary>
+        /// The career of the curriculum
+        /// </summary>
+        public CareerModel Career { get; set; }
 
         /// <summary>
         /// The set of subjects covered in the curriculum
         /// </summary>
-        public IList<CurriculumSubject> CurriculumSubjects { get; set; }
+        public IList<CurriculumDiscipline> CurriculumDisciplines { get; set; }
     }
 }

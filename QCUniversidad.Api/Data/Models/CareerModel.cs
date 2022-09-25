@@ -27,6 +27,11 @@ namespace QCUniversidad.Api.Data.Models
         public string? Description { get; set; }
 
         /// <summary>
+        /// The set of curriculums intended for the career.
+        /// </summary>
+        public IList<CurriculumModel> Curricula { get; set; }
+
+        /// <summary>
         /// The identifier of the Faculty that manages the career.
         /// </summary>
         public Guid FacultyId { get; set; }

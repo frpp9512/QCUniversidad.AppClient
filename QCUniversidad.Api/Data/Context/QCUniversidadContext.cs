@@ -17,7 +17,7 @@ namespace QCUniversidad.Api.Data.Context
 
         public DbSet<CurriculumModel> Curriculums { get; set; }
         public DbSet<SubjectModel> Subjects { get; set; }
-        public DbSet<CurriculumSubject> CurriculumsSubjects { get; set; }
+        public DbSet<CurriculumDiscipline> CurriculumsDisciplines { get; set; }
 
         public DbSet<SchoolYearModel> SchoolYears { get; set; }
         public DbSet<PeriodModel> Periods { get; set; }
@@ -84,19 +84,25 @@ namespace QCUniversidad.Api.Data.Context
                         .HasForeignKey(td => td.DisciplineId)
                         .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<CurriculumSubject>()
-                        .HasKey(cs => new { cs.CurriculumId, cs.SubjectId });
+            modelBuilder.Entity<CurriculumModel>()
+                        .HasOne(c => c.Career)
+                        .WithMany(c => c.Curricula)
+                        .HasForeignKey(c => c.CareerId)
+                        .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<CurriculumSubject>()
+            modelBuilder.Entity<CurriculumDiscipline>()
+                        .HasKey(cs => new { cs.CurriculumId, cs.DisciplineId });
+
+            modelBuilder.Entity<CurriculumDiscipline>()
                         .HasOne(cs => cs.Curriculum)
-                        .WithMany(c => c.CurriculumSubjects)
+                        .WithMany(c => c.CurriculumDisciplines)
                         .HasForeignKey(cs => cs.CurriculumId)
                         .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<CurriculumSubject>()
-                        .HasOne(cs => cs.Subject)
-                        .WithMany(s => s.SubjectCurriculums)
-                        .HasForeignKey(cs => cs.SubjectId)
+            modelBuilder.Entity<CurriculumDiscipline>()
+                        .HasOne(cs => cs.Discipline)
+                        .WithMany(s => s.DisciplineCurriculums)
+                        .HasForeignKey(cs => cs.DisciplineId)
                         .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<DepartmentModel>()
@@ -104,8 +110,6 @@ namespace QCUniversidad.Api.Data.Context
                         .WithOne(d => d.Department)
                         .HasForeignKey(d => d.DepartmentId)
                         .OnDelete(DeleteBehavior.Cascade);
-
-
 
             base.OnModelCreating(modelBuilder);
         }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using QCUniversidad.Api.Data.Context;
 
@@ -10,9 +11,10 @@ using QCUniversidad.Api.Data.Context;
 namespace QCUniversidad.Api.Migrations
 {
     [DbContext(typeof(QCUniversidadContext))]
-    partial class QCUniversidadContextModelSnapshot : ModelSnapshot
+    [Migration("20220925190514_AddedRelationshipCurriculumDiscipline")]
+    partial class AddedRelationshipCurriculumDiscipline
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.8");
@@ -61,9 +63,6 @@ namespace QCUniversidad.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("CareerId")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Denomination")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -72,8 +71,6 @@ namespace QCUniversidad.Api.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CareerId");
 
                     b.ToTable("Curriculums");
                 });
@@ -310,17 +307,6 @@ namespace QCUniversidad.Api.Migrations
                     b.Navigation("Discipline");
                 });
 
-            modelBuilder.Entity("QCUniversidad.Api.Data.Models.CurriculumModel", b =>
-                {
-                    b.HasOne("QCUniversidad.Api.Data.Models.CareerModel", "Career")
-                        .WithMany("Curricula")
-                        .HasForeignKey("CareerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Career");
-                });
-
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.DepartmentModel", b =>
                 {
                     b.HasOne("QCUniversidad.Api.Data.Models.FacultyModel", "Faculty")
@@ -412,11 +398,6 @@ namespace QCUniversidad.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Department");
-                });
-
-            modelBuilder.Entity("QCUniversidad.Api.Data.Models.CareerModel", b =>
-                {
-                    b.Navigation("Curricula");
                 });
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.CurriculumModel", b =>

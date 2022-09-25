@@ -17,7 +17,7 @@ namespace QCUniversidad.WebClient.Models.Careers
         public string Name { get; set; }
 
         [Display(Name = "Descripción", Prompt = "Descripción de la carrera", Description = "La descripción de la carrera.")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public Guid FacultyId { get; set; }
         public FacultyModel? Faculty { get; set; }

@@ -1,4 +1,5 @@
 ﻿using QCUniversidad.WebClient.Models.Careers;
+using QCUniversidad.WebClient.Models.Curriculums;
 using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Faculties;
@@ -87,6 +88,18 @@ namespace QCUniversidad.WebClient.Services.Data
         Task<bool> CreateSubjectAsync(SubjectModel newSubject);
         Task<bool> UpdateSubjectAsync(SubjectModel subject);
         Task<bool> DeleteSubjectAsync(Guid subjectId);
+
+        #endregion
+
+        #region Curriculums
+
+        Task<IList<CurriculumModel>> GetCurriculumsAsync(int from, int to);
+        Task<int> GetCurriculumsCountAsync();
+        Task<bool> ExistsCurriculumAsync(Guid id);
+        Task<CurriculumModel> GetCurriculumAsync(Guid curriculumId);
+        Task<bool> CreateCurriculumAsync(CurriculumModel newCurriculum);
+        Task<bool> UpdateCurriculumAsync(CurriculumModel curriculum);
+        Task<bool> DeleteCurriculumAsync(Guid curriculumId);
 
         #endregion
     }

@@ -35,7 +35,5 @@ namespace QCUniversidad.Api.Data.Models
         /// The discipline which the subject belongs.
         /// </summary>
         public DisciplineModel Discipline { get; set; }
-
-        public IList<CurriculumSubject> SubjectCurriculums { get; set; }
     }
 }

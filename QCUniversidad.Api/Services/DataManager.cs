@@ -16,6 +16,7 @@ namespace QCUniversidad.Api.Services
     public class DisciplineNotFoundException : Exception { }
     public class TeacherNotFoundException : Exception { }
     public class SubjectNotFoundException : Exception { }
+    public class CurriculumNotFoundException : Exception { }
 
     public class DataManager : IDataManager
     {
@@ -37,7 +38,7 @@ namespace QCUniversidad.Api.Services
         public async Task<IList<FacultyModel>> GetFacultiesAsync(int from = 0, int to = 0)
         {
             var faculties =
-                (from != 0 && from == to) || (from >= 0 && to >= from)
+                (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
                 ? await _context.Faculties.Skip(from).Take(to).ToListAsync()
                 : await _context.Faculties.ToListAsync();
             return faculties;
@@ -110,7 +111,7 @@ namespace QCUniversidad.Api.Services
 
         public async Task<IList<DepartmentModel>> GetDepartmentsAsync(int from, int to)
         {
-            var deparments = (from != 0 && from == to) || from >= 0 && to >= from
+            var deparments = (from != 0 && from == to) || from >= 0 && to >= from && !(from == 0 && from == to)
                              ? await _context.Departments.Skip(from).Take(to).Include(d => d.Faculty).ToListAsync()
                              : await _context.Departments.Include(d => d.Faculty).ToListAsync();
             return deparments;
@@ -220,7 +221,7 @@ namespace QCUniversidad.Api.Services
 
         public async Task<IList<CareerModel>> GetCareersAsync(int from = 0, int to = 0)
         {
-            var result = (from != 0 && from == to) || from >= 0 && to >= from
+            var result = (from != 0 && from == to) || from >= 0 && to >= from && !(from == 0 && from == to)
                          ? await _context.Careers.Skip(from).Take(to).Include(c => c.Faculty).ToListAsync()
                          : await _context.Careers.Include(c => c.Faculty).ToListAsync();
             return result;
@@ -306,7 +307,7 @@ namespace QCUniversidad.Api.Services
         public async Task<IList<DisciplineModel>> GetDisciplinesAsync(int from, int to)
         {
             var result =
-                (from != 0 && from == to) || (from >= 0 && to >= from)
+                (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
                 ? await _context.Disciplines.Skip(from).Take(to).Include(d => d.Department).ToListAsync()
                 : await _context.Disciplines.Include(d => d.Department).ToListAsync();
             return result;
@@ -405,7 +406,7 @@ namespace QCUniversidad.Api.Services
         public async Task<IList<TeacherModel>> GetTeachersAsync(int from, int to)
         {
             var result =
-                (from != 0 && from == to) && (from >= 0 && to >= from)
+                (from != 0 && from == to) && (from >= 0 && to >= from) && !(from == 0 && from == to)
                 ? await _context.Teachers.Skip(from).Take(to).Include(d => d.Department).Include(d => d.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync()
                 : await _context.Teachers.Include(d => d.Department).Include(d => d.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync();
             return result;
@@ -483,16 +484,10 @@ namespace QCUniversidad.Api.Services
             return await _context.Subjects.CountAsync();
         }
 
-        public async Task<int> GetSubjectCurriculumsCountAsync(Guid id)
-        {
-            var result = await _context.CurriculumsSubjects.CountAsync(td => td.SubjectId == id);
-            return result;
-        }
-
         public async Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to)
         {
             var result =
-                (from != 0 && from == to) || (from >= 0 && to >= from)
+                (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
                 ? await _context.Subjects.Skip(from).Take(to).Include(d => d.Discipline).ToListAsync()
                 : await _context.Subjects.Include(d => d.Discipline).ToListAsync();
             return result;
@@ -533,6 +528,94 @@ namespace QCUniversidad.Api.Services
                     return result > 0;
                 }
                 catch (SubjectNotFoundException)
+                {
+                    throw;
+                }
+            }
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        #endregion
+
+        #region Curriculums
+
+        public async Task<bool> CreateCurriculumAsync(CurriculumModel curriculum)
+        {
+            if (curriculum is not null)
+            {
+                await _context.Curriculums.AddAsync(curriculum);
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            throw new ArgumentNullException(nameof(curriculum));
+        }
+
+        public async Task<bool> ExistsCurriculumAsync(Guid id)
+        {
+            var result = await _context.Curriculums.AnyAsync(t => t.Id == id);
+            return result;
+        }
+
+        public async Task<int> GetCurriculumsCountAsync()
+        {
+            return await _context.Curriculums.CountAsync();
+        }
+
+        public async Task<int> GetCurriculumDisciplinesCountAsync(Guid id)
+        {
+            var result = await _context.CurriculumsDisciplines.CountAsync(td => td.CurriculumId == id);
+            return result;
+        }
+
+        public async Task<IList<CurriculumModel>> GetCurriculumsAsync(int from, int to)
+        {
+            var result =
+                (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
+                ? await _context.Curriculums.Skip(from).Take(to).Include(c => c.Career).Include(c => c.CurriculumDisciplines).ThenInclude(cs => cs.Discipline).ToListAsync()
+                : await _context.Curriculums.Include(c => c.Career).Include(c => c.CurriculumDisciplines).ThenInclude(cs => cs.Discipline).ToListAsync();
+            return result;
+        }
+
+        public async Task<CurriculumModel> GetCurriculumAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                var result = await _context.Curriculums.Where(t => t.Id == id)
+                                                       .Include(c => c.Career)
+                                                       .Include(c => c.CurriculumDisciplines)
+                                                       .ThenInclude(cs => cs.Discipline)
+                                                       .FirstOrDefaultAsync();
+                return result ?? throw new TeacherNotFoundException();
+            }
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        public async Task<bool> UpdateCurriculumAsync(CurriculumModel curriculum)
+        {
+            if (curriculum is not null)
+            {
+                await _context.CurriculumsDisciplines.Where(td => td.CurriculumId == curriculum.Id)
+                                                  .ForEachAsync(td => _context.Remove(td));
+                await _context.CurriculumsDisciplines.AddRangeAsync(curriculum.CurriculumDisciplines);
+                _context.Curriculums.Update(curriculum);
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            throw new ArgumentNullException(nameof(curriculum));
+        }
+
+        public async Task<bool> DeleteCurriculumAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                try
+                {
+                    var curriculum = await GetCurriculumAsync(id);
+                    _context.Curriculums.Remove(curriculum);
+                    var result = await _context.SaveChangesAsync();
+                    return result > 0;
+                }
+                catch (CurriculumNotFoundException)
                 {
                     throw;
                 }
