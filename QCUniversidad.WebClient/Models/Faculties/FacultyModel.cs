@@ -19,6 +19,10 @@ namespace QCUniversidad.WebClient.Models.Faculties
         [Display(Name = "Sede", Prompt = "Sede universitaria", Description = "El nombre de la sede universitaria a la cual pertenece la facultad.")]
         public string Campus { get; set; }
 
+        [Required]
+        [Display(Name = "Identificador interno", Prompt = "Identificador interno", Description = "El identificador usado para la gestión interna de recursos humanos.")]
+        public string InternalId { get; set; }
+
         public int DepartmentCount { get; set; } = 0;
         public int CareersCount { get; set; } = 0;
     }

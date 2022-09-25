@@ -19,6 +19,9 @@ namespace QCUniversidad.WebClient.Models.Departments
 
         [Display(Name = "Descripción", Prompt = "Descripción del departamento", Description = "La descripción del departamento.")]
         public string? Description { get; set; }
+        [Required]
+        [Display(Name = "Identificador interno", Prompt = "Identificador interno", Description = "El identificador usado para la gestión interna de recursos humanos.")]
+        public string InternalId { get; set; }
         public int DisciplinesCount { get; set; }
         public Guid FacultyId { get; set; }
         public FacultyModel? Faculty { get; set; }

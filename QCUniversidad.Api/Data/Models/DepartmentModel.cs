@@ -27,6 +27,11 @@ namespace QCUniversidad.Api.Data.Models
         public string? Description { get; set; }
 
         /// <summary>
+        /// The internat management identifier. Example: 2460
+        /// </summary>
+        public string InternalId { get; set; }
+
+        /// <summary>
         /// The disciplines managed by the department.
         /// </summary>
         public IList<DisciplineModel> Disciplines { get; set; }

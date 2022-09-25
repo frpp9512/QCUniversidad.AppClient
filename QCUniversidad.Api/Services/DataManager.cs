@@ -37,7 +37,7 @@ namespace QCUniversidad.Api.Services
         public async Task<IList<FacultyModel>> GetFacultiesAsync(int from = 0, int to = 0)
         {
             var faculties =
-                (from != 0 && from == to) && (from >= 0 && to >= from)
+                (from != 0 && from == to) || (from >= 0 && to >= from)
                 ? await _context.Faculties.Skip(from).Take(to).ToListAsync()
                 : await _context.Faculties.ToListAsync();
             return faculties;
@@ -110,7 +110,7 @@ namespace QCUniversidad.Api.Services
 
         public async Task<IList<DepartmentModel>> GetDepartmentsAsync(int from, int to)
         {
-            var deparments = (from != 0 && from == to) && from >= 0 && to >= from
+            var deparments = (from != 0 && from == to) || from >= 0 && to >= from
                              ? await _context.Departments.Skip(from).Take(to).Include(d => d.Faculty).ToListAsync()
                              : await _context.Departments.Include(d => d.Faculty).ToListAsync();
             return deparments;
@@ -220,7 +220,7 @@ namespace QCUniversidad.Api.Services
 
         public async Task<IList<CareerModel>> GetCareersAsync(int from = 0, int to = 0)
         {
-            var result = (from != 0 && from == to) && from >= 0 && to >= from
+            var result = (from != 0 && from == to) || from >= 0 && to >= from
                          ? await _context.Careers.Skip(from).Take(to).Include(c => c.Faculty).ToListAsync()
                          : await _context.Careers.Include(c => c.Faculty).ToListAsync();
             return result;
@@ -306,7 +306,7 @@ namespace QCUniversidad.Api.Services
         public async Task<IList<DisciplineModel>> GetDisciplinesAsync(int from, int to)
         {
             var result =
-                (from != 0 && from == to) && (from >= 0 && to >= from)
+                (from != 0 && from == to) || (from >= 0 && to >= from)
                 ? await _context.Disciplines.Skip(from).Take(to).Include(d => d.Department).ToListAsync()
                 : await _context.Disciplines.Include(d => d.Department).ToListAsync();
             return result;
@@ -492,7 +492,7 @@ namespace QCUniversidad.Api.Services
         public async Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to)
         {
             var result =
-                (from != 0 && from == to) && (from >= 0 && to >= from)
+                (from != 0 && from == to) || (from >= 0 && to >= from)
                 ? await _context.Subjects.Skip(from).Take(to).Include(d => d.Discipline).ToListAsync()
                 : await _context.Subjects.Include(d => d.Discipline).ToListAsync();
             return result;
