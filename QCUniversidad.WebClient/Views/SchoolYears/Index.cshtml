@@ -1,0 +1,142 @@
+﻿@model NavigationListViewModel<SchoolYearModel>
+@using QCUniversidad.WebClient.Services.Platform
+@{
+    ViewData["Title"] = "Años escolares";
+    bool schoolyearAdded = (bool?)TempData["schoolyear-created"] ?? false;
+    bool schoolyearEdited = (bool?)TempData["schoolyear-edited"] ?? false;
+    bool schoolyearDeleted = (bool?)TempData["schoolyear-deleted"] ?? false;
+}
+
+<h1>Años escolares</h1>
+
+@if (schoolyearAdded)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-info-circle"></span> Año escolar creado</strong> Se ha creado un nuevo año escolar satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (schoolyearEdited)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-pencil-square"></span> Año escolar editado</strong> Se ha editado un año escolar satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (schoolyearDeleted)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-trash-can"></span> Año escolar eliminado</strong> Se ha eliminado un año escolar satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-success"><span class="fa fa-plus-circle"></span> Crear nuevo</a>
+</p>
+
+@if (Model.ItemsCount > 0)
+{
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Denominación</th>
+                <th>Modalidad</th>
+                <th>Carrera</th>
+                <th>Año carrera</th>
+                <th>Curriculum</th>
+                <th>Disciplinas</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr id="@item.Id">
+                    <td>
+                        @item.Denomination
+                    </td>
+                    <td>
+                        @item.TeachingModality.GetLabel()
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-controller="Carrers" asp-route-id="@item.CareerId">
+                            @item.Career.Name
+                        </a>
+                    </td>
+                    <td>
+                        @item.CareerYear
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-controller="Curriculums" asp-route-id="@item.CurriculumId">
+                            @item.Curriculum
+                        </a>
+                    </td>
+                    <td>
+                        @if (item.Periods?.Any() == true)
+                        {
+                            <p>
+                                <a class="btn btn-outline-info" data-bs-toggle="collapse" href="#dc@(item.Id)" role="button" aria-expanded="false" aria-controls="collapseExample">
+                                    @item.Periods?.Count
+                                </a>
+                            </p>
+                            <div class="collapse" id="dc@(item.Id)">
+                                @foreach (var discipline in item.Periods)
+                                {
+                                    <span class="badge bg-info">@discipline.Starts.ToString("d-M-yyyy") - @discipline.Ends.ToString("d-M-yyyy")</span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Sin disciplinas</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
+                            <span class="fa fa-edit" />
+                        </a>
+                        <button class="btn btn-sm btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">
+                            <span class="fa fa-trash" />
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Navigation -->
+
+    <partial name="_PageNavigation" model="Model" />
+
+    <!-- Modals -->
+
+    <div class="modal fade" id="deleteSchoolYearModal" tabindex="-1" aria-labelledby="deleteSchoolYearModalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteSchoolYearModalTitle"><span class="fa fa-trash"></span> Eliminar año escolar</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="modal-delete-content" class="modal-body">
+                    ¿Esta seguro que desea eliminar el año escolar?
+                </div>
+                <div id="deleteModalFooter" class="modal-footer">
+                    <div id="deleteModalLoadingSpinner" class="spinner-border text-primary" role="status" hidden>
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <button id="modal-delete-primarybutton" type="button" class="btn btn-danger"><span class="fa fa-trash-can"></span> Eliminar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span class="fa fa-ban"></span> Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+    <script src="~/js/schoolyear-index.js"></script>
+    }
+}
+else
+{
+    <h1>No existen años escolares en el sistema</h1>
+}

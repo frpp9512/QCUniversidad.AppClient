@@ -7,109 +7,133 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QCUniversidad.Api.Services
+namespace QCUniversidad.Api.Services;
+
+public interface IDataManager
 {
-    public interface IDataManager
-    {
-        #region Faculties
+    #region Faculties
 
-        Task<FacultyModel> GetFacultyAsync(Guid id);
-        Task<IList<FacultyModel>> GetFacultiesAsync(int from = 0, int to = 0);
-        Task<int> GetFacultiesTotalAsync();
-        Task<bool> ExistFacultyAsync(Guid id);
-        Task<bool> CreateFacultyAsync(FacultyModel faculty);
-        Task<bool> UpdateFacultyAsync(FacultyModel faculty);
-        Task<int> GetFacultyDepartmentCountAsync(Guid facultyId);
-        Task<int> GetFacultyCareerCountAsync(Guid facultyId);
-        Task<bool> DeleteFacultyAsync(Guid facultyId);
+    Task<FacultyModel> GetFacultyAsync(Guid id);
+    Task<IList<FacultyModel>> GetFacultiesAsync(int from = 0, int to = 0);
+    Task<int> GetFacultiesTotalAsync();
+    Task<bool> ExistFacultyAsync(Guid id);
+    Task<bool> CreateFacultyAsync(FacultyModel faculty);
+    Task<bool> UpdateFacultyAsync(FacultyModel faculty);
+    Task<int> GetFacultyDepartmentCountAsync(Guid facultyId);
+    Task<int> GetFacultyCareerCountAsync(Guid facultyId);
+    Task<bool> DeleteFacultyAsync(Guid facultyId);
 
-        #endregion
+    #endregion
 
-        #region Deparments
+    #region Deparments
 
-        Task<IList<DepartmentModel>> GetDepartmentsAsync(int from = 0, int to = 0);
-        Task<IList<DepartmentModel>> GetDepartmentsAsync(Guid facultyId);
-        Task<bool> ExistDepartmentAsync(Guid id);
-        Task<int> GetDepartmentsCountAsync();
-        Task<int> GetDepartmentsCountAsync(Guid facultyId);
-        Task<int> GetDepartmentDisciplinesCount(Guid departmentId);
-        Task<DepartmentModel> GetDepartmentAsync(Guid departmentId);
-        Task<int> GetDeparmentTeachersCountAsync(Guid departmentId);
-        Task<bool> CreateDepartmentAsync(DepartmentModel department);
-        Task<bool> UpdateDeparmentAsync(DepartmentModel department);
-        Task<bool> DeleteDeparmentAsync(Guid deparmentId);
+    Task<IList<DepartmentModel>> GetDepartmentsAsync(int from = 0, int to = 0);
+    Task<IList<DepartmentModel>> GetDepartmentsAsync(Guid facultyId);
+    Task<bool> ExistDepartmentAsync(Guid id);
+    Task<int> GetDepartmentsCountAsync();
+    Task<int> GetDepartmentsCountAsync(Guid facultyId);
+    Task<int> GetDepartmentDisciplinesCount(Guid departmentId);
+    Task<DepartmentModel> GetDepartmentAsync(Guid departmentId);
+    Task<int> GetDeparmentTeachersCountAsync(Guid departmentId);
+    Task<bool> CreateDepartmentAsync(DepartmentModel department);
+    Task<bool> UpdateDeparmentAsync(DepartmentModel department);
+    Task<bool> DeleteDeparmentAsync(Guid deparmentId);
 
-        #endregion
+    #endregion
 
-        #region Careers
+    #region Careers
 
-        Task<bool> ExistsCareerAsync(Guid id);
-        Task<bool> CreateCareerAsync(CareerModel career);
-        Task<IList<CareerModel>> GetCareersAsync(int from = 0, int to = 0);
-        Task<IList<CareerModel>> GetCareersAsync(Guid facultyId);
-        Task<CareerModel> GetCareerAsync(Guid careerId);
-        Task<int> GetCareersCountAsync();
-        Task<bool> UpdateCareerAsync(CareerModel career);
-        Task<bool> DeleteCareerAsync(Guid careerId);
+    Task<bool> ExistsCareerAsync(Guid id);
+    Task<bool> CreateCareerAsync(CareerModel career);
+    Task<IList<CareerModel>> GetCareersAsync(int from = 0, int to = 0);
+    Task<IList<CareerModel>> GetCareersAsync(Guid facultyId);
+    Task<CareerModel> GetCareerAsync(Guid careerId);
+    Task<int> GetCareersCountAsync();
+    Task<bool> UpdateCareerAsync(CareerModel career);
+    Task<bool> DeleteCareerAsync(Guid careerId);
 
-        #endregion
+    #endregion
 
-        #region Disciplines
+    #region Disciplines
 
-        Task<bool> CreateDisciplineAsync(DisciplineModel discipline);
-        Task<bool> ExistsDisciplineAsync(Guid id);
-        Task<int> GetDisciplinesCountAsync();
-        Task<int> GetDisciplineSubjectsCountAsync(Guid disciplineId);
-        Task<int> GetDisciplineTeachersCountAsync(Guid disciplineId);
-        Task<IList<DisciplineModel>> GetDisciplinesAsync(int from, int to);
-        Task<DisciplineModel> GetDisciplineAsync(Guid disciplineId);
-        Task<bool> UpdateDisciplineAsync(DisciplineModel discipline);
-        Task<bool> DeleteDisciplineAsync(Guid disciplineId);
+    Task<bool> CreateDisciplineAsync(DisciplineModel discipline);
+    Task<bool> ExistsDisciplineAsync(Guid id);
+    Task<int> GetDisciplinesCountAsync();
+    Task<int> GetDisciplineSubjectsCountAsync(Guid disciplineId);
+    Task<int> GetDisciplineTeachersCountAsync(Guid disciplineId);
+    Task<IList<DisciplineModel>> GetDisciplinesAsync(int from, int to);
+    Task<DisciplineModel> GetDisciplineAsync(Guid disciplineId);
+    Task<bool> UpdateDisciplineAsync(DisciplineModel discipline);
+    Task<bool> DeleteDisciplineAsync(Guid disciplineId);
 
-        #endregion
+    #endregion
 
-        #region Teachers
+    #region Teachers
 
-        Task<bool> CreateTeacherAsync(TeacherModel teacher);
-        Task<bool> ExistsTeacherAsync(Guid id);
-        Task<int> GetTeachersCountAsync();
-        Task<int> GetTeacherDisciplinesCountAsync(Guid id);
-        Task<IList<TeacherModel>> GetTeachersAsync(int from, int to);
-        Task<TeacherModel> GetTeacherAsync(Guid id);
-        Task<bool> UpdateTeacherAsync(TeacherModel teacher);
-        Task<bool> DeleteTeacherAsync(Guid id);
+    Task<bool> CreateTeacherAsync(TeacherModel teacher);
+    Task<bool> ExistsTeacherAsync(Guid id);
+    Task<int> GetTeachersCountAsync();
+    Task<int> GetTeacherDisciplinesCountAsync(Guid id);
+    Task<IList<TeacherModel>> GetTeachersAsync(int from, int to);
+    Task<TeacherModel> GetTeacherAsync(Guid id);
+    Task<bool> UpdateTeacherAsync(TeacherModel teacher);
+    Task<bool> DeleteTeacherAsync(Guid id);
 
-        #endregion
+    #endregion
 
-        #region Subjects
+    #region Subjects
 
-        Task<bool> CreateSubjectAsync(SubjectModel subject);
-        Task<bool> ExistsSubjectAsync(Guid id);
-        Task<int> GetSubjectsCountAsync();
-        Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to);
-        Task<SubjectModel> GetSubjectAsync(Guid id);
-        Task<bool> UpdateSubjectAsync(SubjectModel subject);
-        Task<bool> DeleteSubjectAsync(Guid id);
+    Task<bool> CreateSubjectAsync(SubjectModel subject);
+    Task<bool> ExistsSubjectAsync(Guid id);
+    Task<int> GetSubjectsCountAsync();
+    Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to);
+    Task<SubjectModel> GetSubjectAsync(Guid id);
+    Task<bool> UpdateSubjectAsync(SubjectModel subject);
+    Task<bool> DeleteSubjectAsync(Guid id);
 
-        #endregion
+    #endregion
 
-        #region Curriculum
-        
-        Task<bool> CreateCurriculumAsync(CurriculumModel curriculum);
-        Task<bool> ExistsCurriculumAsync(Guid id);
-        Task<int> GetCurriculumsCountAsync();
-        Task<int> GetCurriculumDisciplinesCountAsync(Guid id);
-        Task<IList<CurriculumModel>> GetCurriculumsAsync(int from, int to);
-        Task<CurriculumModel> GetCurriculumAsync(Guid id);
-        Task<bool> UpdateCurriculumAsync(CurriculumModel curriculum);
-        Task<bool> DeleteCurriculumAsync(Guid id);
+    #region Curriculum
+    
+    Task<bool> CreateCurriculumAsync(CurriculumModel curriculum);
+    Task<bool> ExistsCurriculumAsync(Guid id);
+    Task<int> GetCurriculumsCountAsync();
+    Task<int> GetCurriculumDisciplinesCountAsync(Guid id);
+    Task<IList<CurriculumModel>> GetCurriculumsAsync(int from, int to);
+    Task<CurriculumModel> GetCurriculumAsync(Guid id);
+    Task<bool> UpdateCurriculumAsync(CurriculumModel curriculum);
+    Task<bool> DeleteCurriculumAsync(Guid id);
 
-        #endregion
+    #endregion
 
-        #region Teachers - Disciplines
+    #region SchoolYears
 
-        Task<IList<DisciplineModel>> GetDisciplinesForTeacher(Guid teacherId);
+    Task<bool> CreateSchoolYearAsync(SchoolYearModel schoolYear);
+    Task<bool> ExistsSchoolYearAsync(Guid id);
+    Task<int> GetSchoolYearsCountAsync();
+    Task<int> GetSchoolYearPeriodsCountAsync(Guid schoolYearId);
+    Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from, int to);
+    Task<SchoolYearModel> GetSchoolYearAsync(Guid id);
+    Task<bool> UpdateSchoolYearAsync(SchoolYearModel schoolYear);
+    Task<bool> DeleteSchoolYearAsync(Guid id);
 
-        #endregion
-    }
+    #endregion
+
+    #region Periods
+
+    Task<bool> CreatePeriodAsync(PeriodModel period);
+    Task<bool> ExistsPeriodAsync(Guid id);
+    Task<int> GetPeriodsCountAsync();
+    Task<IList<PeriodModel>> GetPeriodsAsync(int from, int to);
+    Task<PeriodModel> GetPeriodAsync(Guid id);
+    Task<bool> UpdatePeriodAsync(PeriodModel period);
+    Task<bool> DeletePeriodAsync(Guid id);
+
+    #endregion
+
+    #region Teachers - Disciplines
+
+    Task<IList<DisciplineModel>> GetDisciplinesForTeacher(Guid teacherId);
+
+    #endregion
 }

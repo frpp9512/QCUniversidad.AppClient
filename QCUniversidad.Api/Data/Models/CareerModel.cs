@@ -32,6 +32,11 @@ namespace QCUniversidad.Api.Data.Models
         public IList<CurriculumModel> Curricula { get; set; }
 
         /// <summary>
+        /// The school years of the career.
+        /// </summary>
+        public IList<SchoolYearModel> SchoolYears { get; set; }
+
+        /// <summary>
         /// The identifier of the Faculty that manages the career.
         /// </summary>
         public Guid FacultyId { get; set; }

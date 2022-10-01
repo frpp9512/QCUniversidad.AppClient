@@ -50,7 +50,13 @@ namespace QCUniversidad.Api.Data.Context
             modelBuilder.Entity<SchoolYearModel>()
                         .HasMany(sy => sy.Periods)
                         .WithOne(d => d.SchoolYear)
-                        .HasForeignKey(sy => sy.ShoolYearId)
+                        .HasForeignKey(sy => sy.SchoolYearId)
+                        .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SchoolYearModel>()
+                        .HasOne(sy => sy.Career)
+                        .WithMany(c => c.SchoolYears)
+                        .HasForeignKey(sy => sy.CareerId)
                         .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<DisciplineModel>()

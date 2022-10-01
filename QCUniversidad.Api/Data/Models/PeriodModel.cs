@@ -39,7 +39,7 @@ namespace QCUniversidad.Api.Data.Models
         /// <summary>
         /// The id of the shool year when the period passes.
         /// </summary>
-        public Guid ShoolYearId { get; set; }
+        public Guid SchoolYearId { get; set; }
 
         /// <summary>
         /// The shool year when the period passes.

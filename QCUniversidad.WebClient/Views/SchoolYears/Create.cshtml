@@ -1,0 +1,104 @@
+﻿@model CreateSchoolYearModel
+@using QCUniversidad.Api.Shared.Enums;
+@{
+    ViewData["Title"] = "Crear año escolar";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-xl-4">
+            <h1>Crear curriculum</h1>
+            <p>Rellene el forumlario para crear un nuevo curriculum</p>
+            <hr />
+            <form asp-action="Create" method="post">
+                <div>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+                <fieldset>
+                    <div class="mb-3">
+                        <label asp-for="TeachingModality" class="form-label"></label>
+                        <select asp-for="TeachingModality" asp-items="@Html.GetEnumSelectList<TeachingModality>()" class="form-control selected-teachingModality"></select>
+                        <span asp-validation-for="TeachingModality" />
+                    </div>
+                    <div class="mb-3">
+                        @{
+                            var careerGroups = Model.Careers.GroupBy(d => d.FacultyId);
+                            <label for="CareerId">Carrera</label>
+                            <select asp-for="CareerId" class="form-control selected-career" aria-label="select">
+                                @foreach (var group in careerGroups)
+                                {
+                                    <optgroup label="@group.FirstOrDefault()?.Faculty?.Name">
+                                        @foreach (var c in group)
+                                        {
+                                            <option value="@c.Id">@c.Name</option>
+                                        }
+                                    </optgroup>
+                                }
+                            </select>
+                        }
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="CareerYear" class="form-label"></label>
+                        <input asp-for="CareerYear" class="form-control"></input>
+                        <span asp-validation-for="CareerYear" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Denomination" class="form-label"></label>
+                        <input asp-for="Denomination" class="form-control" />
+                        <span asp-validation-for="Denomination" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Curriculum" class="form-label"></label>
+                        <div class="mb-3">
+                            @{
+                                var curriculaGroups = Model.Curricula.GroupBy(d => d.CareerId);
+                                <select asp-for="CurriculumId" class="form-control selected-curriculum" aria-label="select">
+                                    @foreach (var group in curriculaGroups)
+                                    {
+                                        <optgroup label="@group.FirstOrDefault()?.Career?.Name">
+                                            @foreach (var c in group)
+                                            {
+                                                <option id="@c.Id>@c.CareerId" value="@c.Id">@c.Denomination</option>
+                                            }
+                                        </optgroup>
+                                    }
+                                </select>
+                            }
+                        </div>
+                        <span asp-validation-for="Curriculum" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Starts" class="form-label"></label>
+                        <input asp-for="Starts" type="date" class="form-control" />
+                        <span asp-validation-for="Starts" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Ends" class="form-label"></label>
+                        <input asp-for="Ends" type="date" class="form-control" />
+                        <span asp-validation-for="Ends" />
+                    </div>
+                </fieldset>
+                <div class="form-footer mt-3">
+                    <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    <button type="submit" class="btn btn-primary"><span class="fa fa-plus"></span> Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.selected-career').select2({
+                placeholder: "Seleccione la carrera"
+            });
+            $('.selected-teachingModality').select2({
+                placeholder: "Seleccione la modalidads"
+            });
+            $('.selected-curriculum').select2({
+                placeholder: "Seleccione el curriculum"
+            });
+        });
+    </script>
+}

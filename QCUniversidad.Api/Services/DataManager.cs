@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Services
 {
+    #region Exceptions
+
     public class FacultyNotFoundException : Exception { }
     public class DeparmentNotFoundException : Exception { }
     public class CareerNotFoundException : Exception { }
@@ -17,6 +19,10 @@ namespace QCUniversidad.Api.Services
     public class TeacherNotFoundException : Exception { }
     public class SubjectNotFoundException : Exception { }
     public class CurriculumNotFoundException : Exception { }
+    public class SchoolYearNotFoundException : Exception { }
+    public class PeriodNotFoundException : Exception { }
+
+    #endregion
 
     public class DataManager : IDataManager
     {
@@ -616,6 +622,168 @@ namespace QCUniversidad.Api.Services
                     return result > 0;
                 }
                 catch (CurriculumNotFoundException)
+                {
+                    throw;
+                }
+            }
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        #endregion
+
+        #region SchoolYears
+
+        public async Task<bool> CreateSchoolYearAsync(SchoolYearModel schoolYear)
+        {
+            if (schoolYear is not null)
+            {
+                await _context.SchoolYears.AddAsync(schoolYear);
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            throw new ArgumentNullException(nameof(schoolYear));
+        }
+
+        public async Task<bool> ExistsSchoolYearAsync(Guid id)
+        {
+            var result = await _context.SchoolYears.AnyAsync(d => d.Id == id);
+            return result;
+        }
+
+        public async Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from, int to)
+        {
+            var result =
+                (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
+                ? await _context.SchoolYears.Skip(from).Take(to).Include(y => y.Career).Include(y => y.Curriculum).Include(y => y.Periods).ToListAsync()
+                : await _context.SchoolYears.Include(y => y.Career).Include(y => y.Curriculum).Include(y => y.Periods).ToListAsync();
+            return result;
+        }
+
+        public async Task<int> GetSchoolYearsCountAsync()
+        {
+            return await _context.SchoolYears.CountAsync();
+        }
+
+        public async Task<int> GetSchoolYearPeriodsCountAsync(Guid schoolYearId)
+        {
+            var result = await _context.Periods.CountAsync(p => p.SchoolYearId == schoolYearId);
+            return result;
+        }
+
+        public async Task<SchoolYearModel> GetSchoolYearAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                var result = await _context.SchoolYears.Where(d => d.Id == id)
+                                                       .Include(y => y.Career)
+                                                       .Include(y => y.Curriculum)
+                                                       .Include(y => y.Periods)
+                                                       .FirstOrDefaultAsync();
+                return result ?? throw new SchoolYearNotFoundException();
+            }
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        public async Task<bool> UpdateSchoolYearAsync(SchoolYearModel schoolYear)
+        {
+            if (schoolYear is not null)
+            {
+                _context.SchoolYears.Update(schoolYear);
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            throw new ArgumentNullException(nameof(schoolYear));
+        }
+
+        public async Task<bool> DeleteSchoolYearAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                try
+                {
+                    var schoolYear = await GetSchoolYearAsync(id);
+                    _context.SchoolYears.Remove(schoolYear);
+                    var result = await _context.SaveChangesAsync();
+                    return result > 0;
+                }
+                catch (DisciplineNotFoundException)
+                {
+                    throw;
+                }
+            }
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        #endregion
+
+        #region Periods
+
+        public async Task<bool> CreatePeriodAsync(PeriodModel period)
+        {
+            if (period is not null)
+            {
+                await _context.Periods.AddAsync(period);
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            throw new ArgumentNullException(nameof(period));
+        }
+
+        public async Task<bool> ExistsPeriodAsync(Guid id)
+        {
+            var result = await _context.Periods.AnyAsync(d => d.Id == id);
+            return result;
+        }
+
+        public async Task<IList<PeriodModel>> GetPeriodsAsync(int from, int to)
+        {
+            var result =
+                (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
+                ? await _context.Periods.Skip(from).Take(to).Include(p => p.SchoolYear).ToListAsync()
+                : await _context.Periods.Include(p => p.SchoolYear).ToListAsync();
+            return result;
+        }
+
+        public async Task<int> GetPeriodsCountAsync()
+        {
+            return await _context.Periods.CountAsync();
+        }
+
+        public async Task<PeriodModel> GetPeriodAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                var result = await _context.Periods.Where(p => p.Id == id)
+                                                   .Include(p => p.SchoolYear)
+                                                   .FirstOrDefaultAsync();
+                return result ?? throw new PeriodNotFoundException();
+            }
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        public async Task<bool> UpdatePeriodAsync(PeriodModel period)
+        {
+            if (period is not null)
+            {
+                _context.Periods.Update(period);
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            throw new ArgumentNullException(nameof(period));
+        }
+
+        public async Task<bool> DeletePeriodAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                try
+                {
+                    var period = await GetPeriodAsync(id);
+                    _context.Periods.Remove(period);
+                    var result = await _context.SaveChangesAsync();
+                    return result > 0;
+                }
+                catch (PeriodNotFoundException)
                 {
                     throw;
                 }
