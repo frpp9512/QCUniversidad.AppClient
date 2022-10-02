@@ -5,9 +5,11 @@ using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Discipline;
 using QCUniversidad.Api.Shared.Dtos.SchoolYear;
+using QCUniversidad.Api.Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -78,6 +80,18 @@ public class SchoolYearController : ControllerBase
         {
             return Problem(ex.Message);
         }
+    }
+
+    [HttpGet]
+    [Route("existsbycareeryearandmodality")]
+    public async Task<IActionResult> ExistsByCareerYearAndModality(Guid careerId, int careerYear, int modality)
+    {
+        if (careerId != Guid.Empty || careerYear >= 0 || modality >= 0)
+        {
+            var result = await _dataManager.CheckSchoolYearExistenceByCareerYearAndModality(careerId, careerYear, (TeachingModality)modality);
+            return Ok(result);
+        }
+        return BadRequest("The parameters should not be null.");
     }
 
     [HttpPut]

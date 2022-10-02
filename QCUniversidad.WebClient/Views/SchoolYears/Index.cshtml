@@ -44,8 +44,9 @@
                 <th>Modalidad</th>
                 <th>Carrera</th>
                 <th>Año carrera</th>
+                <th>Inicia <span class="fa fa-arrow-right m-1"></span> Culmina</th>
                 <th>Curriculum</th>
-                <th>Disciplinas</th>
+                <th>Periódos</th>
                 <th></th>
             </tr>
         </thead>
@@ -65,11 +66,16 @@
                         </a>
                     </td>
                     <td>
-                        @item.CareerYear
+                        @item.GetCareerYearLabel()
+                    </td>
+                    <td>
+                        <span class="badge bg-info">
+                            <span>@item.Starts.ToString("dd-MM-yyyy")</span><span class="fa fa-arrow-right m-1"></span><span>@item.Ends.ToString("dd-MM-yyyy")</span>
+                        </span>
                     </td>
                     <td>
                         <a asp-action="Details" asp-controller="Curriculums" asp-route-id="@item.CurriculumId">
-                            @item.Curriculum
+                            @item.Curriculum.Denomination
                         </a>
                     </td>
                     <td>
@@ -89,7 +95,7 @@
                         }
                         else
                         {
-                            <span class="badge bg-secondary">Sin disciplinas</span>
+                            <span class="badge bg-secondary">Sin períodos</span>
                         }
                     </td>
                     <td>
@@ -133,7 +139,7 @@
     </div>
 
     @section Scripts {
-    <script src="~/js/schoolyear-index.js"></script>
+        <script src="~/js/schoolyear-index.js"></script>
     }
 }
 else

@@ -5,6 +5,7 @@ using QCUniversidad.WebClient.Models.Curriculums;
 using QCUniversidad.WebClient.Models.Periods;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,53 +22,34 @@ public record SchoolYearModel
     /// </summary>
     public Guid Id { get; set; }
 
-    /// <summary>
-    /// The ordinal year number for the carrer. Example: 3 (3rd year)
-    /// </summary>
+    [Required(ErrorMessage = "Debe de especifica que año de la carrera comprende el año escolar.")]
+    [Display(Name = "Año de la carrera", Description = "El año de la carrera al cual pertenece el presenta año escolar", Prompt = "Ej. '3' para 3er año")]
+    [Range(1, 8, ErrorMessage = "El año de la carrera debe de ser mayor que 1 y no mayor que 8.")]
     public int CareerYear { get; set; } = 1;
 
-    /// <summary>
-    /// The denomination of the school year. Example: 2021-2022.
-    /// </summary>
+    [Required(ErrorMessage = "Debe de especificar una denominación para el año escolar")]
+    [Display(Name = "Denominación del año escolar", Description = "Como se va a denominar el año escolar.", Prompt = "Ej. '2022-2023'")]
     public string Denomination { get; set; }
 
-    /// <summary>
-    /// The date when the school year begins.
-    /// </summary>
+    [Required(ErrorMessage = "Debe de especificar la fecha de inicio del año escolar")]
+    [Display(Name = "Fecha de inicio", Description = "Fecha de inicio del año escolar", Prompt = "Ej. 3/9/2022")]
     public DateTimeOffset Starts { get; set; } = DateTime.Now;
 
-    /// <summary>
-    /// The date when the school year ends.
-    /// </summary>
+    [Required(ErrorMessage = "Debe de especificar la fecha de culminación del año escolar")]
+    [Display(Name = "Fecha de culminación", Description = "Fecha de culminación del año escolar", Prompt = "Ej. 12/7/2022")]
     public DateTimeOffset Ends { get; set; } = DateTime.Now.AddMonths(9);
 
-    /// <summary>
-    /// The modality in which the students will study.
-    /// </summary>
+    [Required(ErrorMessage = "Debe de especificar la modalidad de estudio del año escolar.")]
+    [Display(Name = "Modalidad de estudio", Description = "La modalidad de estudio que cursan los estudiantes en el año escolar", Prompt = "Ej. 'Presencial'")]
     public TeachingModality TeachingModality { get; set; }
 
-    /// <summary>
-    /// The id of the carrer coursed by the students in the year.
-    /// </summary>
     public Guid CareerId { get; set; }
 
-    /// <summary>
-    /// The carrer coursed by the students in the year.
-    /// </summary>
     public CareerModel? Career { get; set; }
 
-    /// <summary>
-    /// The id of the curriculum that will be taught in the year.
-    /// </summary>
     public Guid CurriculumId { get; set; }
 
-    /// <summary>
-    /// The id of the curriculum that will be taught in the year.
-    /// </summary>
     public CurriculumModel? Curriculum { get; set; }
 
-    /// <summary>
-    /// The set of periods of the shool year.
-    /// </summary>
     public IList<PeriodModel>? Periods { get; set; }
 }

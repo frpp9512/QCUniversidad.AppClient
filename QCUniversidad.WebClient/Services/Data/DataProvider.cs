@@ -781,6 +781,19 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
+    public async Task<bool> CheckSchoolYearExistenceByCareerYearAndModality(Guid careerId, int careerYear, int modality)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/schoolyear/existsbycareeryearandmodality?careerId={careerId}&careerYear={careerYear}&modality={modality}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<bool>(contentText);
+            return result;
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
     public async Task<int> GetSchoolYearsCountAsync()
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
@@ -822,7 +835,7 @@ public class DataProvider : IDataProvider
     public async Task<SchoolYearModel> GetSchoolYearAsync(Guid id)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-        var response = await client.GetAsync($"/curriculum?id={id}");
+        var response = await client.GetAsync($"/schoolyear?id={id}");
         if (response.IsSuccessStatusCode)
         {
             var discipline = JsonConvert.DeserializeObject<SchoolYearDto>(await response.Content.ReadAsStringAsync());
@@ -849,7 +862,7 @@ public class DataProvider : IDataProvider
         if (id != Guid.Empty)
         {
             var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-            var response = await client.DeleteAsync($"/curriculum?id={id}");
+            var response = await client.DeleteAsync($"/schoolyear?id={id}");
             return response.IsSuccessStatusCode;
         }
         throw new ArgumentNullException(nameof(id));

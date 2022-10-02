@@ -1,4 +1,5 @@
-﻿using QCUniversidad.WebClient.Models.Careers;
+﻿using QCUniversidad.Api.Shared.Enums;
+using QCUniversidad.WebClient.Models.Careers;
 using QCUniversidad.WebClient.Models.Curriculums;
 using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Disciplines;
@@ -109,6 +110,7 @@ public interface IDataProvider
 
     Task<bool> CreateSchoolYearAsync(SchoolYearModel schoolYear);
     Task<bool> ExistsSchoolYearAsync(Guid id);
+    Task<bool> CheckSchoolYearExistenceByCareerYearAndModality(Guid careerId, int careerYear, int modality);
     Task<int> GetSchoolYearsCountAsync();
     Task<int> GetSchoolYearPeriodsCountAsync(Guid schoolYearId);
     Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from, int to);

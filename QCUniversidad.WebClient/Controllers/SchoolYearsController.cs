@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
+using QCUniversidad.WebClient.Models.Careers;
 using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Curriculums;
 using QCUniversidad.WebClient.Models.SchoolYears;
@@ -21,10 +23,10 @@ public class SchoolYearsController : Controller
 {
     private readonly IDataProvider _dataProvider;
     private readonly IMapper _mapper;
-    private readonly ILogger<CurriculumsController> _logger;
+    private readonly ILogger<SchoolYearsController> _logger;
     private readonly NavigationSettings _navigationSettings;
 
-    public SchoolYearsController(IDataProvider dataProvider, IMapper mapper, IOptions<NavigationSettings> navOptions, ILogger<CurriculumsController> logger)
+    public SchoolYearsController(IDataProvider dataProvider, IMapper mapper, IOptions<NavigationSettings> navOptions, ILogger<SchoolYearsController> logger)
     {
         _dataProvider = dataProvider;
         _mapper = mapper;
@@ -47,7 +49,7 @@ public class SchoolYearsController : Controller
             {
                 startingItemIndex = 0;
             }
-            _logger.LogModelSetLoading<CurriculumsController, SchoolYearModel>(HttpContext, startingItemIndex, _navigationSettings.ItemsPerPage);
+            _logger.LogModelSetLoading<SchoolYearsController, SchoolYearModel>(HttpContext, startingItemIndex, _navigationSettings.ItemsPerPage);
             var schoolYears = await _dataProvider.GetSchoolYearsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             _logger.LogInformation($"Loaded {schoolYears.Count} school years.");
             var totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
@@ -83,5 +85,140 @@ public class SchoolYearsController : Controller
         viewmodel.Curricula = curriculums;
         var careers = await _dataProvider.GetCareersAsync();
         viewmodel.Careers = careers;
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateAsync(CreateSchoolYearModel model)
+    {
+        _logger.LogRequest(HttpContext);
+        if (ModelState.IsValid)
+        {
+            if (model.Starts >= model.Ends)
+            {
+                ModelState.AddModelError("Starts", "La fecha de inicio del curso no debe de ser antes de la de culminación");
+            }
+            else
+            {
+                if (await _dataProvider.CheckSchoolYearExistenceByCareerYearAndModality(model.CareerId, model.CareerYear, (int)model.TeachingModality))
+                {
+                    ModelState.AddModelError("Error", "Ya existe un año escolar que con la carrera, modalidad y año seleccionado.");
+                }
+                else
+                {
+                    _logger.LogCreateModelRequest<SchoolYearsController, SchoolYearModel>(HttpContext);
+                    var result = await _dataProvider.CreateSchoolYearAsync(model);
+                    if (result)
+                    {
+                        _logger.LogModelCreated<SchoolYearsController, SchoolYearModel>(HttpContext);
+                        TempData["schoolyear-created"] = true;
+                        return RedirectToAction("Index");
+                    }
+                    ModelState.AddModelError("Error", "Error creando el año escolar.");
+                }
+            }
+        }
+        await LoadCreateViewModel(model);
+        return View(model);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> EditAsync(Guid id)
+    {
+        _logger.LogRequest(HttpContext);
+        _logger.LogCheckModelExistence<SchoolYearsController, SchoolYearModel>(HttpContext, id);
+        if (await _dataProvider.ExistsSchoolYearAsync(id))
+        {
+            var schoolYear = await _dataProvider.GetSchoolYearAsync(id);
+            var editModel = _mapper.Map<EditSchoolYearModel>(schoolYear);
+            await LoadEditViewModel(editModel);
+            return View(editModel);
+        }
+        _logger.LogModelNotExist<SchoolYearsController, SchoolYearModel>(HttpContext, id);
+        return RedirectToAction("Error", "Home");
+    }
+
+    private async Task LoadEditViewModel(EditSchoolYearModel viewmodel)
+    {
+        var curriculums = await _dataProvider.GetCurriculumsAsync();
+        viewmodel.Curricula = curriculums;
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditAsync(EditSchoolYearModel model)
+    {
+        _logger.LogRequest(HttpContext);
+        if (ModelState.IsValid)
+        {
+            _logger.LogCheckModelExistence<SchoolYearsController, SchoolYearModel>(HttpContext, model.Id);
+            if (!await _dataProvider.ExistsSchoolYearAsync(model.Id))
+            {
+                ModelState.AddModelError("Error", "El año escolar no existe.");
+            }
+            else
+            {
+                _logger.LogCheckModelExistence<SchoolYearsController, CareerModel>(HttpContext, model.CareerId);
+                if (!await _dataProvider.ExistsCareerAsync(model.CareerId))
+                {
+                    ModelState.AddModelError("Error", "La carrera no existe.");
+                }
+                else
+                {
+                    _logger.LogCheckModelExistence<SchoolYearsController, CurriculumModel>(HttpContext, model.CurriculumId);
+                    if (!await _dataProvider.ExistsCurriculumAsync(model.CurriculumId))
+                    {
+                        ModelState.AddModelError("Error", "El curriculum no existe.");
+                    }
+                    else
+                    {
+                        if (model.Starts >= model.Ends)
+                        {
+                            ModelState.AddModelError("Starts", "La fecha de inicio del curso no debe de ser antes de la de culminación");
+                        }
+                        else
+                        {
+                            if (await _dataProvider.CheckSchoolYearExistenceByCareerYearAndModality(model.CareerId, model.CareerYear, (int)model.TeachingModality))
+                            {
+                                ModelState.AddModelError("Error", "Ya existe un año escolar con la carrera, modalidad y año seleccionado.");
+                            }
+                            else
+                            {
+                                _logger.LogEditModelRequest<SchoolYearsController, SchoolYearModel>(HttpContext, model.Id);
+                                var result = await _dataProvider.UpdateSchoolYearAsync(model);
+                                if (result)
+                                {
+                                    _logger.LogModelEdited<SchoolYearsController, SchoolYearModel>(HttpContext, model.Id);
+                                    TempData["schoolyear-edited"] = true;
+                                    return RedirectToAction("Index");
+                                }
+                                ModelState.AddModelError("Error", "Error actualizando el año escolar");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        await LoadEditViewModel(model);
+        return View(model);
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeleteAsync(Guid id)
+    {
+        _logger.LogRequest(HttpContext);
+        _logger.LogCheckModelExistence<SchoolYearsController, SchoolYearModel>(HttpContext, id);
+        if (await _dataProvider.ExistsSchoolYearAsync(id))
+        {
+            _logger.LogDeleteModelRequest<SchoolYearsController, SchoolYearModel>(HttpContext, id);
+            var result = await _dataProvider.DeleteSchoolYearAsync(id);
+            if (result)
+            {
+                _logger.LogModelDeleted<SchoolYearsController, SchoolYearModel>(HttpContext, id);
+                TempData["schoolyear-deleted"] = true;
+                return Ok(result);
+            }
+        }
+        return NotFound(id);
     }
 }

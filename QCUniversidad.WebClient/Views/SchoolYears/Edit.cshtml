@@ -1,45 +1,32 @@
-﻿@model CreateSchoolYearModel
+﻿@model EditSchoolYearModel
 @using QCUniversidad.Api.Shared.Enums;
 @{
-    ViewData["Title"] = "Crear año escolar";
+    ViewData["Title"] = "Editar año escolar";
 }
 
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-12 col-md-6 col-xl-4">
-            <h1>Crear año escolar</h1>
-            <p>Rellene el forumlario para crear un nuevo año escolar</p>
+            <h1>Editar año escolar</h1>
+            <p>Actualice los datos en el forumlario</p>
             <hr />
-            <form asp-action="Create" method="post">
+            <form asp-action="Edit" method="post">
                 <div>
                     <div asp-validation-summary="All" class="text-danger"></div>
                 </div>
                 <fieldset>
-                    <div class="mb-3">
-                        @{
-                            var careerGroups = Model.Careers.GroupBy(d => d.FacultyId);
-                            <label for="CareerId">Carrera</label>
-                            <select asp-for="CareerId" class="form-control selected-career" aria-label="select" onchange="BuildDenomination()">
-                                @foreach (var group in careerGroups)
-                                {
-                                    <optgroup label="@group.FirstOrDefault()?.Faculty?.Name">
-                                        @foreach (var c in group)
-                                        {
-                                            <option value="@c.Id">@c.Name</option>
-                                        }
-                                    </optgroup>
-                                }
-                            </select>
-                        }
-                    </div>
                     <div class="mb-3">
                         <label asp-for="TeachingModality" class="form-label"></label>
                         <select asp-for="TeachingModality" asp-items="@Html.GetEnumSelectList<TeachingModality>()" class="form-control selected-teachingModality" onchange="BuildDenomination()"></select>
                         <span asp-validation-for="TeachingModality" />
                     </div>
                     <div class="mb-3">
+                        <input asp-for="Career.Name" readonly class="form-control-plaintext">
+                        <input asp-for="CareerId" type="hidden" />
+                    </div>
+                    <div class="mb-3">
                         <label asp-for="CareerYear" class="form-label"></label>
-                        <input asp-for="CareerYear" class="form-control" onchange="BuildDenomination()"></input>
+                        <input asp-for="CareerYear" class="form-control" onchange="BuildDenomination()" />
                         <span asp-validation-for="CareerYear" />
                     </div>
                     <div class="mb-3">
@@ -57,7 +44,7 @@
                         <label asp-for="Curriculum" class="form-label"></label>
                         <div class="mb-3">
                             @{
-                                var curriculaGroups = Model.Curricula.GroupBy(d => d.CareerId);
+                                var curriculaGroups = Model.Curricula?.GroupBy(d => d.CareerId);
                                 <select asp-for="CurriculumId" class="form-control selected-curriculum" aria-label="select" onchange="BuildDenomination()">
                                     @foreach (var group in curriculaGroups)
                                     {
@@ -86,7 +73,7 @@
                 </fieldset>
                 <div class="form-footer mt-3">
                     <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
-                    <button type="submit" class="btn btn-primary"><span class="fa fa-plus"></span> Crear</button>
+                    <button type="submit" class="btn btn-primary"><span class="fa fa-floppy-disk"></span> Guardar cambios</button>
                 </div>
             </form>
         </div>
@@ -96,9 +83,6 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            $('.selected-career').select2({
-                placeholder: "Seleccione la carrera"
-            });
             $('.selected-teachingModality').select2({
                 placeholder: "Seleccione la modalidads"
             });
@@ -131,19 +115,8 @@
                     }
                 }
 
-                var career = document.getElementById("CareerId");
-                var cGroups = career.getElementsByTagName("optgroup");
-                var selectedCareerName = "";
-                for (i = 0; i < cGroups.length; i++) {
-                    var group = cGroups[i];
-                    var options = group.getElementsByTagName("option");
-                    for (j = 0; j < options.length; j++) {
-                        var option = options[j];
-                        if (option.value == career.value) {
-                            selectedCareerName = option.innerText;
-                        }
-                    }
-                }
+                var selectedCareerName = document.getElementById("Career_Name").value;
+                
                 var denomination = document.getElementById("Denomination");
                 var splittedCareerName = selectedCareerName.split(" ");
                 splittedCareerName = splittedCareerName.map(s => s[0].toUpperCase());

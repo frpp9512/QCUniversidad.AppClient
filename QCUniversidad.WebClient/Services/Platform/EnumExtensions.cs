@@ -12,7 +12,7 @@ namespace QCUniversidad.WebClient.Services.Platform
         public static string GetLabel(this TeachingModality modality) 
             => modality switch
             {
-                TeachingModality.Classroom => "Presencial",
+                TeachingModality.Classroom => "Diurno",
                 TeachingModality.ByMeeting => "Por encuentro",
                 TeachingModality.DistanceLearning => "A distancia",
                 _ => throw new NotImplementedException()

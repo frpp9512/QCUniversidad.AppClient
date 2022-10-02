@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -110,6 +111,7 @@ public interface IDataManager
 
     Task<bool> CreateSchoolYearAsync(SchoolYearModel schoolYear);
     Task<bool> ExistsSchoolYearAsync(Guid id);
+    Task<bool> CheckSchoolYearExistenceByCareerYearAndModality(Guid careerId, int careerYear, TeachingModality modality);
     Task<int> GetSchoolYearsCountAsync();
     Task<int> GetSchoolYearPeriodsCountAsync(Guid schoolYearId);
     Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from, int to);

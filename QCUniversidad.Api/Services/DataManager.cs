@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -647,6 +648,12 @@ namespace QCUniversidad.Api.Services
         public async Task<bool> ExistsSchoolYearAsync(Guid id)
         {
             var result = await _context.SchoolYears.AnyAsync(d => d.Id == id);
+            return result;
+        }
+
+        public async Task<bool> CheckSchoolYearExistenceByCareerYearAndModality(Guid careerId, int careerYear, TeachingModality modality)
+        {
+            var result = await _context.SchoolYears.AnyAsync(sy => sy.CareerId == careerId && sy.CareerYear == careerYear && sy.TeachingModality == modality);
             return result;
         }
 
