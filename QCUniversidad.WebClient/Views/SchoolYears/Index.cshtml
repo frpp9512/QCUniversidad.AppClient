@@ -62,7 +62,7 @@
                     </td>
                     <td>
                         <a asp-action="Details" asp-controller="Carrers" asp-route-id="@item.CareerId">
-                            @item.Career.Name
+                            @item.Career.Name <small><span class="fa fa-circle-info"></span></small>
                         </a>
                     </td>
                     <td>
@@ -75,30 +75,16 @@
                     </td>
                     <td>
                         <a asp-action="Details" asp-controller="Curriculums" asp-route-id="@item.CurriculumId">
-                            @item.Curriculum.Denomination
+                            @item.Curriculum.Denomination <small><span class="fa fa-circle-info"></span></small>
                         </a>
                     </td>
                     <td>
-                        @if (item.Periods?.Any() == true)
-                        {
-                            <p>
-                                <a class="btn btn-outline-info" data-bs-toggle="collapse" href="#dc@(item.Id)" role="button" aria-expanded="false" aria-controls="collapseExample">
-                                    @item.Periods?.Count
-                                </a>
-                            </p>
-                            <div class="collapse" id="dc@(item.Id)">
-                                @foreach (var discipline in item.Periods)
-                                {
-                                    <span class="badge bg-info">@discipline.Starts.ToString("d-M-yyyy") - @discipline.Ends.ToString("d-M-yyyy")</span>
-                                }
-                            </div>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">Sin períodos</span>
-                        }
+                        @item.Periods?.Count
                     </td>
                     <td>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">
+                            <span class="fa fa-circle-info" />
+                        </a>
                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
                             <span class="fa fa-edit" />
                         </a>
@@ -139,7 +125,7 @@
     </div>
 
     @section Scripts {
-        <script src="~/js/schoolyear-index.js"></script>
+    <script src="~/js/schoolyear-index.js"></script>
     }
 }
 else

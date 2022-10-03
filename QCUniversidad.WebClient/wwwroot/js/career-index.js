@@ -14,8 +14,8 @@ function RiseDeleteModal(id) {
 function SendDeleteCareerRequest(id) {
     if (!requesting) {
         requesting = true;
-        HideDeleteModalButtons();
-        ShowDeleteModalSpinner();
+        HideCreateModalButtons();
+        ShowCreateModalSpinner();
         var xhttp = new XMLHttpRequest();
         xhttp.open("DELETE", "/careers/delete?id=" + id, true);
         xhttp.setRequestHeader("Content-Type", "application/json");
@@ -28,8 +28,8 @@ function SendDeleteCareerRequest(id) {
                 location.reload();
             }
             requesting = false;
-            ShowDeleteModalButtons();
-            HideDeleteModalSpinner();
+            ShowCreateModalButtons();
+            HideCreateModalSpinner();
         };
         xhttp.send();
     }
@@ -46,7 +46,7 @@ function SetDeleteModalTextContent(value) {
     content.innerHTML = value;
 }
 
-function HideDeleteModalButtons() {
+function HideCreateModalButtons() {
     var footer = document.getElementById('deleteModalFooter');
     var buttons = footer.getElementsByTagName("button");
     for (var i = 0; i < buttons.length; i++) {
@@ -54,7 +54,7 @@ function HideDeleteModalButtons() {
     }
 }
 
-function ShowDeleteModalButtons() {
+function ShowCreateModalButtons() {
     var footer = document.getElementById('deleteModalFooter');
     var buttons = footer.getElementsByTagName("button");
     for (var i = 0; i < buttons.length; i++) {
@@ -62,12 +62,12 @@ function ShowDeleteModalButtons() {
     }
 }
 
-function ShowDeleteModalSpinner() {
+function ShowCreateModalSpinner() {
     var spinner = document.getElementById("deleteModalLoadingSpinner");
     spinner.hidden = false;
 }
 
-function HideDeleteModalSpinner() {
+function HideCreateModalSpinner() {
     var spinner = document.getElementById("deleteModalLoadingSpinner");
     spinner.hidden = true;
 }

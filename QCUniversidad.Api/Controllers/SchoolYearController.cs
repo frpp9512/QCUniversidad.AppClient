@@ -99,8 +99,9 @@ public class SchoolYearController : ControllerBase
     {
         if (schoolYear is not null)
         {
-            var result = await _dataManager.CreateSchoolYearAsync(_mapper.Map<SchoolYearModel>(schoolYear));
-            return result ? Ok() : Problem("An error has occured creating the discipline.");
+            var model = _mapper.Map<SchoolYearModel>(schoolYear);
+            var result = await _dataManager.CreateSchoolYearAsync(model);
+            return result ? Ok(model.Id) : Problem("An error has occured creating the discipline.");
         }
         return BadRequest("The discipline cannot be null.");
     }

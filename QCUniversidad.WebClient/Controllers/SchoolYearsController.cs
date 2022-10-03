@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using QCUniversidad.WebClient.Models.Careers;
 using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Curriculums;
+using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.SchoolYears;
 using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Services.Data;
@@ -71,6 +72,20 @@ public class SchoolYearsController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> DetailsAsync(Guid id)
+    {
+        _logger.LogRequest(HttpContext);
+        _logger.LogCheckModelExistence<SchoolYearsController, SchoolYearModel>(HttpContext, id);
+        if (await _dataProvider.ExistsSchoolYearAsync(id))
+        {
+            _logger.LogModelLoading<SchoolYearsController, SchoolYearModel>(HttpContext, id);
+            var model = await _dataProvider.GetSchoolYearAsync(id);
+            return View(model);
+        }
+        return RedirectToAction("Error", "Home");
+    }
+
+    [HttpGet]
     public async Task<IActionResult> CreateAsync()
     {
         _logger.LogRequest(HttpContext);
@@ -106,15 +121,18 @@ public class SchoolYearsController : Controller
                 }
                 else
                 {
-                    _logger.LogCreateModelRequest<SchoolYearsController, SchoolYearModel>(HttpContext);
-                    var result = await _dataProvider.CreateSchoolYearAsync(model);
-                    if (result)
+                    try
                     {
+                        _logger.LogCreateModelRequest<SchoolYearsController, SchoolYearModel>(HttpContext);
+                        var result = await _dataProvider.CreateSchoolYearAsync(model);
                         _logger.LogModelCreated<SchoolYearsController, SchoolYearModel>(HttpContext);
                         TempData["schoolyear-created"] = true;
-                        return RedirectToAction("Index");
+                        return RedirectToAction("Details", new { id = result });
                     }
-                    ModelState.AddModelError("Error", "Error creando el año escolar.");
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("Error", $"Error agregando el año escolar. Mensaje: { ex.Message }");
+                    }
                 }
             }
         }
@@ -220,5 +238,28 @@ public class SchoolYearsController : Controller
             }
         }
         return NotFound(id);
+    }
+
+    [HttpPut]
+    public async Task<IActionResult> CreatePeriodAsync([FromBody] CreatePeriodModel model)
+    {
+        _logger.LogRequest(HttpContext);
+        try
+        {
+            if (!await _dataProvider.ExistsSchoolYearAsync(model.SchoolYearId))
+            {
+                return NotFound("El año escolar no existe.");
+            }
+            if (model.Starts >= model.Ends)
+            {
+                return BadRequest(new { responseText = "La fecha de culminación debe de suceder a la de inicio." });
+            }
+            var result = await _dataProvider.CreatePeriodAsync(_mapper.Map<PeriodModel>(model));
+            return result ? Ok(result) : (IActionResult)Problem();
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
     }
 }

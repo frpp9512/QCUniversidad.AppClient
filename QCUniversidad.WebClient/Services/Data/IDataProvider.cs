@@ -108,7 +108,7 @@ public interface IDataProvider
 
     #region SchoolYears
 
-    Task<bool> CreateSchoolYearAsync(SchoolYearModel schoolYear);
+    Task<Guid> CreateSchoolYearAsync(SchoolYearModel schoolYear);
     Task<bool> ExistsSchoolYearAsync(Guid id);
     Task<bool> CheckSchoolYearExistenceByCareerYearAndModality(Guid careerId, int careerYear, int modality);
     Task<int> GetSchoolYearsCountAsync();

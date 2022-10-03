@@ -125,6 +125,7 @@ public interface IDataManager
 
     Task<bool> CreatePeriodAsync(PeriodModel period);
     Task<bool> ExistsPeriodAsync(Guid id);
+    Task<bool> ExistPeriodWithOrder(Guid schoolYearId, int order);
     Task<int> GetPeriodsCountAsync();
     Task<IList<PeriodModel>> GetPeriodsAsync(int from, int to);
     Task<PeriodModel> GetPeriodAsync(Guid id);

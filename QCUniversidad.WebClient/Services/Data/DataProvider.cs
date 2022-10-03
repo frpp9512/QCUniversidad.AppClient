@@ -755,7 +755,7 @@ public class DataProvider : IDataProvider
 
     #region SchoolYears
 
-    public async Task<bool> CreateSchoolYearAsync(SchoolYearModel schoolYear)
+    public async Task<Guid> CreateSchoolYearAsync(SchoolYearModel schoolYear)
     {
         if (schoolYear is not null)
         {
@@ -763,7 +763,12 @@ public class DataProvider : IDataProvider
             var serializedDtos = JsonConvert.SerializeObject(dto);
             var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
             var response = await client.PutAsync("/schoolyear", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
-            return response.IsSuccessStatusCode;
+            if (response.IsSuccessStatusCode)
+            {
+                var responseText = await response.Content.ReadAsStringAsync();
+                var id = JsonConvert.DeserializeObject<Guid>(responseText);
+                return id;
+            }
         }
         throw new ArgumentNullException(nameof(schoolYear));
     }

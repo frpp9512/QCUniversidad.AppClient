@@ -1,0 +1,231 @@
+﻿@model SchoolYearModel
+@using QCUniversidad.WebClient.Services.Platform;
+@{
+    ViewData["Title"] = "Detalles del año escolar";
+}
+
+<p class="text-muted">Detalles del año escolar <a asp-action="Edit" asp-route-id="@Model.Id" class="link-warning m-2"><span class="fa fa-edit"></span> Editar</a> <a asp-action="Index" class="link-info m-2"><span class="fa fa-rectangle-list"></span> Ir al listado</a></p>
+<input id="schoolYearId" type="hidden" value="@Model.Id" />
+@if (Model.Periods?.Any() == true)
+{
+    <input id="lastPeriodOrderNumber" type="hidden" value="@(Model.Periods?.OrderByDescending(p => p.OrderNumber).First().OrderNumber + 1)" />
+}
+else
+{
+    <input id="lastPeriodOrderNumber" type="hidden" value="1" />
+}
+<h1 class="display-4">@Model.Denomination</h1>
+
+<dl class="row">
+    <dt class="col-sm-3">Carrera</dt>
+    <dd class="col-sm-9"><a asp-action="Details" asp-controller="Careers" asp-route-id="@Model.CareerId" class="link-info">@Model.Career.Name <small><span class="fa fa-circle-info"></span></small></a></dd>
+
+    <dt class="col-sm-3">Modalidad</dt>
+    <dd class="col-sm-9">@Html.DisplayFor(m => m.TeachingModality)</dd>
+
+    <dt class="col-sm-3">Año de carrera</dt>
+    <dd class="col-sm-9">@Model.GetCareerYearLabel()</dd>
+
+    <dt class="col-sm-3">Curriculum</dt>
+    <dd class="col-sm-9"><a asp-action="Details" asp-controller="Curriculum" asp-route-id="@Model.CurriculumId" class="link-info">@Model.Curriculum.Denomination <small><span class="fa fa-circle-info"></span></small></a></dd>
+
+    <dt class="col-sm-3">Inicia</dt>
+    <dd class="col-sm-9"><span class="fa fa-calendar-day"></span> @Model.Starts.ToString("dd-MM-yyyy")</dd>
+
+    <dt class="col-sm-3">Termina</dt>
+    <dd class="col-sm-9"><span class="fa fa-calendar-day"></span> @Model.Ends.ToString("dd-MM-yyyy")</dd>
+</dl>
+
+<div class="d-flex align-items-center">
+    <h3>Períodos</h3>
+    <small class="m-3"><button type="button" data-bs-toggle="modal" data-bs-target="#addPeriodModal" class="btn btn-sm btn-outline-success"><span class="fa fa-plus-circle"></span> Agregar período</button></small>
+</div>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Orden</th>
+            <th>Descripción</th>
+            <th>Inicia <span class="fa fa-calendar-day"></span></th>
+            <th>Termina <span class="fa fa-calendar-day"></span></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Periods?.Any() == true)
+        {
+            foreach (var period in Model.Periods.OrderBy(p => p.OrderNumber))
+            {
+                <tr>
+                    <td>@period.OrderNumber</td>
+                    <td>
+                        @if (string.IsNullOrEmpty(period.Description))
+                        {
+                            <p class="text-muted" style="font-style: italic;">Sin descripción</p>
+                        }
+                        else
+                        {
+                            @period.Description
+                        }
+                    </td>
+                    <td>@period.Starts.ToString("dd-MM-yyyy")</td>
+                    <td>@period.Ends.ToString("dd-MM-yyyy")</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-warning" onclick="EditPeriod('@period.Id')"><span class="fa fa-edit"></span></button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="DeletePeriod('@period.Id')"><span class="fa fa-trash"></span></button>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4" align="center">
+                    <p>No existen periódos en el año escolar.</p>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Add period modal -->
+<div class="modal fade" id="addPeriodModal" data-bs-keyboard="false" tabindex="-1" aria-labelledby="addPeriodModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPeriodModalLabel">Nuevo período</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <fieldset>
+                    <div class="mb-3">
+                        <label for="newPeriodOrder" class="form-label">Orden</label>
+                        <input type="number" min="1" max="6" class="form-control" id="newPeriodOrder">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPeriodDescription" class="form-label">Descripción</label>
+                        <input type="text" class="form-control" id="newPeriodDescription" placeholder="Descripción del período">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPeriodStarts" class="form-label">Inicia</label>
+                        <input type="date" class="form-control" id="newPeriodStarts" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPeriodEnds" class="form-label">Termina</label>
+                        <input type="date" class="form-control" id="newPeriodEnds" />
+                    </div>
+                </fieldset>
+            </div>
+            <div id="createModalFooter" class="modal-footer">
+                <div id="createModalLoadingSpinner" class="spinner-border text-primary" role="status" hidden>
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span class="fa fa-rectangle-xmark"></span> Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="AddPeriod()"><span class="fa fa-circle-plus"></span> Agregar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="_MessageModal" />
+
+@section Scripts {
+    <script src="~/js/message-modal.js"></script>
+    <script>
+        var requestingCreatePeriod = false;
+
+        $(document).ready(function () {
+            var createModal = document.getElementById('addPeriodModal')
+            createModal.addEventListener('show.bs.modal', function (event) {
+                var nextOrderNumber = document.getElementById("lastPeriodOrderNumber").value;
+                var periodOrderInput = document.getElementById("newPeriodOrder");
+                periodOrderInput.value = nextOrderNumber;
+                periodOrderInput.readOnly = true;
+            })
+        });
+
+        function AddPeriod() {
+            var periodOrder = document.getElementById("newPeriodOrder").value;
+            if (periodOrder == '') {
+                ShowError("Número de orden", "Especifique un número de orden de período.")
+                return;
+            }
+            var periodDescription = document.getElementById("newPeriodDescription").value;
+            var starts = document.getElementById("newPeriodStarts").value;
+            if (starts == '') {
+                ShowError("Fecha de inicio", "Especifique una fecha de inicio del período.")
+                return;
+            }
+            var ends = document.getElementById("newPeriodEnds").value;
+            if (ends == '') {
+                ShowError("Fecha de culminación", "Especifique una fecha de culminación del período.")
+                return;
+            }
+            var schoolYearId = document.getElementById("schoolYearId").value;
+            var creationModel = {
+                OrderNumber: periodOrder,
+                Description: periodDescription,
+                Starts: starts,
+                Ends: ends,
+                SchoolYearId: schoolYearId
+            };
+
+            if (!requestingCreatePeriod) {
+                requestingCreatePeriod = true;
+                HideCreateModalButtons();
+                ShowCreateModalSpinner();
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("PUT", "/schoolyears/createperiod", true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                xhttp.onreadystatechange = function () {
+                    if (requestingCreatePeriod) {
+                        requestingCreatePeriod = false;
+                        if (this.status == 200) {
+                            console.log(this.responseText);
+                            location.reload();
+                        } else {
+                            ShowError("Error creando periodo", `${this.status} - ${this.statusText} - ${this.responseText}`)
+                        }
+                        ShowCreateModalButtons();
+                        HideCreateModalSpinner();
+                    }
+                };
+                xhttp.send(JSON.stringify(creationModel));
+            }
+        }
+
+        function EditPeriod(id) {
+            ShowMessage("Editar", id);
+        }
+
+        function DeletePeriod(id) {
+            ShowMessage("Eliminar", id);
+        }
+
+        function HideCreateModalButtons() {
+            var footer = document.getElementById('createModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = true;
+            }
+        }
+
+        function ShowCreateModalButtons() {
+            var footer = document.getElementById('createModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = false;
+            }
+        }
+
+        function ShowCreateModalSpinner() {
+            var spinner = document.getElementById("createModalLoadingSpinner");
+            spinner.hidden = false;
+        }
+
+        function HideCreateModalSpinner() {
+            var spinner = document.getElementById("createModalLoadingSpinner");
+            spinner.hidden = true;
+        }
+    </script>
+}

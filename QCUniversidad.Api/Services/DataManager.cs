@@ -742,6 +742,12 @@ namespace QCUniversidad.Api.Services
             return result;
         }
 
+        public async Task<bool> ExistPeriodWithOrder(Guid schoolYearId, int order)
+        {
+            var result = await _context.Periods.AnyAsync(p => p.SchoolYearId == schoolYearId && p.OrderNumber == order);
+            return result;
+        }
+
         public async Task<IList<PeriodModel>> GetPeriodsAsync(int from, int to)
         {
             var result =

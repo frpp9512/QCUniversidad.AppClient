@@ -69,6 +69,12 @@ public class CurriculumsController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> DetailsAsync(Guid id)
+    {
+        return View();
+    }
+
+    [HttpGet]
     public async Task<IActionResult> CreateAsync()
     {
         _logger.LogRequest(HttpContext);

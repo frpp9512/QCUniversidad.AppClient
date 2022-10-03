@@ -12,5 +12,5 @@ public record NewPeriodDto
     public string? Description { get; set; }
     public DateTimeOffset Starts { get; set; }
     public DateTimeOffset Ends { get; set; }
-    public Guid ShoolYearId { get; set; }
+    public Guid SchoolYearId { get; set; }
 }

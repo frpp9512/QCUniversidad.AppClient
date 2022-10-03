@@ -32,5 +32,5 @@ public record SchoolYearDto
 
     public CurriculumDto Curriculum { get; set; }
 
-    public IList<PeriodDto> Periods { get; set; }
+    public IList<EditPeriodDto> Periods { get; set; }
 }
