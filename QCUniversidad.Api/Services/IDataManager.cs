@@ -134,6 +134,30 @@ public interface IDataManager
 
     #endregion
 
+    #region TeachingPlans
+
+    Task<bool> CreateTeachingPlanAsync(TeachingPlanModel period);
+    Task<bool> ExistsTeachingPlanAsync(Guid id);
+    Task<int> GetTeachingPlansCountAsync();
+    Task<IList<TeachingPlanModel>> GetTeachingPlansAsync(int from, int to);
+    Task<TeachingPlanModel> GetTeachingPlanAsync(Guid id);
+    Task<bool> UpdateTeachingPlanAsync(TeachingPlanModel period);
+    Task<bool> DeleteTeachingPlanAsync(Guid id);
+
+    #region TeachingPlanItems
+
+    Task<bool> CreateTeachingPlanItemAsync(TeachingPlanItem period);
+    Task<bool> ExistsTeachingPlanItemAsync(Guid id);
+    Task<int> GetTeachingPlanItemsCountAsync();
+    Task<IList<TeachingPlanItem>> GetTeachingPlanItemsAsync(int from, int to);
+    Task<TeachingPlanItem> GetTeachingPlanItemAsync(Guid id);
+    Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItem period);
+    Task<bool> DeleteTeachingPlanItemAsync(Guid id);
+
+    #endregion
+
+    #endregion
+
     #region Teachers - Disciplines
 
     Task<IList<DisciplineModel>> GetDisciplinesForTeacher(Guid teacherId);

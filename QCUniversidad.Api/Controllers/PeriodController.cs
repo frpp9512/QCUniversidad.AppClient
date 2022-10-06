@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
+using QCUniversidad.Api.Shared.Dtos.Curriculum;
+using QCUniversidad.Api.Shared.Dtos.Discipline;
 using QCUniversidad.Api.Shared.Dtos.Period;
 using QCUniversidad.Api.Shared.Dtos.SchoolYear;
 using System;
@@ -14,6 +17,7 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class PeriodController : ControllerBase
 {
     private readonly IDataManager _dataManager;
@@ -23,6 +27,25 @@ public class PeriodController : ControllerBase
     {
         _dataManager = dataManager;
         _mapper = mapper;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetByIdAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            return BadRequest("You must provide an id.");
+        }
+        try
+        {
+            var result = await _dataManager.GetPeriodAsync(id);
+            var dto = _mapper.Map<EditPeriodDto>(result);
+            return Ok(dto);
+        }
+        catch (PeriodNotFoundException)
+        {
+            return NotFound($"The period with id {id} was not found.");
+        }
     }
 
     [HttpGet("list")]

@@ -28,5 +28,23 @@ public enum TeachingModality
     /// When the students recieve the subjects via internet, and only make presence for the tests.
     /// </summary>
     [Display(Name = "Curso a distancia", Description = "Modalidad en la que los estudiantes no acuden a las aulas y deben de realizar el estudio individualmente.", Prompt = "Modalidad a distancia")]
-    DistanceLearning
+    DistanceLearning,
+
+    /// <summary>
+    /// Courses for graduated students.
+    /// </summary>
+    [Display(Name = "Postgrado", Description = "Modalidad de cursos para estudiantes graduados.", Prompt = "Modalidad de postgrado")]
+    PostgraduateDegree,
+
+    /// <summary>
+    /// Courses for graduated students to get the Master's degree.
+    /// </summary>
+    [Display(Name = "Maestría", Description = "Modalidad de estudio para obtener el título de maestría.", Prompt = "Modalidad de maestría")]
+    MastersDegree,
+
+    /// <summary>
+    /// Courses for graduated students to get the PhD degree.
+    /// </summary>
+    [Display(Name = "Doctorado", Description = "Modalidad de estudio para obtener el título de Doctor en ciencias.", Prompt = "Modalidad de doctorado")]
+    PhDDegree
 }

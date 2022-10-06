@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using QCUniversidad.WebClient.Models.Careers;
 using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Curriculums;
@@ -255,11 +256,72 @@ public class SchoolYearsController : Controller
                 return BadRequest(new { responseText = "La fecha de culminación debe de suceder a la de inicio." });
             }
             var result = await _dataProvider.CreatePeriodAsync(_mapper.Map<PeriodModel>(model));
-            return result ? Ok(result) : (IActionResult)Problem();
+            if (result)
+            {
+                TempData["period-created"] = true;
+                return Ok(new { responseText = result });
+            }
+            return Problem("Ha ocurrido un problema creando el período.");
         }
         catch (Exception ex)
         {
             return Problem(ex.Message);
         }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetPeriodAsync(Guid id)
+    {
+        var result = await _dataProvider.GetPeriodAsync(id);
+        return Ok(JsonConvert.SerializeObject(result));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UpdatePeriodAsync(PeriodModel model)
+    {
+        _logger.LogRequest(HttpContext);
+        try
+        {
+            if (!await _dataProvider.ExistsPeriodAsync(model.Id))
+            {
+                return NotFound(new { responseText = "El periodo no existe." });
+            }
+            if (!await _dataProvider.ExistsSchoolYearAsync(model.SchoolYearId))
+            {
+                return NotFound(new { responseText = "El año escolar no existe." });
+            }
+            if (model.Starts >= model.Ends)
+            {
+                return BadRequest(new { responseText = "La fecha de culminación debe de suceder a la de inicio." });
+            }
+            var result = await _dataProvider.UpdatePeriodAsync(model);
+            if (result)
+            {
+                TempData["period-updated"] = true;
+                return Ok(new { responseText = result });
+            }
+            return Problem("Ha ocurrido un problema actualizando el período.");
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeletePeriodAsync(Guid id)
+    {
+        _logger.LogRequest(HttpContext);
+        if (await _dataProvider.ExistsPeriodAsync(id))
+        {
+            var result = await _dataProvider.DeletePeriodAsync(id);
+            if (result)
+            {
+                TempData["period-deleted"] = true;
+                return Ok(new { responseText = "ok" });
+            }
+            return Problem("Ha ocurrido un problema eliminando el período.");
+        }
+        return NotFound(new { responseText = $"No existe el período con id {id}" });
     }
 }

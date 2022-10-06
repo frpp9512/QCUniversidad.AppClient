@@ -41,7 +41,7 @@
             <tr>
                 <th>Nombre</th>
                 <th>Carné de identidad</th>
-                <th>Cargo</th>
+                <th>Categoría</th>
                 <th>Departamento</th>
                 <th>Disciplinas</th>
                 <th></th>
@@ -58,7 +58,7 @@
                         @item.PersonalId
                     </td>
                     <td>
-                        @item.Position
+                        @Html.DisplayFor(m => item.Category)
                     </td>
                     <td>
                         <a asp-action="Details" asp-controller="Departments" asp-route-id="@item.DepartmentId" class="">

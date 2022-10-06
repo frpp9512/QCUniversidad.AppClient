@@ -15,6 +15,9 @@ namespace QCUniversidad.WebClient.Services.Platform
                 TeachingModality.Classroom => "Diurno",
                 TeachingModality.ByMeeting => "Por encuentro",
                 TeachingModality.DistanceLearning => "A distancia",
+                TeachingModality.PostgraduateDegree => "Postgrado",
+                TeachingModality.MastersDegree => "Maestría",
+                TeachingModality.PhDDegree => "Doctorado",
                 _ => throw new NotImplementedException()
             };
     }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using QCUniversidad.Api.Data.Context;
 
@@ -10,9 +11,10 @@ using QCUniversidad.Api.Data.Context;
 namespace QCUniversidad.Api.Migrations
 {
     [DbContext(typeof(QCUniversidadContext))]
-    partial class QCUniversidadContextModelSnapshot : ModelSnapshot
+    [Migration("20221004142314_AddedEnrolmentToPeriod")]
+    partial class AddedEnrolmentToPeriod
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.8");
@@ -262,9 +264,6 @@ namespace QCUniversidad.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Category")
-                        .HasColumnType("INTEGER");
-
                     b.Property<Guid>("DepartmentId")
                         .HasColumnType("TEXT");
 
@@ -284,52 +283,6 @@ namespace QCUniversidad.Api.Migrations
                     b.HasIndex("DepartmentId");
 
                     b.ToTable("Teachers");
-                });
-
-            modelBuilder.Entity("QCUniversidad.Api.Data.Models.TeachingPlanItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<uint>("GroupsAmount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<double>("HoursPlanned")
-                        .HasColumnType("REAL");
-
-                    b.Property<Guid>("SubjectId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("TeachingPlanId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SubjectId");
-
-                    b.HasIndex("TeachingPlanId");
-
-                    b.ToTable("TeachingPlanItems");
-                });
-
-            modelBuilder.Entity("QCUniversidad.Api.Data.Models.TeachingPlanModel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("PeriodId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PeriodId");
-
-                    b.ToTable("TeachingPlans");
                 });
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.CareerModel", b =>
@@ -466,36 +419,6 @@ namespace QCUniversidad.Api.Migrations
                     b.Navigation("Department");
                 });
 
-            modelBuilder.Entity("QCUniversidad.Api.Data.Models.TeachingPlanItem", b =>
-                {
-                    b.HasOne("QCUniversidad.Api.Data.Models.SubjectModel", "Subject")
-                        .WithMany()
-                        .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("QCUniversidad.Api.Data.Models.TeachingPlanModel", "TeachingPlan")
-                        .WithMany("Items")
-                        .HasForeignKey("TeachingPlanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Subject");
-
-                    b.Navigation("TeachingPlan");
-                });
-
-            modelBuilder.Entity("QCUniversidad.Api.Data.Models.TeachingPlanModel", b =>
-                {
-                    b.HasOne("QCUniversidad.Api.Data.Models.PeriodModel", "Period")
-                        .WithMany()
-                        .HasForeignKey("PeriodId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Period");
-                });
-
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.CareerModel", b =>
                 {
                     b.Navigation("Curricula");
@@ -539,11 +462,6 @@ namespace QCUniversidad.Api.Migrations
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.TeacherModel", b =>
                 {
                     b.Navigation("TeacherDisciplines");
-                });
-
-            modelBuilder.Entity("QCUniversidad.Api.Data.Models.TeachingPlanModel", b =>
-                {
-                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

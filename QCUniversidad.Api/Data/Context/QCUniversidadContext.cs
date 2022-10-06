@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,9 @@ namespace QCUniversidad.Api.Data.Context
         public DbSet<DisciplineModel> Disciplines { get; set; }
         public DbSet<TeacherModel> Teachers { get; set; }
         public DbSet<TeacherDiscipline> TeachersDisciplines { get; set; }
+
+        public DbSet<TeachingPlanModel> TeachingPlans { get; set; }
+        public DbSet<TeachingPlanItem> TeachingPlanItems { get; set; }
 
         public QCUniversidadContext(DbContextOptions<QCUniversidadContext> options) 
             : base(options)
@@ -115,6 +119,12 @@ namespace QCUniversidad.Api.Data.Context
                         .HasMany(d => d.Disciplines)
                         .WithOne(d => d.Department)
                         .HasForeignKey(d => d.DepartmentId)
+                        .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TeachingPlanModel>()
+                        .HasMany(t => t.Items)
+                        .WithOne(i => i.TeachingPlan)
+                        .HasForeignKey(i => i.TeachingPlanId)
                         .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);

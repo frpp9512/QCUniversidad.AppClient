@@ -1,19 +1,19 @@
 ﻿var deleteModal = new bootstrap.Modal(document.getElementById('deleteSchoolYearModal'), { keyboard: true });
-requesting = false;
+requestingDelete = false;
 
 function RiseDeleteModal(id) {
-    var schoolYear = GetSchoolYearDenomination(id);
+    var schoolYear = GetPeriodDenomination(id);
     SetDeleteModalTextContent("¿Esta seguro que desea eliminar el año escolar '" + schoolYear + "'?");
     var button = document.getElementById("modal-delete-primarybutton");
     button.onclick = function () {
-        SendDeleteSchoolYearRequest(id);
+        SendDeletePeriodRequest(id);
     };
     deleteModal.show();
 }
 
-function SendDeleteSchoolYearRequest(id) {
-    if (!requesting) {
-        requesting = true;
+function SendDeletePeriodRequest(id) {
+    if (!requestingDelete) {
+        requestingDelete = true;
         HideDeleteModalButtons();
         ShowDeleteModalSpinner();
         var xhttp = new XMLHttpRequest();
@@ -27,7 +27,7 @@ function SendDeleteSchoolYearRequest(id) {
                 deleteModal.hide();
                 location.reload();
             }
-            requesting = false;
+            requestingDelete = false;
             ShowDeleteModalButtons();
             HideDeleteModalSpinner();
         };
@@ -35,7 +35,7 @@ function SendDeleteSchoolYearRequest(id) {
     }
 }
 
-function GetSchoolYearDenomination(id) {
+function GetPeriodDenomination(id) {
     var row = document.getElementById(id);
     var nameValue = row.children[0].innerHTML;
     return nameValue;

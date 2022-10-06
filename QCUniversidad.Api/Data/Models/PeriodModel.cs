@@ -37,6 +37,11 @@ namespace QCUniversidad.Api.Data.Models
         public DateTimeOffset Ends { get; set; }
 
         /// <summary>
+        /// The enrolment planned for the period.
+        /// </summary>
+        public uint Enrolment { get; set; }
+
+        /// <summary>
         /// The id of the shool year when the period passes.
         /// </summary>
         public Guid SchoolYearId { get; set; }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QCUniversidad.Api.Shared.Enums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -32,6 +33,11 @@ namespace QCUniversidad.Api.Data.Models
         /// The position that occupies in the university.
         /// </summary>
         public string? Position { get; set; }
+
+        /// <summary>
+        /// The category of the teacher.
+        /// </summary>
+        public TeacherCategory Category { get; set; }
 
         /// <summary>
         /// The id department which the teacher belongs to.

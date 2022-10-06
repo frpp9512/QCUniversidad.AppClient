@@ -22,6 +22,8 @@ namespace QCUniversidad.Api.Services
     public class CurriculumNotFoundException : Exception { }
     public class SchoolYearNotFoundException : Exception { }
     public class PeriodNotFoundException : Exception { }
+    public class TeachingPlanNotFoundException : Exception { }
+    public class TeachingPlanItemNotFoundException : Exception { }
 
     #endregion
 
@@ -803,6 +805,163 @@ namespace QCUniversidad.Api.Services
             }
             throw new ArgumentNullException(nameof(id));
         }
+
+        #endregion
+
+        #region TeachingPlans
+
+        public async Task<bool> CreateTeachingPlanAsync(TeachingPlanModel teachingPlan)
+        {
+            if (teachingPlan is not null)
+            {
+                await _context.TeachingPlans.AddAsync(teachingPlan);
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            throw new ArgumentNullException(nameof(teachingPlan));
+        }
+
+        public async Task<bool> ExistsTeachingPlanAsync(Guid id)
+        {
+            var result = await _context.TeachingPlans.AnyAsync(d => d.Id == id);
+            return result;
+        }
+
+        public async Task<IList<TeachingPlanModel>> GetTeachingPlansAsync(int from, int to)
+        {
+            var result =
+                (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
+                ? await _context.TeachingPlans.Skip(from).Take(to).Include(p => p.Period).ToListAsync()
+                : await _context.TeachingPlans.Include(p => p.Period).ToListAsync();
+            return result;
+        }
+
+        public async Task<int> GetTeachingPlansCountAsync()
+        {
+            return await _context.TeachingPlans.CountAsync();
+        }
+
+        public async Task<TeachingPlanModel> GetTeachingPlanAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                var resultQuery = _context.TeachingPlans.Where(p => p.Id == id);
+                var result = await _context.TeachingPlans.Where(p => p.Id == id)
+                                                   .Include(p => p.Period)
+                                                   .Include(p => p.Items).ThenInclude(i => i.Subject)
+                                                   .FirstOrDefaultAsync();
+                return result ?? throw new TeachingPlanNotFoundException();
+            }
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        public async Task<bool> UpdateTeachingPlanAsync(TeachingPlanModel teachingPlan)
+        {
+            if (teachingPlan is not null)
+            {
+                _context.TeachingPlans.Update(teachingPlan);
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            throw new ArgumentNullException(nameof(teachingPlan));
+        }
+
+        public async Task<bool> DeleteTeachingPlanAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                try
+                {
+                    var teachingPlan = await GetTeachingPlanAsync(id);
+                    _context.TeachingPlans.Remove(teachingPlan);
+                    var result = await _context.SaveChangesAsync();
+                    return result > 0;
+                }
+                catch (TeachingPlanNotFoundException)
+                {
+                    throw;
+                }
+            }
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        #region TeachingPlanItems
+
+        public async Task<bool> CreateTeachingPlanItemAsync(TeachingPlanItem teachingPlanItem)
+        {
+            if (teachingPlanItem is not null)
+            {
+                await _context.TeachingPlanItems.AddAsync(teachingPlanItem);
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            throw new ArgumentNullException(nameof(teachingPlanItem));
+        }
+
+        public async Task<bool> ExistsTeachingPlanItemAsync(Guid id)
+        {
+            var result = await _context.TeachingPlanItems.AnyAsync(d => d.Id == id);
+            return result;
+        }
+
+        public async Task<IList<TeachingPlanItem>> GetTeachingPlanItemsAsync(int from, int to)
+        {
+            var result =
+                (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
+                ? await _context.TeachingPlanItems.Skip(from).Take(to).Include(p => p.Subject).ToListAsync()
+                : await _context.TeachingPlanItems.Include(p => p.Subject).ToListAsync();
+            return result;
+        }
+
+        public async Task<int> GetTeachingPlanItemsCountAsync()
+        {
+            return await _context.TeachingPlanItems.CountAsync();
+        }
+
+        public async Task<TeachingPlanItem> GetTeachingPlanItemAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                var resultQuery = _context.TeachingPlanItems.Where(p => p.Id == id);
+                var result = await _context.TeachingPlanItems.Where(p => p.Id == id)
+                                                   .Include(p => p.Subject)
+                                                   .FirstOrDefaultAsync();
+                return result ?? throw new TeachingPlanItemNotFoundException();
+            }
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        public async Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItem teachingPlanItem)
+        {
+            if (teachingPlanItem is not null)
+            {
+                _context.TeachingPlanItems.Update(teachingPlanItem);
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            throw new ArgumentNullException(nameof(teachingPlanItem));
+        }
+
+        public async Task<bool> DeleteTeachingPlanItemAsync(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                try
+                {
+                    var teachingPlanItem = await GetTeachingPlanItemAsync(id);
+                    _context.TeachingPlanItems.Remove(teachingPlanItem);
+                    var result = await _context.SaveChangesAsync();
+                    return result > 0;
+                }
+                catch (TeachingPlanItemNotFoundException)
+                {
+                    throw;
+                }
+            }
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        #endregion
 
         #endregion
 

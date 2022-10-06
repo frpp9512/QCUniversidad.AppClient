@@ -1,4 +1,5 @@
-﻿using QCUniversidad.WebClient.Models.Departments;
+﻿using QCUniversidad.Api.Shared.Enums;
+using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Disciplines;
 using System;
 using System.Collections.Generic;
@@ -22,9 +23,13 @@ namespace QCUniversidad.WebClient.Models.Teachers
         [MaxLength(11, ErrorMessage = "El carné de identidad debe de ser de 11 caracteres."), MinLength(11, ErrorMessage = "El carné de identidad debe de ser de 11 caracteres.")]
         public string PersonalId { get; set; }
 
-        [Required(ErrorMessage = "Debe de cargo del profesor.")]
+        [Required(ErrorMessage = "Debe de especificar cargo del profesor.")]
         [Display(Name = "Cargo", Prompt = "Cargo", Description = "El cargo del profesor.")]
         public string? Position { get; set; }
+
+        [Required(ErrorMessage = "Debe de seleccionar la categoría del profesor.")]
+        [Display(Name = "Categoría", Prompt = "Categoría docente", Description = "Categoría docente del profesor.")]
+        public TeacherCategory Category { get; set; }
 
         public Guid DepartmentId { get; set; }
 

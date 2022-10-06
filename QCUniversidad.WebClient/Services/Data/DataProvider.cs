@@ -958,7 +958,7 @@ public class DataProvider : IDataProvider
         if (id != Guid.Empty)
         {
             var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-            var response = await client.DeleteAsync($"/curriculum?id={id}");
+            var response = await client.DeleteAsync($"/period?id={id}");
             return response.IsSuccessStatusCode;
         }
         throw new ArgumentNullException(nameof(id));
