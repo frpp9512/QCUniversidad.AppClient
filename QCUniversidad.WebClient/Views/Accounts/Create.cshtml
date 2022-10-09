@@ -21,7 +21,6 @@
                     </div>
                     <div class="custom-file overflow-hidden">
                         <input type="file" accept="image/jpg" class="custom-file-input" id="profilephoto" name="profilephoto" aria-describedby="profile-photo-upload">
-                        <label id="profile-pic-filename" class="custom-file-label" for="profile-photo">@(!string.IsNullOrEmpty(Model.ProfilePictureFileName) ? Model.ProfilePictureFileName : "Elegir foto")</label>
                     </div>
                 </div>
                 <small class="form-text text-muted mt-n3">
@@ -71,17 +70,38 @@
             </div>
         </div>
     </div>
-
     <div class="row justify-content-center mt-3">
-        <div class="col-md-8">
+        <div class="col col-lg-5 col-md-7 col-12">
+            <div class="mb-3">
+                <label for="SelectedDepartment" class="form-label">Seleccionar departamento</label>
+                <select asp-for="SelectedDepartment" class="form-select select-department" aria-label="Seleccionar departamento" autofocus>
+                    <option value="@Guid.Empty">Seleccione un departamento</option>
+                    @{
+                        var groups = Model.Departments?.GroupBy(d => d.FacultyId);
+                        foreach (var group in groups)
+                        {
+                            <optgroup label="@group.First().Faculty.Name">
+                                @foreach (var department in group)
+                                {
+                                    <option value="@department.Id">@department.Name</option>
+                                }
+                            </optgroup>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-center mt-3">
+        <div class="col-md-8 mb-3">
             @if (Model.RoleList?.Count() > 0)
             {
                 <h5>Roles a despempeñar</h5>
                 <table class="table">
                     <thead>
                         <tr>
-                            <td>Nombre</td>
-                            <td>Descripción</td>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -123,7 +143,15 @@
     </div>
 </form>
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    <script src="~/lib/jquery.ajaxfileupload.js"></script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/lib/ajax-file-upload/jquery.ajaxfileupload.js"></script>
     <script src="~/js/create-user.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('.select-department').select2();
+        });
+    </script>
 }

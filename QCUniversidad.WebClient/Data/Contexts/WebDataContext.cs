@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using SmartB1t.Security.WebSecurity.Local;
+using SmartB1t.Security.WebSecurity.Local.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +34,11 @@ namespace QCUniversidad.WebClient.Data.Contexts
         /// </summary>
         public DbSet<UserRole> UserRoles { get; set; }
 
+        /// <summary>
+        /// The database set storing <see cref="ExtraClaim"/>
+        /// </summary>
+        public DbSet<ExtraClaim> ExtraClaims { get; set; }
+
         #endregion
 
         public WebDataContext(DbContextOptions<WebDataContext> options) : base(options) { }
@@ -61,6 +67,12 @@ namespace QCUniversidad.WebClient.Data.Contexts
                         .HasOne(ur => ur.Role)
                         .WithMany(r => r.RoleUsers)
                         .HasForeignKey(ur => ur.RoleId);
+
+            modelBuilder.Entity<ExtraClaim>()
+                        .HasOne(e => e.User)
+                        .WithMany(u => u.ExtraClaims)
+                        .HasForeignKey(e => e.UserId)
+                        .OnDelete(DeleteBehavior.Cascade);
 
             #endregion
 

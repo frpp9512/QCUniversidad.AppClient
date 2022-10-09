@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SmartB1t.Security.WebSecurity.Local.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -55,6 +56,11 @@ namespace SmartB1t.Security.WebSecurity.Local
         /// The list of roles assigned to the user.
         /// </summary>
         public IEnumerable<UserRole> Roles { get; set; }
+
+        /// <summary>
+        /// The list of extra claims
+        /// </summary>
+        public IList<ExtraClaim> ExtraClaims { get; set; }
 
         /// <summary>
         /// The <see cref="UserSecrets"/> database id.

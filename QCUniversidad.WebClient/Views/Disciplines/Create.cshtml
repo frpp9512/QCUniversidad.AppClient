@@ -19,15 +19,15 @@
                         <label for="DepartmentId" class="form-label">Seleccionar departamento</label>
                         <select asp-for="DepartmentId" class="form-select select-department" aria-label="Seleccionar departamento" autofocus>
                             @{
-                                var groups = Model.Departments.GroupBy(d => d.FacultyId);
+                                var groups = Model.Departments?.GroupBy(d => d.FacultyId);
                                 foreach (var group in groups)
                                 {
-                                        <optgroup label="@group.First().Faculty.Name">
-                                            @foreach (var department in group)
+                                    <optgroup label="@group.First().Faculty.Name">
+                                        @foreach (var department in group)
                                         {
-                                                <option value="@department.Id">@department.Name</option>
+                                            <option value="@department.Id">@department.Name</option>
                                         }
-                                        </optgroup>
+                                    </optgroup>
                                 }
                             }
                         </select>
@@ -53,10 +53,14 @@
 </div>
 
 @section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script>
         $(document).ready(function () {
             $('.select-department').select2({
-                placeholder: "Seleccione el departamento"
+                placeholder: "Seleccione el departamento",
+                allowClear: true
             });
         });
     </script>

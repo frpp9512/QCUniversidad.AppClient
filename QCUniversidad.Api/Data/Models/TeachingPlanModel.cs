@@ -27,4 +27,7 @@ public class TeachingPlanModel
     /// The set of school activities planned.
     /// </summary>
     public IList<TeachingPlanItem> Items { get; set; }
+
+    public int ItemsCount { get; set; }
+    public int TotalHours { get; set; }
 }

@@ -8,9 +8,12 @@ using System.Text;
 using System.Threading.Tasks;
 using SmartB1t.Security;
 using QCUniversidad.WebClient.Data.Contexts;
+using SmartB1t.Security.WebSecurity.Local.Models;
 
 namespace QCUniversidad.WebClient.Services.Data
 {
+    public class UserNotFoundException : Exception { }
+
     public class AccountSecurityRepository : IAccountSecurityRepository
     {
         private readonly WebDataContext _dataContext;
@@ -81,54 +84,51 @@ namespace QCUniversidad.WebClient.Services.Data
 
         public async Task<User> GetUserAsync(Guid id, bool loadUserRoles = false)
         {
-            var user = await _dataContext.Users.FindAsync(id);
+            var userQuery = _dataContext.Users.Where(u => u.Id == id);
+            userQuery = userQuery.Include(u => u.ExtraClaims);
             if (loadUserRoles)
             {
-                user.Roles = await GetUserRolesAsync(user);
+                userQuery = userQuery.Include(u => u.Roles).ThenInclude(r => r.Role);
             }
-            return user;
+            return await userQuery.FirstOrDefaultAsync() ?? throw new UserNotFoundException();
         }
 
         public async Task<User> GetUserAsync(string email, bool loadUserRoles = false)
         {
-            var user = await _dataContext.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user is not null && loadUserRoles)
+            var userQuery = _dataContext.Users.Where(u => u.Email == email);
+            userQuery = userQuery.Include(u => u.ExtraClaims);
+            if (loadUserRoles)
             {
-                user.Roles = await GetUserRolesAsync(user);
+                userQuery = userQuery.Include(u => u.Roles).ThenInclude(r => r.Role);
             }
-            return user;
+            return await userQuery.FirstOrDefaultAsync() ?? throw new UserNotFoundException();
         }
 
         public async Task<IEnumerable<User>> GetUsersAsync(bool loadUserRoles = false)
         {
-            var users = await _dataContext.Users.Where(u => !u.PermanentDeactivation)
-                                                 .OrderByDescending(u => u.Roles.Count())
-                                                 .ToListAsync();
+            var usersQuery = _dataContext.Users.Where(u => !u.PermanentDeactivation);
+                                                
+            usersQuery = usersQuery.Include(u => u.ExtraClaims);
             if (loadUserRoles)
             {
-                foreach (var user in users)
-                {
-                    user.Roles = await GetUserRolesAsync(user);
-                }
+                usersQuery = usersQuery.Include(u => u.Roles).ThenInclude(r => r.Role);
             }
-            return users;
+            usersQuery = usersQuery.OrderByDescending(u => u.Roles.Count());
+            return await usersQuery.ToListAsync();
         }
 
         public async Task<IEnumerable<User>> GetUsersAsync(int startIndex, int count, bool loadUserRoles = false)
         {
-            var users = await _dataContext.Users.Where(u => !u.PermanentDeactivation)
-                                                .Skip(startIndex)
-                                                .Take(count)
-                                                .OrderByDescending(u => u.Roles.Count())
-                                                .ToListAsync();
+            var usersQuery = _dataContext.Users.Where(u => !u.PermanentDeactivation)
+                                               .Skip(startIndex)
+                                               .Take(count);
+            usersQuery = usersQuery.Include(u => u.ExtraClaims);
             if (loadUserRoles)
             {
-                foreach (var user in users)
-                {
-                    user.Roles = await GetUserRolesAsync(user);
-                }
+                usersQuery = usersQuery.Include(u => u.Roles).ThenInclude(r => r.Role);
             }
-            return users;
+            usersQuery = usersQuery.OrderByDescending(u => u.Roles.Count());
+            return usersQuery;
         }
 
         private async Task<IEnumerable<UserRole>> GetUserRolesAsync(User user)
@@ -170,6 +170,12 @@ namespace QCUniversidad.WebClient.Services.Data
                 _dataContext.Remove(user);
                 await _dataContext.SaveChangesAsync();
             }
+        }
+
+        public async Task RemoveExtraClaimAsync(ExtraClaim extraClaim)
+        {
+            _dataContext.ExtraClaims.Remove(extraClaim);
+            await _dataContext.SaveChangesAsync();
         }
 
         public async Task SetUserPasswordAsync(User user, string newPassword)

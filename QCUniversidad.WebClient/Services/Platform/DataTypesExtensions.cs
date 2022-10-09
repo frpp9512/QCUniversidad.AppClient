@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,5 +23,8 @@ namespace QCUniversidad.WebClient.Services.Platform
                 8 => "8vo año",
                 _ => throw new NotImplementedException()
             };
+
+        public static Guid GetDepartmentId(this ClaimsPrincipal user)
+            => new(user.Claims.First(c => c.Type == "DepartmentId").Value);
     }
 }

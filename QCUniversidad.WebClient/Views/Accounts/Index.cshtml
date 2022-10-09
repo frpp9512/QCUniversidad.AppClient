@@ -1,8 +1,8 @@
 ﻿@model AccountManagamentViewModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     ViewData["Title"] = "Administración de usuarios";
 }
-
 
 <h1>Administración de usuarios</h1>
 <hr />
@@ -18,9 +18,6 @@
             Crear nuevo
         </a>
     </div>
-    @*<div>
-        <button class="btn btn-secondary" onclick="ShowAlert('Prueba de alerta', 'Texto de prueba de alerta')">Probar alerta</button>
-    </div>*@
 </div>
 
 
@@ -32,6 +29,7 @@
                 <th class="text-center"><span class="fa fa-image"></span></th>
                 <th>Nombre y apellidos</th>
                 <th>Email</th>
+                <th>Departamento</th>
                 <th>Roles</th>
                 <th class="text-center">Estado</th>
                 <th></th>
@@ -49,6 +47,19 @@
                     </td>
                     <td>
                         @u.Email
+                    </td>
+                    <td>
+                        @if (u.DepartmentModel is not null)
+                        {
+                            <a asp-action="Details" asp-controller="Departments" asp-route-id="@u.ExtraClaims.First(c => c.Type == "DepartmentId").Value" class="link-info">
+                                @u.DepartmentModel.Name
+                                <small><span class="fa fa-info-circle"></span></small>
+                            </a>
+                        }
+                        else
+                        {
+                            <p class="text-muted"><i>No gestiona departamento</i></p>
+                        }
                     </td>
                     <td>
                         @foreach (var role in u.Roles)

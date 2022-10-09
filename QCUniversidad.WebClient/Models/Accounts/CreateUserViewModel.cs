@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QCUniversidad.WebClient.Models.Departments;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -40,6 +41,10 @@ namespace QCUniversidad.WebClient.Models.Accounts
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Debe de confirmar correctamente la contraseña.")]
         public string? ConfirmPassword { get; set; }
+
+        public Guid? SelectedDepartment { get; set; }
+
+        public IList<DepartmentModel>? Departments { get; set; }
 
         public string[]? RolesSelected { get; set; }
 

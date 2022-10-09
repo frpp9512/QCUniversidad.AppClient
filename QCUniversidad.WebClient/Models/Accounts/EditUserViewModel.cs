@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QCUniversidad.WebClient.Models.Departments;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -27,6 +28,10 @@ namespace QCUniversidad.WebClient.Models.Accounts
 
         [Display(Name = "Departamento", Description = "Deparamento en el que trabajo en usuario.", Prompt = "Departamento o área")]
         public string? Department { get; set; }
+
+        public Guid? SelectedDepartment { get; set; }
+
+        public IList<DepartmentModel>? Departments { get; set; }
 
         public string[]? RolesSelected { get; set; }
 

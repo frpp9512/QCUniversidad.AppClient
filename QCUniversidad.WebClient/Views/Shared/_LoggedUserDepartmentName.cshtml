@@ -1,0 +1,5 @@
+﻿@using QCUniversidad.WebClient.Services.Data
+@using QCUniversidad.WebClient.Services.Platform
+@inject IDataProvider _dataProvider
+
+@_dataProvider.GetDepartmentAsync(User.GetDepartmentId()).GetAwaiter().GetResult().Name

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SmartB1t.Security.WebSecurity.Local.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -163,6 +164,17 @@ namespace SmartB1t.Security.WebSecurity.Local.Interfaces
         /// <param name="role">The <see cref="Role"/> to remove it assignation.</param>
         /// <returns></returns>
         Task RemoveRoleFromUserAsync(User user, Role role);
+
+        #endregion
+
+        #region User Extra Claims operations
+
+        /// <summary>
+        /// Removes an ExtraClaim object.
+        /// </summary>
+        /// <param name="extraClaim">The ExtraClaim to remove.</param>
+        /// <returns></returns>
+        Task RemoveExtraClaimAsync(ExtraClaim extraClaim);
 
         #endregion
     }

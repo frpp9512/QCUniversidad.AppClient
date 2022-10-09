@@ -14,6 +14,10 @@ using SmartB1t.Security.Extensions.AspNetCore;
 using Microsoft.Net.Http.Headers;
 using QCUniversidad.WebClient.Models.Accounts;
 using QCUniversidad.WebClient.Models.Shared;
+using QCUniversidad.WebClient.Models.Departments;
+using QCUniversidad.WebClient.Services.Data;
+using SmartB1t.Security.WebSecurity.Local.Models;
+using AutoMapper;
 
 namespace QCUniversidad.WebClient.Controllers
 {
@@ -23,6 +27,8 @@ namespace QCUniversidad.WebClient.Controllers
 
         private readonly IAccountSecurityRepository _repository;
         private readonly IWebHostEnvironment _hostEnvironment;
+        private readonly IDataProvider _dataProvider;
+        private readonly IMapper _mapper;
         private readonly string _profileTmpFolder;
         private readonly string _profileDefaultPath;
         private readonly string _profilePictureFileName;
@@ -31,10 +37,12 @@ namespace QCUniversidad.WebClient.Controllers
 
         #region Constructor
 
-        public AccountsController(IAccountSecurityRepository repository, IWebHostEnvironment hostEnvironment)
+        public AccountsController(IAccountSecurityRepository repository, IWebHostEnvironment hostEnvironment, IDataProvider dataProvider, IMapper mapper)
         {
             _repository = repository;
             _hostEnvironment = hostEnvironment;
+            _dataProvider = dataProvider;
+            _mapper = mapper;
             _profileTmpFolder = Path.Combine(_hostEnvironment.WebRootPath, "img", "tmp");
             _profileDefaultPath = Path.Combine(_hostEnvironment.WebRootPath, "img", "layout", "default-profile-pic.jpg");
             _profilePictureFileName = Path.Combine(_hostEnvironment.WebRootPath, "img", "loggedUser", "user.jpg");
@@ -126,20 +134,24 @@ namespace QCUniversidad.WebClient.Controllers
             }
 
             var users = await _repository.GetUsersAsync(indexes.Item1, indexes.Item2, true);
-
-            foreach (User user in users)
+            var vmUsers = users.Select(u => _mapper.Map<UserViewModel>(u)).ToList();
+            foreach (var user in vmUsers)
             {
                 if (user.ProfilePicture is not null)
                 {
                     using var fileStream = new FileStream(GetTempPhotoPath(user.Id.ToString()), FileMode.Create);
                     await fileStream.WriteAsync(user.ProfilePicture);
                 }
+                if (user.ExtraClaims?.Any(c => c.Type == "DepartmentId") == true)
+                {
+                    user.DepartmentModel = await _dataProvider.GetDepartmentAsync(new Guid(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value));
+                }
             }
 
             var totalPages = (int)Math.Ceiling((decimal)usersCount / usersPerPage);
             var vm = new AccountManagamentViewModel
             {
-                Users = users,
+                Users = vmUsers,
                 PagesCount = totalPages == 0 ? 1 : totalPages,
                 CurrentPage = page,
                 UsersPerPage = usersPerPage,
@@ -154,7 +166,8 @@ namespace QCUniversidad.WebClient.Controllers
             RemoveTempDirectory();
             var vm = new CreateUserViewModel
             {
-                RoleList = await GetRoleViewModelsAsync()
+                RoleList = await GetRoleViewModelsAsync(),
+                Departments = await GetDeparmentsModels()
             };
             return View(vm);
         }
@@ -164,6 +177,12 @@ namespace QCUniversidad.WebClient.Controllers
             var roles = await _repository.GetRolesAsync();
             var vmRoles = GetRoleViewModels(roles);
             return vmRoles;
+        }
+
+        private async Task<IList<DepartmentModel>> GetDeparmentsModels()
+        {
+            var departments = await _dataProvider.GetDepartmentsAsync();
+            return departments;
         }
 
         [HttpPost]
@@ -196,10 +215,29 @@ namespace QCUniversidad.WebClient.Controllers
                             });
                         }
                     }
-                    user.Roles = userRoles;
-                    await _repository.CreateUserAsync(user, viewModel.Password);
-                    TempData.SetModelCreated<User, Guid>(user.Id);
-                    return RedirectToActionPermanent("Index");
+
+                    if (userRoles.Any(r => r.Role.Name == "Jefe de departamento") && (viewModel.SelectedDepartment is null || viewModel.SelectedDepartment == Guid.Empty))
+                    {
+                        ModelState.AddModelError("Jefe de departamento sin departamento", "Un usuario Jefe de departamento debe de gestionar un departamento.");
+                    }
+                    else
+                    {
+                        user.Roles = userRoles;
+                        if (viewModel.SelectedDepartment is not null && viewModel.SelectedDepartment != Guid.Empty)
+                        {
+                            user.ExtraClaims = new List<ExtraClaim>
+                            {
+                                new ExtraClaim
+                                {
+                                    Type = "DepartmentId",
+                                    Value = viewModel.SelectedDepartment.ToString()
+                                }
+                            };
+                        }
+                        await _repository.CreateUserAsync(user, viewModel.Password);
+                        TempData.SetModelCreated<User, Guid>(user.Id);
+                        return RedirectToActionPermanent("Index");
+                    }
                 }
                 else
                 {
@@ -207,6 +245,7 @@ namespace QCUniversidad.WebClient.Controllers
                 }
             }
             viewModel.RoleList = await GetRoleViewModelsAsync();
+            viewModel.Departments = await GetDeparmentsModels();
             return View(viewModel);
         }
 
@@ -303,6 +342,11 @@ namespace QCUniversidad.WebClient.Controllers
             var user = await _repository.GetUserAsync(new Guid(id), true);
             var vm = user.GetEditViewModel();
             vm.RoleList = await GetRoleViewModelsAsync();
+            if (user.ExtraClaims?.Any(c => c.Type == "DepartmentId") == true)
+            {
+                vm.SelectedDepartment = new Guid(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value);
+            }
+            vm.Departments = await GetDeparmentsModels();
             if (user.ProfilePicture is not null)
             {
                 using var stream = new FileStream(GetTempPhotoPath(user.Id.ToString()), FileMode.Create);
@@ -335,38 +379,65 @@ namespace QCUniversidad.WebClient.Controllers
 
                 if (viewModel.RolesSelected.Length > 0)
                 {
-                    var rolesToRemove = new List<Role>();
-                    foreach (var userRole in user.Roles)
+                    var newRoles = viewModel.RolesSelected.Select(r => _repository.GetRoleAsync(r).GetAwaiter().GetResult());
+                    if (newRoles.Any(r => r.Name == "Jefe de departamento") && (viewModel.SelectedDepartment is null || viewModel.SelectedDepartment == Guid.Empty))
                     {
-                        var roleId = viewModel.RolesSelected.FirstOrDefault(r => userRole.Role.Id.ToString() == r);
-                        if (string.IsNullOrEmpty(roleId))
-                        {
-                            rolesToRemove.Add(userRole.Role);
-                        }
+                        ModelState.AddModelError("Jefe de departamento sin departamento", "Un usuario Jefe de departamento debe de gestionar un departamento.");
                     }
-
-                    rolesToRemove.ForEach(r => _repository.RemoveRoleFromUserAsync(user, r).Wait());
-
-                    foreach (var selectedRole in viewModel.RolesSelected)
+                    else
                     {
-                        var userRole = user.Roles.FirstOrDefault(ur => ur.Role.Id.ToString() == selectedRole);
-                        if (userRole is null)
+                        var rolesToRemove = new List<Role>();
+                        foreach (var userRole in user.Roles)
                         {
-                            var role = _repository.GetRoleAsync(new Guid(selectedRole)).Result;
-                            _repository.AssignRoleToUserAsync(user, role).Wait();
+                            var roleId = viewModel.RolesSelected.FirstOrDefault(r => userRole.Role.Id.ToString() == r);
+                            if (string.IsNullOrEmpty(roleId))
+                            {
+                                rolesToRemove.Add(userRole.Role);
+                            }
                         }
+
+                        rolesToRemove.ForEach(r => _repository.RemoveRoleFromUserAsync(user, r).Wait());
+
+                        foreach (var selectedRole in newRoles)
+                        {
+                            var userRole = user.Roles.FirstOrDefault(ur => ur.Role.Id == selectedRole.Id);
+                            if (userRole is null)
+                            {
+                                _repository.AssignRoleToUserAsync(user, selectedRole).Wait();
+                            }
+                        }
+
+                        if (user.ExtraClaims?.Any() == true)
+                        {
+                            foreach (var ec in user.ExtraClaims)
+                            {
+                                await _repository.RemoveExtraClaimAsync(ec);
+                            }
+                        }
+
+                        if (viewModel.SelectedDepartment is not null && viewModel.SelectedDepartment == Guid.Empty)
+                        {
+                            user.ExtraClaims = new List<ExtraClaim>
+                            {
+                                new ExtraClaim
+                                {
+                                    Type = "DepartmentId",
+                                    Value = viewModel.SelectedDepartment.ToString(),
+                                    UserId = user.Id
+                                }
+                            };
+                        }
+
+                        await _repository.UpdateUserAsync(user);
+
+                        TempData.SetModelUpdated<User, Guid>(new Guid(viewModel.Id));
+                        return RedirectToAction("Index");
                     }
-
-                    await _repository.UpdateUserAsync(user);
-
-                    TempData.SetModelUpdated<User, Guid>(new Guid(viewModel.Id));
-                    return RedirectToAction("Index");
                 }
                 else
                 {
                     ModelState.AddModelError("NoRolesSelected", "No se ha seleccionado ningún rol a desempeñar por el usuario.");
                 }
-
             }
             viewModel.RoleList = await GetRoleViewModelsAsync();
             return View();

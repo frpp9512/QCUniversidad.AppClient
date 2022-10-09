@@ -9,7 +9,7 @@ namespace QCUniversidad.WebClient.Models.Accounts
 {
     public class AccountManagamentViewModel
     {
-        public IEnumerable<User> Users { get; set; }
+        public IEnumerable<UserViewModel> Users { get; set; }
 
         public int PagesCount { get; set; }
 

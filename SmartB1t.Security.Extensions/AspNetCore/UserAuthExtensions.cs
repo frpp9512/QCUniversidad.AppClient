@@ -14,10 +14,10 @@ namespace SmartB1t.Security.Extensions.AspNetCore
     {
         public static async Task SignInAsync(this User user, HttpContext context, string scheme, bool rememberSession) 
             => await context.SignInAsync(scheme,
-                                         GenerateClaimsPrincipal(user),
+                                         GenerateClaimsPrincipal(user, scheme),
                                          new AuthenticationProperties { IsPersistent = rememberSession });
 
-        private static ClaimsPrincipal GenerateClaimsPrincipal(User user)
+        private static ClaimsPrincipal GenerateClaimsPrincipal(User user, string scheme)
         {
             var claims = new List<Claim>
             {
@@ -26,11 +26,19 @@ namespace SmartB1t.Security.Extensions.AspNetCore
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
             };
             //user.Roles.ForEach(ur => claims.Add(new Claim(ClaimTypes.Role, ur.Role.Name)));
-            foreach (var role in user.Roles)
+            //foreach (var role in user.Roles)
+            //{
+            //    claims.Add(new Claim(ClaimTypes.Role, role.Role.Name));
+            //}
+            if (user.Roles?.Any() == true)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role.Role.Name));
+                claims.AddRange(user.Roles.Select(r => new Claim(ClaimTypes.Role, r.Role.Name)));
             }
-            var claimsIdentity = new ClaimsIdentity(claims, "IngecoWeb");
+            if (user.ExtraClaims?.Any() == true)
+            {
+                claims.AddRange(user.ExtraClaims.Select(c => new Claim(c.Type, c.Value)));
+            }
+            var claimsIdentity = new ClaimsIdentity(claims, scheme);
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
             return claimsPrincipal;
         }
