@@ -1,0 +1,6 @@
+﻿@model IList<PeriodModel>
+
+@foreach (var period in Model)
+{
+    <option value="@period.Id">@period.OrderNumber</option>
+}

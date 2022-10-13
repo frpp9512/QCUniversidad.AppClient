@@ -7,11 +7,14 @@ using QCUniversidad.Api.Shared.Dtos.Curriculum;
 using QCUniversidad.Api.Shared.Dtos.Discipline;
 using QCUniversidad.Api.Shared.Dtos.Period;
 using QCUniversidad.Api.Shared.Dtos.SchoolYear;
+using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace QCUniversidad.Api.Controllers;
 
@@ -154,6 +157,163 @@ public class PeriodController : ControllerBase
         catch (PeriodNotFoundException)
         {
             return NotFound($"The period with id '{id}' was not found.");
+        }
+    }
+
+    [HttpGet]
+    [Route("planitem")]
+    public async Task<IActionResult> GetPlanItemAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            return BadRequest("You must provide a plan item id.");
+        }
+        try
+        {
+            var result = await _dataManager.GetTeachingPlanItemAsync(id);
+            var dto = _mapper.Map<TeachingPlanItemDto>(result);
+            return Ok(dto);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("planitems")]
+    public async Task<IActionResult> GetPlanItemsAsync(Guid periodId, int from = 0, int to = 0)
+    {
+        if (periodId == Guid.Empty)
+        {
+            return BadRequest("You must provide a period id.");
+        }
+        try
+        {
+            var result = await _dataManager.GetTeachingPlanItemsAsync(periodId, from, to);
+            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemSimpleDto>(i));
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpPut]
+    [Route("addplanitem")]
+    public async Task<IActionResult> AddPlanItemAsync(NewTeachingPlanItemDto teachingPlan)
+    {
+        if (teachingPlan is null)
+        {
+            return BadRequest("You must provide a teaching plan.");
+        }
+        if (teachingPlan.PeriodId == Guid.Empty)
+        {
+            return Problem("The teaching plan must have a period id.");
+        }
+        if (!await _dataManager.ExistsPeriodAsync(teachingPlan.PeriodId))
+        {
+            return Problem("The period of the teaching plan do not exist.");
+        }
+        try
+        {
+            var model = _mapper.Map<TeachingPlanItemModel>(teachingPlan);
+            var result = await _dataManager.CreateTeachingPlanItemAsync(model);
+            return result ? Ok(result) : Problem();
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("existsplanitem")]
+    public async Task<IActionResult> ExistsPlanItemAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            return BadRequest("You must provide a valid id.");
+        }
+        try
+        {
+            var result = await _dataManager.ExistsTeachingPlanItemAsync(id);
+            return result ? Ok(result) : Problem();
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("planitemscount")]
+    public async Task<IActionResult> GetPlanItemsCount(Guid periodId)
+    {
+        if (periodId == Guid.Empty)
+        {
+            return BadRequest("You must provide a valid id.");
+        }
+        try
+        {
+            var result = await _dataManager.GetTeachingPlanItemsCountAsync(periodId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpPost]
+    [Route("updateplanitem")]
+    public async Task<IActionResult> UpdatePlanItem(EditTeachingPlanItemDto dto)
+    {
+        if (dto is null)
+        {
+            return BadRequest("You must provide a plan item model.");
+        }
+        if (!await _dataManager.ExistsTeachingPlanItemAsync(dto.Id))
+        {
+            return BadRequest($"The plan item with id {dto.PeriodId} do not exists.");
+        }
+        if (!await _dataManager.ExistsPeriodAsync(dto.PeriodId))
+        {
+            return BadRequest($"The period with id {dto.PeriodId} do not exists.");
+        }
+        try
+        {
+            var model = _mapper.Map<TeachingPlanItemModel>(dto);
+            var result = await _dataManager.UpdateTeachingPlanItemAsync(model);
+            return result ? Ok(result) : Problem();
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpDelete]
+    [Route("deletePlanItem")]
+    public async Task<IActionResult> RemovePlanItem(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            return BadRequest("You must provide a valid id.");
+        }
+        try
+        {
+            if (!await _dataManager.ExistsTeachingPlanItemAsync(id))
+            {
+                return BadRequest("The teaching item do not exist.");
+            }
+            var result = await _dataManager.DeleteTeachingPlanItemAsync(id);
+            return result ? Ok(result) : Problem();
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
         }
     }
 }

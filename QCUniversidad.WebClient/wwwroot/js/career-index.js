@@ -1,5 +1,5 @@
 ﻿var deleteModal = new bootstrap.Modal(document.getElementById('deleteCareerModal'), { keyboard: true });
-requesting = false;
+requestingDelete = false;
 
 function RiseDeleteModal(id) {
     var faculty = GetCareerName(id);
@@ -12,8 +12,8 @@ function RiseDeleteModal(id) {
 }
 
 function SendDeleteCareerRequest(id) {
-    if (!requesting) {
-        requesting = true;
+    if (!requestingDelete) {
+        requestingDelete = true;
         HideCreateModalButtons();
         ShowCreateModalSpinner();
         var xhttp = new XMLHttpRequest();
@@ -27,7 +27,7 @@ function SendDeleteCareerRequest(id) {
                 deleteModal.hide();
                 location.reload();
             }
-            requesting = false;
+            requestingDelete = false;
             ShowCreateModalButtons();
             HideCreateModalSpinner();
         };

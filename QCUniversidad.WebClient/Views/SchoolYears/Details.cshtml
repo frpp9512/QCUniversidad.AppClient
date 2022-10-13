@@ -43,7 +43,11 @@ else
 
 <dl class="row">
     <dt class="col-sm-3">Carrera</dt>
-    <dd class="col-sm-9"><a asp-action="Details" asp-controller="Careers" asp-route-id="@Model.CareerId" class="link-info">@Model.Career.Name <small><span class="fa fa-circle-info"></span></small></a></dd>
+    <dd class="col-sm-9">
+        <a asp-action="Details" asp-controller="Careers" asp-route-id="@Model.CareerId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Carrera</small></div> <div><b>@Model.Career?.Name</b></div> <div><i>@Model.Career?.Description</i></div>">
+            @Model.Career?.Name <small><span class="fa fa-circle-info"></span></small>
+        </a>
+    </dd>
 
     <dt class="col-sm-3">Modalidad</dt>
     <dd class="col-sm-9">@Html.DisplayFor(m => m.TeachingModality)</dd>
@@ -52,7 +56,11 @@ else
     <dd class="col-sm-9">@Model.GetCareerYearLabel()</dd>
 
     <dt class="col-sm-3">Curriculum</dt>
-    <dd class="col-sm-9"><a asp-action="Details" asp-controller="Curriculum" asp-route-id="@Model.CurriculumId" class="link-info">@Model.Curriculum.Denomination <small><span class="fa fa-circle-info"></span></small></a></dd>
+    <dd class="col-sm-9">
+        <a asp-action="Details" asp-controller="Curriculum" asp-route-id="@Model.CurriculumId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Curriculum</small></div> <div><b>@Model.Curriculum?.Denomination</b></div> <div><i>@Model.Curriculum?.Description</i></div>">
+            @Model.Curriculum?.Denomination <small><span class="fa fa-circle-info"></span></small>
+        </a>
+    </dd>
 
     <dt class="col-sm-3">Inicia</dt>
     <dd class="col-sm-9"><span class="fa fa-calendar-day"></span> @Model.Starts.ToString("dd-MM-yyyy")</dd>
@@ -66,13 +74,14 @@ else
     <small class="m-3"><button type="button" data-bs-toggle="modal" data-bs-target="#addPeriodModal" class="btn btn-sm btn-outline-success"><span class="fa fa-plus-circle"></span> Agregar período</button></small>
 </div>
 
-<table class="table table-hover">
+<table class="table table-responsive table-hover">
     <thead>
         <tr>
             <th>Orden</th>
             <th>Descripción</th>
             <th>Inicia <span class="fa fa-calendar-day"></span></th>
             <th>Termina <span class="fa fa-calendar-day"></span></th>
+            <th>Matricula</th>
             <th></th>
         </tr>
     </thead>
@@ -95,6 +104,7 @@ else
                     </td>
                     <td>@period.Starts.ToString("dd-MM-yyyy")</td>
                     <td>@period.Ends.ToString("dd-MM-yyyy")</td>
+                    <td>@period.Enrolment</td>
                     <td>
                         <button type="button" class="btn btn-sm btn-outline-warning" onclick="EditPeriod('@period.Id')"><span class="fa fa-edit"></span></button>
                         <button type="button" class="btn btn-sm btn-outline-danger" onclick="RiseDeleteModal('@period.Id')"><span class="fa fa-trash"></span></button>
@@ -105,7 +115,7 @@ else
         else
         {
             <tr>
-                <td colspan="4" align="center">
+                <td colspan="6" align="center">
                     <p>No existen periódos en el año escolar.</p>
                 </td>
             </tr>
@@ -227,6 +237,7 @@ else
 
 @section Scripts {
     <script src="~/js/message-modal.js"></script>
+    <script src="~/lib/popper/popper.min.js"></script>
     <script>
         var requestingCreatePeriod = false;
         var requestingPeriodData = false;
@@ -239,8 +250,16 @@ else
                 var periodOrderInput = document.getElementById("newPeriodOrder");
                 periodOrderInput.value = nextOrderNumber;
                 periodOrderInput.readOnly = true;
-            })
+            });
+            LoadTooltips();
         });
+
+        function LoadTooltips() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
 
         function AddPeriod() {
             var periodOrder = document.getElementById("newPeriodOrder").value;

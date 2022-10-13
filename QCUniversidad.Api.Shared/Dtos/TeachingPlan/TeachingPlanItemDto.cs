@@ -1,4 +1,5 @@
-﻿using QCUniversidad.Api.Shared.Dtos.Subject;
+﻿using QCUniversidad.Api.Shared.Dtos.Period;
+using QCUniversidad.Api.Shared.Dtos.Subject;
 using QCUniversidad.Api.Shared.Enums;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,6 @@ public class TeachingPlanItemDto
     public double HoursPlanned { get; set; }
     public uint GroupsAmount { get; set; }
     public double TotalHoursPlanned { get; set; }
-    public Guid TeachingPlanId { get; set; }
-    public TeachingPlanModel TeachingPlan { get; set; }
+    public Guid PeriodId { get; set; }
+    public PeriodDto TeachingPlan { get; set; }
 }

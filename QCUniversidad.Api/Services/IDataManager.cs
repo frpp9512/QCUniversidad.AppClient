@@ -86,6 +86,7 @@ public interface IDataManager
 
     Task<bool> CreateSubjectAsync(SubjectModel subject);
     Task<bool> ExistsSubjectAsync(Guid id);
+    Task<IList<SubjectModel>> GetSubjectsForSchoolYearAsync(Guid schoolYearId);
     Task<int> GetSubjectsCountAsync();
     Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to);
     Task<SubjectModel> GetSubjectAsync(Guid id);
@@ -134,27 +135,17 @@ public interface IDataManager
 
     #endregion
 
-    #region TeachingPlans
-
-    Task<bool> CreateTeachingPlanAsync(TeachingPlanModel period);
-    Task<bool> ExistsTeachingPlanAsync(Guid id);
-    Task<int> GetTeachingPlansCountAsync();
-    Task<IList<TeachingPlanModel>> GetTeachingPlansAsync(int from, int to);
-    Task<TeachingPlanModel> GetTeachingPlanAsync(Guid id);
-    Task<bool> UpdateTeachingPlanAsync(TeachingPlanModel period);
-    Task<bool> DeleteTeachingPlanAsync(Guid id);
-
     #region TeachingPlanItems
 
-    Task<bool> CreateTeachingPlanItemAsync(TeachingPlanItem period);
+    Task<bool> CreateTeachingPlanItemAsync(TeachingPlanItemModel item);
     Task<bool> ExistsTeachingPlanItemAsync(Guid id);
     Task<int> GetTeachingPlanItemsCountAsync();
-    Task<IList<TeachingPlanItem>> GetTeachingPlanItemsAsync(int from, int to);
-    Task<TeachingPlanItem> GetTeachingPlanItemAsync(Guid id);
-    Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItem period);
+    Task<int> GetTeachingPlanItemsCountAsync(Guid periodId);
+    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(int from, int to);
+    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, int from, int to);
+    Task<TeachingPlanItemModel> GetTeachingPlanItemAsync(Guid id);
+    Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItemModel period);
     Task<bool> DeleteTeachingPlanItemAsync(Guid id);
-
-    #endregion
 
     #endregion
 

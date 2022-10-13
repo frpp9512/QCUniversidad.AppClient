@@ -27,7 +27,7 @@ namespace QCUniversidad.Api.Shared.Enums
         /// <summary>
         /// CTP
         /// </summary>
-        [Display(Name = "CTP", Description = "CTP", Prompt = "CTP")]
+        [Display(Name = "Clase teórico-práctica", Description = "Clases para la aplicación de conocimientos teóricos.", Prompt = "Clase teórico-práctica")]
         CTP,
 
         /// <summary>

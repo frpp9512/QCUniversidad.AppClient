@@ -5,6 +5,7 @@ using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Faculties;
 using QCUniversidad.WebClient.Models.Periods;
+using QCUniversidad.WebClient.Models.Planning;
 using QCUniversidad.WebClient.Models.SchoolYears;
 using QCUniversidad.WebClient.Models.Subjects;
 using QCUniversidad.WebClient.Models.Teachers;
@@ -85,6 +86,7 @@ public interface IDataProvider
     #region Subjects
 
     Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to);
+    Task<IList<SubjectModel>> GetSubjectsForSchoolYearAsync(Guid schoolYearId);
     Task<int> GetSubjectsCountAsync();
     Task<bool> ExistsSubjectAsync(Guid id);
     Task<SubjectModel> GetSubjectAsync(Guid subjectId);
@@ -113,7 +115,7 @@ public interface IDataProvider
     Task<bool> CheckSchoolYearExistenceByCareerYearAndModality(Guid careerId, int careerYear, int modality);
     Task<int> GetSchoolYearsCountAsync();
     Task<int> GetSchoolYearPeriodsCountAsync(Guid schoolYearId);
-    Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from, int to);
+    Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from = 0, int to = 0);
     Task<SchoolYearModel> GetSchoolYearAsync(Guid id);
     Task<bool> UpdateSchoolYearAsync(SchoolYearModel schoolYear);
     Task<bool> DeleteSchoolYearAsync(Guid id);
@@ -129,6 +131,20 @@ public interface IDataProvider
     Task<PeriodModel> GetPeriodAsync(Guid id);
     Task<bool> UpdatePeriodAsync(PeriodModel period);
     Task<bool> DeletePeriodAsync(Guid id);
+
+    #endregion
+
+    #region TeachingPlanItems
+
+    Task<bool> CreateTeachingPlanItemAsync(TeachingPlanItemModel item);
+    Task<bool> ExistsTeachingPlanItemAsync(Guid id);
+    Task<int> GetTeachingPlanItemsCountAsync();
+    Task<int> GetTeachingPlanItemsCountAsync(Guid periodId);
+    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(int from = 0, int to = 0);
+    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, int from, int to);
+    Task<TeachingPlanItemModel> GetTeachingPlanItemAsync(Guid id);
+    Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItemModel period);
+    Task<bool> DeleteTeachingPlanItemAsync(Guid id);
 
     #endregion
 }

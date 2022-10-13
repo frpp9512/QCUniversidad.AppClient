@@ -25,6 +25,8 @@ using QCUniversidad.WebClient.Models.SchoolYears;
 using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.Api.Shared.Dtos.SchoolYear;
 using QCUniversidad.Api.Shared.Dtos.Period;
+using QCUniversidad.WebClient.Models.Planning;
+using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
 
 namespace QCUniversidad.WebClient.Services.Data;
 
@@ -586,6 +588,19 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
+    public async Task<IList<SubjectModel>> GetSubjectsForSchoolYearAsync(Guid schoolYearId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/subject/getforschoolyear?schoolYearId={schoolYearId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var teachers = JsonConvert.DeserializeObject<IList<SubjectDto>>(contentText);
+            return teachers?.Select(f => _mapper.Map<SubjectModel>(f)).ToList() ?? new List<SubjectModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
     public async Task<int> GetSubjectsCountAsync()
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
@@ -823,7 +838,7 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
-    public async Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from, int to)
+    public async Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from = 0, int to = 0)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
         var response = await client.GetAsync($"/schoolyear/list?from={from}&to={to}");
@@ -836,7 +851,7 @@ public class DataProvider : IDataProvider
         }
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
-    
+
     public async Task<SchoolYearModel> GetSchoolYearAsync(Guid id)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
@@ -848,7 +863,7 @@ public class DataProvider : IDataProvider
         }
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
-    
+
     public async Task<bool> UpdateSchoolYearAsync(SchoolYearModel schoolYear)
     {
         if (schoolYear is not null)
@@ -959,6 +974,117 @@ public class DataProvider : IDataProvider
         {
             var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
             var response = await client.DeleteAsync($"/period?id={id}");
+            return response.IsSuccessStatusCode;
+        }
+        throw new ArgumentNullException(nameof(id));
+    }
+
+    #endregion
+
+    #region TeachingPlanItems
+
+    public async Task<bool> CreateTeachingPlanItemAsync(TeachingPlanItemModel item)
+    {
+        if (item is not null)
+        {
+            var dto = _mapper.Map<NewTeachingPlanItemDto>(item);
+            var serializedDtos = JsonConvert.SerializeObject(dto);
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.PutAsync("/period/addplanitem", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
+            return response.IsSuccessStatusCode;
+        }
+        throw new ArgumentNullException("The item should not be null.");
+    }
+
+    public async Task<bool> ExistsTeachingPlanItemAsync(Guid id)
+    {
+        if (id != Guid.Empty)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/period/existsplanitem?id={id}");
+            if (response.IsSuccessStatusCode)
+            {
+                var contentText = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<bool>(contentText);
+                return result;
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+        throw new ArgumentNullException("The id must be a valid Guid.");
+    }
+
+    public async Task<int> GetTeachingPlanItemsCountAsync()
+        => throw new NotImplementedException();
+
+    public async Task<int> GetTeachingPlanItemsCountAsync(Guid periodId)
+    {
+        if (periodId == Guid.Empty)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/period/planitemscount?periodId={periodId}");
+            if (response.IsSuccessStatusCode)
+            {
+                var total = int.Parse(await response.Content.ReadAsStringAsync());
+                return total;
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+        throw new ArgumentNullException("The id must be a valid Guid.");
+    }
+
+    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(int from = 0, int to = 0)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, int from = 0, int to = 0)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/period/planitems?periodId={periodId}&from={from}&to={to}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var periods = JsonConvert.DeserializeObject<IList<TeachingPlanItemSimpleDto>>(contentText);
+            return periods?.Select(f => _mapper.Map<TeachingPlanItemModel>(f)).ToList() ?? new List<TeachingPlanItemModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<TeachingPlanItemModel> GetTeachingPlanItemAsync(Guid id)
+    {
+        if (id != Guid.Empty)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/period/planitem?id={id}");
+            if (response.IsSuccessStatusCode)
+            {
+                var teachingPlanItem = JsonConvert.DeserializeObject<TeachingPlanItemDto>(await response.Content.ReadAsStringAsync());
+                return _mapper.Map<TeachingPlanItemModel>(teachingPlanItem);
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+        throw new ArgumentNullException("The id must be a valid Guid.");
+    }
+
+    public async Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItemModel period)
+    {
+        if (period is not null)
+        {
+            var dto = _mapper.Map<EditTeachingPlanItemDto>(period);
+            var serializedDto = JsonConvert.SerializeObject(dto);
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.PostAsync("/period/updateplanitem", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+            return response.IsSuccessStatusCode;
+        }
+        throw new ArgumentNullException(nameof(period));
+    }
+
+    public async Task<bool> DeleteTeachingPlanItemAsync(Guid id)
+    {
+        if (id != Guid.Empty)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.DeleteAsync($"/period/deleteplanitem?id={id}");
             return response.IsSuccessStatusCode;
         }
         throw new ArgumentNullException(nameof(id));

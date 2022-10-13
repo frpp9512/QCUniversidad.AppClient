@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -502,6 +503,21 @@ namespace QCUniversidad.Api.Services
             return result;
         }
 
+        public async Task<IList<SubjectModel>> GetSubjectsForSchoolYearAsync(Guid schoolYearId)
+        {
+            var query = from s in _context.Subjects
+                        join d in _context.Disciplines
+                        on s.DisciplineId equals d.Id
+                        join cd in _context.CurriculumsDisciplines
+                        on d.Id equals cd.DisciplineId
+                        join sy in _context.SchoolYears
+                        on cd.CurriculumId equals sy.CurriculumId
+                        where sy.Id == schoolYearId
+                        select s;
+            query = query.Include(s => s.Discipline);
+            return await query.ToListAsync();
+        }
+
         public async Task<SubjectModel> GetSubjectAsync(Guid id)
         {
             if (id != Guid.Empty)
@@ -808,86 +824,9 @@ namespace QCUniversidad.Api.Services
 
         #endregion
 
-        #region TeachingPlans
-
-        public async Task<bool> CreateTeachingPlanAsync(TeachingPlanModel teachingPlan)
-        {
-            if (teachingPlan is not null)
-            {
-                await _context.TeachingPlans.AddAsync(teachingPlan);
-                var result = await _context.SaveChangesAsync();
-                return result > 0;
-            }
-            throw new ArgumentNullException(nameof(teachingPlan));
-        }
-
-        public async Task<bool> ExistsTeachingPlanAsync(Guid id)
-        {
-            var result = await _context.TeachingPlans.AnyAsync(d => d.Id == id);
-            return result;
-        }
-
-        public async Task<IList<TeachingPlanModel>> GetTeachingPlansAsync(int from, int to)
-        {
-            var result =
-                (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
-                ? await _context.TeachingPlans.Skip(from).Take(to).Include(p => p.Period).ToListAsync()
-                : await _context.TeachingPlans.Include(p => p.Period).ToListAsync();
-            return result;
-        }
-
-        public async Task<int> GetTeachingPlansCountAsync()
-        {
-            return await _context.TeachingPlans.CountAsync();
-        }
-
-        public async Task<TeachingPlanModel> GetTeachingPlanAsync(Guid id)
-        {
-            if (id != Guid.Empty)
-            {
-                var resultQuery = _context.TeachingPlans.Where(p => p.Id == id);
-                var result = await _context.TeachingPlans.Where(p => p.Id == id)
-                                                   .Include(p => p.Period)
-                                                   .Include(p => p.Items).ThenInclude(i => i.Subject)
-                                                   .FirstOrDefaultAsync();
-                return result ?? throw new TeachingPlanNotFoundException();
-            }
-            throw new ArgumentNullException(nameof(id));
-        }
-
-        public async Task<bool> UpdateTeachingPlanAsync(TeachingPlanModel teachingPlan)
-        {
-            if (teachingPlan is not null)
-            {
-                _context.TeachingPlans.Update(teachingPlan);
-                var result = await _context.SaveChangesAsync();
-                return result > 0;
-            }
-            throw new ArgumentNullException(nameof(teachingPlan));
-        }
-
-        public async Task<bool> DeleteTeachingPlanAsync(Guid id)
-        {
-            if (id != Guid.Empty)
-            {
-                try
-                {
-                    var teachingPlan = await GetTeachingPlanAsync(id);
-                    _context.TeachingPlans.Remove(teachingPlan);
-                    var result = await _context.SaveChangesAsync();
-                    return result > 0;
-                }
-                catch (TeachingPlanNotFoundException)
-                {
-                    throw;
-                }
-            }
-            throw new ArgumentNullException(nameof(id));
-        }
-
         #region TeachingPlanItems
 
-        public async Task<bool> CreateTeachingPlanItemAsync(TeachingPlanItem teachingPlanItem)
+        public async Task<bool> CreateTeachingPlanItemAsync(TeachingPlanItemModel teachingPlanItem)
         {
             if (teachingPlanItem is not null)
             {
@@ -904,7 +843,7 @@ namespace QCUniversidad.Api.Services
             return result;
         }
 
-        public async Task<IList<TeachingPlanItem>> GetTeachingPlanItemsAsync(int from, int to)
+        public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(int from, int to)
         {
             var result =
                 (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
@@ -913,12 +852,26 @@ namespace QCUniversidad.Api.Services
             return result;
         }
 
+        public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, int from, int to)
+        {
+            var result =
+                (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
+                ? await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Skip(from).Take(to).Include(p => p.Subject).ToListAsync()
+                : await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Include(p => p.Subject).ToListAsync();
+            return result;
+        }
+
         public async Task<int> GetTeachingPlanItemsCountAsync()
         {
             return await _context.TeachingPlanItems.CountAsync();
         }
 
-        public async Task<TeachingPlanItem> GetTeachingPlanItemAsync(Guid id)
+        public async Task<int> GetTeachingPlanItemsCountAsync(Guid periodId)
+        {
+            return await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).CountAsync();
+        }
+
+        public async Task<TeachingPlanItemModel> GetTeachingPlanItemAsync(Guid id)
         {
             if (id != Guid.Empty)
             {
@@ -931,7 +884,7 @@ namespace QCUniversidad.Api.Services
             throw new ArgumentNullException(nameof(id));
         }
 
-        public async Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItem teachingPlanItem)
+        public async Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItemModel teachingPlanItem)
         {
             if (teachingPlanItem is not null)
             {
@@ -960,8 +913,6 @@ namespace QCUniversidad.Api.Services
             }
             throw new ArgumentNullException(nameof(id));
         }
-
-        #endregion
 
         #endregion
 

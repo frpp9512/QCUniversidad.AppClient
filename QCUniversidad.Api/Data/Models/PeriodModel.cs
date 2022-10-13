@@ -42,6 +42,11 @@ namespace QCUniversidad.Api.Data.Models
         public uint Enrolment { get; set; }
 
         /// <summary>
+        /// The set of teaching items.
+        /// </summary>
+        public IList<TeachingPlanItemModel> TeachingPlan { get; set; }
+
+        /// <summary>
         /// The id of the shool year when the period passes.
         /// </summary>
         public Guid SchoolYearId { get; set; }

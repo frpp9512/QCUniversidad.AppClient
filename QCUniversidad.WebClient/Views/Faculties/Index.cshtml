@@ -37,58 +37,61 @@
 <p>
     <a asp-action="Create" class="btn btn-success"><span class="fa fa-plus-circle"></span> Crear nueva</a>
 </p>
-<table class="table table-hover">
-    <thead>
-        <tr>
-            <th>
-                Nombre
-            </th>
-            <th>
-                Sede
-            </th>
-            <th>
-                Id interno
-            </th>
-            <th>
-                Deparamentos
-            </th>
-            <th>
-                Carreras
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in items)
-        {
-            <tr id="@item.Id">
-                <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Campus)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.InternalId)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.DepartmentCount)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.CareersCount)
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-controller="Faculties" asp-route-id="@item.Id" class="btn-sm btn-outline-warning">
-                        <span class="fa fa-edit" />
-                    </a>
-                    <button class="btn btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">
-                        <span class="fa fa-trash" />
-                    </button>
-                </td>
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>
+                    Nombre
+                </th>
+                <th>
+                    Sede
+                </th>
+                <th>
+                    Id interno
+                </th>
+                <th>
+                    Deparamentos
+                </th>
+                <th>
+                    Carreras
+                </th>
+                <th></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr id="@item.Id">
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Campus)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.InternalId)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.DepartmentCount)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CareersCount)
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-controller="Faculties" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
+                            <span class="fa fa-edit" />
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">
+                            <span class="fa fa-trash" />
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
 
 <!-- Navigation -->
 

@@ -28,8 +28,7 @@ namespace QCUniversidad.Api.Data.Context
         public DbSet<TeacherModel> Teachers { get; set; }
         public DbSet<TeacherDiscipline> TeachersDisciplines { get; set; }
 
-        public DbSet<TeachingPlanModel> TeachingPlans { get; set; }
-        public DbSet<TeachingPlanItem> TeachingPlanItems { get; set; }
+        public DbSet<TeachingPlanItemModel> TeachingPlanItems { get; set; }
 
         public QCUniversidadContext(DbContextOptions<QCUniversidadContext> options) 
             : base(options)
@@ -121,10 +120,10 @@ namespace QCUniversidad.Api.Data.Context
                         .HasForeignKey(d => d.DepartmentId)
                         .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<TeachingPlanModel>()
-                        .HasMany(t => t.Items)
-                        .WithOne(i => i.TeachingPlan)
-                        .HasForeignKey(i => i.TeachingPlanId)
+            modelBuilder.Entity<TeachingPlanItemModel>()
+                        .HasOne(tp => tp.Period)
+                        .WithMany(p => p.TeachingPlan)
+                        .HasForeignKey(tp => tp.PeriodId)
                         .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);

@@ -37,65 +37,67 @@
 
 @if (Model.ItemsCount > 0)
 {
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th>Denominación</th>
-                <th>Modalidad</th>
-                <th>Carrera</th>
-                <th>Año carrera</th>
-                <th>Inicia <span class="fa fa-arrow-right m-1"></span> Culmina</th>
-                <th>Curriculum</th>
-                <th>Periódos</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.Items)
-            {
-                <tr id="@item.Id">
-                    <td>
-                        @item.Denomination
-                    </td>
-                    <td>
-                        @item.TeachingModality.GetLabel()
-                    </td>
-                    <td>
-                        <a asp-action="Details" asp-controller="Carrers" asp-route-id="@item.CareerId">
-                            @item.Career.Name <small><span class="fa fa-circle-info"></span></small>
-                        </a>
-                    </td>
-                    <td>
-                        @item.GetCareerYearLabel()
-                    </td>
-                    <td>
-                        <span class="badge bg-info">
-                            <span>@item.Starts.ToString("dd-MM-yyyy")</span><span class="fa fa-arrow-right m-1"></span><span>@item.Ends.ToString("dd-MM-yyyy")</span>
-                        </span>
-                    </td>
-                    <td>
-                        <a asp-action="Details" asp-controller="Curriculums" asp-route-id="@item.CurriculumId">
-                            @item.Curriculum.Denomination <small><span class="fa fa-circle-info"></span></small>
-                        </a>
-                    </td>
-                    <td>
-                        @item.Periods?.Count
-                    </td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">
-                            <span class="fa fa-circle-info" />
-                        </a>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
-                            <span class="fa fa-edit" />
-                        </a>
-                        <button class="btn btn-sm btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">
-                            <span class="fa fa-trash" />
-                        </button>
-                    </td>
+    <div class="table-responsive">
+        <table class="table table-responsive table-hover">
+            <thead>
+                <tr>
+                    <th>Denominación</th>
+                    <th>Modalidad</th>
+                    <th>Carrera</th>
+                    <th>Año carrera</th>
+                    <th>Inicia <span class="fa fa-arrow-right m-1"></span> Culmina</th>
+                    <th>Curriculum</th>
+                    <th>Periódos</th>
+                    <th></th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr id="@item.Id">
+                        <td>
+                            @item.Denomination
+                        </td>
+                        <td>
+                            @item.TeachingModality.GetLabel()
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-controller="Carrers" asp-route-id="@item.CareerId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Carrera</small></div> <div><b>@item.Career?.Name</b></div> <div><i>@item.Career?.Description</i></div>">
+                                @item.Career?.Name <small><span class="fa fa-circle-info"></span></small>
+                            </a>
+                        </td>
+                        <td>
+                            @item.GetCareerYearLabel()
+                        </td>
+                        <td>
+                            <span class="badge bg-info">
+                                <span>@item.Starts.ToString("dd-MM-yyyy")</span><span class="fa fa-arrow-right m-1"></span><span>@item.Ends.ToString("dd-MM-yyyy")</span>
+                            </span>
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-controller="Curriculums" asp-route-id="@item.CurriculumId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Curriculum</small></div> <div><b>@item.Curriculum?.Denomination</b></div> <div><i>@item.Curriculum?.Description</i></div>">
+                                @item.Curriculum?.Denomination <small><span class="fa fa-circle-info"></span></small>
+                            </a>
+                        </td>
+                        <td>
+                            @item.Periods?.Count
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">
+                                <span class="fa fa-circle-info" />
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
+                                <span class="fa fa-edit" />
+                            </a>
+                            <button class="btn btn-sm btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">
+                                <span class="fa fa-trash" />
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 
     <!-- Navigation -->
 
@@ -126,6 +128,19 @@
 
     @section Scripts {
     <script src="~/js/schoolyear-index.js"></script>
+    <script src="~/lib/popper/popper.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            LoadTooltips();
+        });
+
+        function LoadTooltips() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+    </script>
     }
 }
 else
