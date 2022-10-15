@@ -159,4 +159,24 @@ public class TeacherController : ControllerBase
             return NotFound($"The teacher with id '{id}' was not found.");
         }
     }
+
+    [HttpGet]
+    [Route("listofdepartment")]
+    public async Task<IActionResult> GetTeachersOfDepartment(Guid departmentId)
+    {
+        if (departmentId == Guid.Empty)
+        {
+            return BadRequest("You must provide a department id.");
+        }
+        try
+        {
+            var result = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
+            var dtos = result.Select(i => _mapper.Map<TeacherModel>(i));
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
 }

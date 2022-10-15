@@ -48,7 +48,7 @@
                             <select asp-for="SelectedDisciplines" class="form-control selected-disciplines" multiple aria-label="multiple select example">
                                 @foreach (var group in groups)
                                 {
-                                    <optgroup label="@group.FirstOrDefault()?.Name">
+                                    <optgroup label="@group.FirstOrDefault()?.Department?.Name">
                                         @foreach (var d in group)
                                         {
                                             <option value="@d.Id">@d.Name</option>

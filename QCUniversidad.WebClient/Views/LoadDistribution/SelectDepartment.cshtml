@@ -1,0 +1,45 @@
+﻿@model IList<DepartmentModel>
+@{
+    ViewData["Title"] = "Seleccionar departamento";
+}
+
+<h1>Seleccionar departamento</h1>
+<p>Primero seleccione el departamento para continuar</p>
+<div class="container">
+    <div class="col-9 mb-3">
+        @{
+            var departmentGroups = Model.GroupBy(d => d.FacultyId);
+            <label for="DepartmentId">Departamento al que pertenece</label>
+            <select id="DepartmentId" class="form-control selected-department" aria-label="select">
+                @foreach (var group in departmentGroups)
+                {
+                    <optgroup label="@group.FirstOrDefault()?.Faculty?.Name">
+                        @foreach (var d in group)
+                        {
+                            <option value="@d.Id">@d.Name</option>
+                        }
+                    </optgroup>
+                }
+            </select>
+        }
+    </div>
+    <div class="col-3 mb-3 d-flex align-baseline">
+        <button class="btn btn-success" onclick="SelectDepartment()">Continuar <span class="fa fa-arrow-right"></span></button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.selected-department').select2({
+                placeholder: "Seleccione el departamento"
+            });
+        });
+
+        function SelectDepartment() {
+            const depSelect = document.getElementById("DepartmentId");
+            let selected = depSelect.options[depSelect.selectedIndex].value;
+            location.href = "/loaddistribution/index?departmentId=" + selected;
+        }
+    </script>
+}

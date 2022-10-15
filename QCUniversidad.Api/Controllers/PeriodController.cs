@@ -316,4 +316,32 @@ public class PeriodController : ControllerBase
             return Problem(ex.Message);
         }
     }
+
+    [HttpGet]
+    [Route("listofschoolyearfordepartment")]
+    public async Task<IActionResult> GetPeriodsOfSchoolYearForDepartment(Guid schoolYearId, Guid departmentId)
+    {
+        try
+        {
+            var result = await _dataManager.GetPeriodsOfSchoolYearForDepartment(schoolYearId, departmentId);
+            var dtos = result.Select(i => _mapper.Map<PeriodModel>(i));
+            return Ok(dtos);
+        }
+        catch (ArgumentNullException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (SchoolYearNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (DepartmentNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
 }

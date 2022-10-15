@@ -5,27 +5,27 @@
 }
 
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
 html {
-  position: relative;
-  min-height: 100%;
-  background-image: url('../img/site/qcu_bg.svg');
-  background-clip: border-box;
-  background-size: 500px;   
+    position: relative;
+    min-height: 100%;
+    background-image: url('../img/site/qcu_bg.svg');
+    background-clip: border-box;
+    background-size: 500px;
 }
 
 body {
-  margin-bottom: 80px;
-  background-color: transparent;
-  background-blend-mode: difference;
+    margin-bottom: 80px;
+    background-color: transparent;
+    background-blend-mode: difference;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -60,9 +60,9 @@ footer {
     color: white;
 }
 
-footer * {
-    color: white;
-}
+    footer * {
+        color: white;
+    }
 
 a {
     text-decoration: none;
@@ -108,9 +108,9 @@ dd {
     min-height: 300px;
 }
 
-.login-image > img {
-    width: 200px;
-}
+    .login-image > img {
+        width: 200px;
+    }
 
 .login-form {
     padding: 25px;
@@ -292,4 +292,233 @@ dd {
     animation-duration: 1s;
     -webkit-animation-name: fadeInUp;
     animation-name: fadeInUp;
+}
+
+.delay-1 {
+    animation-delay: 0.2s;
+}
+
+.delay-2 {
+    animation-delay: 0.4s;
+}
+
+.delay-3 {
+    animation-delay: 0.6s;
+}
+
+.delay-4 {
+    animation-delay: 0.8s;
+}
+
+.icard-set {
+    display: grid;
+    grid-template-columns: minmax(300px, 600px) minmax(300px, 600px) minmax(300px, 600px) minmax(300px, 600px);
+    grid-column-gap: 15px;
+    grid-row-gap: 15px;
+    justify-items: center;
+    justify-content: center;
+    grid-auto-flow: row;
+    min-width: 300px;
+}
+
+@media (max-width: 1400px) {
+    .icard-set {
+        grid-template-columns: minmax(300px, 600px) minmax(300px, 600px) minmax(300px, 600px);
+    }
+}
+
+@media (max-width: 1000px) {
+    .icard-set {
+        grid-template-columns: minmax(300px, 600px) minmax(300px, 600px);
+    }
+}
+
+@media (max-width: 768px) {
+    .icard-set {
+        grid-template-columns: minmax(300px, 600px);
+    }
+}
+
+.icard {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    box-shadow: #ccc 1px 1px 5px;
+    min-width: 300px;
+    animation-duration: 1s;
+    animation-name: fadeInUp;
+    cursor: pointer;
+}
+
+    .icard:hover {
+        box-shadow: #bbb 2px 2px 8px;
+        transition: ease 0.25s;
+    }
+
+    .icard .icard-title {
+        font-size: 0.75rem;
+        color: #bbb;
+        padding: 10px 15px;
+    }
+
+    .icard .icard-content {
+        display: flex;
+        justify-content: center;
+        align-items: baseline;
+        margin: 5px 0 5px 0;
+        padding: 10px 15px;
+    }
+
+        .icard .icard-content .icard-value {
+            font-size: 3.5rem;
+            color: #222020;
+            display: flex;
+            align-items: baseline;
+            font-weight: bold;
+        }
+
+            .icard .icard-content .icard-value span.icard-value-mu {
+                font-size: 3rem;
+            }
+
+        .icard .icard-content .icard-value-ref {
+            font-size: 1.5rem;
+            color: #bbb;
+            align-self: baseline;
+            font-weight: lighter;
+        }
+
+            .icard .icard-content .icard-value-ref::before {
+                content: '/';
+                font-size: 1.5rem;
+                margin-left: 0.5rem;
+            }
+
+    .icard .icard-footer {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        align-items: center;
+        border-top: 1px solid #eee;
+        font-size: 0.75rem;
+        color: #808080;
+        padding-top: 15px;
+        text-align: center;
+    }
+
+.load-items-set {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-rows: repeat(auto-fit, minmax(80px, 1fr));
+    grid-gap: 10px;
+}
+
+.load-item {
+    display: flex;
+    flex-direction: column;
+    cursor: default;
+}
+
+    .load-item .load-item-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        border: 1px solid #ccc;
+        box-shadow: #ccc 1px 1px 5px;
+        border-radius: 5px;
+        padding: 10px;
+    }
+
+.load-item-header .load-item-header-title {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 5px;
+    padding-right: 15px;
+}
+
+.load-item-title {
+    font-weight: bold;
+    font-size: 1.2rem;
+    line-height: 1.3rem;
+    margin-bottom: 3px;
+    color: var(--main-color);
+}
+
+.load-item-subtitle {
+    font-weight: lighter;
+    font-size: 0.8rem;
+}
+
+.load-item-header-value {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    /*border-left: 1px solid #ccc;*/
+}
+
+.load-item-header-supvalue {
+    display: flex;
+    justify-content: center;
+}
+
+.load-item-value {
+    font-weight: bold;
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+.load-item-header-buttons {
+    display: flex;
+    justify-self: end;
+    justify-content: space-evenly;
+}
+
+    .load-item-header-buttons button {
+        border-radius: 50px;
+        font-size: 0.6rem;
+        border: none;
+        width: 25px;
+        height: 25px;
+        margin: 2px
+    }
+
+        .load-item-header-buttons button:hover {
+            background-color: var(--main-color);
+            color: white;
+            transition: 0.3s;
+        }
+
+.load-item-body {
+    border-top: 1px solid #ddd;
+    background-color: white;
+    font-size: 0.8rem;
+}
+
+.load-item-body-rows {
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-content: center;
+    grid-row-gap: 5px;
+    margin-top: 5px;
+}
+
+.load-item-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.load-item-row-value {
+    border-left: 1px solid #ddd;
+    padding-left: 10px;
+    font-weight: bold;
+    min-width: 35px;
+    text-align: right;
 }

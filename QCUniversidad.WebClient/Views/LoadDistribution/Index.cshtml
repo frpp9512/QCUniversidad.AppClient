@@ -1,8 +1,188 @@
-﻿
+﻿@model LoadDistributionIndexModel
+
 @{
-    ViewData["Title"] = "";
+    ViewData["Title"] = "Distribución de carga";
 }
 
 <h1>Distribución de carga</h1>
 <hr />
 
+<h3>Departamento de @Model.Department.Name</h3>
+<p>@Model.Department.Description</p>
+
+<div class="row mt-3 mb-3">
+    <div class="col col-lg-3 col-sm-6 col-12">
+        <label for="selectedSchoolarYear">Año escolar</label>
+        <div class="d-flex flex-row align-items-center">
+            <select class="form-select" aria-label="Seleccionar año escolar" id="selectedSchoolarYear">
+                @foreach (var schoolYear in Model.SchoolYears)
+                {
+                    <option value="@schoolYear.Id">@schoolYear.Denomination</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="col col-lg-3 col-sm-6 col-12">
+        <label for="selectedPeriod">Período</label>
+        <select class="form-select" aria-label="Seleccionar período" id="selectedPeriod">
+            <option id="selectPeriodDefault">Seleccione un año escolar</option>
+        </select>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div id="load" class="col">
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/percentage-circle/circle.js"></script>
+    <script src="~/lib/popper/popper.min.js"></script>
+    <script>
+        const selectedDepartment = '@Model.Department.Id';
+
+        $(document).ready(function () {
+            const schoolYearsSelect = document.getElementById("selectedSchoolarYear");
+            schoolYearsSelect.onchange = SchoolYearSelect;
+            const periodSelect = document.getElementById("selectedPeriod");
+            periodSelect.onchange = PeriodSelected;
+            SchoolYearSelect();
+        });
+
+        function LoadTooltips() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+
+        function SchoolYearSelect() {
+            const periodsSelect = document.getElementById("selectedPeriod");
+            const schoolYearsSelect = document.getElementById("selectedSchoolarYear");
+            var selected = schoolYearsSelect.options[schoolYearsSelect.selectedIndex].value;
+
+            SetLoadingPlanning();
+
+            $.ajax({
+                url: `/loaddistribution/getperiodoptions?schoolYearId=${selected}&departmentId=${selectedDepartment}`,
+                type: "GET",
+                success: function (data) {
+                    DisableLoadingPlanning();
+                    const periodSelect = document.getElementById("selectedPeriod");
+                    periodSelect.innerHTML = data;
+                    LoadTooltips();
+                    PeriodSelected();
+                },
+                error: function (xhr, status, error) {
+                    DisableLoadingPlanning();
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function PeriodSelected() {
+            const periodsSelect = document.getElementById("selectedPeriod");
+            let selected = periodsSelect.options[periodsSelect.selectedIndex].value;
+            SetLoadingPlanning();
+
+            $.ajax({
+                url: `/loaddistribution/GetPlanningItemsView?periodId=${selected}&departmentId=${selectedDepartment}`,
+                type: "GET",
+                success: function (data) {
+                    DisableLoadingPlanning();
+                    const planningDetailsDiv = document.getElementById("load");
+                    planningDetailsDiv.innerHTML = data;
+                    LoadTooltips();
+                    RefreshView();
+                    LoadMeters();
+                },
+                error: function (xhr, status, error) {
+                    DisableLoadingPlanning();
+                    console.log(xhr, status, error);
+                }
+            });
+
+            LoadTooltips();
+
+            console.log("periods select changed", periodsSelect.selectedIndex, selected);
+        }
+
+        function CreateSpinnerNode() {
+            let spinnerNode = document.createElement("div");
+            spinnerNode.classList.add("spinner-grow");
+            spinnerNode.classList.add("m-5");
+            spinnerNode.role = "status";
+            let spinnerSpan = document.createElement("span");
+            spinnerSpan.classList.add("visually-hidden");
+            spinnerSpan.innerText = "Loading...";
+            spinnerNode.appendChild(spinnerSpan);
+            return spinnerNode;
+        }
+
+        function SetLoadingPlanning() {
+            const planningDetailsDiv = document.getElementById("load");
+            planningDetailsDiv.innerHTML = "";
+            planningDetailsDiv.classList.add("d-flex");
+            planningDetailsDiv.classList.add("justify-content-center");
+            planningDetailsDiv.appendChild(CreateSpinnerNode());
+            const periodsSelect = document.getElementById("selectedPeriod");
+            periodsSelect.disabled = true;
+            const schoolYearsSelect = document.getElementById("selectedSchoolarYear");
+            schoolYearsSelect.disabled = true;
+        }
+
+        function DisableLoadingPlanning() {
+            const planningDetailsDiv = document.getElementById("load");
+            planningDetailsDiv.innerHTML = "";
+            planningDetailsDiv.classList.remove("d-flex");
+            planningDetailsDiv.classList.remove("justify-content-center");
+            const periodsSelect = document.getElementById("selectedPeriod");
+            periodsSelect.disabled = false;
+            const schoolYearsSelect = document.getElementById("selectedSchoolarYear");
+            schoolYearsSelect.disabled = false;
+        }
+    </script>
+
+    <script>
+        var currentView = "grid";
+
+        function SetView(view) {
+            if (view == null || view == '') {
+                return;
+            }
+            currentView = view;
+            RefreshView();
+        }
+
+        function RefreshView() {
+            const showTableBtn = document.getElementById("showTable");
+            const showGridBtn = document.getElementById("showGrid");
+            const tableView = document.getElementById("tableView");
+            const gridView = document.getElementById("gridView");
+
+            switch (currentView) {
+                case "grid":
+                    showTableBtn.classList.remove("btn-primary");
+                    showTableBtn.classList.add("btn-outline-primary");
+                    showGridBtn.classList.add("btn-primary");
+                    showGridBtn.classList.remove("btn-outline-primary");
+                    tableView.style.visibility = "collapse";
+                    gridView.style.visibility = "visible";
+                    break;
+                case "table":
+                    showTableBtn.classList.add("btn-primary");
+                    showTableBtn.classList.remove("btn-outline-primary");
+                    showGridBtn.classList.remove("btn-primary");
+                    showGridBtn.classList.add("btn-outline-primary");
+                    tableView.style.visibility = "visible";
+                    gridView.style.visibility = "collapse";
+                    break;
+                default:
+                    break;
+            }
+        }
+    </script>
+}

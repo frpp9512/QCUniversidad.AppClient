@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Shared.Enums;
@@ -6,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +17,7 @@ namespace QCUniversidad.Api.Services
     #region Exceptions
 
     public class FacultyNotFoundException : Exception { }
-    public class DeparmentNotFoundException : Exception { }
+    public class DepartmentNotFoundException : Exception { }
     public class CareerNotFoundException : Exception { }
     public class DisciplineNotFoundException : Exception { }
     public class TeacherNotFoundException : Exception { }
@@ -162,7 +164,7 @@ namespace QCUniversidad.Api.Services
             var department = await _context.Departments.Where(d => d.Id == departmentId)
                                                        .Include(d => d.Faculty)
                                                        .FirstOrDefaultAsync();
-            return department ?? throw new DeparmentNotFoundException();
+            return department ?? throw new DepartmentNotFoundException();
         }
 
         public async Task<int> GetDeparmentTeachersCountAsync(Guid departmentId)
@@ -468,6 +470,25 @@ namespace QCUniversidad.Api.Services
             throw new ArgumentNullException(nameof(id));
         }
 
+        public async Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId)
+        {
+            try
+            {
+                if (!await ExistDepartmentAsync(departmentId))
+                {
+                    throw new ArgumentNullException();
+                }
+                var query = from t in _context.Teachers
+                            where t.DepartmentId == departmentId
+                            select t;
+                return await query.ToListAsync();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         #endregion
 
         #region Subject
@@ -739,6 +760,30 @@ namespace QCUniversidad.Api.Services
             throw new ArgumentNullException(nameof(id));
         }
 
+        public async Task<IList<SchoolYearModel>> GetSchoolYearsForDepartment(Guid departmentId)
+        {
+            if (departmentId != Guid.Empty)
+            {
+                var disciplines = from discipline in _context.Disciplines
+                                  where discipline.DepartmentId == departmentId
+                                  select discipline;
+                var curriculums = from curriculum in _context.Curriculums
+                                  join curriculumsDisciplines in _context.CurriculumsDisciplines
+                                  on curriculum.Id equals curriculumsDisciplines.CurriculumId
+                                  join discipline in disciplines
+                                  on curriculumsDisciplines.DisciplineId equals discipline.Id
+                                  select curriculum;
+                var schoolYears = from schoolYear in _context.SchoolYears
+                                  join curriculum in curriculums
+                                  on schoolYear.CurriculumId equals curriculum.Id
+                                  select schoolYear;
+                schoolYears = schoolYears.Distinct();
+                schoolYears = schoolYears.Include(sy => sy.Career).Include(sy => sy.Curriculum);
+                return await schoolYears.ToListAsync();
+            }
+            throw new ArgumentNullException();
+        }
+
         #endregion
 
         #region Periods
@@ -820,6 +865,53 @@ namespace QCUniversidad.Api.Services
                 }
             }
             throw new ArgumentNullException(nameof(id));
+        }
+
+        public async Task<IList<PeriodModel>> GetPeriodsOfSchoolYearForDepartment(Guid schoolYearId, Guid departmentId)
+        {
+            if (schoolYearId == Guid.Empty || departmentId == Guid.Empty)
+            {
+                throw new ArgumentNullException();
+            }
+            if (!await ExistsSchoolYearAsync(schoolYearId))
+            {
+                throw new SchoolYearNotFoundException();
+            }
+            if (!await ExistDepartmentAsync(departmentId))
+            {
+                throw new DepartmentNotFoundException();
+            }
+            try
+            {
+                var disciplines = from discipline in _context.Disciplines
+                                  where discipline.DepartmentId == departmentId
+                                  select discipline;
+
+                var curriculums = from curriculum in _context.Curriculums
+                                  join curriculumsDisciplines in _context.CurriculumsDisciplines
+                                  on curriculum.Id equals curriculumsDisciplines.CurriculumId
+                                  join discipline in disciplines
+                                  on curriculumsDisciplines.DisciplineId equals discipline.Id
+                                  select curriculum;
+
+                var schoolYears = from schoolYear in _context.SchoolYears
+                                  join curriculum in curriculums
+                                  on schoolYear.CurriculumId equals curriculum.Id
+                                  where schoolYear.Id == schoolYearId
+                                  select schoolYear;
+
+                var periods = from period in _context.Periods
+                              join schoolYear in schoolYears
+                              on period.SchoolYearId equals schoolYear.Id
+                              select period;
+
+                periods = periods.Distinct();
+                return await periods.ToListAsync();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         #endregion
@@ -912,6 +1004,39 @@ namespace QCUniversidad.Api.Services
                 }
             }
             throw new ArgumentNullException(nameof(id));
+        }
+
+        public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId)
+        {
+            try
+            {
+                if (departmentId == Guid.Empty || periodId == Guid.Empty || !await ExistDepartmentAsync(departmentId) || !await ExistsPeriodAsync(periodId))
+                {
+                    throw new ArgumentNullException();
+                }
+                
+                var disciplines = from discipline in _context.Disciplines
+                                  where discipline.DepartmentId == departmentId
+                                  select discipline;
+
+                var subjects = from subject in _context.Subjects
+                               join discipline in disciplines
+                               on subject.DisciplineId equals discipline.Id
+                               select subject;
+
+                var planItems = from planItem in _context.TeachingPlanItems
+                                join subject in subjects
+                                on planItem.SubjectId equals subject.Id
+                                where planItem.PeriodId == periodId
+                                select planItem;
+
+                planItems = planItems.Distinct().Include(i => i.Subject);
+                return await planItems.ToListAsync();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         #endregion

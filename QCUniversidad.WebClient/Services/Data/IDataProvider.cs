@@ -81,6 +81,8 @@ public interface IDataProvider
     Task<bool> UpdateTeacherAsync(TeacherModel teacher);
     Task<bool> DeleteTeacherAsync(Guid teacherId);
 
+    Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId);
+
     #endregion
 
     #region Subjects
@@ -120,6 +122,8 @@ public interface IDataProvider
     Task<bool> UpdateSchoolYearAsync(SchoolYearModel schoolYear);
     Task<bool> DeleteSchoolYearAsync(Guid id);
 
+    Task<IList<SchoolYearModel>> GetSchoolYearsForDepartment(Guid departmentId);
+
     #endregion
 
     #region Periods
@@ -131,6 +135,8 @@ public interface IDataProvider
     Task<PeriodModel> GetPeriodAsync(Guid id);
     Task<bool> UpdatePeriodAsync(PeriodModel period);
     Task<bool> DeletePeriodAsync(Guid id);
+
+    Task<IList<PeriodModel>> GetPeriodsOfSchoolYearForDepartment(Guid schoolYearId, Guid departmentId);
 
     #endregion
 
@@ -145,6 +151,8 @@ public interface IDataProvider
     Task<TeachingPlanItemModel> GetTeachingPlanItemAsync(Guid id);
     Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItemModel period);
     Task<bool> DeleteTeachingPlanItemAsync(Guid id);
+
+    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId);
 
     #endregion
 }

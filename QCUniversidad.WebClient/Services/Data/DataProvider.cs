@@ -571,6 +571,19 @@ public class DataProvider : IDataProvider
         throw new ArgumentNullException(nameof(teacherId));
     }
 
+    public async Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/teacher/listofdepartment?departmentId={departmentId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var teachers = JsonConvert.DeserializeObject<IList<TeacherDto>>(contentText);
+            return teachers?.Select(f => _mapper.Map<TeacherModel>(f)).ToList() ?? new List<TeacherModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
     #endregion
 
     #region Subjects
@@ -888,6 +901,20 @@ public class DataProvider : IDataProvider
         throw new ArgumentNullException(nameof(id));
     }
 
+    public async Task<IList<SchoolYearModel>> GetSchoolYearsForDepartment(Guid departmentId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/schoolyear/listfordepartment?departmentId={departmentId}");
+        var responseText = await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var schoolYears = JsonConvert.DeserializeObject<IList<SchoolYearDto>>(contentText);
+            return schoolYears?.Select(f => _mapper.Map<SchoolYearModel>(f)).ToList() ?? new List<SchoolYearModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
     #endregion
 
     #region Periods
@@ -977,6 +1004,19 @@ public class DataProvider : IDataProvider
             return response.IsSuccessStatusCode;
         }
         throw new ArgumentNullException(nameof(id));
+    }
+
+    public async Task<IList<PeriodModel>> GetPeriodsOfSchoolYearForDepartment(Guid schoolYearId, Guid departmentId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/period/listofschoolyearfordepartment?schoolYearId={schoolYearId}&departmentId={departmentId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var periods = JsonConvert.DeserializeObject<IList<PeriodDto>>(contentText);
+            return periods?.Select(f => _mapper.Map<PeriodModel>(f)).ToList() ?? new List<PeriodModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
     #endregion
@@ -1088,6 +1128,19 @@ public class DataProvider : IDataProvider
             return response.IsSuccessStatusCode;
         }
         throw new ArgumentNullException(nameof(id));
+    }
+
+    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/department/planningitems?id={departmentId}&periodId={periodId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var periods = JsonConvert.DeserializeObject<IList<TeachingPlanItemSimpleDto>>(contentText);
+            return periods?.Select(f => _mapper.Map<TeachingPlanItemModel>(f)).ToList() ?? new List<TeachingPlanItemModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
     #endregion

@@ -180,4 +180,20 @@ public class DepartmentController : ControllerBase
         }
         return BadRequest("You should provide a department id.");
     }
+
+    [HttpGet]
+    [Route("planningitems")]
+    public async Task<IActionResult> GetPlanningItems(Guid id, Guid periodId)
+    {
+        try
+        {
+            var result = await _dataManager.GetTeachingPlanItemsOfDepartmentOnPeriod(id, periodId);
+            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemModel>(i));
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
 }

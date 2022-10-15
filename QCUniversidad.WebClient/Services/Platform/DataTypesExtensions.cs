@@ -26,5 +26,14 @@ namespace QCUniversidad.WebClient.Services.Platform
 
         public static Guid GetDepartmentId(this ClaimsPrincipal user)
             => new(user.Claims.First(c => c.Type == "DepartmentId").Value);
+
+        public static bool IsAdmin(this ClaimsPrincipal user)
+            => user.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Administrador");
+
+        public static bool IsPlanner(this ClaimsPrincipal user)
+            => user.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Planificador");
+
+        public static bool IsDepartmentManager(this ClaimsPrincipal user)
+            => user.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Jefe de departamento");
     }
 }

@@ -30,7 +30,7 @@ public class DisciplineController : ControllerBase
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
         var disciplines = await _dataManager.GetDisciplinesAsync(from, to);
-        var dtos = disciplines.Select(d => _mapper.Map<PopulatedDisciplineDto>(d));
+        var dtos = disciplines.Select(d => _mapper.Map<PopulatedDisciplineDto>(d)).ToList();
         foreach (var dto in dtos)
         {
             dto.TeachersCount = await _dataManager.GetDisciplineTeachersCountAsync(dto.Id);

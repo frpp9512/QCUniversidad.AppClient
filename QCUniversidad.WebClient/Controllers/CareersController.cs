@@ -58,7 +58,7 @@ namespace QCUniversidad.WebClient.Controllers
             }
             catch (Exception)
             {
-                return RedirectToActionPermanent("Error", "Home");
+                return RedirectToAction("Error", "Home");
             }
         }
 
@@ -166,7 +166,7 @@ namespace QCUniversidad.WebClient.Controllers
                 }
                 catch (Exception)
                 {
-                    return RedirectToActionPermanent("Error", "Home");
+                    return RedirectToAction("Error", "Home");
                 }
             }
             return View(model);

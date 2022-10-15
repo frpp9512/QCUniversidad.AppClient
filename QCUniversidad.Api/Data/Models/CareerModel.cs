@@ -27,6 +27,11 @@ namespace QCUniversidad.Api.Data.Models
         public string? Description { get; set; }
 
         /// <summary>
+        /// Defineśif the career is a postgraduate course.
+        /// </summary>
+        public bool PostgraduateCourse { get; set; }
+
+        /// <summary>
         /// The set of curriculums intended for the career.
         /// </summary>
         public IList<CurriculumModel> Curricula { get; set; }

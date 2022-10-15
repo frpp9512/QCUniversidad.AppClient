@@ -1,0 +1,58 @@
+svg.circle-percentage {
+    display: inline-flex;
+    vertical-align: bottom;
+    width: 30px;
+    height: 30px;
+}
+
+circle {
+    stroke: #e0e0e0;
+    stroke-width: 5px;
+    stroke-dasharray: 0;
+    fill: none;
+}
+
+.meter {
+    stroke-width: 10px;
+    stroke: #000;
+    fill: none;
+    transition: stroke-dashoffset 1s cubic-bezier(0.43, 0.41, 0.22, 0.91);
+    transform-origin: center center;
+    transform: rotate(-90deg) scaleX(-1);
+}
+
+svg.circle-percentage text {
+    font-weight: bold;
+}
+
+.success .meter {
+    stroke: #179b18;
+}
+
+.success text {
+    fill: #179b18;
+}
+
+.light-warning .meter {
+    stroke: #a5b800;
+}
+
+.light-warning text {
+    fill: #a5b800;
+}
+
+.warning .meter {
+    stroke: #ffd800;
+}
+
+.warning text {
+    fill: #ffd800;
+}
+
+.danger .meter {
+    stroke: #ff0000;
+}
+
+.danger text {
+    fill: #ff0000;
+}

@@ -33,18 +33,18 @@ public enum TeachingModality
     /// <summary>
     /// Courses for graduated students.
     /// </summary>
-    [Display(Name = "Postgrado", Description = "Modalidad de cursos para estudiantes graduados.", Prompt = "Modalidad de postgrado")]
-    PostgraduateDegree,
+    //[Display(Name = "Postgrado", Description = "Modalidad de cursos para estudiantes graduados.", Prompt = "Modalidad de postgrado")]
+    //PostgraduateDegree,
 
     /// <summary>
     /// Courses for graduated students to get the Master's degree.
     /// </summary>
-    [Display(Name = "Maestría", Description = "Modalidad de estudio para obtener el título de maestría.", Prompt = "Modalidad de maestría")]
-    MastersDegree,
+    //[Display(Name = "Maestría", Description = "Modalidad de estudio para obtener el título de maestría.", Prompt = "Modalidad de maestría")]
+    //MastersDegree,
 
     /// <summary>
     /// Courses for graduated students to get the PhD degree.
     /// </summary>
-    [Display(Name = "Doctorado", Description = "Modalidad de estudio para obtener el título de Doctor en ciencias.", Prompt = "Modalidad de doctorado")]
-    PhDDegree
+    //[Display(Name = "Doctorado", Description = "Modalidad de estudio para obtener el título de Doctor en ciencias.", Prompt = "Modalidad de doctorado")]
+    //PhDDegree
 }

@@ -153,4 +153,24 @@ public class SchoolYearController : ControllerBase
             return NotFound($"The school year with id '{id}' was not found.");
         }
     }
+
+    [HttpGet]
+    [Route("listfordepartment")]
+    public async Task<IActionResult> GetSchoolYearsForDepartment(Guid departmentId)
+    {
+        if (departmentId == Guid.Empty)
+        {
+            return BadRequest("You must provide an id.");
+        }
+        try
+        {
+            var result = await _dataManager.GetSchoolYearsForDepartment(departmentId);
+            var dtos = result.Select(i => _mapper.Map<SchoolYearDto>(i));
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
 }

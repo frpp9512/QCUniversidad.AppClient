@@ -42,6 +42,7 @@
                 <tr>
                     <th>Nombre</th>
                     <th>Descripción</th>
+                    <th align="center">Postgrado</th>
                     <th>Facultad</th>
                     <th></th>
                 </tr>
@@ -55,6 +56,16 @@
                         </td>
                         <td>
                             @item.Description
+                        </td>
+                        <td align="center">
+                            @if (item.PostgraduateCourse)
+                            {
+                                <span class="fa fa-check text-success" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Postgrado</small></div> <div>Esta carrera es un postgrado</div>"></span>
+                            }
+                            else
+                            {
+                                <span class="fa fa-circle-xmark text-warning" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Pregrado</small></div> <div>Esta carrera es un curso de pregrado.</div>"></span>
+                            }
                         </td>
                         <td>
                             <a asp-action="Details" asp-controller="Faculties" asp-route-id="@item.Faculty?.Id" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Facultad</small></div> <div><b>@item.Faculty?.Name</b></div> <div><i>@item.Faculty?.Campus</i></div><div><b>@item.Faculty?.InternalId</b></div>">

@@ -49,6 +49,9 @@ namespace QCUniversidad.WebClient.Controllers
             return View();
         }
 
+        public IActionResult Fa()
+            => View();
+
         public IActionResult Privacy()
         {
             return View();
