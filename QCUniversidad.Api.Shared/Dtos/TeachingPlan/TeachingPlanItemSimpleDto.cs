@@ -17,5 +17,6 @@ public class TeachingPlanItemSimpleDto
     public double HoursPlanned { get; set; }
     public uint GroupsAmount { get; set; }
     public double TotalHoursPlanned { get; set; }
+    public bool FromPostgraduateCourse { get; set; }
     public Guid PeriodId { get; set; }
 }

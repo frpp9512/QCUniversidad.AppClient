@@ -22,11 +22,14 @@
             </select>
         </div>
     </div>
-    <div class="col col-lg-3 col-sm-6 col-12">
+    <div class="col col-lg-3 col-sm-6 col-12 mb-3 mb-sm-3 mb-lg-0">
         <label for="selectedPeriod">Período</label>
         <select class="form-select" aria-label="Seleccionar período" id="selectedPeriod">
             <option id="selectPeriodDefault">Seleccione un año escolar</option>
         </select>
+    </div>
+    <div class="col align-self-end">
+        <button class="btn btn-info" onclick="PeriodSelected()"><span class="fa fa-refresh"></span><span class="d-sm-inline-block d-lg-none">Actualizar</span></button>
     </div>
 </div>
 

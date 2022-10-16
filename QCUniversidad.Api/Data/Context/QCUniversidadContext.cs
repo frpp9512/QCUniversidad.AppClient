@@ -30,6 +30,8 @@ namespace QCUniversidad.Api.Data.Context
 
         public DbSet<TeachingPlanItemModel> TeachingPlanItems { get; set; }
 
+        public DbSet<LoadItemModel> LoadItems { get; set; }
+
         public QCUniversidadContext(DbContextOptions<QCUniversidadContext> options) 
             : base(options)
         {
@@ -124,6 +126,18 @@ namespace QCUniversidad.Api.Data.Context
                         .HasOne(tp => tp.Period)
                         .WithMany(p => p.TeachingPlan)
                         .HasForeignKey(tp => tp.PeriodId)
+                        .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<LoadItemModel>()
+                        .HasOne(li => li.PlanningItem)
+                        .WithMany(pi => pi.LoadItems)
+                        .HasForeignKey(li => li.PlanningItemId)
+                        .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<LoadItemModel>()
+                        .HasOne(li => li.Teacher)
+                        .WithMany(t => t.LoadItems)
+                        .HasForeignKey(li => li.TeacherId)
                         .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);

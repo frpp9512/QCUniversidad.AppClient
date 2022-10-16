@@ -1,8 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
+using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Shared.Enums;
+using SQLitePCL;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -419,8 +421,8 @@ namespace QCUniversidad.Api.Services
         {
             var result =
                 (from != 0 && from == to) && (from >= 0 && to >= from) && !(from == 0 && from == to)
-                ? await _context.Teachers.Skip(from).Take(to).Include(d => d.Department).Include(d => d.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync()
-                : await _context.Teachers.Include(d => d.Department).Include(d => d.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync();
+                ? await _context.Teachers.Where(t => t.Active).Skip(from).Take(to).Include(d => d.Department).Include(d => d.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync()
+                : await _context.Teachers.Where(t => t.Active).Include(d => d.Department).Include(d => d.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync();
             return result;
         }
 
@@ -458,7 +460,15 @@ namespace QCUniversidad.Api.Services
                 try
                 {
                     var teacher = await GetTeacherAsync(id);
-                    _context.Teachers.Remove(teacher);
+                    if (!await TeacherHaveLoad(id))
+                    {
+                        _context.Teachers.Remove(teacher);
+                    }
+                    else
+                    {
+                        teacher.Active = false;
+                        _context.Teachers.Update(teacher);
+                    }
                     var result = await _context.SaveChangesAsync();
                     return result > 0;
                 }
@@ -487,6 +497,23 @@ namespace QCUniversidad.Api.Services
             {
                 throw;
             }
+        }
+
+        private async Task<bool> TeacherHaveLoad(Guid teacherId)
+        {
+            if (teacherId == Guid.Empty)
+            {
+                throw new ArgumentNullException(nameof(teacherId));
+            }
+            if (!await ExistsTeacherAsync(teacherId))
+            {
+                throw new TeacherNotFoundException();
+            }
+            var query = from teacher in _context.Teachers
+                        where teacher.Id == teacherId
+                        select teacher;
+
+            return await query.CountAsync() > 0;
         }
 
         #endregion
@@ -519,8 +546,8 @@ namespace QCUniversidad.Api.Services
         {
             var result =
                 (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
-                ? await _context.Subjects.Skip(from).Take(to).Include(d => d.Discipline).ToListAsync()
-                : await _context.Subjects.Include(d => d.Discipline).ToListAsync();
+                ? await _context.Subjects.Where(s => s.Active).Skip(from).Take(to).Include(d => d.Discipline).ToListAsync()
+                : await _context.Subjects.Where(s => s.Active).Include(d => d.Discipline).ToListAsync();
             return result;
         }
 
@@ -533,7 +560,7 @@ namespace QCUniversidad.Api.Services
                         on d.Id equals cd.DisciplineId
                         join sy in _context.SchoolYears
                         on cd.CurriculumId equals sy.CurriculumId
-                        where sy.Id == schoolYearId
+                        where sy.Id == schoolYearId && s.Active
                         select s;
             query = query.Include(s => s.Discipline);
             return await query.ToListAsync();
@@ -569,7 +596,15 @@ namespace QCUniversidad.Api.Services
                 try
                 {
                     var subject = await GetSubjectAsync(id);
-                    _context.Subjects.Remove(subject);
+                    if (!await SubjectHaveLoad(id))
+                    {
+                        _context.Subjects.Remove(subject);
+                    }
+                    else
+                    {
+                        subject.Active = false;
+                        _context.Update(subject);
+                    }
                     var result = await _context.SaveChangesAsync();
                     return result > 0;
                 }
@@ -579,6 +614,25 @@ namespace QCUniversidad.Api.Services
                 }
             }
             throw new ArgumentNullException(nameof(id));
+        }
+
+        private async Task<bool> SubjectHaveLoad(Guid subjectId)
+        {
+            if (subjectId == Guid.Empty)
+            {
+                throw new ArgumentNullException(nameof(subjectId));
+            }
+            if (!await ExistsSubjectAsync(subjectId))
+            {
+                throw new SubjectNotFoundException();
+            }
+            var query = from planItem in _context.TeachingPlanItems
+                        join loadItem in _context.LoadItems
+                        on planItem.Id equals loadItem.PlanningItemId
+                        where planItem.SubjectId == subjectId
+                        select loadItem;
+
+            return await query.CountAsync() > 0;
         }
 
         #endregion
@@ -1037,6 +1091,29 @@ namespace QCUniversidad.Api.Services
             {
                 throw;
             }
+        }
+
+        public async Task<bool> IsTeachingPlanFromPostgraduateCourse(Guid teachingPlanId)
+        {
+            if (teachingPlanId == Guid.Empty)
+            {
+                throw new ArgumentNullException(nameof(teachingPlanId));
+            }
+            if (!await ExistsTeachingPlanItemAsync(teachingPlanId))
+            {
+                throw new TeachingPlanItemNotFoundException();
+            }
+            var query = from planItem in _context.TeachingPlanItems
+                        join period in _context.Periods
+                        on planItem.PeriodId equals period.Id
+                        join schoolYear in _context.SchoolYears
+                        on period.SchoolYearId equals schoolYear.Id
+                        join career in _context.Careers
+                        on schoolYear.CareerId equals career.Id
+                        where planItem.Id == teachingPlanId
+                        select career.PostgraduateCourse;
+            
+            return await query.FirstAsync();
         }
 
         #endregion

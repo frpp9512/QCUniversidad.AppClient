@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using QCUniversidad.Api.ConfigurationModels;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Curriculum;
@@ -25,11 +27,13 @@ public class PeriodController : ControllerBase
 {
     private readonly IDataManager _dataManager;
     private readonly IMapper _mapper;
+    private readonly CalculationOptions _calculationOptions;
 
-    public PeriodController(IDataManager dataManager, IMapper mapper)
+    public PeriodController(IDataManager dataManager, IMapper mapper, IOptions<CalculationOptions> calculationOptions)
     {
         _dataManager = dataManager;
         _mapper = mapper;
+        _calculationOptions = calculationOptions.Value;
     }
 
     [HttpGet]
@@ -171,7 +175,11 @@ public class PeriodController : ControllerBase
         try
         {
             var result = await _dataManager.GetTeachingPlanItemAsync(id);
-            var dto = _mapper.Map<TeachingPlanItemDto>(result);
+            var dto = _mapper.Map<TeachingPlanItemDto>(result, opts => opts.AfterMap(async (o, planItem) => 
+            {
+                planItem.FromPostgraduateCourse = await _dataManager.IsTeachingPlanFromPostgraduateCourse(planItem.Id);
+                planItem.TotalHoursPlanned = planItem.HoursPlanned * planItem.GroupsAmount * (planItem.FromPostgraduateCourse ? _calculationOptions.PostgraduateTotalHoursCoefficient : _calculationOptions.PregraduateTotalHoursCoefficient);
+            }));
             return Ok(dto);
         }
         catch (Exception ex)
@@ -191,7 +199,11 @@ public class PeriodController : ControllerBase
         try
         {
             var result = await _dataManager.GetTeachingPlanItemsAsync(periodId, from, to);
-            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemSimpleDto>(i));
+            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemSimpleDto>(i, opts => opts.AfterMap(async (o, planItem) =>
+            {
+                planItem.FromPostgraduateCourse = await _dataManager.IsTeachingPlanFromPostgraduateCourse(planItem.Id);
+                planItem.TotalHoursPlanned = planItem.HoursPlanned * planItem.GroupsAmount * (planItem.FromPostgraduateCourse ? _calculationOptions.PostgraduateTotalHoursCoefficient : _calculationOptions.PregraduateTotalHoursCoefficient);
+            })));
             return Ok(dtos);
         }
         catch (Exception ex)

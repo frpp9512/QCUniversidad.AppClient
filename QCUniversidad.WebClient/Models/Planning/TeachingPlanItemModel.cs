@@ -26,7 +26,9 @@ public class TeachingPlanItemModel
 
     [NotMapped]
     [Display(Name = "Horas planificadas", Description = "Total de horas planificadas", Prompt = "Cantidad de horas planificadas")]
-    public double TotalHoursPlanned => HoursPlanned * GroupsAmount;
+    public double TotalHoursPlanned { get; set; }
+
+    public bool? FromPostgraduateCourse { get; set; }
 
     public Guid PeriodId { get; set; }
     public PeriodModel Period { get; set; }

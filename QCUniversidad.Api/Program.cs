@@ -3,6 +3,7 @@ using QCUniversidad.Api.Data.Context;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using QCUniversidad.Api.Services;
+using QCUniversidad.Api.ConfigurationModels;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,7 @@ var connectionString = builder.Configuration.GetConnectionString("Sqlite");
 
 builder.Services.AddDbContext<QCUniversidadContext>(options => options.UseSqlite(connectionString));
 builder.Services.AddScoped<IDataManager, DataManager>();
+builder.Services.Configure<CalculationOptions>(builder.Configuration.GetSection("CalculationOptions"));
 
 builder.Services.AddAuthentication(options => 
 {

@@ -154,6 +154,8 @@ public interface IDataManager
 
     Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId);
 
+    Task<bool> IsTeachingPlanFromPostgraduateCourse(Guid teachingPlanId);
+
     #endregion
 
     #region Teachers - Disciplines

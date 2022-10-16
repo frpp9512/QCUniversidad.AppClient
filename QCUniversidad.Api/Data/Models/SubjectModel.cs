@@ -35,5 +35,10 @@ namespace QCUniversidad.Api.Data.Models
         /// The discipline which the subject belongs.
         /// </summary>
         public DisciplineModel Discipline { get; set; }
+
+        /// <summary>
+        /// Defines if the subject is active for planning and load distribution.
+        /// </summary>
+        public bool Active { get; set; }
     }
 }

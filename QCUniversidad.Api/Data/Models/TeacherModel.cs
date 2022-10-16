@@ -53,5 +53,15 @@ namespace QCUniversidad.Api.Data.Models
         /// The disciplines whose the teacher can teach.
         /// </summary>
         public IList<TeacherDiscipline> TeacherDisciplines { get; set; }
+
+        /// <summary>
+        /// The load items assigned to the teacher.
+        /// </summary>
+        public IList<LoadItemModel> LoadItems { get; set; }
+
+        /// <summary>
+        /// Defines if the teacher is active for generate load distribution.
+        /// </summary>
+        public bool Active { get; set; }
     }
 }
