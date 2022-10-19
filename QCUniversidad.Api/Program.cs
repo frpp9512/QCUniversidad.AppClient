@@ -9,12 +9,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddEventSourceLogger();
+builder.Logging.AddEventLog();
+
 var connectionString = builder.Configuration.GetConnectionString("Sqlite");
 
 builder.Services.AddDbContext<QCUniversidadContext>(options => options.UseSqlite(connectionString));
 builder.Services.AddScoped<IDataManager, DataManager>();
-builder.Services.Configure<CalculationOptions>(builder.Configuration.GetSection("CalculationOptions"));
-
+builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddAuthentication(options => 
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -29,8 +34,7 @@ builder.Services.AddAuthentication(options =>
         config.TokenValidationParameters.ValidAudiences = new string[] { "QCUniversidad.AppClient" };
         config.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
     });
-
-builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddCoefficientCalculators(builder.Configuration.GetSection("CalculationOptions"));
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

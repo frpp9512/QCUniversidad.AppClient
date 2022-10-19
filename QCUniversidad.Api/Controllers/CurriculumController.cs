@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QCUniversidad.Api.Data.Models;
-using QCUniversidad.Api.Migrations;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Curriculum;
 using QCUniversidad.Api.Shared.Dtos.Discipline;

@@ -14,8 +14,8 @@ namespace QCUniversidad.Api.MappingProfiles
         public SchoolYearProfile()
         {
             CreateMap<SchoolYearModel, SchoolYearDto>();
+            CreateMap<SchoolYearModel, SimpleSchoolYearDto>();
             CreateMap<SchoolYearDto, SchoolYearModel>();
-            CreateMap<SchoolYearModel, NewSchoolYearDto>();
             CreateMap<NewSchoolYearDto, SchoolYearModel>();
             CreateMap<EditSchoolYearDto, SchoolYearModel>();
         }

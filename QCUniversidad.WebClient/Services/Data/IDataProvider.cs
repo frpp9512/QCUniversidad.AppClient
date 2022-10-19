@@ -6,7 +6,7 @@ using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Faculties;
 using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.Planning;
-using QCUniversidad.WebClient.Models.SchoolYears;
+using QCUniversidad.WebClient.Models.Courses;
 using QCUniversidad.WebClient.Models.Subjects;
 using QCUniversidad.WebClient.Models.Teachers;
 using System;
@@ -14,6 +14,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using QCUniversidad.WebClient.Models.SchoolYears;
+using QCUniversidad.WebClient.Models.LoadDistribution;
 
 namespace QCUniversidad.WebClient.Services.Data;
 
@@ -80,15 +82,16 @@ public interface IDataProvider
     Task<bool> CreateTeacherAsync(TeacherModel newTeacher);
     Task<bool> UpdateTeacherAsync(TeacherModel teacher);
     Task<bool> DeleteTeacherAsync(Guid teacherId);
-
     Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId);
+    Task<IList<TeacherModel>> GetTeachersOfDepartmentNotAssignedToLoadItemAsync(Guid departmentId, Guid planItemId, Guid? disciplineId = null);
+    Task<bool> SetLoadItemAsync(CreateLoadItemModel newLoadItem);
 
     #endregion
 
     #region Subjects
 
     Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to);
-    Task<IList<SubjectModel>> GetSubjectsForSchoolYearAsync(Guid schoolYearId);
+    Task<IList<SubjectModel>> GetSubjectsForCourseAsync(Guid courseId);
     Task<int> GetSubjectsCountAsync();
     Task<bool> ExistsSubjectAsync(Guid id);
     Task<SubjectModel> GetSubjectAsync(Guid subjectId);
@@ -112,17 +115,30 @@ public interface IDataProvider
 
     #region SchoolYears
 
-    Task<Guid> CreateSchoolYearAsync(SchoolYearModel schoolYear);
-    Task<bool> ExistsSchoolYearAsync(Guid id);
-    Task<bool> CheckSchoolYearExistenceByCareerYearAndModality(Guid careerId, int careerYear, int modality);
-    Task<int> GetSchoolYearsCountAsync();
-    Task<int> GetSchoolYearPeriodsCountAsync(Guid schoolYearId);
-    Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from = 0, int to = 0);
+    Task<SchoolYearModel> GetCurrentSchoolYear();
     Task<SchoolYearModel> GetSchoolYearAsync(Guid id);
+    Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from = 0, int to = 0);
+    Task<int> GetSchoolYearTotalAsync();
+    Task<bool> ExistSchoolYearAsync(Guid id);
+    Task<bool> CreateSchoolYearAsync(SchoolYearModel schoolYear);
     Task<bool> UpdateSchoolYearAsync(SchoolYearModel schoolYear);
-    Task<bool> DeleteSchoolYearAsync(Guid id);
+    Task<bool> DeleteSchoolYearAsync(Guid schoolYear);
 
-    Task<IList<SchoolYearModel>> GetSchoolYearsForDepartment(Guid departmentId);
+    #endregion
+
+    #region Courses
+
+    Task<Guid> CreateCourseAsync(CourseModel course);
+    Task<bool> ExistsCourseAsync(Guid id);
+    Task<bool> CheckCourseExistenceByCareerYearAndModality(Guid careerId, int careerYear, int modality);
+    Task<int> GetCoursesCountAsync();
+    Task<int> GetCoursePeriodsCountAsync(Guid courseId);
+    Task<IList<CourseModel>> GetCoursesAsync(int from = 0, int to = 0);
+    Task<CourseModel> GetCourseAsync(Guid id);
+    Task<bool> UpdateCourseAsync(CourseModel course);
+    Task<bool> DeleteCourseAsync(Guid id);
+
+    Task<IList<CourseModel>> GetCoursesForDepartment(Guid departmentId, Guid? schoolYearId = null);
 
     #endregion
 
@@ -136,7 +152,7 @@ public interface IDataProvider
     Task<bool> UpdatePeriodAsync(PeriodModel period);
     Task<bool> DeletePeriodAsync(Guid id);
 
-    Task<IList<PeriodModel>> GetPeriodsOfSchoolYearForDepartment(Guid schoolYearId, Guid departmentId);
+    Task<IList<PeriodModel>> GetPeriodsOfCourseForDepartment(Guid courseId, Guid departmentId);
 
     #endregion
 

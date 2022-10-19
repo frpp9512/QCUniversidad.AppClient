@@ -13,7 +13,11 @@ namespace QCUniversidad.Api.MappingProfiles
     {
         public TeachingPlanItemProfile()
         {
-            CreateMap<TeachingPlanItemModel, TeachingPlanItemDto>();
+            CreateMap<TeachingPlanItemModel, TeachingPlanItemDto>().AfterMap((o, planItem) =>
+            {
+                planItem.TotalLoadCovered = planItem.LoadItems.Sum(i => i.HoursCovered);
+                planItem.AllowLoad = planItem.TotalHoursPlanned > planItem.TotalLoadCovered;
+            });
             CreateMap<TeachingPlanItemDto, TeachingPlanItemModel>();
             CreateMap<TeachingPlanItemModel, TeachingPlanItemSimpleDto>();
             CreateMap<TeachingPlanItemSimpleDto, TeachingPlanItemModel>();

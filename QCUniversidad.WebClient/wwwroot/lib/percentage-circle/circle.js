@@ -22,8 +22,10 @@ function LoadMeters() {
             parentSvg.classList.add("warning");
         } else if (value >= 80 && value < 100) {
             parentSvg.classList.add("light-warning");
-        } else {
+        } else if (value == 100) {
             parentSvg.classList.add("success");
+        } else {
+            parentSvg.classList.add("danger");
         }
         // Calculate the percentage of the total length
         let to = length * ((100 - value) / 100);

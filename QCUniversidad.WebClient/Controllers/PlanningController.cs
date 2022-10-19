@@ -2,200 +2,194 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using QCUniversidad.Api.Shared.Dtos.Period;
 using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Planning;
 using QCUniversidad.WebClient.Services.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace QCUniversidad.WebClient.Controllers
+namespace QCUniversidad.WebClient.Controllers;
+
+[Authorize(Roles = "Administrador,Planificador")]
+public class PlanningController : Controller
 {
-    [Authorize]
-    public class PlanningController : Controller
+    private readonly IDataProvider _dataProvider;
+    private readonly IMapper _mapper;
+    private readonly ILogger<PlanningController> _logger;
+    private readonly NavigationSettings _navigationSettings;
+
+    public PlanningController(IDataProvider dataProvider, IMapper mapper, IOptions<NavigationSettings> navOptions, ILogger<PlanningController> logger)
     {
-        private readonly IDataProvider _dataProvider;
-        private readonly IMapper _mapper;
-        private readonly ILogger<PlanningController> _logger;
-        private readonly NavigationSettings _navigationSettings;
+        _dataProvider = dataProvider;
+        _mapper = mapper;
+        _logger = logger;
+        _navigationSettings = navOptions.Value;
+    }
 
-        public PlanningController(IDataProvider dataProvider, IMapper mapper, IOptions<NavigationSettings> navOptions, ILogger<PlanningController> logger)
+    [HttpGet]
+    public async Task<IActionResult> Index(Guid? courseSelected = null, Guid? periodSelected = null)
+    {
+        var model = new PlanningIndexModel
         {
-            _dataProvider = dataProvider;
-            _mapper = mapper;
-            _logger = logger;
-            _navigationSettings = navOptions.Value;
+            Courses = (await _dataProvider.GetCoursesAsync()).OrderByDescending(s => s.Starts).ToList()
+        };
+        if (courseSelected is not null && courseSelected != Guid.Empty)
+        {
+            model.CourseSelected = courseSelected;
         }
-
-        [HttpGet]
-        public async Task<IActionResult> Index(Guid? schoolYearSelected = null, Guid? periodSelected = null)
+        if (periodSelected is not null && periodSelected != Guid.Empty)
         {
-            var model = new PlanningIndexModel();
-            model.SchoolYears = (await _dataProvider.GetSchoolYearsAsync()).OrderByDescending(s => s.Starts).ToList();
-            if (schoolYearSelected is not null && schoolYearSelected != Guid.Empty)
-            {
-                model.SchoolYearSelected = schoolYearSelected;
-            }
-            if (periodSelected is not null && periodSelected != Guid.Empty)
-            {
-                model.PeriodSelected = periodSelected;
-            }
-            return View(model);
+            model.PeriodSelected = periodSelected;
         }
+        return View(model);
+    }
 
-        [HttpGet]
-        public async Task<IActionResult> GetPlanningViewForPeriodAsync(Guid periodId)
+    [HttpGet]
+    public async Task<IActionResult> GetPlanningViewForPeriodAsync(Guid periodId)
+    {
+        try
         {
-            try
+            var models = await _dataProvider.GetTeachingPlanItemsAsync(periodId, 0, 0);
+            return PartialView("_PlanningListView", models);
+        }
+        catch (Exception)
+        {
+            return Problem();
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> CreatePlanningItemAsync(Guid periodId)
+    {
+        try
+        {
+            if (periodId == Guid.Empty)
             {
-                var models = await _dataProvider.GetTeachingPlanItemsAsync(periodId, 0, 0);
-                return PartialView("_PlanningListView", models);
+                return RedirectToAction("Error", "Home");
             }
-            catch (Exception)
+            if (!await _dataProvider.ExistsPeriodAsync(periodId))
+            {
+                return RedirectToAction("Error", "Home");
+            }
+            var viewModel = await GetCreateViewModel(periodId);
+
+            return View(viewModel);
+        }
+        catch (Exception)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+    }
+
+    private async Task<CreateTeachingPlanItemModel> GetCreateViewModel(Guid periodId)
+    {
+        var periodModel = await _dataProvider.GetPeriodAsync(periodId);
+        var subjects = await _dataProvider.GetSubjectsForCourseAsync(periodModel.CourseId);
+        var course = await _dataProvider.GetCourseAsync(periodModel.CourseId);
+        var viewModel = new CreateTeachingPlanItemModel
+        {
+            Subjects = subjects,
+            PeriodId = periodId,
+            Period = periodModel,
+            CourseId = periodModel.CourseId,
+            Course = course
+        };
+        return viewModel;
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreatePlanningItemAsync(CreateTeachingPlanItemModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            if (model.GroupsAmount >= 0)
+            {
+                var planItem = _mapper.Map<TeachingPlanItemModel>(model);
+                var result = await _dataProvider.CreateTeachingPlanItemAsync(planItem);
+                if (result)
+                {
+                    TempData["planItem-created"] = true;
+                    return RedirectToAction("Index", new { courseSelected = model.CourseId, periodSelected = model.PeriodId });
+                }
+            }
+            else
+            {
+                ModelState.AddModelError("GroupsAmount", "Debe de definir al menos un grupo.");
+            }
+        }
+        model.Period = await _dataProvider.GetPeriodAsync(model.PeriodId);
+        model.Subjects = await _dataProvider.GetSubjectsForCourseAsync(model.Period.CourseId);
+        return View(model);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> EditPlanningItemAsync(Guid id)
+    {
+        if (id == Guid.Empty || !await _dataProvider.ExistsTeachingPlanItemAsync(id))
+        {
+            return RedirectToAction("Error", "Home");
+        }
+        var editModel = await GetEditViewModel(id);
+        return View(editModel);
+    }
+
+    private async Task<EditTeachingPlanItemModel> GetEditViewModel(Guid id)
+    {
+        var planningItem = await _dataProvider.GetTeachingPlanItemAsync(id);
+        var periodModel = await _dataProvider.GetPeriodAsync(planningItem.PeriodId);
+        var subjects = await _dataProvider.GetSubjectsForCourseAsync(periodModel.CourseId);
+        var course = await _dataProvider.GetCourseAsync(periodModel.CourseId);
+        var viewModel = _mapper.Map<EditTeachingPlanItemModel>(planningItem);
+        viewModel.Subjects = subjects;
+        viewModel.PeriodId = planningItem.PeriodId;
+        viewModel.Period = periodModel;
+        viewModel.CourseId = course.Id;
+        viewModel.Course = course;
+        return viewModel;
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditPlanningItemAsync(EditTeachingPlanItemModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            if (model.GroupsAmount >= 0)
+            {
+                var planItem = _mapper.Map<TeachingPlanItemModel>(model);
+                var result = await _dataProvider.UpdateTeachingPlanItemAsync(planItem);
+                if (result)
+                {
+                    TempData["planItem-edited"] = true;
+                    return RedirectToAction("Index", new { courseSelected = model.CourseId, periodSelected = model.PeriodId });
+                }
+            }
+            else
+            {
+                ModelState.AddModelError("GroupsAmount", "Debe de definir al menos un grupo.");
+            }
+        }
+        model.Subjects = await _dataProvider.GetSubjectsForCourseAsync(model.CourseId.Value);
+        model.Period = await _dataProvider.GetPeriodAsync(model.PeriodId);
+        model.Course = await _dataProvider.GetCourseAsync(model.CourseId.Value);
+        return View(model);
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeletePlanningItemAsync(Guid id)
+    {
+        if (id != Guid.Empty && await _dataProvider.ExistsTeachingPlanItemAsync(id))
+        {
+            var result = await _dataProvider.DeleteTeachingPlanItemAsync(id);
+            if (result)
+            {
+                TempData["planItem-edited"] = true;
+                return Ok(result);
+            }
+            else
             {
                 return Problem();
             }
         }
-
-        [HttpGet]
-        public async Task<IActionResult> CreatePlanningItemAsync(Guid periodId)
-        {
-            try
-            {
-                if (periodId == Guid.Empty)
-                {
-                    return RedirectToAction("Error", "Home");
-                }
-                if (!await _dataProvider.ExistsPeriodAsync(periodId))
-                {
-                    return RedirectToAction("Error", "Home");
-                }
-                CreateTeachingPlanItemModel viewModel = await GetCreateViewModel(periodId);
-
-                return View(viewModel);
-            }
-            catch (Exception)
-            {
-                return RedirectToAction("Error", "Home");
-            }
-        }
-
-        private async Task<CreateTeachingPlanItemModel> GetCreateViewModel(Guid periodId)
-        {
-            var periodModel = await _dataProvider.GetPeriodAsync(periodId);
-            var subjects = await _dataProvider.GetSubjectsForSchoolYearAsync(periodModel.SchoolYearId);
-            var schoolYear = await _dataProvider.GetSchoolYearAsync(periodModel.SchoolYearId);
-            var viewModel = new CreateTeachingPlanItemModel
-            {
-                Subjects = subjects,
-                PeriodId = periodId,
-                Period = periodModel,
-                SchoolYearId = periodModel.SchoolYearId,
-                SchoolYear = schoolYear
-            };
-            return viewModel;
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePlanningItemAsync(CreateTeachingPlanItemModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                if (model.GroupsAmount >= 0)
-                {
-                    var planItem = _mapper.Map<TeachingPlanItemModel>(model);
-                    var result = await _dataProvider.CreateTeachingPlanItemAsync(planItem);
-                    if (result)
-                    {
-                        TempData["planItem-created"] = true;
-                        return RedirectToAction("Index", new { schoolYearSelected = model.SchoolYearId, periodSelected = model.PeriodId });
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError("GroupsAmount", "Debe de definir al menos un grupo.");
-                }
-            }
-            model.Period = await _dataProvider.GetPeriodAsync(model.PeriodId);
-            model.Subjects = await _dataProvider.GetSubjectsForSchoolYearAsync(model.Period.SchoolYearId);
-            return View(model);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> EditPlanningItemAsync(Guid id)
-        {
-            if (id == Guid.Empty || !await _dataProvider.ExistsTeachingPlanItemAsync(id))
-            {
-                return RedirectToAction("Error", "Home");
-            }
-            var editModel = await GetEditViewModel(id);
-            return View(editModel);
-        }
-
-        private async Task<EditTeachingPlanItemModel> GetEditViewModel(Guid id)
-        {
-            var planningItem = await _dataProvider.GetTeachingPlanItemAsync(id);
-            var periodModel = await _dataProvider.GetPeriodAsync(planningItem.PeriodId);
-            var subjects = await _dataProvider.GetSubjectsForSchoolYearAsync(periodModel.SchoolYearId);
-            var schoolYear = await _dataProvider.GetSchoolYearAsync(periodModel.SchoolYearId);
-            var viewModel = _mapper.Map<EditTeachingPlanItemModel>(planningItem);
-            viewModel.Subjects = subjects;
-            viewModel.PeriodId = planningItem.PeriodId;
-            viewModel.Period = periodModel;
-            viewModel.SchoolYearId = schoolYear.Id;
-            viewModel.SchoolYear = schoolYear;
-            return viewModel;
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GetEditViewModel(EditTeachingPlanItemModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                if (model.GroupsAmount >= 0)
-                {
-                    var planItem = _mapper.Map<TeachingPlanItemModel>(model);
-                    var result = await _dataProvider.UpdateTeachingPlanItemAsync(planItem);
-                    if (result)
-                    {
-                        TempData["planItem-edited"] = true;
-                        return RedirectToAction("Index", new { schoolYearSelected = model.SchoolYearId, periodSelected = model.PeriodId });
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError("GroupsAmount", "Debe de definir al menos un grupo.");
-                }
-            }
-            model.Subjects = await _dataProvider.GetSubjectsForSchoolYearAsync(model.SchoolYearId.Value);
-            model.Period = await _dataProvider.GetPeriodAsync(model.PeriodId);
-            model.SchoolYear = await _dataProvider.GetSchoolYearAsync(model.SchoolYearId.Value);
-            return View(model);
-        }
-
-        [HttpDelete]
-        public async Task<IActionResult> DeletePlanningItemAsync(Guid id)
-        {
-            if (id != Guid.Empty && await _dataProvider.ExistsTeachingPlanItemAsync(id))
-            {
-                var result = await _dataProvider.DeleteTeachingPlanItemAsync(id);
-                if (result)
-                {
-                    TempData["planItem-edited"] = true;
-                    return Ok(result);
-                }
-                else 
-                { 
-                    return Problem(); 
-                }
-            }
-            return BadRequest("El id debe de ser correcto.");
-        }
+        return BadRequest("El id debe de ser correcto.");
     }
 }

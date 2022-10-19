@@ -1,70 +1,36 @@
-﻿using QCUniversidad.Api.Shared.Dtos.Period;
-using QCUniversidad.Api.Shared.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QCUniversidad.Api.Data.Models;
-
-/// <summary>
-/// A set of periods where will be taught a set of subjects.
-/// </summary>
-public record SchoolYearModel
+namespace QCUniversidad.Api.Data.Models
 {
-    /// <summary>
-    /// Primary key value.
-    /// </summary>
-    public Guid Id { get; set; }
+    public record SchoolYearModel
+    {
+        /// <summary>
+        /// The primary key value.
+        /// </summary>
+        public Guid Id { get; set; }
 
-    /// <summary>
-    /// The ordinal year number for the carrer. Example: 3 (3rd year)
-    /// </summary>
-    public int CareerYear { get; set; }
+        /// <summary>
+        /// The name of the school year. Ex. 2022-2023
+        /// </summary>
+        public string Name { get; set; }
 
-    /// <summary>
-    /// The denomination of the school year. Example: 2021-2022.
-    /// </summary>
-    public string Denomination { get; set; }
+        /// <summary>
+        /// Description of the school year.
+        /// </summary>
+        public string? Description { get; set; }
 
-    /// <summary>
-    /// The date when the school year begins.
-    /// </summary>
-    public DateTimeOffset Starts { get; set; }
+        /// <summary>
+        /// Defines if is the current school year.
+        /// </summary>
+        public bool Current { get; set; }
 
-    /// <summary>
-    /// The date when the school year ends.
-    /// </summary>
-    public DateTimeOffset Ends { get; set; }
-
-    /// <summary>
-    /// The modality in which the students will study.
-    /// </summary>
-    public TeachingModality TeachingModality { get; set; }
-
-    /// <summary>
-    /// The id of the carrer coursed by the students in the year.
-    /// </summary>
-    public Guid CareerId { get; set; }
-
-    /// <summary>
-    /// The carrer coursed by the students in the year.
-    /// </summary>
-    public CareerModel Career { get; set; }
-
-    /// <summary>
-    /// The id of the curriculum that will be taught in the year.
-    /// </summary>
-    public Guid CurriculumId { get; set; }
-
-    /// <summary>
-    /// The id of the curriculum that will be taught in the year.
-    /// </summary>
-    public CurriculumModel Curriculum { get; set; }
-
-    /// <summary>
-    /// The set of periods of the shool year.
-    /// </summary>
-    public IList<PeriodModel> Periods { get; set; }
+        /// <summary>
+        /// The set of courses teached in the school year.
+        /// </summary>
+        public IList<CourseModel> Courses { get; set; }
+    }
 }

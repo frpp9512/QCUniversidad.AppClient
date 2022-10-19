@@ -43,6 +43,48 @@ namespace QCUniversidad.Api.Migrations
                     b.ToTable("Careers");
                 });
 
+            modelBuilder.Entity("QCUniversidad.Api.Data.Models.CourseModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("CareerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CareerYear")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("CurriculumId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Denomination")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("Ends")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("SchoolYearId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("Starts")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TeachingModality")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CareerId");
+
+                    b.HasIndex("CurriculumId");
+
+                    b.HasIndex("SchoolYearId");
+
+                    b.ToTable("Courses");
+                });
+
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.CurriculumDiscipline", b =>
                 {
                     b.Property<Guid>("CurriculumId")
@@ -183,6 +225,9 @@ namespace QCUniversidad.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
@@ -195,15 +240,12 @@ namespace QCUniversidad.Api.Migrations
                     b.Property<int>("OrderNumber")
                         .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("SchoolYearId")
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTimeOffset>("Starts")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SchoolYearId");
+                    b.HasIndex("CourseId");
 
                     b.ToTable("Periods");
                 });
@@ -214,33 +256,17 @@ namespace QCUniversidad.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("CareerId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("CareerYear")
+                    b.Property<bool>("Current")
                         .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("CurriculumId")
+                    b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Denomination")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("Ends")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset>("Starts")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("TeachingModality")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("CareerId");
-
-                    b.HasIndex("CurriculumId");
 
                     b.ToTable("SchoolYears");
                 });
@@ -325,6 +351,9 @@ namespace QCUniversidad.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("FromPostgraduateCourse")
+                        .HasColumnType("INTEGER");
+
                     b.Property<uint>("GroupsAmount")
                         .HasColumnType("INTEGER");
 
@@ -358,6 +387,33 @@ namespace QCUniversidad.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Faculty");
+                });
+
+            modelBuilder.Entity("QCUniversidad.Api.Data.Models.CourseModel", b =>
+                {
+                    b.HasOne("QCUniversidad.Api.Data.Models.CareerModel", "Career")
+                        .WithMany("Courses")
+                        .HasForeignKey("CareerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QCUniversidad.Api.Data.Models.CurriculumModel", "Curriculum")
+                        .WithMany()
+                        .HasForeignKey("CurriculumId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QCUniversidad.Api.Data.Models.SchoolYearModel", "SchoolYear")
+                        .WithMany("Courses")
+                        .HasForeignKey("SchoolYearId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Career");
+
+                    b.Navigation("Curriculum");
+
+                    b.Navigation("SchoolYear");
                 });
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.CurriculumDiscipline", b =>
@@ -433,32 +489,13 @@ namespace QCUniversidad.Api.Migrations
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.PeriodModel", b =>
                 {
-                    b.HasOne("QCUniversidad.Api.Data.Models.SchoolYearModel", "SchoolYear")
+                    b.HasOne("QCUniversidad.Api.Data.Models.CourseModel", "Course")
                         .WithMany("Periods")
-                        .HasForeignKey("SchoolYearId")
+                        .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("SchoolYear");
-                });
-
-            modelBuilder.Entity("QCUniversidad.Api.Data.Models.SchoolYearModel", b =>
-                {
-                    b.HasOne("QCUniversidad.Api.Data.Models.CareerModel", "Career")
-                        .WithMany("SchoolYears")
-                        .HasForeignKey("CareerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("QCUniversidad.Api.Data.Models.CurriculumModel", "Curriculum")
-                        .WithMany()
-                        .HasForeignKey("CurriculumId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Career");
-
-                    b.Navigation("Curriculum");
+                    b.Navigation("Course");
                 });
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.SubjectModel", b =>
@@ -523,9 +560,14 @@ namespace QCUniversidad.Api.Migrations
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.CareerModel", b =>
                 {
-                    b.Navigation("Curricula");
+                    b.Navigation("Courses");
 
-                    b.Navigation("SchoolYears");
+                    b.Navigation("Curricula");
+                });
+
+            modelBuilder.Entity("QCUniversidad.Api.Data.Models.CourseModel", b =>
+                {
+                    b.Navigation("Periods");
                 });
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.CurriculumModel", b =>
@@ -563,7 +605,7 @@ namespace QCUniversidad.Api.Migrations
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.SchoolYearModel", b =>
                 {
-                    b.Navigation("Periods");
+                    b.Navigation("Courses");
                 });
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.TeacherModel", b =>

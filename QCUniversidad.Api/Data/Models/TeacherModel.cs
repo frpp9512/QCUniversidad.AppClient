@@ -62,6 +62,6 @@ namespace QCUniversidad.Api.Data.Models
         /// <summary>
         /// Defines if the teacher is active for generate load distribution.
         /// </summary>
-        public bool Active { get; set; }
+        public bool Active { get; set; } = true;
     }
 }

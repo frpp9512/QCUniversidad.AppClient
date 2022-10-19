@@ -441,7 +441,7 @@ dd {
 
 .load-item-title {
     font-weight: bold;
-    font-size: 1.2rem;
+    font-size: 1rem;
     line-height: 1.3rem;
     margin-bottom: 3px;
     color: var(--main-color);
@@ -456,7 +456,6 @@ dd {
     display: flex;
     align-items: center;
     padding: 5px;
-    /*border-left: 1px solid #ccc;*/
 }
 
 .load-item-header-supvalue {
@@ -466,7 +465,7 @@ dd {
 
 .load-item-value {
     font-weight: bold;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     text-align: center;
 }
 

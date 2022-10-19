@@ -1,28 +1,31 @@
 ﻿@model NavigationListViewModel<SchoolYearModel>
-@using QCUniversidad.WebClient.Services.Platform
+
 @{
     ViewData["Title"] = "Años escolares";
-    bool schoolyearAdded = (bool?)TempData["schoolyear-created"] ?? false;
+    var items = Model.Items;
+    bool schoolyearCreated = (bool?)TempData["schoolyear-created"] ?? false;
     bool schoolyearEdited = (bool?)TempData["schoolyear-edited"] ?? false;
     bool schoolyearDeleted = (bool?)TempData["schoolyear-deleted"] ?? false;
 }
 
 <h1>Años escolares</h1>
 
-@if (schoolyearAdded)
+@if (schoolyearCreated)
 {
     <div class="alert alert-info alert-dismissible fade show" role="alert">
         <strong><span class="fa fa-info-circle"></span> Año escolar creado</strong> Se ha creado un nuevo año escolar satisfactoriamente.
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
+
 @if (schoolyearEdited)
 {
     <div class="alert alert-info alert-dismissible fade show" role="alert">
-        <strong><span class="fa fa-pencil-square"></span> Año escolar editado</strong> Se ha editado un año escolar satisfactoriamente.
+        <strong><span class="fa fa-pencil-square"></span> Año escolar actualizado</strong> Se ha actualizado los datos del año escolar satisfactoriamente.
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
+
 @if (schoolyearDeleted)
 {
     <div class="alert alert-info alert-dismissible fade show" role="alert">
@@ -32,118 +35,94 @@
 }
 
 <p>
-    <a asp-action="Create" class="btn btn-success"><span class="fa fa-plus-circle"></span> Crear nuevo</a>
+    <a asp-action="Create" class="btn btn-success"><span class="fa fa-plus-circle"></span> Crear nueva</a>
 </p>
 
-@if (Model.ItemsCount > 0)
-{
-    <div class="table-responsive">
-        <table class="table table-responsive table-hover">
-            <thead>
-                <tr>
-                    <th>Denominación</th>
-                    <th>Modalidad</th>
-                    <th>Carrera</th>
-                    <th>Año carrera</th>
-                    <th>Inicia <span class="fa fa-arrow-right m-1"></span> Culmina</th>
-                    <th>Curriculum</th>
-                    <th>Periódos</th>
-                    <th></th>
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th></th>
+                <th>
+                    Nombre
+                </th>
+                <th>
+                    Descripción
+                </th>
+                <th>
+                    Cantidad de cursos
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr id="@item.Id">
+                    <td>
+                        @if (item.Current)
+                        {
+                            <span class="fa fa-check text-success"></span>
+                        }
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.Description))
+                        {
+                            @item.Description
+                        }
+                        else
+                        {
+                            <i class="text-muted">No tiene descripción</i>
+                        }
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CoursesCount)
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
+                            <span class="fa fa-edit" />
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">
+                            <span class="fa fa-trash" />
+                        </button>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.Items)
-                {
-                    <tr id="@item.Id">
-                        <td>
-                            @item.Denomination
-                        </td>
-                        <td>
-                            @item.TeachingModality.GetLabel()
-                        </td>
-                        <td>
-                            <a asp-action="Details" asp-controller="Carrers" asp-route-id="@item.CareerId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Carrera</small></div> <div><b>@item.Career?.Name</b></div> <div><i>@item.Career?.Description</i></div>">
-                                @item.Career?.Name <small><span class="fa fa-circle-info"></span></small>
-                            </a>
-                        </td>
-                        <td>
-                            @item.GetCareerYearLabel()
-                        </td>
-                        <td>
-                            <span class="badge bg-info">
-                                <span>@item.Starts.ToString("dd-MM-yyyy")</span><span class="fa fa-arrow-right m-1"></span><span>@item.Ends.ToString("dd-MM-yyyy")</span>
-                            </span>
-                        </td>
-                        <td>
-                            <a asp-action="Details" asp-controller="Curriculums" asp-route-id="@item.CurriculumId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Curriculum</small></div> <div><b>@item.Curriculum?.Denomination</b></div> <div><i>@item.Curriculum?.Description</i></div>">
-                                @item.Curriculum?.Denomination <small><span class="fa fa-circle-info"></span></small>
-                            </a>
-                        </td>
-                        <td>
-                            @item.Periods?.Count
-                        </td>
-                        <td>
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">
-                                <span class="fa fa-circle-info" />
-                            </a>
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
-                                <span class="fa fa-edit" />
-                            </a>
-                            <button class="btn btn-sm btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">
-                                <span class="fa fa-trash" />
-                            </button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+            }
+        </tbody>
+    </table>
+</div>
 
-    <!-- Navigation -->
+<!-- Navigation -->
 
-    <partial name="_PageNavigation" model="Model" />
+<partial name="_PageNavigation" model="Model" />
 
-    <!-- Modals -->
+<!-- Modals -->
 
-    <div class="modal fade" id="deleteSchoolYearModal" tabindex="-1" aria-labelledby="deleteSchoolYearModalTitle" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteSchoolYearModalTitle"><span class="fa fa-trash"></span> Eliminar año escolar</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal fade" id="deleteSchoolYearModal" tabindex="-1" aria-labelledby="deleteSchoolYearModalTitle" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteSchoolYearModalTitle"><span class="fa fa-trash"></span> Eliminar año escolar</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div id="modal-delete-content" class="modal-body">
+                ¿Esta seguro que desea eliminar el año escolar?
+            </div>
+            <div id="deleteModalFooter" class="modal-footer">
+                <div id="deleteModalLoadingSpinner" class="spinner-border text-primary" role="status" hidden>
+                    <span class="visually-hidden">Loading...</span>
                 </div>
-                <div id="modal-delete-content" class="modal-body">
-                    ¿Esta seguro que desea eliminar el año escolar?
-                </div>
-                <div id="deleteModalFooter" class="modal-footer">
-                    <div id="deleteModalLoadingSpinner" class="spinner-border text-primary" role="status" hidden>
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <button id="modal-delete-primarybutton" type="button" class="btn btn-danger"><span class="fa fa-trash-can"></span> Eliminar</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span class="fa fa-ban"></span> Cancelar</button>
-                </div>
+                <button id="modal-delete-primarybutton" type="button" class="btn btn-danger"><span class="fa fa-trash-can"></span> Eliminar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span class="fa fa-ban"></span> Cancelar</button>
             </div>
         </div>
     </div>
+</div>
 
-    @section Scripts {
+
+@section Scripts {
     <script src="~/js/schoolyear-index.js"></script>
-    <script src="~/lib/popper/popper.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            LoadTooltips();
-        });
-
-        function LoadTooltips() {
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-        }
-    </script>
-    }
-}
-else
-{
-    <h1>No existen años escolares en el sistema</h1>
 }

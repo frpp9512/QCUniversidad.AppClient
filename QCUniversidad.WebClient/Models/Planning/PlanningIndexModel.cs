@@ -1,4 +1,4 @@
-﻿using QCUniversidad.WebClient.Models.SchoolYears;
+﻿using QCUniversidad.WebClient.Models.Courses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +9,8 @@ namespace QCUniversidad.WebClient.Models.Planning
 {
     public class PlanningIndexModel
     {
-        public IList<SchoolYearModel> SchoolYears { get; set; }
-        public Guid? SchoolYearSelected { get; set; }
+        public IList<CourseModel> Courses { get; set; }
+        public Guid? CourseSelected { get; set; }
         public Guid? PeriodSelected { get; set; }
     }
 }

@@ -27,6 +27,8 @@ public record TeachingPlanItemModel
     [NotMapped]
     public double TotalHoursPlanned { get; set; }
 
+    public bool FromPostgraduateCourse { get; set; }
+
     public Guid PeriodId { get; set; }
     public PeriodModel Period { get; set; }
 

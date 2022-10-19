@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Shared.Dtos.LoadItem
 {
-    public class LoadItemDto : EditLoadItemDto
+    public record LoadItemDto : EditLoadItemDto
     {
-        public TeachingPlanItemDto PlanningItem { get; set; }
+        public TeachingPlanItemSimpleDto PlanningItem { get; set; }
         public TeacherDto Teacher { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿@model LoadDistributionIndexModel
+﻿@using QCUniversidad.WebClient.Services.Platform
+@model LoadDistributionIndexModel
 
 @{
     ViewData["Title"] = "Distribución de carga";
@@ -7,17 +8,19 @@
 <h1>Distribución de carga</h1>
 <hr />
 
+<h6>Año escolar: @Model.SchoolYear.Name</h6>
+
 <h3>Departamento de @Model.Department.Name</h3>
 <p>@Model.Department.Description</p>
 
 <div class="row mt-3 mb-3">
     <div class="col col-lg-3 col-sm-6 col-12">
-        <label for="selectedSchoolarYear">Año escolar</label>
+        <label for="selectedSchoolarYear">Curso</label>
         <div class="d-flex flex-row align-items-center">
-            <select class="form-select" aria-label="Seleccionar año escolar" id="selectedSchoolarYear">
-                @foreach (var schoolYear in Model.SchoolYears)
+            <select class="form-select" aria-label="Seleccionar curso" id="selectedSchoolarYear">
+                @foreach (var course in Model.Courses)
                 {
-                    <option value="@schoolYear.Id">@schoolYear.Denomination</option>
+                    <option value="@course.Id">@course.Denomination</option>
                 }
             </select>
         </div>
@@ -25,7 +28,7 @@
     <div class="col col-lg-3 col-sm-6 col-12 mb-3 mb-sm-3 mb-lg-0">
         <label for="selectedPeriod">Período</label>
         <select class="form-select" aria-label="Seleccionar período" id="selectedPeriod">
-            <option id="selectPeriodDefault">Seleccione un año escolar</option>
+            <option id="selectPeriodDefault">Seleccione un curso</option>
         </select>
     </div>
     <div class="col align-self-end">
@@ -36,50 +39,70 @@
 <div class="container">
     <div class="row">
         <div id="load" class="col">
-
         </div>
     </div>
 </div>
+
+<div id="modalContainer">
+</div>
+
+<partial name="_LoadingModal" />
 
 @section Scripts {
     <script src="~/lib/percentage-circle/circle.js"></script>
     <script src="~/lib/popper/popper.min.js"></script>
     <script>
-        const selectedDepartment = '@Model.Department.Id';
+        const selectedDepartment = '@(Model.Department.Id)';
+        const selectedSchoolYear = '@(User.IsAdmin() ? Model.SchoolYear.Id : null)';
+        var selectedPeriod = null;
+        var selectedPlanItem = '';
+        var selectedMaxValue = -1;
 
         $(document).ready(function () {
-            const schoolYearsSelect = document.getElementById("selectedSchoolarYear");
-            schoolYearsSelect.onchange = SchoolYearSelect;
+            const coursesSelect = document.getElementById("selectedSchoolarYear");
+            coursesSelect.onchange = CourseSelect;
             const periodSelect = document.getElementById("selectedPeriod");
             periodSelect.onchange = PeriodSelected;
-            SchoolYearSelect();
+            CourseSelect();
         });
 
+        function SetToggleButtons() {
+            let buttons = document.querySelectorAll("button.pi-toggle-btn");
+            if (buttons.length > 0) {
+                buttons.forEach(b => b.onclick = function() {
+                    b.children[0].classList.toggle("fa-chevron-down");
+                    b.children[0].classList.toggle("fa-chevron-up");
+                });
+            }
+        }
+
         function LoadTooltips() {
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            let tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            let tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
         }
 
-        function SchoolYearSelect() {
+        function CourseSelect() {
             const periodsSelect = document.getElementById("selectedPeriod");
-            const schoolYearsSelect = document.getElementById("selectedSchoolarYear");
-            var selected = schoolYearsSelect.options[schoolYearsSelect.selectedIndex].value;
+            const coursesSelect = document.getElementById("selectedSchoolarYear");
+            var selected = coursesSelect.options[coursesSelect.selectedIndex].value;
 
             SetLoadingPlanning();
 
             $.ajax({
-                url: `/loaddistribution/getperiodoptions?schoolYearId=${selected}&departmentId=${selectedDepartment}`,
+                url: `/loaddistribution/getperiodoptions?courseId=${selected}&departmentId=${selectedDepartment}`,
                 type: "GET",
                 success: function (data) {
                     DisableLoadingPlanning();
                     const periodSelect = document.getElementById("selectedPeriod");
                     periodSelect.innerHTML = data;
                     LoadTooltips();
+                    selectedPeriod = null;
                     PeriodSelected();
                 },
                 error: function (xhr, status, error) {
+                    selectedPeriod = null;
                     DisableLoadingPlanning();
                     console.log(xhr, status, error);
                 }
@@ -88,11 +111,11 @@
 
         function PeriodSelected() {
             const periodsSelect = document.getElementById("selectedPeriod");
-            let selected = periodsSelect.options[periodsSelect.selectedIndex].value;
+            selectedPeriod = periodsSelect.options[periodsSelect.selectedIndex].value;
             SetLoadingPlanning();
 
             $.ajax({
-                url: `/loaddistribution/GetPlanningItemsView?periodId=${selected}&departmentId=${selectedDepartment}`,
+                url: `/loaddistribution/GetPlanningItemsView?periodId=${selectedPeriod}&departmentId=${selectedDepartment}`,
                 type: "GET",
                 success: function (data) {
                     DisableLoadingPlanning();
@@ -101,6 +124,7 @@
                     LoadTooltips();
                     RefreshView();
                     LoadMeters();
+                    SetToggleButtons();
                 },
                 error: function (xhr, status, error) {
                     DisableLoadingPlanning();
@@ -133,8 +157,8 @@
             planningDetailsDiv.appendChild(CreateSpinnerNode());
             const periodsSelect = document.getElementById("selectedPeriod");
             periodsSelect.disabled = true;
-            const schoolYearsSelect = document.getElementById("selectedSchoolarYear");
-            schoolYearsSelect.disabled = true;
+            const coursesSelect = document.getElementById("selectedSchoolarYear");
+            coursesSelect.disabled = true;
         }
 
         function DisableLoadingPlanning() {
@@ -144,8 +168,83 @@
             planningDetailsDiv.classList.remove("justify-content-center");
             const periodsSelect = document.getElementById("selectedPeriod");
             periodsSelect.disabled = false;
-            const schoolYearsSelect = document.getElementById("selectedSchoolarYear");
-            schoolYearsSelect.disabled = false;
+            const coursesSelect = document.getElementById("selectedSchoolarYear");
+            coursesSelect.disabled = false;
+        }
+
+        var loadingAddLoadModal = false;
+
+        function RiseAddLoadModal(planItemId, disciplineId) {
+            loadingAddLoadModal = true;
+            OpenLoadingModal('Cargando información para agregar carga');
+            $.ajax({
+                url: `/loaddistribution/GetAddLoadModal?planItemId=${planItemId}&departmentId=${selectedDepartment}&disciplineId=${disciplineId}`,
+                type: "GET",
+                success: function (data) {
+                    loadingAddLoadModal = false;
+                    const modalDiv = document.getElementById("modalContainer");
+                    modalDiv.innerHTML = data;
+                    LoadTooltips();
+                    CloseLoadingModal();
+                    let myModal = new bootstrap.Modal(document.getElementById('addload-modal'));
+                    myModal.show();
+                    $('.select-teacher').select2({
+                        placeholder: "Seleccione el profesor",
+                        dropdownParent: $('#addload-modal')
+                    });
+                    selectedPlanItem = planItemId;
+                    selectedMaxValue = document.getElementById("loadHours").valueMax;
+                },
+                error: function (xhr, status, error) {
+                    loadingAddLoadModal = false;
+                    CloseLoadingModal();
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function AddLoadToTeacher(planItemId) {
+            if (selectedPlanItem == planItemId
+                && document.querySelectorAll(`div[data-planitem-id='${planItemId}']`).length == 1
+                && selectedMaxValue == document.getElementById('loadHours').valueMax) {
+                const selectTeacher = document.getElementById('selectTeacher');
+                let selectedTeacher = selectTeacher.options[selectTeacher.selectedIndex].value;
+                if (selectedTeacher == "none") {
+                    alert("Debe de seleccionar un profesor para agregar la carga.");
+                    return;
+                }
+                const loadInput = document.getElementById('loadHours');
+                let load = loadInput.value;
+                if (load > selectedMaxValue) {
+                    alert(`La cantidad de horas no debe de exeder el máximo disponible de ${selectedMaxValue} horas.`);
+                    return;
+                }
+                console.log(`Add load of ${load} hours to teacher with id ${selectedTeacher}`);
+                OpenLoadingModal("Agregando carga al profesor");
+                let model = {
+                    TeacherId: selectedTeacher,
+                    PlanningItemId: planItemId,
+                    HoursCovered: load
+                };
+
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("PUT", "/loaddistribution/setteacherload", true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                xhttp.onreadystatechange = function () {
+                    if (this.status == 200) {
+                        
+                    } else {
+                        console.log("Error creando periodo", `${this.status} - ${this.statusText} - ${this.responseText}`)
+                    }
+                    CloseLoadingModal();
+                    PeriodSelected();
+                    let myModal = bootstrap.Modal.getInstance(document.getElementById('addload-modal'));
+                    myModal.hide();
+                };
+                xhttp.send(JSON.stringify(model));
+            } else {
+                alert('Ha existido irregularidad. Actualize la página y continue con su actividad. Si continúa este comportamiento contacte a los administradores.');
+            }
         }
     </script>
 
@@ -186,6 +285,22 @@
                 default:
                     break;
             }
+        }
+    </script>
+
+    <script>
+        var loadingModal = new bootstrap.Modal(document.getElementById('loading-modal'), {
+            keyboard: false
+        });
+
+        function OpenLoadingModal(title) {
+            const titleEl = document.getElementById("loading-label");
+            titleEl.innerText = title;
+            loadingModal.show();
+        }
+
+        function CloseLoadingModal() {
+            loadingModal.hide();
         }
     </script>
 }

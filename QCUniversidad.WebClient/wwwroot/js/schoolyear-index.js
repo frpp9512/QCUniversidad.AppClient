@@ -2,16 +2,16 @@
 requestingDelete = false;
 
 function RiseDeleteModal(id) {
-    var schoolYear = GetPeriodDenomination(id);
+    var schoolYear = GetSchoolYearName(id);
     SetDeleteModalTextContent("¿Esta seguro que desea eliminar el año escolar '" + schoolYear + "'?");
     var button = document.getElementById("modal-delete-primarybutton");
     button.onclick = function () {
-        SendDeletePeriodRequest(id);
+        SendDeleteSchoolYearRequest(id);
     };
     deleteModal.show();
 }
 
-function SendDeletePeriodRequest(id) {
+function SendDeleteSchoolYearRequest(id) {
     if (!requestingDelete) {
         requestingDelete = true;
         HideDeleteModalButtons();
@@ -35,9 +35,9 @@ function SendDeletePeriodRequest(id) {
     }
 }
 
-function GetPeriodDenomination(id) {
+function GetSchoolYearName(id) {
     var row = document.getElementById(id);
-    var nameValue = row.children[0].innerHTML;
+    var nameValue = row.children[1].innerHTML;
     return nameValue;
 }
 

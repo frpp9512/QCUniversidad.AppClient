@@ -4,20 +4,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Disciplines;
-using QCUniversidad.WebClient.Models.Faculties;
 using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Models.Subjects;
 using QCUniversidad.WebClient.Services.Data;
 using QCUniversidad.WebClient.Services.Platform;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.WebClient.Controllers;
 
-[Authorize]
+[Authorize(Roles = "Administrador")]
 public class SubjectsController : Controller
 {
     private readonly IDataProvider _dataProvider;
@@ -43,7 +37,7 @@ public class SubjectsController : Controller
             var total = await _dataProvider.GetSubjectsCountAsync();
             _logger.LogInformation("Exists {0} subjects in total.", total);
             var pageIndex = page - 1 < 0 ? 0 : page - 1;
-            var startingItemIndex = (pageIndex * _navigationSettings.ItemsPerPage);
+            var startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
             if (startingItemIndex < 0 || startingItemIndex >= total)
             {
                 startingItemIndex = 0;
@@ -78,10 +72,7 @@ public class SubjectsController : Controller
         return View(viewmodel);
     }
 
-    private async Task LoadCreateViewModel(CreateSubjectModel model)
-    {
-        await LoadDisciplinesIntoCreateModel(model);
-    }
+    private async Task LoadCreateViewModel(CreateSubjectModel model) => await LoadDisciplinesIntoCreateModel(model);
 
     private async Task LoadDisciplinesIntoCreateModel(CreateSubjectModel model)
     {

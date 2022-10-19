@@ -8,7 +8,7 @@ using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Curriculum;
 using QCUniversidad.Api.Shared.Dtos.Discipline;
 using QCUniversidad.Api.Shared.Dtos.Period;
-using QCUniversidad.Api.Shared.Dtos.SchoolYear;
+using QCUniversidad.Api.Shared.Dtos.Course;
 using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
 using System;
 using System.Collections.Generic;
@@ -27,13 +27,11 @@ public class PeriodController : ControllerBase
 {
     private readonly IDataManager _dataManager;
     private readonly IMapper _mapper;
-    private readonly CalculationOptions _calculationOptions;
 
-    public PeriodController(IDataManager dataManager, IMapper mapper, IOptions<CalculationOptions> calculationOptions)
+    public PeriodController(IDataManager dataManager, IMapper mapper)
     {
         _dataManager = dataManager;
         _mapper = mapper;
-        _calculationOptions = calculationOptions.Value;
     }
 
     [HttpGet]
@@ -84,7 +82,7 @@ public class PeriodController : ControllerBase
     {
         try
         {
-            var count = await _dataManager.GetSchoolYearPeriodsCountAsync(id);
+            var count = await _dataManager.GetCoursePeriodsCountAsync(id);
             return Ok(count);
         }
         catch (Exception ex)
@@ -110,11 +108,11 @@ public class PeriodController : ControllerBase
 
     [HttpGet]
     [Route("existswithorder")]
-    public async Task<IActionResult> ExistsAsync(Guid schoolYearId, int orderNumber)
+    public async Task<IActionResult> ExistsAsync(Guid courseId, int orderNumber)
     {
         try
         {
-            var result = await _dataManager.ExistPeriodWithOrder(schoolYearId, orderNumber);
+            var result = await _dataManager.ExistPeriodWithOrder(courseId, orderNumber);
             return Ok(result);
         }
         catch (Exception ex)
@@ -175,11 +173,7 @@ public class PeriodController : ControllerBase
         try
         {
             var result = await _dataManager.GetTeachingPlanItemAsync(id);
-            var dto = _mapper.Map<TeachingPlanItemDto>(result, opts => opts.AfterMap(async (o, planItem) => 
-            {
-                planItem.FromPostgraduateCourse = await _dataManager.IsTeachingPlanFromPostgraduateCourse(planItem.Id);
-                planItem.TotalHoursPlanned = planItem.HoursPlanned * planItem.GroupsAmount * (planItem.FromPostgraduateCourse ? _calculationOptions.PostgraduateTotalHoursCoefficient : _calculationOptions.PregraduateTotalHoursCoefficient);
-            }));
+            var dto = _mapper.Map<TeachingPlanItemDto>(result);
             return Ok(dto);
         }
         catch (Exception ex)
@@ -201,8 +195,8 @@ public class PeriodController : ControllerBase
             var result = await _dataManager.GetTeachingPlanItemsAsync(periodId, from, to);
             var dtos = result.Select(i => _mapper.Map<TeachingPlanItemSimpleDto>(i, opts => opts.AfterMap(async (o, planItem) =>
             {
-                planItem.FromPostgraduateCourse = await _dataManager.IsTeachingPlanFromPostgraduateCourse(planItem.Id);
-                planItem.TotalHoursPlanned = planItem.HoursPlanned * planItem.GroupsAmount * (planItem.FromPostgraduateCourse ? _calculationOptions.PostgraduateTotalHoursCoefficient : _calculationOptions.PregraduateTotalHoursCoefficient);
+                planItem.TotalLoadCovered = await _dataManager.GetPlanItemTotalCoveredAsync(planItem.Id);
+                planItem.AllowLoad = planItem.TotalHoursPlanned > planItem.TotalLoadCovered;
             })));
             return Ok(dtos);
         }
@@ -330,12 +324,12 @@ public class PeriodController : ControllerBase
     }
 
     [HttpGet]
-    [Route("listofschoolyearfordepartment")]
-    public async Task<IActionResult> GetPeriodsOfSchoolYearForDepartment(Guid schoolYearId, Guid departmentId)
+    [Route("listofcoursefordepartment")]
+    public async Task<IActionResult> GetPeriodsOfCourseForDepartment(Guid courseId, Guid departmentId)
     {
         try
         {
-            var result = await _dataManager.GetPeriodsOfSchoolYearForDepartment(schoolYearId, departmentId);
+            var result = await _dataManager.GetPeriodsOfCourseForDepartment(courseId, departmentId);
             var dtos = result.Select(i => _mapper.Map<PeriodModel>(i));
             return Ok(dtos);
         }
@@ -343,7 +337,7 @@ public class PeriodController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
-        catch (SchoolYearNotFoundException ex)
+        catch (CourseNotFoundException ex)
         {
             return NotFound(ex.Message);
         }

@@ -1,4 +1,4 @@
-﻿@model IList<DepartmentModel>
+﻿@model SelectDepartmentViewModel
 @{
     ViewData["Title"] = "Seleccionar departamento";
 }
@@ -8,7 +8,18 @@
 <div class="container">
     <div class="col-9 mb-3">
         @{
-            var departmentGroups = Model.GroupBy(d => d.FacultyId);
+            <label for="SchoolYearId">Año escolar a gestionar</label>
+            <select id="SchoolYearId" class="form-control selected-department" aria-label="select">
+                @foreach (var schoolYear in Model.SchoolYears)
+                {
+                    <option value="@schoolYear.Id">@schoolYear.Name @(schoolYear.Current ? "(actual)" : "")</option>
+                }
+            </select>
+        }
+    </div>
+    <div class="col-9 mb-3">
+        @{
+            var departmentGroups = Model.Departments.GroupBy(d => d.FacultyId);
             <label for="DepartmentId">Departamento al que pertenece</label>
             <select id="DepartmentId" class="form-control selected-department" aria-label="select">
                 @foreach (var group in departmentGroups)
@@ -39,7 +50,9 @@
         function SelectDepartment() {
             const depSelect = document.getElementById("DepartmentId");
             let selected = depSelect.options[depSelect.selectedIndex].value;
-            location.href = "/loaddistribution/index?departmentId=" + selected;
+            const sySelect = document.getElementById("SchoolYearId");
+            let sySelected = sySelect.options[sySelect.selectedIndex].value;
+            location.href = `/loaddistribution/index?departmentId=${selected}&schoolYearId=${sySelected}`;
         }
     </script>
 }

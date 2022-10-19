@@ -21,6 +21,7 @@ namespace QCUniversidad.Api.Data.Context
         public DbSet<CurriculumDiscipline> CurriculumsDisciplines { get; set; }
 
         public DbSet<SchoolYearModel> SchoolYears { get; set; }
+        public DbSet<CourseModel> Courses { get; set; }
         public DbSet<PeriodModel> Periods { get; set; }
 
         public DbSet<DepartmentModel> Departments { get; set; }
@@ -53,20 +54,26 @@ namespace QCUniversidad.Api.Data.Context
                         .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<SchoolYearModel>()
-                        .HasMany(sy => sy.Periods)
-                        .WithOne(d => d.SchoolYear)
-                        .HasForeignKey(sy => sy.SchoolYearId)
+                        .HasMany(sy => sy.Courses)
+                        .WithOne(c => c.SchoolYear)
+                        .HasForeignKey(c => c.SchoolYearId)
                         .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<SchoolYearModel>()
-                        .HasOne(sy => sy.Career)
-                        .WithMany(c => c.SchoolYears)
-                        .HasForeignKey(sy => sy.CareerId)
+            modelBuilder.Entity<CourseModel>()
+                        .HasMany(c => c.Periods)
+                        .WithOne(p => p.Course)
+                        .HasForeignKey(c => c.CourseId)
+                        .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CourseModel>()
+                        .HasOne(c => c.Career)
+                        .WithMany(cr => cr.Courses)
+                        .HasForeignKey(c => c.CareerId)
                         .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<DisciplineModel>()
                         .HasMany(d => d.DisciplineTeachers)
-                        .WithOne(d => d.Discipline)
+                        .WithOne(dt => dt.Discipline)
                         .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<SubjectModel>()

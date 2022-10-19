@@ -14,11 +14,9 @@ namespace QCUniversidad.WebClient.AutoMapperProfiles
         public SchoolYearDtoProfile()
         {
             CreateMap<SchoolYearDto, SchoolYearModel>();
-            CreateMap<SchoolYearModel, SchoolYearDto>();
-            CreateMap<CreateSchoolYearModel, NewSchoolYearDto>();
-            CreateMap<NewSchoolYearDto, CreateSchoolYearModel>();
-            CreateMap<SchoolYearModel, EditSchoolYearModel>();
-            CreateMap<EditSchoolYearModel, EditSchoolYearDto>();
+            CreateMap<SimpleSchoolYearDto, SchoolYearModel>();
+            CreateMap<SchoolYearModel, NewSchoolYearDto>();
+            CreateMap<SchoolYearModel, EditSchoolYearDto>();
         }
     }
 }

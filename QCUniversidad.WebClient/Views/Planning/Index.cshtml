@@ -34,23 +34,23 @@
 <hr />
 <div class="row mt-3 mb-3">
     <div class="col col-lg-3 col-sm-6 col-12">
-        <label for="selectedSchoolarYear">Año escolar</label>
+        <label for="selectedSchoolarYear">Curso</label>
         <div class="d-flex flex-row align-items-center">
-            <select asp-for="SchoolYearSelected" class="form-select" aria-label="Seleccionar año escolar" id="selectedSchoolarYear">
-                @foreach (var schoolYear in Model.SchoolYears)
+            <select asp-for="CourseSelected" class="form-select" aria-label="Seleccionar curso" id="selectedSchoolarYear">
+                @foreach (var course in Model.Courses)
                 {
-                    <option value="@schoolYear.Id">@schoolYear.Denomination</option>
+                    <option value="@course.Id">@course.Denomination</option>
                 }
             </select>
             <a class="link-info" id="syDetailsLink">
-                <span class="fa fa-info-circle text-info m-2" id="schoolYearDetails"></span>
+                <span class="fa fa-info-circle text-info m-2" id="courseDetails"></span>
             </a>
         </div>
     </div>
     <div class="col col-lg-3 col-sm-6 col-12">
         <label for="selectedPeriod">Período</label>
         <select class="form-select" aria-label="Seleccionar período" id="selectedPeriod">
-            <option id="selectPeriodDefault">Seleccione un año escolar</option>
+            <option id="selectPeriodDefault">Seleccione un curso</option>
         </select>
     </div>
 </div>
@@ -66,15 +66,15 @@
 @section Scripts {
     <script src="~/lib/popper/popper.min.js"></script>
     <script>
-        const schoolYears = '@Json.Serialize(Model.SchoolYears)';
+        const courses = '@Json.Serialize(Model.Courses)';
         var periodToSelect = '@(Model.PeriodSelected is null ? "" : Model.PeriodSelected.ToString())';
         var deleteModal = null;
         var requestingDelete = false;
 
         $(document).ready(function () {
-            const schoolYearsSelect = document.getElementById("selectedSchoolarYear");
-            schoolYearsSelect.onchange = SchoolYearSelect;
-            SchoolYearSelect();
+            const coursesSelect = document.getElementById("selectedSchoolarYear");
+            coursesSelect.onchange = CourseSelect;
+            CourseSelect();
         });
 
         function LoadTooltips() {
@@ -118,16 +118,16 @@
             console.log("periods select changed", periodsSelect.selectedIndex, selected);
         }
 
-        function SchoolYearSelect() {
+        function CourseSelect() {
             ClearPeriodsSelect();
 
             const periodsSelect = document.getElementById("selectedPeriod");
-            const schoolYearsSelect = document.getElementById("selectedSchoolarYear");
-            var selected = schoolYearsSelect.options[schoolYearsSelect.selectedIndex].value;
+            const coursesSelect = document.getElementById("selectedSchoolarYear");
+            var selected = coursesSelect.options[coursesSelect.selectedIndex].value;
 
-            let periods = Array.from(JSON.parse(schoolYears)).filter(sy => sy.id == selected)[0];
-            let schoolYearPeriods = Array.from(JSON.parse(schoolYears)).filter(sy => sy.id == selected)[0];
-            let nodes = schoolYearPeriods.periods.map(p => {
+            let periods = Array.from(JSON.parse(courses)).filter(sy => sy.id == selected)[0];
+            let coursePeriods = Array.from(JSON.parse(courses)).filter(sy => sy.id == selected)[0];
+            let nodes = coursePeriods.periods.map(p => {
                 let optionNode = document.createElement("option");
                 optionNode.id = p.id;
                 optionNode.value = p.id;
@@ -153,19 +153,19 @@
                 periodsSelect.disabled = false;
             }
 
-            ClearSchoolYearDetails();
+            ClearCourseDetails();
 
-            let schoolYearsList = Array.from(JSON.parse(schoolYears));
-            let syselectedQuery = schoolYearsList.filter(sy => sy.id == selected);
+            let coursesList = Array.from(JSON.parse(courses));
+            let syselectedQuery = coursesList.filter(sy => sy.id == selected);
             if (syselectedQuery.length > 0) {
                 let syselected = syselectedQuery[0];
-                const detailsSpan = document.getElementById("schoolYearDetails");
+                const detailsSpan = document.getElementById("courseDetails");
                 detailsSpan.setAttribute("data-bs-toggle", "tooltip");
                 detailsSpan.setAttribute("data-bs-html", "true");
                 detailsSpan.setAttribute("title", `<div><small><span class='fa fa-info-circle'></span> Carrera</small></div> <div><b>${ syselected.career.name } (${GetYearNumber(syselected.careerYear)}) </b></div > <div><i>${ syselected.career.description } </i></div > <div><b>${ GetTeachingModality(syselected.teachingModality) } </b></div > `);
 
                 const detailsLink = document.getElementById("syDetailsLink");
-                detailsLink.setAttribute("href", "/SchoolYears/Details/" + syselected.id);
+                detailsLink.setAttribute("href", "/Courses/Details/" + syselected.id);
             }
 
             periodsSelect.onchange = PeriodSelected;
@@ -220,8 +220,8 @@
             periodsSelect.innerHTML = "";
         }
 
-        function ClearSchoolYearDetails() {
-            const detailsDiv = document.getElementById("schoolYearDetails");
+        function ClearCourseDetails() {
+            const detailsDiv = document.getElementById("courseDetails");
             detailsDiv.innerHTML = "";
         }
 
@@ -248,8 +248,8 @@
             planningDetailsDiv.appendChild(CreateSpinnerNode());
             const periodsSelect = document.getElementById("selectedPeriod");
             periodsSelect.disabled = true;
-            const schoolYearsSelect = document.getElementById("selectedSchoolarYear");
-            schoolYearsSelect.disabled = true;
+            const coursesSelect = document.getElementById("selectedSchoolarYear");
+            coursesSelect.disabled = true;
         }
 
         function DisableLoadingPlanning() {
@@ -257,8 +257,8 @@
             planningDetailsDiv.innerHTML = "";
             const periodsSelect = document.getElementById("selectedPeriod");
             periodsSelect.disabled = false;
-            const schoolYearsSelect = document.getElementById("selectedSchoolarYear");
-            schoolYearsSelect.disabled = false;
+            const coursesSelect = document.getElementById("selectedSchoolarYear");
+            coursesSelect.disabled = false;
         }
 
         function FilterChanged() {

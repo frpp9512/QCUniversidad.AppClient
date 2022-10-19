@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using QCUniversidad.WebClient.Models.Subjects;
 using QCUniversidad.WebClient.Models.Periods;
-using QCUniversidad.WebClient.Models.SchoolYears;
+using QCUniversidad.WebClient.Models.Courses;
 
 namespace QCUniversidad.WebClient.Models.Planning;
 
@@ -36,7 +36,7 @@ public class CreateTeachingPlanItemModel
 
     public PeriodModel? Period { get; set; }
 
-    public Guid? SchoolYearId { get; set; }
-    public SchoolYearModel? SchoolYear { get; set; }
+    public Guid? CourseId { get; set; }
+    public CourseModel? Course { get; set; }
     public IList<SubjectModel>? Subjects { get; set; }
 }

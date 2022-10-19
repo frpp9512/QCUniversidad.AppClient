@@ -8,15 +8,10 @@ using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Services.Data;
 using QCUniversidad.WebClient.Services.Platform;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.WebClient.Controllers;
 
-[Authorize]
+[Authorize(Roles = "Administrador")]
 public class CurriculumsController : Controller
 {
     private readonly IDataProvider _dataProvider;
@@ -42,7 +37,7 @@ public class CurriculumsController : Controller
             var total = await _dataProvider.GetCurriculumsCountAsync();
             _logger.LogInformation("Exists {0} curriculums in total.", total);
             var pageIndex = page - 1 < 0 ? 0 : page - 1;
-            var startingItemIndex = (pageIndex * _navigationSettings.ItemsPerPage);
+            var startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
             if (startingItemIndex < 0 || startingItemIndex >= total)
             {
                 startingItemIndex = 0;
@@ -69,10 +64,7 @@ public class CurriculumsController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> DetailsAsync(Guid id)
-    {
-        return View();
-    }
+    public async Task<IActionResult> DetailsAsync(Guid id) => await Task.FromResult(View());
 
     [HttpGet]
     public async Task<IActionResult> CreateAsync()

@@ -39,6 +39,6 @@ namespace QCUniversidad.Api.Data.Models
         /// <summary>
         /// Defines if the subject is active for planning and load distribution.
         /// </summary>
-        public bool Active { get; set; }
+        public bool Active { get; set; } = true;
     }
 }

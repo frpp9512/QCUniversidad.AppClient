@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Shared.Dtos.LoadItem
 {
-    public class EditLoadItemDto : NewLoadItemDto
+    public record EditLoadItemDto : NewLoadItemDto
     {
         public Guid Id { get; set; }
     }

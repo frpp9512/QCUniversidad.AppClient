@@ -1,0 +1,34 @@
+﻿@model AddLoadModalModel
+
+<div class="modal fade" id="addload-modal" tabindex="-1" aria-labelledby="addload-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addload-modal-label"><span class="fa fa-user-plus"></span> Agregar carga a profesor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    Asignatura: <b>@Model.PlanItem.Subject?.Name</b> Actividad: <b>@Html.DisplayFor(m => m.PlanItem.Type)</b>
+                    <br />
+                    Total de horas planificadas: <b>@Model.PlanItem.TotalHoursPlanned.ToString("N2")</b> Total cubierto: <b>@Model.PlanItem.LoadCoveredPercent (@Model.PlanItem.LoadCoveredPercent %)</b>
+                </div>
+                <div class="d-flex flex-column mb-3">
+                    <select id="selectTeacher" class="form-select select-teacher" aria-label="Seleccionar profesor" style="margin-right: 5px;">
+                        <option value="none">Seleccione el profesor</option>
+                        @foreach (var teacher in Model.Teachers)
+                        {
+                            <option value="@teacher.Id">@teacher.Fullname</option>
+                        }
+                    </select>
+
+                    <input type="number" min="0" max="@Model.MaxValue" id="loadHours" class="form-control mt-3" placeholder="Cant. horas" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btn-addload" onclick="AddLoadToTeacher('@Model.PlanItem.Id')"><span class="fa fa-circle-plus"></span> Añadir carga</button>
+            </div>
+        </div>
+    </div>
+</div>

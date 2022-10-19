@@ -6,11 +6,6 @@ using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.LoadDistribution;
 using QCUniversidad.WebClient.Services.Data;
 using QCUniversidad.WebClient.Services.Platform;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.WebClient.Controllers;
 
@@ -31,19 +26,25 @@ public class LoadDistributionController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> IndexAsync(Guid? departmentId = null)
+    public async Task<IActionResult> IndexAsync(Guid? departmentId = null, Guid? schoolYearId = null)
     {
         if (User.IsAdmin() && departmentId is null)
         {
             return RedirectToAction("SelectDepartment");
         }
-        Guid workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
+        if (!User.IsAdmin() && schoolYearId is not null)
+        {
+            schoolYearId = null;
+        }
+        var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
+        var schoolYear = schoolYearId is null ? await _dataProvider.GetCurrentSchoolYear() : await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
         var department = await _dataProvider.GetDepartmentAsync(workingDepartment);
-        var schoolYears = await _dataProvider.GetSchoolYearsForDepartment(departmentId.Value);
-        var model = new LoadDistributionIndexModel 
+        var courses = await _dataProvider.GetCoursesForDepartment(workingDepartment, schoolYear.Id);
+        var model = new LoadDistributionIndexModel
         {
             Department = department,
-            SchoolYears = schoolYears
+            Courses = courses,
+            SchoolYear = schoolYear
         };
         return View(model);
     }
@@ -52,12 +53,18 @@ public class LoadDistributionController : Controller
     [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> SelectDepartmentAsync()
     {
+        var schoolYears = await _dataProvider.GetSchoolYearsAsync();
         var departments = await _dataProvider.GetDepartmentsAsync();
-        return View(departments);
+        var model = new SelectDepartmentViewModel 
+        {
+            Departments = departments,
+            SchoolYears = schoolYears
+        };
+        return View(model);
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetPeriodOptionsAsync(Guid schoolYearId, Guid? departmentId)
+    public async Task<IActionResult> GetPeriodOptionsAsync(Guid courseId, Guid? departmentId)
     {
         if (User.IsAdmin() && departmentId is null)
         {
@@ -66,7 +73,7 @@ public class LoadDistributionController : Controller
         var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
-            var result = await _dataProvider.GetPeriodsOfSchoolYearForDepartment(schoolYearId, workingDepartment);
+            var result = await _dataProvider.GetPeriodsOfCourseForDepartment(courseId, workingDepartment);
             return PartialView("_PeriodOptions", result);
         }
         catch (Exception)
@@ -92,5 +99,48 @@ public class LoadDistributionController : Controller
         {
             return RedirectToAction("Error", "Home");
         }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAddLoadModalAsync(Guid planItemId, Guid? departmentId = null, Guid? disciplineId = null)
+    {
+        if (planItemId == Guid.Empty)
+        {
+            return BadRequest("The plan item should not be null");
+        }
+        if (User.IsAdmin() && departmentId is null)
+        {
+            return BadRequest("If you're logged in as admin you should provide a department id.");
+        }
+        var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
+        var loadItem = await _dataProvider.GetTeachingPlanItemAsync(planItemId);
+        var teachers = await _dataProvider.GetTeachersOfDepartmentNotAssignedToLoadItemAsync(workingDepartment, planItemId, disciplineId);
+
+        var viewModel = new AddLoadModalModel
+        {
+            PlanItem = loadItem,
+            Teachers = teachers,
+            MaxValue = loadItem.TotalHoursPlanned - loadItem.TotalLoadCovered ?? 0
+        };
+
+        return PartialView("_AddLoadModal", viewModel);
+    }
+
+    [HttpPut]
+    public async Task<IActionResult> SetTeacherLoadAsync([FromBody] CreateLoadItemModel model)
+    {
+        if (model is not null)
+        {
+            try
+            {
+                var result = await _dataProvider.SetLoadItemAsync(model);
+                return result ? Ok(result) : Problem();
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
+        return BadRequest("The model should not be null.");
     }
 }

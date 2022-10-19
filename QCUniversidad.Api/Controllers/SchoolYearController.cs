@@ -1,23 +1,13 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
-using QCUniversidad.Api.Shared.Dtos.Discipline;
 using QCUniversidad.Api.Shared.Dtos.SchoolYear;
-using QCUniversidad.Api.Shared.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize]
 public class SchoolYearController : ControllerBase
 {
     private readonly IDataManager _dataManager;
@@ -33,47 +23,24 @@ public class SchoolYearController : ControllerBase
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
         var schoolYears = await _dataManager.GetSchoolYearsAsync(from, to);
-        var dtos = schoolYears.Select(d => _mapper.Map<SchoolYearDto>(d));
+        var dtos = schoolYears.Select(sy => _mapper.Map<SchoolYearDto>(sy, opt => opt.AfterMap(async (o, sydto)
+                => sydto.CoursesCount = await _dataManager.GetSchoolYearCoursesCountAsync(sydto.Id))));
         return Ok(dtos);
     }
 
-    [HttpGet]
-    [Route("count")]
-    public async Task<IActionResult> GetCount()
+    [HttpGet("count")]
+    public async Task<IActionResult> CountAsync()
     {
-        try
-        {
-            var count = await _dataManager.GetSchoolYearsCountAsync();
-            return Ok(count);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var total = await _dataManager.GetSchoolYearTotalAsync();
+        return Ok(total);
     }
 
-    [HttpGet]
-    [Route("periodscount")]
-    public async Task<IActionResult> GetPeriodsCount(Guid id)
-    {
-        try
-        {
-            var count = await _dataManager.GetSchoolYearPeriodsCountAsync(id);
-            return Ok(count);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
-    }
-
-    [HttpGet]
-    [Route("exists")]
+    [HttpGet("exists")]
     public async Task<IActionResult> ExistsAsync(Guid id)
     {
         try
         {
-            var result = await _dataManager.ExistsSchoolYearAsync(id);
+            var result = await _dataManager.ExistSchoolYearAsync(id);
             return Ok(result);
         }
         catch (Exception ex)
@@ -82,28 +49,23 @@ public class SchoolYearController : ControllerBase
         }
     }
 
-    [HttpGet]
-    [Route("existsbycareeryearandmodality")]
-    public async Task<IActionResult> ExistsByCareerYearAndModality(Guid careerId, int careerYear, int modality)
-    {
-        if (careerId != Guid.Empty || careerYear >= 0 || modality >= 0)
-        {
-            var result = await _dataManager.CheckSchoolYearExistenceByCareerYearAndModality(careerId, careerYear, (TeachingModality)modality);
-            return Ok(result);
-        }
-        return BadRequest("The parameters should not be null.");
-    }
-
     [HttpPut]
-    public async Task<IActionResult> CreateAsync(NewSchoolYearDto schoolYear)
+    public async Task<IActionResult> CreateAsync(NewSchoolYearDto dto)
     {
-        if (schoolYear is not null)
+        if (dto is not null)
         {
-            var model = _mapper.Map<SchoolYearModel>(schoolYear);
-            var result = await _dataManager.CreateSchoolYearAsync(model);
-            return result ? Ok(model.Id) : Problem("An error has occured creating the discipline.");
+            try
+            {
+                var model = _mapper.Map<SchoolYearModel>(dto);
+                var result = await _dataManager.CreateSchoolYearAsync(model);
+                return result ? Ok() : BadRequest("An error has occured creating the school year.");
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
         }
-        return BadRequest("The discipline cannot be null.");
+        return BadRequest("The school year cannot be null.");
     }
 
     [HttpGet]
@@ -116,7 +78,8 @@ public class SchoolYearController : ControllerBase
         try
         {
             var result = await _dataManager.GetSchoolYearAsync(id);
-            var dto = _mapper.Map<SchoolYearDto>(result);
+            var dto = _mapper.Map<SchoolYearDto>(result, opt => opt.AfterMap(async (o, sy) 
+                => sy.CoursesCount = await _dataManager.GetSchoolYearCoursesCountAsync(sy.Id)));
             return Ok(dto);
         }
         catch (SchoolYearNotFoundException)
@@ -125,19 +88,39 @@ public class SchoolYearController : ControllerBase
         }
     }
 
-    [HttpPost("update")]
-    public async Task<IActionResult> UpdateAsync(EditSchoolYearDto schoolYear)
+    [HttpGet("current")]
+    public async Task<IActionResult> GetCurrentAsync()
     {
-        if (schoolYear is not null)
+        try
         {
-            var result = await _dataManager.UpdateSchoolYearAsync(_mapper.Map<SchoolYearModel>(schoolYear));
+            var result = await _dataManager.GetCurrentSchoolYear();
+            var dto = _mapper.Map<SchoolYearDto>(result, opt => opt.AfterMap(async (o, sy)
+                => sy.CoursesCount = await _dataManager.GetSchoolYearCoursesCountAsync(sy.Id)));
+            return Ok(dto);
+        }
+        catch (NotCurrentSchoolYearDefined)
+        {
+            return NotFound("No defined current school year.");
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpPost("update")]
+    public async Task<IActionResult> UpdateAsync(EditSchoolYearDto dto)
+    {
+        if (dto is not null)
+        {
+            var result = await _dataManager.UpdateSchoolYearAsync(_mapper.Map<SchoolYearModel>(dto));
             return Ok(result);
         }
         return BadRequest("The school year cannot be null.");
     }
 
     [HttpDelete]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> DeleteSchoolYearAsync(Guid id)
     {
         if (id == Guid.Empty)
         {
@@ -151,26 +134,6 @@ public class SchoolYearController : ControllerBase
         catch (SchoolYearNotFoundException)
         {
             return NotFound($"The school year with id '{id}' was not found.");
-        }
-    }
-
-    [HttpGet]
-    [Route("listfordepartment")]
-    public async Task<IActionResult> GetSchoolYearsForDepartment(Guid departmentId)
-    {
-        if (departmentId == Guid.Empty)
-        {
-            return BadRequest("You must provide an id.");
-        }
-        try
-        {
-            var result = await _dataManager.GetSchoolYearsForDepartment(departmentId);
-            var dtos = result.Select(i => _mapper.Map<SchoolYearDto>(i));
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
         }
     }
 }

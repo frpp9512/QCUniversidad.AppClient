@@ -1,4 +1,4 @@
-﻿using QCUniversidad.WebClient.Models.SchoolYears;
+﻿using QCUniversidad.WebClient.Models.Courses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ namespace QCUniversidad.WebClient.Services.Platform
 {
     public static class DataTypesExtensions
     {
-        public static string GetCareerYearLabel(this SchoolYearModel model)
+        public static string GetCareerYearLabel(this CourseModel model)
             => model.CareerYear switch 
             { 
                 1 => "1er año",

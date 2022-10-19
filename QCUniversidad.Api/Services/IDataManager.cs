@@ -80,6 +80,9 @@ public interface IDataManager
     Task<bool> UpdateTeacherAsync(TeacherModel teacher);
     Task<bool> DeleteTeacherAsync(Guid id);
     Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId);
+    Task<IList<TeacherModel>> GetTeachersOfDepartmentNotAssignedToPlanItemAsync(Guid departmentId, Guid planItemId, Guid? disciplineId = null);
+
+    Task<bool> SetLoadToTeacher(Guid teacherId, Guid planItemId, double hours);
 
     #endregion
 
@@ -87,7 +90,7 @@ public interface IDataManager
 
     Task<bool> CreateSubjectAsync(SubjectModel subject);
     Task<bool> ExistsSubjectAsync(Guid id);
-    Task<IList<SubjectModel>> GetSubjectsForSchoolYearAsync(Guid schoolYearId);
+    Task<IList<SubjectModel>> GetSubjectsForCourseAsync(Guid courseId);
     Task<int> GetSubjectsCountAsync();
     Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to);
     Task<SubjectModel> GetSubjectAsync(Guid id);
@@ -111,17 +114,31 @@ public interface IDataManager
 
     #region SchoolYears
 
-    Task<bool> CreateSchoolYearAsync(SchoolYearModel schoolYear);
-    Task<bool> ExistsSchoolYearAsync(Guid id);
-    Task<bool> CheckSchoolYearExistenceByCareerYearAndModality(Guid careerId, int careerYear, TeachingModality modality);
-    Task<int> GetSchoolYearsCountAsync();
-    Task<int> GetSchoolYearPeriodsCountAsync(Guid schoolYearId);
-    Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from, int to);
+    Task<SchoolYearModel> GetCurrentSchoolYear();
     Task<SchoolYearModel> GetSchoolYearAsync(Guid id);
+    Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from = 0, int to = 0);
+    Task<int> GetSchoolYearTotalAsync();
+    Task<bool> ExistSchoolYearAsync(Guid id);
+    Task<bool> CreateSchoolYearAsync(SchoolYearModel schoolYear);
     Task<bool> UpdateSchoolYearAsync(SchoolYearModel schoolYear);
-    Task<bool> DeleteSchoolYearAsync(Guid id);
+    Task<int> GetSchoolYearCoursesCountAsync(Guid schoolYear);
+    Task<bool> DeleteSchoolYearAsync(Guid schoolYear);
 
-    Task<IList<SchoolYearModel>> GetSchoolYearsForDepartment(Guid departmentId);
+    #endregion
+
+    #region Courses
+
+    Task<bool> CreateCourseAsync(CourseModel course);
+    Task<bool> ExistsCourseAsync(Guid id);
+    Task<bool> CheckCourseExistenceByCareerYearAndModality(Guid careerId, int careerYear, TeachingModality modality);
+    Task<int> GetCoursesCountAsync();
+    Task<int> GetCoursePeriodsCountAsync(Guid courseId);
+    Task<IList<CourseModel>> GetCoursesAsync(int from, int to);
+    Task<CourseModel> GetCourseAsync(Guid id);
+    Task<bool> UpdateCourseAsync(CourseModel course);
+    Task<bool> DeleteCourseAsync(Guid id);
+
+    Task<IList<CourseModel>> GetCoursesForDepartment(Guid departmentId, Guid? schoolYearId = null);
 
     #endregion
 
@@ -129,14 +146,14 @@ public interface IDataManager
 
     Task<bool> CreatePeriodAsync(PeriodModel period);
     Task<bool> ExistsPeriodAsync(Guid id);
-    Task<bool> ExistPeriodWithOrder(Guid schoolYearId, int order);
+    Task<bool> ExistPeriodWithOrder(Guid courseId, int order);
     Task<int> GetPeriodsCountAsync();
     Task<IList<PeriodModel>> GetPeriodsAsync(int from, int to);
     Task<PeriodModel> GetPeriodAsync(Guid id);
     Task<bool> UpdatePeriodAsync(PeriodModel period);
     Task<bool> DeletePeriodAsync(Guid id);
 
-    Task<IList<PeriodModel>> GetPeriodsOfSchoolYearForDepartment(Guid schoolYearId, Guid departmentId);
+    Task<IList<PeriodModel>> GetPeriodsOfCourseForDepartment(Guid courseId, Guid departmentId);
 
     #endregion
 
@@ -153,8 +170,8 @@ public interface IDataManager
     Task<bool> DeleteTeachingPlanItemAsync(Guid id);
 
     Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId);
-
     Task<bool> IsTeachingPlanFromPostgraduateCourse(Guid teachingPlanId);
+    Task<double> GetPlanItemTotalCoveredAsync(Guid planItemId);
 
     #endregion
 

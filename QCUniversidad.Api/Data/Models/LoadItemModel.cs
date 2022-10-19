@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Data.Models
 {
-    public class LoadItemModel
+    public record LoadItemModel
     {
         /// <summary>
         /// Primary key value.

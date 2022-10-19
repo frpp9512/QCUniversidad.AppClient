@@ -24,13 +24,11 @@ public class DepartmentController : ControllerBase
 {
     private readonly IDataManager _dataManager;
     private readonly IMapper _mapper;
-    private readonly CalculationOptions _calculationOptions;
 
-    public DepartmentController(IDataManager dataManager, IMapper mapper, IOptions<CalculationOptions> calculationOptions)
+    public DepartmentController(IDataManager dataManager, IMapper mapper)
     {
         _dataManager = dataManager;
         _mapper = mapper;
-        _calculationOptions = calculationOptions.Value;
     }
 
     [HttpGet]
@@ -193,11 +191,7 @@ public class DepartmentController : ControllerBase
         try
         {
             var result = await _dataManager.GetTeachingPlanItemsOfDepartmentOnPeriod(id, periodId);
-            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemDto>(i, opts => opts.AfterMap(async (o, planItem) =>
-            {
-                planItem.FromPostgraduateCourse = await _dataManager.IsTeachingPlanFromPostgraduateCourse(planItem.Id);
-                planItem.TotalHoursPlanned = planItem.HoursPlanned * planItem.GroupsAmount * (planItem.FromPostgraduateCourse ? _calculationOptions.PostgraduateTotalHoursCoefficient : _calculationOptions.PregraduateTotalHoursCoefficient);
-            })));
+            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemDto>(i));
             return Ok(dtos);
         }
         catch (Exception ex)

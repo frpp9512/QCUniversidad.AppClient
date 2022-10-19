@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Shared.Dtos.TeachingPlan;
 
-public class TeachingPlanItemSimpleDto
+public record TeachingPlanItemSimpleDto
 {
     public Guid Id { get; set; }
     public Guid SubjectId { get; set; }
@@ -18,5 +18,8 @@ public class TeachingPlanItemSimpleDto
     public uint GroupsAmount { get; set; }
     public double TotalHoursPlanned { get; set; }
     public bool FromPostgraduateCourse { get; set; }
+    public double TotalLoadCovered { get; set; }
+    public double LoadCoveredPercent => Math.Round((TotalLoadCovered / TotalHoursPlanned) * 100, 1);
+    public bool AllowLoad { get; set; }
     public Guid PeriodId { get; set; }
 }

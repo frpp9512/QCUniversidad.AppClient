@@ -1,4 +1,4 @@
-﻿using QCUniversidad.WebClient.Models.SchoolYears;
+﻿using QCUniversidad.WebClient.Models.Courses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +18,6 @@ public record PeriodModel
     public DateTimeOffset Starts { get; set; }
     public DateTimeOffset Ends { get; set; }
     public uint Enrolment { get; set; }
-    public Guid SchoolYearId { get; set; }
-    public SchoolYearModel? SchoolYear { get; set; }
+    public Guid CourseId { get; set; }
+    public CourseModel? Course { get; set; }
 }

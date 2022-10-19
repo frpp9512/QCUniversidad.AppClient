@@ -12,10 +12,10 @@
             <hr />
             <div>
                 <dl class="row">
-                    <dt class="col-sm-3">Año escolar</dt>
-                    <dd class="col-sm-9">@Model.SchoolYear?.Denomination</dd>
+                    <dt class="col-sm-3">Curso</dt>
+                    <dd class="col-sm-9">@Model.Course?.Denomination</dd>
                     <dt class="col-sm-3">Curriculum</dt>
-                    <dd class="col-sm-9">@Model.SchoolYear?.Curriculum?.Denomination</dd>
+                    <dd class="col-sm-9">@Model.Course?.Curriculum?.Denomination</dd>
                     <dt class="col-sm-3">Período</dt>
                     <dd class="col-sm-9">(@Model.Period?.OrderNumber) @Model.Period?.Starts.ToString("dd-MM-yyyy") - @Model.Period?.Starts.ToString("dd-MM-yyyy")</dd>
                 </dl>
@@ -66,9 +66,9 @@
                     </div>
                 </fieldset>
                 <div class="form-footer mt-3">
-                    <input asp-for="SchoolYearId" type="hidden" />
+                    <input asp-for="CourseId" type="hidden" />
                     <input asp-for="PeriodId" type="hidden" />
-                    <a asp-action="Index" asp-route-schoolYearSelected="@Model.SchoolYearId" asp-route-periodSelected="@Model.PeriodId" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    <a asp-action="Index" asp-route-courseSelected="@Model.CourseId" asp-route-periodSelected="@Model.PeriodId" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
                     <button type="submit" class="btn btn-primary"><span class="fa fa-plus"></span> Crear</button>
                 </div>
             </form>

@@ -32,49 +32,60 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Home" asp-action="Index">Inicio</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="LoadDistribution" asp-action="Index">Distribución de carga</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Planning" asp-action="Index">Planificación docente</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Gestión
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li>
-                                    <a class="dropdown-item" asp-controller="Faculties" asp-action="Index">Facultades</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" asp-controller="Departments" asp-action="Index">Departamentos</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" asp-controller="Teachers" asp-action="Index">Profesores</a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" asp-controller="Careers" asp-action="Index">Carreras</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" asp-controller="Disciplines" asp-action="Index">Disciplinas</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" asp-controller="Subjects" asp-action="Index">Asignaturas</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" asp-controller="Curriculums" asp-action="Index">Curriculums</a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" asp-controller="SchoolYears" asp-action="Index">Años escolares</a>
-                                </li>
-                            </ul>
-                        </li>
+                        @if (User.IsInRole("Jefe de departamento") || User.IsAdmin())
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="LoadDistribution" asp-action="Index">Distribución de carga</a>
+                            </li>
+                        }
+                        @if (User.IsInRole("Planificador") || User.IsAdmin())
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Planning" asp-action="Index">Planificación docente</a>
+                            </li>
+                        }
+                        @if (User.IsAdmin())
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Gestión
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Faculties" asp-action="Index">Facultades</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Departments" asp-action="Index">Departamentos</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Teachers" asp-action="Index">Profesores</a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Careers" asp-action="Index">Carreras</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Disciplines" asp-action="Index">Disciplinas</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Subjects" asp-action="Index">Asignaturas</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Curriculums" asp-action="Index">Curriculums</a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="SchoolYears" asp-action="Index">Años escolares</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Courses" asp-action="Index">Cursos</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Home" asp-action="Privacy">Privacidad</a>
                         </li>
-                        
                     </ul>
                     <ul class="navbar-nav mr-sm-2">
 

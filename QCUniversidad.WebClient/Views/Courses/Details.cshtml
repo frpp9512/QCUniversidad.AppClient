@@ -1,0 +1,546 @@
+﻿@model CourseModel
+@using QCUniversidad.WebClient.Services.Platform;
+@{
+    ViewData["Title"] = "Detalles del curso";
+    bool periodAdded = (bool?)TempData["period-created"] ?? false;
+    bool periodEdited = (bool?)TempData["period-edited"] ?? false;
+    bool periodDeleted = (bool?)TempData["period-deleted"] ?? false;
+}
+
+@if (periodAdded)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-info-circle"></span> Período creado</strong> Se ha creado un nuevo período satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (periodEdited)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-pencil-square"></span> Período editado</strong> Se ha editado un período satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (periodDeleted)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-trash-can"></span> Período eliminado</strong> Se ha eliminado un período satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<p class="text-muted">Detalles del curso <a asp-action="Edit" asp-route-id="@Model.Id" class="link-warning m-2"><span class="fa fa-edit"></span> Editar</a> <a asp-action="Index" class="link-info m-2"><span class="fa fa-rectangle-list"></span> Ir al listado</a></p>
+<input id="courseId" type="hidden" value="@Model.Id" />
+@if (Model.Periods?.Any() == true)
+{
+    <input id="lastPeriodOrderNumber" type="hidden" value="@(Model.Periods?.OrderByDescending(p => p.OrderNumber).First().OrderNumber + 1)" />
+}
+else
+{
+    <input id="lastPeriodOrderNumber" type="hidden" value="1" />
+}
+<h1 class="display-4">@Model.Denomination</h1>
+
+<dl class="row">
+    <dt class="col-sm-3">Año escolar</dt>
+    <dd class="col-sm-9">@Model.SchoolYear?.Name</dd>
+
+    <dt class="col-sm-3">Carrera</dt>
+    <dd class="col-sm-9">
+        <a asp-action="Details" asp-controller="Careers" asp-route-id="@Model.CareerId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Carrera</small></div> <div><b>@Model.Career?.Name</b></div> <div><i>@Model.Career?.Description</i></div>">
+            @Model.Career?.Name <small><span class="fa fa-circle-info"></span></small>
+        </a>
+    </dd>
+
+    <dt class="col-sm-3">Modalidad</dt>
+    <dd class="col-sm-9">@Html.DisplayFor(m => m.TeachingModality)</dd>
+
+    <dt class="col-sm-3">Año de carrera</dt>
+    <dd class="col-sm-9">@Model.GetCareerYearLabel()</dd>
+
+    <dt class="col-sm-3">Curriculum</dt>
+    <dd class="col-sm-9">
+        <a asp-action="Details" asp-controller="Curriculum" asp-route-id="@Model.CurriculumId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Curriculum</small></div> <div><b>@Model.Curriculum?.Denomination</b></div> <div><i>@Model.Curriculum?.Description</i></div>">
+            @Model.Curriculum?.Denomination <small><span class="fa fa-circle-info"></span></small>
+        </a>
+    </dd>
+
+    <dt class="col-sm-3">Inicia</dt>
+    <dd class="col-sm-9"><span class="fa fa-calendar-day"></span> @Model.Starts.ToString("dd-MM-yyyy")</dd>
+
+    <dt class="col-sm-3">Termina</dt>
+    <dd class="col-sm-9"><span class="fa fa-calendar-day"></span> @Model.Ends.ToString("dd-MM-yyyy")</dd>
+</dl>
+
+<div class="d-flex align-items-center">
+    <h3>Períodos</h3>
+    <small class="m-3"><button type="button" data-bs-toggle="modal" data-bs-target="#addPeriodModal" class="btn btn-sm btn-outline-success"><span class="fa fa-plus-circle"></span> Agregar período</button></small>
+</div>
+
+<table class="table table-responsive table-hover">
+    <thead>
+        <tr>
+            <th>Orden</th>
+            <th>Descripción</th>
+            <th>Inicia <span class="fa fa-calendar-day"></span></th>
+            <th>Termina <span class="fa fa-calendar-day"></span></th>
+            <th>Matricula</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Periods?.Any() == true)
+        {
+            foreach (var period in Model.Periods.OrderBy(p => p.OrderNumber))
+            {
+                <tr id="@period.Id">
+                    <td>@period.OrderNumber</td>
+                    <td>
+                        @if (string.IsNullOrEmpty(period.Description))
+                        {
+                            <p class="text-muted" style="font-style: italic;">Sin descripción</p>
+                        }
+                        else
+                        {
+                            @period.Description
+                        }
+                    </td>
+                    <td>@period.Starts.ToString("dd-MM-yyyy")</td>
+                    <td>@period.Ends.ToString("dd-MM-yyyy")</td>
+                    <td>@period.Enrolment</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-warning" onclick="EditPeriod('@period.Id')"><span class="fa fa-edit"></span></button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="RiseDeleteModal('@period.Id')"><span class="fa fa-trash"></span></button>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="6" align="center">
+                    <p>No existen periódos en el curso.</p>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Add period modal -->
+<div class="modal fade" id="addPeriodModal" data-bs-keyboard="false" tabindex="-1" aria-labelledby="addPeriodModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPeriodModalLabel">Nuevo período</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <fieldset>
+                    <div class="mb-3">
+                        <label for="newPeriodOrder" class="form-label">Orden</label>
+                        <input type="number" min="1" max="6" class="form-control" id="newPeriodOrder">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPeriodDescription" class="form-label">Descripción</label>
+                        <input type="text" class="form-control" id="newPeriodDescription" placeholder="Descripción del período">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPeriodStarts" class="form-label">Inicia</label>
+                        <input type="date" class="form-control" id="newPeriodStarts" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPeriodEnds" class="form-label">Termina</label>
+                        <input type="date" class="form-control" id="newPeriodEnds" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPeriodEnrolment" class="form-label">Matrícula</label>
+                        <input type="number" min="1" class="form-control" id="newPeriodEnrolment">
+                    </div>
+                </fieldset>
+            </div>
+            <div id="createModalFooter" class="modal-footer">
+                <div id="createModalLoadingSpinner" class="spinner-border text-primary" role="status" hidden>
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span class="fa fa-rectangle-xmark"></span> Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="AddPeriod()"><span class="fa fa-circle-plus"></span> Agregar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit period modal -->
+<div class="modal fade" id="editPeriodModal" data-bs-keyboard="false" tabindex="-1" aria-labelledby="editPeriodModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPeriodModalLabel">Editar período</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <fieldset>
+                    <div class="mb-3">
+                        <label for="editPeriodOrder" class="form-label">Orden</label>
+                        <input type="number" min="1" max="6" class="form-control" id="editPeriodOrder">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPeriodDescription" class="form-label">Descripción</label>
+                        <input type="text" class="form-control" id="editPeriodDescription" placeholder="Descripción del período">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPeriodStarts" class="form-label">Inicia</label>
+                        <input type="date" class="form-control" id="editPeriodStarts" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPeriodEnds" class="form-label">Termina</label>
+                        <input type="date" class="form-control" id="editPeriodEnds" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPeriodEnrolment" class="form-label">Matrícula</label>
+                        <input type="number" min="1" class="form-control" id="editPeriodEnrolment">
+                    </div>
+                </fieldset>
+            </div>
+            <div id="editModalFooter" class="modal-footer">
+                <div id="editModalLoadingSpinner" class="spinner-border text-primary" role="status" hidden>
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <input type="hidden" id="editPeriodId" />
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span class="fa fa-rectangle-xmark"></span> Cancelar</button>
+                <button type="button" class="btn btn-warning" onclick="SaveChanges()"><span class="fa fa-floppy-disk"></span> Guardar cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete modal -->
+
+<div class="modal fade" id="deletePeriodModal" tabindex="-1" aria-labelledby="deletePeriodModalTitle" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deletePeriodModalTitle"><span class="fa fa-trash"></span> Eliminar período</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div id="modal-delete-content" class="modal-body">
+                ¿Esta seguro que desea eliminar el período?
+            </div>
+            <div id="deleteModalFooter" class="modal-footer">
+                <div id="deleteModalLoadingSpinner" class="spinner-border text-primary" role="status" hidden>
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <button id="modal-delete-primarybutton" type="button" class="btn btn-danger"><span class="fa fa-trash-can"></span> Eliminar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span class="fa fa-ban"></span> Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="_MessageModal" />
+
+@section Scripts {
+    <script src="~/js/message-modal.js"></script>
+    <script src="~/lib/popper/popper.min.js"></script>
+    <script>
+        var requestingCreatePeriod = false;
+        var requestingPeriodData = false;
+        var requestingEditPeriod = false;
+
+        $(document).ready(function () {
+            var createModal = document.getElementById('addPeriodModal')
+            createModal.addEventListener('show.bs.modal', function (event) {
+                var nextOrderNumber = document.getElementById("lastPeriodOrderNumber").value;
+                var periodOrderInput = document.getElementById("newPeriodOrder");
+                periodOrderInput.value = nextOrderNumber;
+                periodOrderInput.readOnly = true;
+            });
+            LoadTooltips();
+        });
+
+        function LoadTooltips() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+
+        function AddPeriod() {
+            var periodOrder = document.getElementById("newPeriodOrder").value;
+            if (periodOrder == '') {
+                ShowError("Número de orden", "Especifique un número de orden de período.")
+                return;
+            }
+            var periodDescription = document.getElementById("newPeriodDescription").value;
+            var starts = document.getElementById("newPeriodStarts").value;
+            if (starts == '') {
+                ShowError("Fecha de inicio", "Especifique una fecha de inicio del período.")
+                return;
+            }
+            var ends = document.getElementById("newPeriodEnds").value;
+            if (ends == '') {
+                ShowError("Fecha de culminación", "Especifique una fecha de culminación del período.")
+                return;
+            }
+            var enrolment = document.getElementById("newPeriodEnrolment").value;
+            var courseId = document.getElementById("courseId").value;
+            var creationModel = {
+                OrderNumber: periodOrder,
+                Description: periodDescription,
+                Starts: starts,
+                Ends: ends,
+                Enrolment: enrolment,
+                CourseId: courseId
+            };
+
+            if (!requestingCreatePeriod) {
+                requestingCreatePeriod = true;
+                HideCreateModalButtons();
+                ShowCreateModalSpinner();
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("PUT", "/courses/createperiod", true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                xhttp.onreadystatechange = function () {
+                    if (requestingCreatePeriod) {
+                        requestingCreatePeriod = false;
+                        if (this.status == 200) {
+                            console.log(this.responseText);
+                            location.reload();
+                        } else {
+                            ShowError("Error creando periodo", `${this.status} - ${this.statusText} - ${this.responseText}`)
+                        }
+                        ShowCreateModalButtons();
+                        HideCreateModalSpinner();
+                    }
+                };
+                xhttp.send(JSON.stringify(creationModel));
+            }
+        }
+
+        function EditPeriod(id) {
+            var editModal = new bootstrap.Modal(document.getElementById('editPeriodModal'), { keyboard: true });
+            editModal.show();
+            if (!requestingPeriodData) {
+                requestingPeriodData = true;
+                HideEditModalButtons();
+                ShowEditModalSpinner();
+                $.ajax({
+                    url: `/courses/getperiod?id=${id}`,
+                    type: "GET",
+                    data: { id: id },
+                    success: function (data) {
+                        ShowEditModalButtons();
+                        HideEditModalSpinner();
+                        var period = JSON.parse(data);
+
+                        var periodOrder = document.getElementById("editPeriodOrder");
+                        periodOrder.value = period.OrderNumber;
+                        var periodDescription = document.getElementById("editPeriodDescription");
+                        periodDescription.value = period.Description;
+                        var starts = document.getElementById("editPeriodStarts");
+                        var startDate = new Date(period.Starts);
+                        var formatedStartDate = `${startDate.getFullYear()}-${(startDate.getMonth() + 1) < 10 ? "0" + (startDate.getMonth() + 1) : (startDate.getMonth() + 1)}-${startDate.getDate() < 10 ? "0" + startDate.getDate() : startDate.getDate()}`;
+                        starts.value = formatedStartDate;
+                        var ends = document.getElementById("editPeriodEnds");
+                        var endDate = new Date(period.Ends);
+                        var formatedEndDate = `${endDate.getFullYear()}-${(endDate.getMonth() + 1) < 10 ? "0" + (endDate.getMonth() + 1) : (endDate.getMonth() + 1)}-${endDate.getDate() < 10 ? "0" + endDate.getDate() : endDate.getDate()}`;
+                        ends.value = formatedEndDate;
+                        var enrolment = document.getElementById("editPeriodEnrolment");
+                        enrolment.value = period.Enrolment;
+                        var periodId = document.getElementById("editPeriodId");
+                        periodId.value = period.Id;
+                        requestingPeriodData = false;
+                    },
+                    error: function (xhr, status, error) {
+                        ShowError("Error", `${xhr.responseText} ${status} ${error}`);
+                        ShowEditModalButtons();
+                        HideEditModalSpinner();
+                    }
+                });
+            }
+        }
+
+        function SaveChanges() {
+            if (!requestingEditPeriod) {
+                var periodOrder = document.getElementById("editPeriodOrder").value;
+                if (periodOrder == '') {
+                    ShowError("Número de orden", "Especifique un número de orden de período.")
+                    return;
+                }
+                var periodDescription = document.getElementById("editPeriodDescription").value;
+                var starts = document.getElementById("editPeriodStarts").value;
+                if (starts == '') {
+                    ShowError("Fecha de inicio", "Especifique una fecha de inicio del período.")
+                    return;
+                }
+                var ends = document.getElementById("editPeriodEnds").value;
+                if (ends == '') {
+                    ShowError("Fecha de culminación", "Especifique una fecha de culminación del período.")
+                    return;
+                }
+                var enrolment = document.getElementById("editPeriodEnrolment").value;
+                var courseId = document.getElementById("courseId").value;
+                var periodId = document.getElementById("editPeriodId").value;
+                var editModel = {
+                    Id: periodId,
+                    OrderNumber: periodOrder,
+                    Description: periodDescription,
+                    Starts: starts,
+                    Ends: ends,
+                    Enrolment: enrolment,
+                    CourseId: courseId
+                };
+
+                requestingEditPeriod = true;
+
+                $.ajax({
+                    url: "/courses/updateperiod",
+                    type: "POST",
+                    dataType: "json",
+                    data: editModel,
+                    success: function (data) {
+                        requestingEditPeriod = false;
+                        ShowEditModalButtons();
+                        HideEditModalSpinner();
+                        location.reload();
+                    },
+                    error: function (xhr, status, error) {
+                        requestingEditPeriod = false;
+                        ShowError("Error", `${xhr.responseText} ${status} ${error}`);
+                        ShowEditModalButtons();
+                        HideEditModalSpinner();
+                    }
+                });
+            }
+        }
+
+        function DeletePeriod(id) {
+            ShowMessage("Eliminar", id);
+        }
+
+        function HideCreateModalButtons() {
+            var footer = document.getElementById('createModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = true;
+            }
+        }
+
+        function ShowCreateModalButtons() {
+            var footer = document.getElementById('createModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = false;
+            }
+        }
+
+        function ShowCreateModalSpinner() {
+            var spinner = document.getElementById("createModalLoadingSpinner");
+            spinner.hidden = false;
+        }
+
+        function HideCreateModalSpinner() {
+            var spinner = document.getElementById("createModalLoadingSpinner");
+            spinner.hidden = true;
+        }
+
+        function HideEditModalButtons() {
+            var footer = document.getElementById('editModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = true;
+            }
+        }
+
+        function ShowEditModalButtons() {
+            var footer = document.getElementById('editModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = false;
+            }
+        }
+
+        function ShowEditModalSpinner() {
+            var spinner = document.getElementById("editModalLoadingSpinner");
+            spinner.hidden = false;
+        }
+
+        function HideEditModalSpinner() {
+            var spinner = document.getElementById("editModalLoadingSpinner");
+            spinner.hidden = true;
+        }
+
+        var deleteModal = new bootstrap.Modal(document.getElementById('deletePeriodModal'), { keyboard: true });
+        requestingDelete = false;
+
+        function RiseDeleteModal(id) {
+            var period = GetPeriodDenomination(id);
+            SetDeleteModalTextContent("¿Esta seguro que desea eliminar el periodo '" + period + "'?");
+            var button = document.getElementById("modal-delete-primarybutton");
+            button.onclick = function () {
+                SendDeletePeriodRequest(id);
+            };
+            deleteModal.show();
+        }
+
+        function SendDeletePeriodRequest(id) {
+            if (!requestingDelete) {
+                requestingDelete = true;
+                HideDeleteModalButtons();
+                ShowDeleteModalSpinner();
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("DELETE", "/courses/deleteperiod?id=" + id, true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        // Response
+                        var response = this.responseText;
+                        console.log(response);
+                        deleteModal.hide();
+                        location.reload();
+                    }
+                    requestingDelete = false;
+                    ShowDeleteModalButtons();
+                    HideDeleteModalSpinner();
+                };
+                xhttp.send();
+            }
+        }
+
+        function GetPeriodDenomination(id) {
+            var row = document.getElementById(id);
+            var nameValue = row.children[0].innerHTML;
+            return nameValue;
+        }
+
+        function SetDeleteModalTextContent(value) {
+            var content = document.getElementById('modal-delete-content');
+            content.innerHTML = value;
+        }
+
+        function HideDeleteModalButtons() {
+            var footer = document.getElementById('deleteModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = true;
+            }
+        }
+
+        function ShowDeleteModalButtons() {
+            var footer = document.getElementById('deleteModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = false;
+            }
+        }
+
+        function ShowDeleteModalSpinner() {
+            var spinner = document.getElementById("deleteModalLoadingSpinner");
+            spinner.hidden = false;
+        }
+
+        function HideDeleteModalSpinner() {
+            var spinner = document.getElementById("deleteModalLoadingSpinner");
+            spinner.hidden = true;
+        }
+    </script>
+}

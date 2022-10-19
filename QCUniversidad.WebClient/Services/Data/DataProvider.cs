@@ -21,12 +21,16 @@ using System.Text;
 using System.Threading.Tasks;
 using QCUniversidad.WebClient.Models.Curriculums;
 using QCUniversidad.Api.Shared.Dtos.Curriculum;
-using QCUniversidad.WebClient.Models.SchoolYears;
+using QCUniversidad.WebClient.Models.Courses;
 using QCUniversidad.WebClient.Models.Periods;
-using QCUniversidad.Api.Shared.Dtos.SchoolYear;
+using QCUniversidad.Api.Shared.Dtos.Course;
 using QCUniversidad.Api.Shared.Dtos.Period;
 using QCUniversidad.WebClient.Models.Planning;
 using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
+using QCUniversidad.WebClient.Models.SchoolYears;
+using QCUniversidad.Api.Shared.Dtos.SchoolYear;
+using QCUniversidad.Api.Shared.Dtos.LoadItem;
+using QCUniversidad.WebClient.Models.LoadDistribution;
 
 namespace QCUniversidad.WebClient.Services.Data;
 
@@ -584,6 +588,28 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
+    public async Task<IList<TeacherModel>> GetTeachersOfDepartmentNotAssignedToLoadItemAsync(Guid departmentId, Guid planItemId, Guid? disciplineId = null)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/teacher/listofdepartmentnotinplanitem?departmentId={departmentId}&planItemId={planItemId}{(disciplineId is not null ? $"&disciplineId={disciplineId}" : "")}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var teachers = JsonConvert.DeserializeObject<IList<TeacherDto>>(contentText);
+            return teachers?.Select(f => _mapper.Map<TeacherModel>(f)).ToList() ?? new List<TeacherModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<bool> SetLoadItemAsync(CreateLoadItemModel newLoadItem)
+    {
+        var dto = _mapper.Map<NewLoadItemDto>(newLoadItem);
+        var serializedDto = JsonConvert.SerializeObject(newLoadItem);
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.PutAsync("/teacher/setload", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
+    }
+
     #endregion
 
     #region Subjects
@@ -601,10 +627,10 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
-    public async Task<IList<SubjectModel>> GetSubjectsForSchoolYearAsync(Guid schoolYearId)
+    public async Task<IList<SubjectModel>> GetSubjectsForCourseAsync(Guid courseId)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-        var response = await client.GetAsync($"/subject/getforschoolyear?schoolYearId={schoolYearId}");
+        var response = await client.GetAsync($"/subject/getforcourse?courseId={courseId}");
         if (response.IsSuccessStatusCode)
         {
             var contentText = await response.Content.ReadAsStringAsync();
@@ -783,25 +809,56 @@ public class DataProvider : IDataProvider
 
     #region SchoolYears
 
-    public async Task<Guid> CreateSchoolYearAsync(SchoolYearModel schoolYear)
+    public async Task<SchoolYearModel> GetCurrentSchoolYear()
     {
-        if (schoolYear is not null)
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/schoolyear/current");
+        if (response.IsSuccessStatusCode)
         {
-            var dto = _mapper.Map<NewSchoolYearDto>(schoolYear);
-            var serializedDtos = JsonConvert.SerializeObject(dto);
-            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-            var response = await client.PutAsync("/schoolyear", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
-            if (response.IsSuccessStatusCode)
-            {
-                var responseText = await response.Content.ReadAsStringAsync();
-                var id = JsonConvert.DeserializeObject<Guid>(responseText);
-                return id;
-            }
+            var schoolYear = JsonConvert.DeserializeObject<SchoolYearDto>(await response.Content.ReadAsStringAsync());
+            return _mapper.Map<SchoolYearModel>(schoolYear);
         }
-        throw new ArgumentNullException(nameof(schoolYear));
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
-    public async Task<bool> ExistsSchoolYearAsync(Guid id)
+    public async Task<SchoolYearModel> GetSchoolYearAsync(Guid id)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/schoolyear?id={id}");
+        if (response.IsSuccessStatusCode)
+        {
+            var schoolYear = JsonConvert.DeserializeObject<SchoolYearDto>(await response.Content.ReadAsStringAsync());
+            return _mapper.Map<SchoolYearModel>(schoolYear);
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from = 0, int to = 0)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/schoolyear/list?from={from}&to={to}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var schoolYears = JsonConvert.DeserializeObject<IList<SchoolYearDto>>(contentText);
+            return schoolYears?.Select(f => _mapper.Map<SchoolYearModel>(f)).ToList() ?? new List<SchoolYearModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<int> GetSchoolYearTotalAsync()
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/schoolyear/count");
+        if (response.IsSuccessStatusCode)
+        {
+            var total = int.Parse(await response.Content.ReadAsStringAsync());
+            return total;
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<bool> ExistSchoolYearAsync(Guid id)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
         var response = await client.GetAsync($"/schoolyear/exists?id={id}");
@@ -814,67 +871,17 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
-    public async Task<bool> CheckSchoolYearExistenceByCareerYearAndModality(Guid careerId, int careerYear, int modality)
+    public async Task<bool> CreateSchoolYearAsync(SchoolYearModel schoolYear)
     {
-        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-        var response = await client.GetAsync($"/schoolyear/existsbycareeryearandmodality?careerId={careerId}&careerYear={careerYear}&modality={modality}");
-        if (response.IsSuccessStatusCode)
+        if (schoolYear is not null)
         {
-            var contentText = await response.Content.ReadAsStringAsync();
-            var result = JsonConvert.DeserializeObject<bool>(contentText);
-            return result;
+            var dto = _mapper.Map<NewSchoolYearDto>(schoolYear);
+            var serializedDtos = JsonConvert.SerializeObject(dto);
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.PutAsync("/schoolyear", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
+            return response.IsSuccessStatusCode;
         }
-        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
-    }
-
-    public async Task<int> GetSchoolYearsCountAsync()
-    {
-        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-        var response = await client.GetAsync($"/schoolyear/count");
-        if (response.IsSuccessStatusCode)
-        {
-            var total = int.Parse(await response.Content.ReadAsStringAsync());
-            return total;
-        }
-        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
-    }
-
-    public async Task<int> GetSchoolYearPeriodsCountAsync(Guid schoolYearId)
-    {
-        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-        var response = await client.GetAsync($"/schoolyear/periodscount");
-        if (response.IsSuccessStatusCode)
-        {
-            var total = int.Parse(await response.Content.ReadAsStringAsync());
-            return total;
-        }
-        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
-    }
-
-    public async Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from = 0, int to = 0)
-    {
-        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-        var response = await client.GetAsync($"/schoolyear/list?from={from}&to={to}");
-        var responseText = await response.Content.ReadAsStringAsync();
-        if (response.IsSuccessStatusCode)
-        {
-            var contentText = await response.Content.ReadAsStringAsync();
-            var schoolYears = JsonConvert.DeserializeObject<IList<SchoolYearDto>>(contentText);
-            return schoolYears?.Select(f => _mapper.Map<SchoolYearModel>(f)).ToList() ?? new List<SchoolYearModel>();
-        }
-        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
-    }
-
-    public async Task<SchoolYearModel> GetSchoolYearAsync(Guid id)
-    {
-        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-        var response = await client.GetAsync($"/schoolyear?id={id}");
-        if (response.IsSuccessStatusCode)
-        {
-            var discipline = JsonConvert.DeserializeObject<SchoolYearDto>(await response.Content.ReadAsStringAsync());
-            return _mapper.Map<SchoolYearModel>(discipline);
-        }
-        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        throw new ArgumentNullException(nameof(schoolYear));
     }
 
     public async Task<bool> UpdateSchoolYearAsync(SchoolYearModel schoolYear)
@@ -884,7 +891,7 @@ public class DataProvider : IDataProvider
             var dto = _mapper.Map<EditSchoolYearDto>(schoolYear);
             var serializedDto = JsonConvert.SerializeObject(dto);
             var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-            var response = await client.PostAsync("/schoolyear/update", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+            var response = await client.PostAsync("/schoolYear/update", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
         throw new ArgumentNullException(nameof(schoolYear));
@@ -901,16 +908,138 @@ public class DataProvider : IDataProvider
         throw new ArgumentNullException(nameof(id));
     }
 
-    public async Task<IList<SchoolYearModel>> GetSchoolYearsForDepartment(Guid departmentId)
+    #endregion
+
+    #region Courses
+
+    public async Task<Guid> CreateCourseAsync(CourseModel course)
+    {
+        if (course is not null)
+        {
+            var dto = _mapper.Map<NewCourseDto>(course);
+            var serializedDtos = JsonConvert.SerializeObject(dto);
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.PutAsync("/course", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
+            if (response.IsSuccessStatusCode)
+            {
+                var responseText = await response.Content.ReadAsStringAsync();
+                var id = JsonConvert.DeserializeObject<Guid>(responseText);
+                return id;
+            }
+        }
+        throw new ArgumentNullException(nameof(course));
+    }
+
+    public async Task<bool> ExistsCourseAsync(Guid id)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-        var response = await client.GetAsync($"/schoolyear/listfordepartment?departmentId={departmentId}");
+        var response = await client.GetAsync($"/course/exists?id={id}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<bool>(contentText);
+            return result;
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<bool> CheckCourseExistenceByCareerYearAndModality(Guid careerId, int careerYear, int modality)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/course/existsbycareeryearandmodality?careerId={careerId}&careerYear={careerYear}&modality={modality}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<bool>(contentText);
+            return result;
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<int> GetCoursesCountAsync()
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/course/count");
+        if (response.IsSuccessStatusCode)
+        {
+            var total = int.Parse(await response.Content.ReadAsStringAsync());
+            return total;
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<int> GetCoursePeriodsCountAsync(Guid courseId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/course/periodscount");
+        if (response.IsSuccessStatusCode)
+        {
+            var total = int.Parse(await response.Content.ReadAsStringAsync());
+            return total;
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<IList<CourseModel>> GetCoursesAsync(int from = 0, int to = 0)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/course/list?from={from}&to={to}");
         var responseText = await response.Content.ReadAsStringAsync();
         if (response.IsSuccessStatusCode)
         {
             var contentText = await response.Content.ReadAsStringAsync();
-            var schoolYears = JsonConvert.DeserializeObject<IList<SchoolYearDto>>(contentText);
-            return schoolYears?.Select(f => _mapper.Map<SchoolYearModel>(f)).ToList() ?? new List<SchoolYearModel>();
+            var courses = JsonConvert.DeserializeObject<IList<CourseDto>>(contentText);
+            return courses?.Select(f => _mapper.Map<CourseModel>(f)).ToList() ?? new List<CourseModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<CourseModel> GetCourseAsync(Guid id)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/course?id={id}");
+        if (response.IsSuccessStatusCode)
+        {
+            var discipline = JsonConvert.DeserializeObject<CourseDto>(await response.Content.ReadAsStringAsync());
+            return _mapper.Map<CourseModel>(discipline);
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<bool> UpdateCourseAsync(CourseModel course)
+    {
+        if (course is not null)
+        {
+            var dto = _mapper.Map<EditCourseDto>(course);
+            var serializedDto = JsonConvert.SerializeObject(dto);
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.PostAsync("/course/update", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+            return response.IsSuccessStatusCode;
+        }
+        throw new ArgumentNullException(nameof(course));
+    }
+
+    public async Task<bool> DeleteCourseAsync(Guid id)
+    {
+        if (id != Guid.Empty)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.DeleteAsync($"/course?id={id}");
+            return response.IsSuccessStatusCode;
+        }
+        throw new ArgumentNullException(nameof(id));
+    }
+
+    public async Task<IList<CourseModel>> GetCoursesForDepartment(Guid departmentId, Guid? schoolYearId = null)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/course/listfordepartment?departmentId={departmentId}{(schoolYearId is not null ? $"&schoolYearId={schoolYearId}" : "")}");
+        var responseText = await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var courses = JsonConvert.DeserializeObject<IList<CourseDto>>(contentText);
+            return courses?.Select(f => _mapper.Map<CourseModel>(f)).ToList() ?? new List<CourseModel>();
         }
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
@@ -1006,10 +1135,10 @@ public class DataProvider : IDataProvider
         throw new ArgumentNullException(nameof(id));
     }
 
-    public async Task<IList<PeriodModel>> GetPeriodsOfSchoolYearForDepartment(Guid schoolYearId, Guid departmentId)
+    public async Task<IList<PeriodModel>> GetPeriodsOfCourseForDepartment(Guid courseId, Guid departmentId)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-        var response = await client.GetAsync($"/period/listofschoolyearfordepartment?schoolYearId={schoolYearId}&departmentId={departmentId}");
+        var response = await client.GetAsync($"/period/listofcoursefordepartment?courseId={courseId}&departmentId={departmentId}");
         if (response.IsSuccessStatusCode)
         {
             var contentText = await response.Content.ReadAsStringAsync();
@@ -1137,7 +1266,7 @@ public class DataProvider : IDataProvider
         if (response.IsSuccessStatusCode)
         {
             var contentText = await response.Content.ReadAsStringAsync();
-            var periods = JsonConvert.DeserializeObject<IList<TeachingPlanItemSimpleDto>>(contentText);
+            var periods = JsonConvert.DeserializeObject<IList<TeachingPlanItemDto>>(contentText);
             return periods?.Select(f => _mapper.Map<TeachingPlanItemModel>(f)).ToList() ?? new List<TeachingPlanItemModel>();
         }
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");

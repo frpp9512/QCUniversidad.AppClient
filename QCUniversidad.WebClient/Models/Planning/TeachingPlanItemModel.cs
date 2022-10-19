@@ -1,4 +1,5 @@
 ﻿using QCUniversidad.Api.Shared.Enums;
+using QCUniversidad.WebClient.Models.LoadItem;
 using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.Subjects;
 using System.ComponentModel.DataAnnotations;
@@ -28,7 +29,15 @@ public class TeachingPlanItemModel
     [Display(Name = "Horas planificadas", Description = "Total de horas planificadas", Prompt = "Cantidad de horas planificadas")]
     public double TotalHoursPlanned { get; set; }
 
+    public double? TotalLoadCovered { get; set; }
+
+    public double? LoadCoveredPercent { get; set; }
+
+    public bool? AllowLoad { get; set; }
+
     public bool? FromPostgraduateCourse { get; set; }
+
+    public IList<LoadItemModel>? LoadItems { get; set; }
 
     public Guid PeriodId { get; set; }
     public PeriodModel Period { get; set; }

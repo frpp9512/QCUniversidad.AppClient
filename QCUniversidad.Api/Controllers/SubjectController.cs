@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QCUniversidad.Api.Data.Models;
-using QCUniversidad.Api.Migrations;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Subject;
 using System;
@@ -36,16 +35,16 @@ public class SubjectController : ControllerBase
     }
 
     [HttpGet]
-    [Route("getforschoolyear")]
-    public async Task<IActionResult> GetListForSchoolYear(Guid schoolYearId)
+    [Route("getforcourse")]
+    public async Task<IActionResult> GetListForCourse(Guid courseId)
     {
         try
         {
-            if (!await _dataManager.ExistsSchoolYearAsync(schoolYearId))
+            if (!await _dataManager.ExistsCourseAsync(courseId))
             {
                 return BadRequest("The school year do not exists.");
             }
-            var result = await _dataManager.GetSubjectsForSchoolYearAsync(schoolYearId);
+            var result = await _dataManager.GetSubjectsForCourseAsync(courseId);
             var dtos = result.Select(r => _mapper.Map<SubjectDto>(r));
             return Ok(dtos);
         }

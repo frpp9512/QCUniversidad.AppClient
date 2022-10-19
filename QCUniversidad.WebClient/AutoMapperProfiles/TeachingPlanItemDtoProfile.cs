@@ -22,6 +22,7 @@ namespace QCUniversidad.WebClient.AutoMapperProfiles
             CreateMap<CreateTeachingPlanItemModel, TeachingPlanItemModel>();
             CreateMap<TeachingPlanItemModel, EditTeachingPlanItemModel>();
             CreateMap<EditTeachingPlanItemModel, TeachingPlanItemModel>();
+            CreateMap<TeachingPlanItemModel, EditTeachingPlanItemDto>();
         }
     }
 }

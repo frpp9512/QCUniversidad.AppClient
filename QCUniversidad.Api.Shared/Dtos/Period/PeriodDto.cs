@@ -1,6 +1,6 @@
 ﻿using QCUniversidad.Api.Shared.Dtos.Career;
 using QCUniversidad.Api.Shared.Dtos.Curriculum;
-using QCUniversidad.Api.Shared.Dtos.SchoolYear;
+using QCUniversidad.Api.Shared.Dtos.Course;
 using QCUniversidad.Api.Shared.Enums;
 using System;
 using System.Collections.Generic;
@@ -18,6 +18,6 @@ public record PeriodDto
     public DateTimeOffset Starts { get; set; }
     public DateTimeOffset Ends { get; set; }
     public uint Enrolment { get; set; }
-    public Guid SchoolYearId { get; set; }
-    public SchoolYearDto SchoolYear { get; set; }
+    public Guid CourseId { get; set; }
+    public CourseDto Course { get; set; }
 }

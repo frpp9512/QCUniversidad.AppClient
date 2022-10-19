@@ -4,10 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Discipline;
+using QCUniversidad.Api.Shared.Dtos.LoadItem;
 using QCUniversidad.Api.Shared.Dtos.Teacher;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -173,6 +175,61 @@ public class TeacherController : ControllerBase
             var result = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
             var dtos = result.Select(i => _mapper.Map<TeacherModel>(i));
             return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("listofdepartmentnotinplanitem")]
+    public async Task<IActionResult> GetTeachersOfDepartmentNotInLoadItem(Guid departmentId, Guid planItemId, Guid? disciplineId = null)
+    {
+        if (departmentId == Guid.Empty)
+        {
+            return BadRequest("You must provide a department id.");
+        }
+        try
+        {
+            var result = await _dataManager.GetTeachersOfDepartmentNotAssignedToPlanItemAsync(departmentId, planItemId, disciplineId);
+            var dtos = result.Select(i => _mapper.Map<TeacherDto>(i));
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpPut]
+    [Route("setload")]
+    public async Task<IActionResult> SetLoadItem(NewLoadItemDto newLoadItem)
+    {
+        try
+        {
+            var result = await _dataManager.SetLoadToTeacher(newLoadItem.TeacherId, newLoadItem.PlanningItemId, newLoadItem.HoursCovered);
+            return result ? Ok(result) : Problem();
+        }
+        catch (ArgumentNullException ex)
+        {
+            return Problem(ex.Message);
+        }
+        catch (TeacherNotFoundException)
+        {
+            return NotFound("Teacher not found.");
+        }
+        catch (TeachingPlanItemNotFoundException)
+        {
+            return NotFound("Plan item not found.");
+        }
+        catch (PlanItemFullyCoveredException)
+        {
+            return BadRequest("The plan item is already covered.");
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return BadRequest("The hours should be greater than zero.");
         }
         catch (Exception ex)
         {

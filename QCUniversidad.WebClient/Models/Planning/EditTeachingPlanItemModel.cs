@@ -1,6 +1,6 @@
 ﻿using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.WebClient.Models.Periods;
-using QCUniversidad.WebClient.Models.SchoolYears;
+using QCUniversidad.WebClient.Models.Courses;
 using QCUniversidad.WebClient.Models.Subjects;
 using System;
 using System.Collections.Generic;
@@ -14,6 +14,8 @@ namespace QCUniversidad.WebClient.Models.Planning
 {
     public class EditTeachingPlanItemModel
     {
+        public Guid Id { get; set; }
+
         [Required]
         [Display(Name = "Asignatura", Description = "Asignatura planificada", Prompt = "Asignatura planificada")]
         public Guid SubjectId { get; set; }
@@ -35,8 +37,8 @@ namespace QCUniversidad.WebClient.Models.Planning
 
         public PeriodModel? Period { get; set; }
 
-        public Guid? SchoolYearId { get; set; }
-        public SchoolYearModel? SchoolYear { get; set; }
+        public Guid? CourseId { get; set; }
+        public CourseModel? Course { get; set; }
         public IList<SubjectModel>? Subjects { get; set; }
     }
 }
