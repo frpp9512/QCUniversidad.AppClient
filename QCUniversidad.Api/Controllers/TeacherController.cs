@@ -183,6 +183,46 @@ public class TeacherController : ControllerBase
     }
 
     [HttpGet]
+    [Route("listofdepartmentforperiod")]
+    public async Task<IActionResult> GetTeachersOfDepartmentForPeriod(Guid departmentId, Guid periodId)
+    {
+        if (departmentId == Guid.Empty)
+        {
+            return BadRequest("You must provide a department id.");
+        }
+        try
+        {
+            var result = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
+            var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
+            var dtos = result.Select(i => _mapper.Map<TeacherDto>(i, opts => opts.AfterMap(async (o, teacher) => 
+            {
+                var load = await _dataManager.GetTeacherLoadInPeriodAsync(teacher.Id, periodId);
+                teacher.Load = new TeacherLoadDto
+                {
+                    TeacherId = teacher.Id,
+                    TimeFund = periodTimeFund,
+                    Load = load,
+                    LoadPercent = Math.Round((load / periodTimeFund) * 100, 2),
+                    PeriodId = periodId
+                };
+                if (i.TeacherDisciplines?.Any() == true)
+                {
+                    teacher.Disciplines ??= new List<PopulatedDisciplineDto>();
+                    foreach (var td in i.TeacherDisciplines)
+                    {
+                        teacher.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
+                    }
+                }
+            })));
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
     [Route("listofdepartmentnotinplanitem")]
     public async Task<IActionResult> GetTeachersOfDepartmentNotInLoadItem(Guid departmentId, Guid planItemId, Guid? disciplineId = null)
     {
@@ -230,6 +270,25 @@ public class TeacherController : ControllerBase
         catch (ArgumentOutOfRangeException)
         {
             return BadRequest("The hours should be greater than zero.");
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpDelete]
+    [Route("deleteload")]
+    public async Task<IActionResult> DeleteLoadItem(Guid loadItemId)
+    {
+        try
+        {
+            var result = await _dataManager.DeleteLoadFromTeacherAsync(loadItemId);
+            return result ? Ok(result) : Problem();
+        }
+        catch (LoadItemNotFoundException)
+        {
+            return NotFound();
         }
         catch (Exception ex)
         {

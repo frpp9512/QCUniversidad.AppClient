@@ -19,6 +19,7 @@ namespace QCUniversidad.WebClient.AutoMapperProfiles
             CreateMap<TeacherModel, NewTeacherDto>();
             CreateMap<EditTeacherDto, TeacherModel>();
             CreateMap<TeacherModel, EditTeacherDto>();
+            CreateMap<TeacherLoadDto, TeacherLoadModel>();
         }
     }
 }

@@ -490,6 +490,10 @@ dd {
             transition: 0.3s;
         }
 
+        .load-item-header-buttons button:disabled:hover {
+            background-color: #ddd;
+        }
+
 .load-item-body {
     border-top: 1px solid #ddd;
     background-color: white;
@@ -514,10 +518,41 @@ dd {
     border-radius: 5px;
 }
 
+.load-item-row-key {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
 .load-item-row-value {
     border-left: 1px solid #ddd;
     padding-left: 10px;
     font-weight: bold;
     min-width: 35px;
     text-align: right;
+}
+
+.load-item-row-valuesection {
+    display: flex;
+    flex-direction: row;
+}
+
+.load-item-row-btns {
+    display: flex;
+    justify-content: end;
+}
+
+    .load-item-row-btns button {
+        border-radius: 50px;
+        border: none;
+        font-size: 0.7rem;
+        padding: 3px;
+        width: 25px;
+        height: 25px;
+        margin-right: 10px;
+    }
+
+.load-item-deletebtn:hover {
+    color: white;
+    background-color: #ff0000;
 }

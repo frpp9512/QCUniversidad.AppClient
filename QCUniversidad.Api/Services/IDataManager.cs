@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Shared.Enums;
 using System;
@@ -80,9 +81,10 @@ public interface IDataManager
     Task<bool> UpdateTeacherAsync(TeacherModel teacher);
     Task<bool> DeleteTeacherAsync(Guid id);
     Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId);
+    Task<double> GetTeacherLoadInPeriodAsync(Guid teacherId, Guid periodId);
     Task<IList<TeacherModel>> GetTeachersOfDepartmentNotAssignedToPlanItemAsync(Guid departmentId, Guid planItemId, Guid? disciplineId = null);
-
     Task<bool> SetLoadToTeacher(Guid teacherId, Guid planItemId, double hours);
+    Task<bool> DeleteLoadFromTeacherAsync(Guid loadItemId);
 
     #endregion
 
@@ -152,8 +154,8 @@ public interface IDataManager
     Task<PeriodModel> GetPeriodAsync(Guid id);
     Task<bool> UpdatePeriodAsync(PeriodModel period);
     Task<bool> DeletePeriodAsync(Guid id);
-
     Task<IList<PeriodModel>> GetPeriodsOfCourseForDepartment(Guid courseId, Guid departmentId);
+    Task<double> GetPeriodTimeFund(Guid periodId);
 
     #endregion
 

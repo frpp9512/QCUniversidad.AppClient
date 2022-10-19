@@ -6,6 +6,7 @@ using QCUniversidad.Api.ConfigurationModels;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Department;
+using QCUniversidad.Api.Shared.Dtos.Teacher;
 using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
 using System;
 using System.Collections.Generic;
@@ -191,7 +192,28 @@ public class DepartmentController : ControllerBase
         try
         {
             var result = await _dataManager.GetTeachingPlanItemsOfDepartmentOnPeriod(id, periodId);
-            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemDto>(i));
+            var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
+            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemDto>(i, opts => opts.AfterMap(async (o, planItem) => 
+            {
+                if (planItem.LoadItems is not null)
+                {
+                    foreach (var loadItem in planItem.LoadItems)
+                    {
+                        if (loadItem.Teacher is not null)
+                        {
+                            var load = await _dataManager.GetTeacherLoadInPeriodAsync(loadItem.Teacher.Id, periodId);
+                            loadItem.Teacher.Load = new TeacherLoadDto
+                            {
+                                TeacherId = loadItem.Teacher.Id,
+                                TimeFund = periodTimeFund,
+                                Load = load,
+                                LoadPercent = Math.Round((load / periodTimeFund) * 100, 2),
+                                PeriodId = periodId
+                            };
+                        }
+                    }
+                }
+            })));
             return Ok(dtos);
         }
         catch (Exception ex)

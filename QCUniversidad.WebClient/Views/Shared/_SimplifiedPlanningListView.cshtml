@@ -6,7 +6,7 @@
     var types = Model.Select(tp => tp.Type).Distinct();
 }
 
-<div class="d-flex justify-content-between">
+<div class="d-flex justify-content-between mt-2">
     <div>
         <h4>Planificación del período para el departamento</h4>
     </div>
@@ -14,8 +14,11 @@
         <button class="btn btn-sm btn-outline-primary" style="margin-right: 5px;" id="showTable" onclick="SetView('table')">
             <span class="fa fa-table"></span>
         </button>
-        <button class="btn btn-sm btn-primary" id="showGrid" onclick="SetView('grid')">
+        <button class="btn btn-sm btn-primary" style="margin-right: 15px;" id="showGrid" onclick="SetView('grid')">
             <span class="fa fa-grip"></span>
+        </button>
+        <button class="btn btn-sm btn-info" onclick="LoadPlanningItems()">
+            <span class="fa fa-refresh"></span>
         </button>
     </div>
 </div>
@@ -130,14 +133,10 @@
                         </div>
                     </div>
                     <div class="load-item-header-supvalue" style="width: 50px;">
-                        <svg data-value="@item.LoadCoveredPercent" class="circle-percentage" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-chart-pie'></span> Gráfico</small></div> <div><b>Carga distribuida</b></div> <div>Representa el porciento de carga distribuida.</div>">
-                            <circle r="45" cx="50" cy="50" />
-                            <path class="meter" d="M5,50a45,45 0 1,0 90,0a45,45 0 1,0 -90,0" stroke-linecap="round" stroke-linejoin="round" stroke-dashoffset="282.78302001953125" stroke-dasharray="282.78302001953125" />
-                            <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="2.6rem"></text>
-                        </svg>
+                        <partial name="_CircleIndicator" model="(item.LoadCoveredPercent.Value, 30)" />
                     </div>
                     <div class="load-item-header-buttons">
-                        <button onclick="RiseAddLoadModal('@item.Id', '@item.Subject?.DisciplineId')"><span class="fa fa-user-plus"></span></button>
+                        <button onclick="RiseAddLoadModal('@item.Id', '@item.Subject?.DisciplineId')" @(!item.AllowLoad.Value ? "disabled" : "")><span class="fa fa-user-plus"></span></button>
                         <button class="pi-toggle-btn" data-bs-toggle="collapse" data-bs-target="#pi@(itemIndex)" aria-expanded="false"><span class="fa fa-chevron-down"></span></button>
                     </div>
                 </div>
@@ -149,10 +148,16 @@
                             {
                                 <div class="load-item-row">
                                     <div class="load-item-row-key">
-                                        @loadItem.Teacher?.Fullname <small><span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Profesor</small></div> <div><b>@loadItem.Teacher.Fullname</b></div> <div>@loadItem.Teacher.PersonalId</div> <div><small>@loadItem.Teacher.Position</small></div>"></span></small>
+                                        @loadItem.Teacher?.Fullname <span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Profesor</small></div> <div><b>@loadItem.Teacher.Fullname</b></div> <div>@loadItem.Teacher.PersonalId</div> <div><small>@loadItem.Teacher.Position</small></div>"></span>
+                                        <partial name="_CircleIndicator" model="(loadItem.Teacher.Load.LoadPercent, 15)" />
                                     </div>
-                                    <div class="load-item-row-value">
-                                        @loadItem.HoursCovered
+                                    <div class="load-item-row-valuesection">
+                                        <div class="load-item-row-btns">
+                                            <button class="load-item-deletebtn"><span class="fa fa-trash"></span></button>
+                                        </div>
+                                        <div class="load-item-row-value">
+                                            @loadItem.HoursCovered
+                                        </div>
                                     </div>
                                 </div>
                             }

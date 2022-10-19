@@ -85,6 +85,8 @@ public interface IDataProvider
     Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId);
     Task<IList<TeacherModel>> GetTeachersOfDepartmentNotAssignedToLoadItemAsync(Guid departmentId, Guid planItemId, Guid? disciplineId = null);
     Task<bool> SetLoadItemAsync(CreateLoadItemModel newLoadItem);
+    Task<IList<TeacherModel>> GetTeachersOfDepartmentForPeriodAsync(Guid departmentId, Guid periodId);
+    Task<bool> DeleteLoadItemAsync(Guid loadItemId);
 
     #endregion
 
@@ -168,7 +170,7 @@ public interface IDataProvider
     Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItemModel period);
     Task<bool> DeleteTeachingPlanItemAsync(Guid id);
 
-    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId);
+    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriodAsync(Guid departmentId, Guid periodId);
 
     #endregion
 }

@@ -42,6 +42,11 @@ namespace QCUniversidad.Api.Data.Models
         public uint Enrolment { get; set; }
 
         /// <summary>
+        /// The time fund for the teachers in the period.
+        /// </summary>
+        public double TimeFund { get; set; }
+
+        /// <summary>
         /// The set of teaching items.
         /// </summary>
         public IList<TeachingPlanItemModel> TeachingPlan { get; set; }

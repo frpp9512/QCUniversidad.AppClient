@@ -18,6 +18,7 @@ public record PeriodDto
     public DateTimeOffset Starts { get; set; }
     public DateTimeOffset Ends { get; set; }
     public uint Enrolment { get; set; }
+    public double TimeFund { get; set; }
     public Guid CourseId { get; set; }
     public CourseDto Course { get; set; }
 }

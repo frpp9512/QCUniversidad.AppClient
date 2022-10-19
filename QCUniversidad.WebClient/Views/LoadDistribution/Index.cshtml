@@ -37,8 +37,18 @@
 </div>
 
 <div class="container">
-    <div class="row">
-        <div id="load" class="col">
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="load-tab" data-bs-toggle="tab" data-bs-target="#load" type="button" role="tab" aria-controls="home" aria-selected="true"><span class="fa fa-truck-ramp-box"></span> Carga</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="work-force-tab" data-bs-toggle="tab" data-bs-target="#work-force" type="button" role="tab" aria-controls="profile" aria-selected="false"><span class="fa fa-users-between-lines"></span> Fuerza de trabajo</button>
+        </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="load" role="tabpanel" aria-labelledby="home-tab">
+        </div>
+        <div class="tab-pane fade" id="work-force" role="tabpanel" aria-labelledby="profile-tab">
         </div>
     </div>
 </div>
@@ -69,7 +79,7 @@
         function SetToggleButtons() {
             let buttons = document.querySelectorAll("button.pi-toggle-btn");
             if (buttons.length > 0) {
-                buttons.forEach(b => b.onclick = function() {
+                buttons.forEach(b => b.onclick = function () {
                     b.children[0].classList.toggle("fa-chevron-down");
                     b.children[0].classList.toggle("fa-chevron-up");
                 });
@@ -109,11 +119,8 @@
             });
         }
 
-        function PeriodSelected() {
-            const periodsSelect = document.getElementById("selectedPeriod");
-            selectedPeriod = periodsSelect.options[periodsSelect.selectedIndex].value;
+        function LoadPlanningItems() {
             SetLoadingPlanning();
-
             $.ajax({
                 url: `/loaddistribution/GetPlanningItemsView?periodId=${selectedPeriod}&departmentId=${selectedDepartment}`,
                 type: "GET",
@@ -131,10 +138,37 @@
                     console.log(xhr, status, error);
                 }
             });
+        }
+
+        function LoadTeachers() {
+            SetLoadingTeachers();
+            $.ajax({
+                url: `/loaddistribution/GetTeachersForDepartmentInPeriod?periodId=${selectedPeriod}&departmentId=${selectedDepartment}`,
+                type: "GET",
+                success: function (data) {
+                    DisableLoadingTeachers();
+                    const planningDetailsDiv = document.getElementById("work-force");
+                    planningDetailsDiv.innerHTML = data;
+                    LoadTooltips();
+                    LoadMeters();
+                },
+                error: function (xhr, status, error) {
+                    DisableLoadingTeachers();
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function PeriodSelected() {
+            const periodsSelect = document.getElementById("selectedPeriod");
+            selectedPeriod = periodsSelect.options[periodsSelect.selectedIndex].value;
+
+            LoadPlanningItems(selectedPeriod);
+            LoadTeachers(selectedPeriod);
 
             LoadTooltips();
 
-            console.log("periods select changed", periodsSelect.selectedIndex, selected);
+            console.log("periods select changed", periodsSelect.selectedIndex, selectedPeriod);
         }
 
         function CreateSpinnerNode() {
@@ -163,6 +197,29 @@
 
         function DisableLoadingPlanning() {
             const planningDetailsDiv = document.getElementById("load");
+            planningDetailsDiv.innerHTML = "";
+            planningDetailsDiv.classList.remove("d-flex");
+            planningDetailsDiv.classList.remove("justify-content-center");
+            const periodsSelect = document.getElementById("selectedPeriod");
+            periodsSelect.disabled = false;
+            const coursesSelect = document.getElementById("selectedSchoolarYear");
+            coursesSelect.disabled = false;
+        }
+
+        function SetLoadingTeachers() {
+            const planningDetailsDiv = document.getElementById("work-force");
+            planningDetailsDiv.innerHTML = "";
+            planningDetailsDiv.classList.add("d-flex");
+            planningDetailsDiv.classList.add("justify-content-center");
+            planningDetailsDiv.appendChild(CreateSpinnerNode());
+            const periodsSelect = document.getElementById("selectedPeriod");
+            periodsSelect.disabled = true;
+            const coursesSelect = document.getElementById("selectedSchoolarYear");
+            coursesSelect.disabled = true;
+        }
+
+        function DisableLoadingTeachers() {
+            const planningDetailsDiv = document.getElementById("work-force");
             planningDetailsDiv.innerHTML = "";
             planningDetailsDiv.classList.remove("d-flex");
             planningDetailsDiv.classList.remove("justify-content-center");
@@ -232,7 +289,7 @@
                 xhttp.setRequestHeader("Content-Type", "application/json");
                 xhttp.onreadystatechange = function () {
                     if (this.status == 200) {
-                        
+
                     } else {
                         console.log("Error creando periodo", `${this.status} - ${this.statusText} - ${this.responseText}`)
                     }

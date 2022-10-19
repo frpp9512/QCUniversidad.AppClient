@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Migrations;
 using QCUniversidad.Api.Shared.Enums;
 using SQLitePCL;
 using System;
@@ -37,6 +38,7 @@ public class PeriodNotFoundException : Exception { }
 public class TeachingPlanNotFoundException : Exception { }
 public class TeachingPlanItemNotFoundException : Exception { }
 public class PlanItemFullyCoveredException : Exception { }
+public class LoadItemNotFoundException : Exception { }
 
 #endregion
 
@@ -522,12 +524,39 @@ public class DataManager : IDataManager
             var query = from t in _context.Teachers
                         where t.DepartmentId == departmentId
                         select t;
-            return await query.ToListAsync();
+            return await query.Include(t => t.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync();
         }
         catch (Exception)
         {
             throw;
         }
+    }
+
+    public async Task<double> GetTeacherLoadInPeriodAsync(Guid teacherId, Guid periodId)
+    {
+        if (teacherId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(teacherId));
+        }
+        if (!await ExistsTeacherAsync(teacherId))
+        {
+            throw new TeacherNotFoundException();
+        }
+        if (periodId == Guid.Empty)
+        {
+            throw new ArgumentException(nameof(periodId));
+        }
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        var query = from loadItem in _context.LoadItems
+                    join planItem in _context.TeachingPlanItems
+                    on loadItem.PlanningItemId equals planItem.Id
+                    where loadItem.TeacherId == teacherId && planItem.PeriodId == periodId
+                    select loadItem;
+
+        return await query.SumAsync(i => i.HoursCovered);
     }
 
     private async Task<bool> TeacherHaveLoad(Guid teacherId)
@@ -621,6 +650,24 @@ public class DataManager : IDataManager
         var result = await _context.SaveChangesAsync();
         return result > 0;
     }
+
+    public async Task<bool> DeleteLoadFromTeacherAsync(Guid loadItemId)
+    {
+        if (!await ExistsLoadItemAsync(loadItemId))
+        {
+            var loadItem = await _context.LoadItems.FindAsync(loadItemId);
+            if (loadItem is not null)
+            {
+                _context.Remove(loadItem);
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+        }
+        throw new LoadItemNotFoundException();
+    }
+
+    private async Task<bool> ExistsLoadItemAsync(Guid loadItemId)
+        => await _context.LoadItems.AnyAsync(i => i.Id == loadItemId);
 
     #endregion
 
@@ -1207,6 +1254,20 @@ public class DataManager : IDataManager
         {
             throw;
         }
+    }
+
+    public async Task<double> GetPeriodTimeFund(Guid periodId)
+    {
+        if (periodId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(periodId));
+        }
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        var period = await _context.Periods.FirstAsync(p => p.Id == periodId);
+        return period.TimeFund;
     }
 
     #endregion

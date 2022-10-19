@@ -92,8 +92,27 @@ public class LoadDistributionController : Controller
         var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
-            var result = await _dataProvider.GetTeachingPlanItemsOfDepartmentOnPeriod(workingDepartment, periodId);
+            var result = await _dataProvider.GetTeachingPlanItemsOfDepartmentOnPeriodAsync(workingDepartment, periodId);
             return PartialView("_SimplifiedPlanningListView", result);
+        }
+        catch (Exception)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetTeachersForDepartmentInPeriodAsync(Guid periodId, Guid? departmentId = null)
+    {
+        if (User.IsAdmin() && departmentId is null)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+        var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
+        try
+        {
+            var result = await _dataProvider.GetTeachersOfDepartmentForPeriodAsync(workingDepartment, periodId);
+            return PartialView("_TeachersWithLoadView", result);
         }
         catch (Exception)
         {

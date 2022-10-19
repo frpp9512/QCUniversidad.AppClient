@@ -12,5 +12,6 @@ namespace QCUniversidad.Api.Shared.Dtos.Teacher
     {
         public DepartmentDto Department { get; set; }
         public IList<PopulatedDisciplineDto>? Disciplines { get; set; }
+        public TeacherLoadDto? Load { get; set; }
     }
 }

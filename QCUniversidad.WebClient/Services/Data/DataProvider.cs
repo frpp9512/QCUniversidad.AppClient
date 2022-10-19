@@ -1,36 +1,31 @@
 ﻿using AutoMapper;
 using Newtonsoft.Json;
 using QCUniversidad.Api.Shared.Dtos.Career;
+using QCUniversidad.Api.Shared.Dtos.Course;
+using QCUniversidad.Api.Shared.Dtos.Curriculum;
 using QCUniversidad.Api.Shared.Dtos.Department;
 using QCUniversidad.Api.Shared.Dtos.Discipline;
 using QCUniversidad.Api.Shared.Dtos.Faculty;
+using QCUniversidad.Api.Shared.Dtos.LoadItem;
+using QCUniversidad.Api.Shared.Dtos.Period;
+using QCUniversidad.Api.Shared.Dtos.SchoolYear;
 using QCUniversidad.Api.Shared.Dtos.Subject;
 using QCUniversidad.Api.Shared.Dtos.Teacher;
+using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
 using QCUniversidad.WebClient.Models.Careers;
+using QCUniversidad.WebClient.Models.Courses;
+using QCUniversidad.WebClient.Models.Curriculums;
 using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Faculties;
-using QCUniversidad.WebClient.Models.Teachers;
-using QCUniversidad.WebClient.Models.Subjects;
-using QCUniversidad.WebClient.Services.Platform;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using QCUniversidad.WebClient.Models.Curriculums;
-using QCUniversidad.Api.Shared.Dtos.Curriculum;
-using QCUniversidad.WebClient.Models.Courses;
-using QCUniversidad.WebClient.Models.Periods;
-using QCUniversidad.Api.Shared.Dtos.Course;
-using QCUniversidad.Api.Shared.Dtos.Period;
-using QCUniversidad.WebClient.Models.Planning;
-using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
-using QCUniversidad.WebClient.Models.SchoolYears;
-using QCUniversidad.Api.Shared.Dtos.SchoolYear;
-using QCUniversidad.Api.Shared.Dtos.LoadItem;
 using QCUniversidad.WebClient.Models.LoadDistribution;
+using QCUniversidad.WebClient.Models.Periods;
+using QCUniversidad.WebClient.Models.Planning;
+using QCUniversidad.WebClient.Models.SchoolYears;
+using QCUniversidad.WebClient.Models.Subjects;
+using QCUniversidad.WebClient.Models.Teachers;
+using QCUniversidad.WebClient.Services.Platform;
+using System.Text;
 
 namespace QCUniversidad.WebClient.Services.Data;
 
@@ -603,11 +598,35 @@ public class DataProvider : IDataProvider
 
     public async Task<bool> SetLoadItemAsync(CreateLoadItemModel newLoadItem)
     {
-        var dto = _mapper.Map<NewLoadItemDto>(newLoadItem);
+        _ = _mapper.Map<NewLoadItemDto>(newLoadItem);
         var serializedDto = JsonConvert.SerializeObject(newLoadItem);
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
         var response = await client.PutAsync("/teacher/setload", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
         return response.IsSuccessStatusCode;
+    }
+
+    public async Task<IList<TeacherModel>> GetTeachersOfDepartmentForPeriodAsync(Guid departmentId, Guid periodId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/teacher/listofdepartmentforperiod?departmentId={departmentId}&periodId={periodId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var teachers = JsonConvert.DeserializeObject<IList<TeacherDto>>(contentText);
+            return teachers?.Select(f => _mapper.Map<TeacherModel>(f)).ToList() ?? new List<TeacherModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<bool> DeleteLoadItemAsync(Guid loadItemId)
+    {
+        if (loadItemId != Guid.Empty)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.DeleteAsync($"/teacher/deleteload?loadItemId={loadItemId}");
+            return response.IsSuccessStatusCode;
+        }
+        throw new ArgumentNullException(nameof(loadItemId));
     }
 
     #endregion
@@ -1182,7 +1201,7 @@ public class DataProvider : IDataProvider
         throw new ArgumentNullException("The id must be a valid Guid.");
     }
 
-    public async Task<int> GetTeachingPlanItemsCountAsync()
+    public Task<int> GetTeachingPlanItemsCountAsync()
         => throw new NotImplementedException();
 
     public async Task<int> GetTeachingPlanItemsCountAsync(Guid periodId)
@@ -1201,10 +1220,7 @@ public class DataProvider : IDataProvider
         throw new ArgumentNullException("The id must be a valid Guid.");
     }
 
-    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(int from = 0, int to = 0)
-    {
-        throw new NotImplementedException();
-    }
+    public Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(int from = 0, int to = 0) => throw new NotImplementedException();
 
     public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, int from = 0, int to = 0)
     {
@@ -1259,7 +1275,7 @@ public class DataProvider : IDataProvider
         throw new ArgumentNullException(nameof(id));
     }
 
-    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId)
+    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriodAsync(Guid departmentId, Guid periodId)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
         var response = await client.GetAsync($"/department/planningitems?id={departmentId}&periodId={periodId}");

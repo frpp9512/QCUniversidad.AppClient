@@ -16,7 +16,6 @@ using SmartB1t.Web.Extensions;
 
 namespace QCUniversidad.WebClient.Controllers;
 
-[Authorize(Roles = "Administrador")]
 public class AccountsController : Controller
 {
     #region Private members
@@ -109,6 +108,7 @@ public class AccountsController : Controller
     #region Management
 
     [HttpGet]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> IndexAsync(int page = 1, int usersPerPage = 5, bool includeInactive = true)
     {
         RemoveTempDirectory();
@@ -154,6 +154,7 @@ public class AccountsController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> CreateAsync()
     {
         RemoveTempDirectory();
@@ -180,6 +181,7 @@ public class AccountsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> CreateAsync(CreateUserViewModel viewModel)
     {
         if (ModelState.IsValid)
@@ -323,6 +325,7 @@ public class AccountsController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> EditAsync(string id)
     {
         RemoveTempDirectory();
@@ -344,6 +347,7 @@ public class AccountsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> EditAsync(EditUserViewModel viewModel)
     {
         if (ModelState.IsValid)
@@ -431,6 +435,7 @@ public class AccountsController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Activate(string id)
     {
         var user = await _repository.GetUserAsync(new Guid(id));
@@ -457,6 +462,7 @@ public class AccountsController : Controller
     }
 
     [HttpDelete]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Delete(string id)
     {
         var user = await _repository.GetUserAsync(new Guid(id));

@@ -85,6 +85,7 @@ else
             <th>Inicia <span class="fa fa-calendar-day"></span></th>
             <th>Termina <span class="fa fa-calendar-day"></span></th>
             <th>Matricula</th>
+            <th>Fondo de tiempo</th>
             <th></th>
         </tr>
     </thead>
@@ -107,7 +108,8 @@ else
                     </td>
                     <td>@period.Starts.ToString("dd-MM-yyyy")</td>
                     <td>@period.Ends.ToString("dd-MM-yyyy")</td>
-                    <td>@period.Enrolment</td>
+                    <td align="right">@period.Enrolment</td>
+                    <td align="right">@period.TimeFund</td>
                     <td>
                         <button type="button" class="btn btn-sm btn-outline-warning" onclick="EditPeriod('@period.Id')"><span class="fa fa-edit"></span></button>
                         <button type="button" class="btn btn-sm btn-outline-danger" onclick="RiseDeleteModal('@period.Id')"><span class="fa fa-trash"></span></button>
@@ -156,6 +158,10 @@ else
                         <label for="newPeriodEnrolment" class="form-label">Matrícula</label>
                         <input type="number" min="1" class="form-control" id="newPeriodEnrolment">
                     </div>
+                    <div class="mb-3">
+                        <label for="newPeriodTimeFund" class="form-label">Fondo de tiempo</label>
+                        <input type="number" min="0" class="form-control" id="newPeriodTimeFund">
+                    </div>
                 </fieldset>
             </div>
             <div id="createModalFooter" class="modal-footer">
@@ -198,6 +204,10 @@ else
                     <div class="mb-3">
                         <label for="editPeriodEnrolment" class="form-label">Matrícula</label>
                         <input type="number" min="1" class="form-control" id="editPeriodEnrolment">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPeriodTimeFund" class="form-label">Fondo de tiempo</label>
+                        <input type="number" min="0" class="form-control" id="editPeriodTimeFund">
                     </div>
                 </fieldset>
             </div>
@@ -265,30 +275,32 @@ else
         }
 
         function AddPeriod() {
-            var periodOrder = document.getElementById("newPeriodOrder").value;
+            let periodOrder = document.getElementById("newPeriodOrder").value;
             if (periodOrder == '') {
                 ShowError("Número de orden", "Especifique un número de orden de período.")
                 return;
             }
-            var periodDescription = document.getElementById("newPeriodDescription").value;
-            var starts = document.getElementById("newPeriodStarts").value;
+            let periodDescription = document.getElementById("newPeriodDescription").value;
+            let starts = document.getElementById("newPeriodStarts").value;
             if (starts == '') {
                 ShowError("Fecha de inicio", "Especifique una fecha de inicio del período.")
                 return;
             }
-            var ends = document.getElementById("newPeriodEnds").value;
+            let ends = document.getElementById("newPeriodEnds").value;
             if (ends == '') {
                 ShowError("Fecha de culminación", "Especifique una fecha de culminación del período.")
                 return;
             }
-            var enrolment = document.getElementById("newPeriodEnrolment").value;
-            var courseId = document.getElementById("courseId").value;
-            var creationModel = {
+            let enrolment = document.getElementById("newPeriodEnrolment").value;
+            let timeFund = document.getElementById("newPeriodTimeFund").value;
+            let courseId = document.getElementById("courseId").value;
+            let creationModel = {
                 OrderNumber: periodOrder,
                 Description: periodDescription,
                 Starts: starts,
                 Ends: ends,
                 Enrolment: enrolment,
+                TimeFund: timeFund,
                 CourseId: courseId
             };
 
@@ -346,6 +358,8 @@ else
                         ends.value = formatedEndDate;
                         var enrolment = document.getElementById("editPeriodEnrolment");
                         enrolment.value = period.Enrolment;
+                        var timeFund = document.getElementById("editPeriodTimeFund");
+                        timeFund.value = period.TimeFund;
                         var periodId = document.getElementById("editPeriodId");
                         periodId.value = period.Id;
                         requestingPeriodData = false;
@@ -378,6 +392,7 @@ else
                     return;
                 }
                 var enrolment = document.getElementById("editPeriodEnrolment").value;
+                var timeFund = document.getElementById("editPeriodTimeFund").value;
                 var courseId = document.getElementById("courseId").value;
                 var periodId = document.getElementById("editPeriodId").value;
                 var editModel = {
@@ -387,6 +402,7 @@ else
                     Starts: starts,
                     Ends: ends,
                     Enrolment: enrolment,
+                    TimeFund: timeFund,
                     CourseId: courseId
                 };
 

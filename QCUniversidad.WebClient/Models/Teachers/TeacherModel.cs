@@ -38,5 +38,7 @@ namespace QCUniversidad.WebClient.Models.Teachers
         public Guid[]? SelectedDisciplines { get; set; }
 
         public IList<DisciplineModel>? Disciplines { get; set; }
+
+        public TeacherLoadModel? Load { get; set; }
     }
 }
