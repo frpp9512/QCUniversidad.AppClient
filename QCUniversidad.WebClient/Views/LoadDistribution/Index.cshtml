@@ -15,9 +15,10 @@
 
 <div class="row mt-3 mb-3">
     <div class="col col-lg-3 col-sm-6 col-12">
-        <label for="selectedSchoolarYear">Curso</label>
+        <label for="selectedCourse">Curso</label>
         <div class="d-flex flex-row align-items-center">
-            <select class="form-select" aria-label="Seleccionar curso" id="selectedSchoolarYear">
+            <select class="form-select" aria-label="Seleccionar curso" id="selectedCourse">
+                <option value="none">Todos</option>
                 @foreach (var course in Model.Courses)
                 {
                     <option value="@course.Id">@course.Denomination</option>
@@ -28,7 +29,10 @@
     <div class="col col-lg-3 col-sm-6 col-12 mb-3 mb-sm-3 mb-lg-0">
         <label for="selectedPeriod">Período</label>
         <select class="form-select" aria-label="Seleccionar período" id="selectedPeriod">
-            <option id="selectPeriodDefault">Seleccione un curso</option>
+            @foreach (var period in Model.Periods)
+            {
+                <option value="@period.Id">@period.ToString()</option>
+            }
         </select>
     </div>
     <div class="col align-self-end">
@@ -61,18 +65,22 @@
 @section Scripts {
     <script src="~/lib/percentage-circle/circle.js"></script>
     <script src="~/lib/popper/popper.min.js"></script>
+    <script src="~/js/loading-modal.js"></script>
     <script>
         const selectedDepartment = '@(Model.Department.Id)';
         const selectedSchoolYear = '@(User.IsAdmin() ? Model.SchoolYear.Id : null)';
+        var selectedCourse = null;
         var selectedPeriod = null;
         var selectedPlanItem = '';
         var selectedMaxValue = -1;
 
         $(document).ready(function () {
-            const coursesSelect = document.getElementById("selectedSchoolarYear");
+            const coursesSelect = document.getElementById("selectedCourse");
             coursesSelect.onchange = CourseSelect;
+            selectedCourse = coursesSelect.options[coursesSelect.selectedIndex].value;
             const periodSelect = document.getElementById("selectedPeriod");
             periodSelect.onchange = PeriodSelected;
+            selectedPeriod = periodSelect.options[periodSelect.selectedIndex].value;
             CourseSelect();
         });
 
@@ -94,35 +102,16 @@
         }
 
         function CourseSelect() {
-            const periodsSelect = document.getElementById("selectedPeriod");
-            const coursesSelect = document.getElementById("selectedSchoolarYear");
-            var selected = coursesSelect.options[coursesSelect.selectedIndex].value;
-
-            SetLoadingPlanning();
-
-            $.ajax({
-                url: `/loaddistribution/getperiodoptions?courseId=${selected}&departmentId=${selectedDepartment}`,
-                type: "GET",
-                success: function (data) {
-                    DisableLoadingPlanning();
-                    const periodSelect = document.getElementById("selectedPeriod");
-                    periodSelect.innerHTML = data;
-                    LoadTooltips();
-                    selectedPeriod = null;
-                    PeriodSelected();
-                },
-                error: function (xhr, status, error) {
-                    selectedPeriod = null;
-                    DisableLoadingPlanning();
-                    console.log(xhr, status, error);
-                }
-            });
+            const courseSelect = document.getElementById("selectedCourse");
+            selectedCourse = courseSelect.options[courseSelect.selectedIndex].value;
+            LoadPlanningItems();
+            LoadTeachers();
         }
 
         function LoadPlanningItems() {
             SetLoadingPlanning();
             $.ajax({
-                url: `/loaddistribution/GetPlanningItemsView?periodId=${selectedPeriod}&departmentId=${selectedDepartment}`,
+                url: `/loaddistribution/GetPlanningItemsView?periodId=${selectedPeriod}&departmentId=${selectedDepartment}&courseId=${selectedCourse}`,
                 type: "GET",
                 success: function (data) {
                     DisableLoadingPlanning();
@@ -160,15 +149,10 @@
         }
 
         function PeriodSelected() {
-            const periodsSelect = document.getElementById("selectedPeriod");
-            selectedPeriod = periodsSelect.options[periodsSelect.selectedIndex].value;
-
-            LoadPlanningItems(selectedPeriod);
-            LoadTeachers(selectedPeriod);
-
-            LoadTooltips();
-
-            console.log("periods select changed", periodsSelect.selectedIndex, selectedPeriod);
+            const periodSelect = document.getElementById("selectedPeriod");
+            selectedPeriod = periodSelect.options[periodSelect.selectedIndex].value;
+            LoadPlanningItems();
+            LoadTeachers();
         }
 
         function CreateSpinnerNode() {
@@ -191,7 +175,7 @@
             planningDetailsDiv.appendChild(CreateSpinnerNode());
             const periodsSelect = document.getElementById("selectedPeriod");
             periodsSelect.disabled = true;
-            const coursesSelect = document.getElementById("selectedSchoolarYear");
+            const coursesSelect = document.getElementById("selectedCourse");
             coursesSelect.disabled = true;
         }
 
@@ -202,7 +186,7 @@
             planningDetailsDiv.classList.remove("justify-content-center");
             const periodsSelect = document.getElementById("selectedPeriod");
             periodsSelect.disabled = false;
-            const coursesSelect = document.getElementById("selectedSchoolarYear");
+            const coursesSelect = document.getElementById("selectedCourse");
             coursesSelect.disabled = false;
         }
 
@@ -214,7 +198,7 @@
             planningDetailsDiv.appendChild(CreateSpinnerNode());
             const periodsSelect = document.getElementById("selectedPeriod");
             periodsSelect.disabled = true;
-            const coursesSelect = document.getElementById("selectedSchoolarYear");
+            const coursesSelect = document.getElementById("selectedCourse");
             coursesSelect.disabled = true;
         }
 
@@ -225,7 +209,7 @@
             planningDetailsDiv.classList.remove("justify-content-center");
             const periodsSelect = document.getElementById("selectedPeriod");
             periodsSelect.disabled = false;
-            const coursesSelect = document.getElementById("selectedSchoolarYear");
+            const coursesSelect = document.getElementById("selectedCourse");
             coursesSelect.disabled = false;
         }
 
@@ -316,6 +300,7 @@
                 success: function (data) {
                     CloseLoadingModal();
                     LoadPlanningItems();
+                    LoadTeachers();
                 },
                 error: function (xhr, status, error) {
                     CloseLoadingModal();
@@ -362,22 +347,6 @@
                 default:
                     break;
             }
-        }
-    </script>
-
-    <script>
-        var loadingModal = new bootstrap.Modal(document.getElementById('loading-modal'), {
-            keyboard: false
-        });
-
-        function OpenLoadingModal(title) {
-            const titleEl = document.getElementById("loading-label");
-            titleEl.innerText = title;
-            loadingModal.show();
-        }
-
-        function CloseLoadingModal() {
-            loadingModal.hide();
         }
     </script>
 }

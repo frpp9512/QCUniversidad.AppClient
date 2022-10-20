@@ -12,6 +12,14 @@ circle {
     fill: none;
 }
 
+svg.circle-showtext text {
+    visibility: visible;
+}
+
+svg.circle-hidetext text {
+    visibility: collapse !important;
+}
+
 .meter {
     stroke-width: 10px;
     stroke: #000;

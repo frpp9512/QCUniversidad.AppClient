@@ -57,7 +57,14 @@
                             @item.Name
                         </td>
                         <td>
-                            @item.Description
+                            @if (!string.IsNullOrEmpty(item.Description))
+                            {
+                                @item.Description
+                            }
+                            else
+                            {
+                                <i class="text-muted">Sin descripción</i>
+                            }
                         </td>
                         <td>
                             <a asp-action="Deatils" asp-controller="Departments" asp-route-id="@item.DepartmentId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Departamento</small></div> <div><b>@item.Department?.Name</b></div> <div><i>@item.Department?.Description</i></div><div><b>@item.Department?.InternalId</b></div>">

@@ -135,8 +135,8 @@ public interface IDataManager
     Task<bool> ExistsCourseAsync(Guid id);
     Task<bool> CheckCourseExistenceByCareerYearAndModality(Guid careerId, int careerYear, TeachingModality modality);
     Task<int> GetCoursesCountAsync();
-    Task<int> GetCoursePeriodsCountAsync(Guid courseId);
     Task<IList<CourseModel>> GetCoursesAsync(int from, int to);
+    Task<IList<CourseModel>> GetCoursesAsync(Guid schoolYearId);
     Task<CourseModel> GetCourseAsync(Guid id);
     Task<bool> UpdateCourseAsync(CourseModel course);
     Task<bool> DeleteCourseAsync(Guid id);
@@ -149,13 +149,13 @@ public interface IDataManager
 
     Task<bool> CreatePeriodAsync(PeriodModel period);
     Task<bool> ExistsPeriodAsync(Guid id);
-    Task<bool> ExistPeriodWithOrder(Guid courseId, int order);
     Task<int> GetPeriodsCountAsync();
+    Task<int> GetSchoolYearPeriodsCountAsync(Guid schoolYear);
     Task<IList<PeriodModel>> GetPeriodsAsync(int from, int to);
     Task<PeriodModel> GetPeriodAsync(Guid id);
     Task<bool> UpdatePeriodAsync(PeriodModel period);
     Task<bool> DeletePeriodAsync(Guid id);
-    Task<IList<PeriodModel>> GetPeriodsOfCourseForDepartment(Guid courseId, Guid departmentId);
+    Task<IList<PeriodModel>> GetPeriodsOfSchoolYearAsync(Guid schoolYear);
     Task<double> GetPeriodTimeFund(Guid periodId);
 
     #endregion
@@ -172,7 +172,7 @@ public interface IDataManager
     Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItemModel period);
     Task<bool> DeleteTeachingPlanItemAsync(Guid id);
 
-    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId);
+    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId, Guid? courseId = null);
     Task<bool> IsTeachingPlanFromPostgraduateCourse(Guid teachingPlanId);
     Task<double> GetPlanItemTotalCoveredAsync(Guid planItemId);
 

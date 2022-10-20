@@ -135,8 +135,8 @@ public interface IDataProvider
     Task<bool> ExistsCourseAsync(Guid id);
     Task<bool> CheckCourseExistenceByCareerYearAndModality(Guid careerId, int careerYear, int modality);
     Task<int> GetCoursesCountAsync();
-    Task<int> GetCoursePeriodsCountAsync(Guid courseId);
     Task<IList<CourseModel>> GetCoursesAsync(int from = 0, int to = 0);
+    Task<IList<CourseModel>> GetCoursesAsync(Guid schoolYearId);
     Task<CourseModel> GetCourseAsync(Guid id);
     Task<bool> UpdateCourseAsync(CourseModel course);
     Task<bool> DeleteCourseAsync(Guid id);
@@ -151,11 +151,10 @@ public interface IDataProvider
     Task<bool> ExistsPeriodAsync(Guid id);
     Task<int> GetPeriodsCountAsync();
     Task<IList<PeriodModel>> GetPeriodsAsync(int from, int to);
+    Task<IList<PeriodModel>> GetPeriodsAsync(Guid? schoolYearId = null);
     Task<PeriodModel> GetPeriodAsync(Guid id);
     Task<bool> UpdatePeriodAsync(PeriodModel period);
     Task<bool> DeletePeriodAsync(Guid id);
-
-    Task<IList<PeriodModel>> GetPeriodsOfCourseForDepartment(Guid courseId, Guid departmentId);
 
     #endregion
 
@@ -166,12 +165,12 @@ public interface IDataProvider
     Task<int> GetTeachingPlanItemsCountAsync();
     Task<int> GetTeachingPlanItemsCountAsync(Guid periodId);
     Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(int from = 0, int to = 0);
-    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, int from, int to);
+    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, int from = 0, int to = 0);
     Task<TeachingPlanItemModel> GetTeachingPlanItemAsync(Guid id);
     Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItemModel period);
     Task<bool> DeleteTeachingPlanItemAsync(Guid id);
 
-    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriodAsync(Guid departmentId, Guid periodId);
+    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriodAsync(Guid departmentId, Guid periodId, Guid? courseId = null);
 
     #endregion
 }

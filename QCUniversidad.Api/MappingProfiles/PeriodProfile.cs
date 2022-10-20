@@ -18,6 +18,7 @@ namespace QCUniversidad.Api.MappingProfiles
             CreateMap<NewPeriodDto, PeriodModel>();
             CreateMap<EditPeriodDto, PeriodModel>();
             CreateMap<PeriodModel, EditPeriodDto>();
+            CreateMap<PeriodModel, SimplePeriodDto>();
         }
     }
 }

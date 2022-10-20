@@ -187,11 +187,11 @@ public class DepartmentController : ControllerBase
 
     [HttpGet]
     [Route("planningitems")]
-    public async Task<IActionResult> GetPlanningItems(Guid id, Guid periodId)
+    public async Task<IActionResult> GetPlanningItems(Guid id, Guid periodId, Guid? courseId = null)
     {
         try
         {
-            var result = await _dataManager.GetTeachingPlanItemsOfDepartmentOnPeriod(id, periodId);
+            var result = await _dataManager.GetTeachingPlanItemsOfDepartmentOnPeriod(id, periodId, courseId);
             var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
             var dtos = result.Select(i => _mapper.Map<TeachingPlanItemDto>(i, opts => opts.AfterMap(async (o, planItem) => 
             {

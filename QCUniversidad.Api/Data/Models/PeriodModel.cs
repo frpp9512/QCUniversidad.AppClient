@@ -17,11 +17,6 @@ namespace QCUniversidad.Api.Data.Models
         public Guid Id { get; set; }
 
         /// <summary>
-        /// The ordinal number of the period. Example: 1 (for the 1st period)
-        /// </summary>
-        public int OrderNumber { get; set; }
-
-        /// <summary>
         /// The description of the period.
         /// </summary>
         public string? Description { get; set; }
@@ -37,11 +32,6 @@ namespace QCUniversidad.Api.Data.Models
         public DateTimeOffset Ends { get; set; }
 
         /// <summary>
-        /// The enrolment planned for the period.
-        /// </summary>
-        public uint Enrolment { get; set; }
-
-        /// <summary>
         /// The time fund for the teachers in the period.
         /// </summary>
         public double TimeFund { get; set; }
@@ -52,13 +42,13 @@ namespace QCUniversidad.Api.Data.Models
         public IList<TeachingPlanItemModel> TeachingPlan { get; set; }
 
         /// <summary>
-        /// The id of the shool year when the period passes.
+        /// The id of the shool year when the period occurs.
         /// </summary>
-        public Guid CourseId { get; set; }
+        public Guid SchoolYearId { get; set; }
 
         /// <summary>
-        /// The shool year when the period passes.
+        /// The shool year when the period occurs.
         /// </summary>
-        public CourseModel Course { get; set; }
+        public SchoolYearModel SchoolYear { get; set; }
     }
 }

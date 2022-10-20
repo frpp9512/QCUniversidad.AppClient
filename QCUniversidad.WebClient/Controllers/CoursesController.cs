@@ -106,30 +106,23 @@ public class CoursesController : Controller
         _logger.LogRequest(HttpContext);
         if (ModelState.IsValid)
         {
-            if (model.Starts >= model.Ends)
+            if (await _dataProvider.CheckCourseExistenceByCareerYearAndModality(model.CareerId, model.CareerYear, (int)model.TeachingModality))
             {
-                ModelState.AddModelError("Starts", "La fecha de inicio del curso no debe de ser antes de la de culminación");
+                ModelState.AddModelError("Error", "Ya existe un curso que con la carrera, modalidad y año seleccionado.");
             }
             else
             {
-                if (await _dataProvider.CheckCourseExistenceByCareerYearAndModality(model.CareerId, model.CareerYear, (int)model.TeachingModality))
+                try
                 {
-                    ModelState.AddModelError("Error", "Ya existe un curso que con la carrera, modalidad y año seleccionado.");
+                    _logger.LogCreateModelRequest<CoursesController, CourseModel>(HttpContext);
+                    var result = await _dataProvider.CreateCourseAsync(model);
+                    _logger.LogModelCreated<CoursesController, CourseModel>(HttpContext);
+                    TempData["course-created"] = true;
+                    return RedirectToAction("Details", new { id = result });
                 }
-                else
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        _logger.LogCreateModelRequest<CoursesController, CourseModel>(HttpContext);
-                        var result = await _dataProvider.CreateCourseAsync(model);
-                        _logger.LogModelCreated<CoursesController, CourseModel>(HttpContext);
-                        TempData["course-created"] = true;
-                        return RedirectToAction("Details", new { id = result });
-                    }
-                    catch (Exception ex)
-                    {
-                        ModelState.AddModelError("Error", $"Error agregando el curso. Mensaje: {ex.Message}");
-                    }
+                    ModelState.AddModelError("Error", $"Error agregando el curso. Mensaje: {ex.Message}");
                 }
             }
         }
@@ -187,29 +180,15 @@ public class CoursesController : Controller
                     }
                     else
                     {
-                        if (model.Starts >= model.Ends)
+                        _logger.LogEditModelRequest<CoursesController, CourseModel>(HttpContext, model.Id);
+                        var result = await _dataProvider.UpdateCourseAsync(model);
+                        if (result)
                         {
-                            ModelState.AddModelError("Starts", "La fecha de inicio del curso no debe de ser antes de la de culminación");
+                            _logger.LogModelEdited<CoursesController, CourseModel>(HttpContext, model.Id);
+                            TempData["course-edited"] = true;
+                            return RedirectToAction("Index");
                         }
-                        else
-                        {
-                            if (await _dataProvider.CheckCourseExistenceByCareerYearAndModality(model.CareerId, model.CareerYear, (int)model.TeachingModality))
-                            {
-                                ModelState.AddModelError("Error", "Ya existe un curso con la carrera, modalidad y año seleccionado.");
-                            }
-                            else
-                            {
-                                _logger.LogEditModelRequest<CoursesController, CourseModel>(HttpContext, model.Id);
-                                var result = await _dataProvider.UpdateCourseAsync(model);
-                                if (result)
-                                {
-                                    _logger.LogModelEdited<CoursesController, CourseModel>(HttpContext, model.Id);
-                                    TempData["course-edited"] = true;
-                                    return RedirectToAction("Index");
-                                }
-                                ModelState.AddModelError("Error", "Error actualizando el curso");
-                            }
-                        }
+                        ModelState.AddModelError("Error", "Error actualizando el curso");
                     }
                 }
             }
@@ -243,9 +222,9 @@ public class CoursesController : Controller
         _logger.LogRequest(HttpContext);
         try
         {
-            if (!await _dataProvider.ExistsCourseAsync(model.CourseId))
+            if (!await _dataProvider.ExistSchoolYearAsync(model.SchoolYearId))
             {
-                return NotFound("El curso no existe.");
+                return NotFound("El año escolar no existe.");
             }
             if (model.Starts >= model.Ends)
             {
@@ -282,9 +261,9 @@ public class CoursesController : Controller
             {
                 return NotFound(new { responseText = "El periodo no existe." });
             }
-            if (!await _dataProvider.ExistsCourseAsync(model.CourseId))
+            if (!await _dataProvider.ExistSchoolYearAsync(model.SchoolYearId))
             {
-                return NotFound(new { responseText = "El curso no existe." });
+                return NotFound(new { responseText = "El año escolar no existe." });
             }
             if (model.Starts >= model.Ends)
             {

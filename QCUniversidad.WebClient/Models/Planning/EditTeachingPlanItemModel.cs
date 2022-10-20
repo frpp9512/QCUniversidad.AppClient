@@ -37,8 +37,10 @@ namespace QCUniversidad.WebClient.Models.Planning
 
         public PeriodModel? Period { get; set; }
 
-        public Guid? CourseId { get; set; }
+        [Required]
+        public Guid CourseId { get; set; }
         public CourseModel? Course { get; set; }
+
         public IList<SubjectModel>? Subjects { get; set; }
     }
 }

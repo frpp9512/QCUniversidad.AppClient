@@ -1000,22 +1000,24 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
-    public async Task<int> GetCoursePeriodsCountAsync(Guid courseId)
-    {
-        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-        var response = await client.GetAsync($"/course/periodscount");
-        if (response.IsSuccessStatusCode)
-        {
-            var total = int.Parse(await response.Content.ReadAsStringAsync());
-            return total;
-        }
-        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
-    }
-
     public async Task<IList<CourseModel>> GetCoursesAsync(int from = 0, int to = 0)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
         var response = await client.GetAsync($"/course/list?from={from}&to={to}");
+        var responseText = await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var courses = JsonConvert.DeserializeObject<IList<CourseDto>>(contentText);
+            return courses?.Select(f => _mapper.Map<CourseModel>(f)).ToList() ?? new List<CourseModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<IList<CourseModel>> GetCoursesAsync(Guid schoolYearId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/course/listbyschoolyear?schoolYearId={schoolYearId}");
         var responseText = await response.Content.ReadAsStringAsync();
         if (response.IsSuccessStatusCode)
         {
@@ -1131,6 +1133,19 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
+    public async Task<IList<PeriodModel>> GetPeriodsAsync(Guid? schoolYearId = null)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/period/list{(schoolYearId is null ? "" : $"?schoolYearId={schoolYearId}")}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var periods = JsonConvert.DeserializeObject<IList<PeriodDto>>(contentText);
+            return periods?.Select(f => _mapper.Map<PeriodModel>(f)).ToList() ?? new List<PeriodModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
     public async Task<PeriodModel> GetPeriodAsync(Guid id)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
@@ -1165,19 +1180,6 @@ public class DataProvider : IDataProvider
             return response.IsSuccessStatusCode;
         }
         throw new ArgumentNullException(nameof(id));
-    }
-
-    public async Task<IList<PeriodModel>> GetPeriodsOfCourseForDepartment(Guid courseId, Guid departmentId)
-    {
-        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-        var response = await client.GetAsync($"/period/listofcoursefordepartment?courseId={courseId}&departmentId={departmentId}");
-        if (response.IsSuccessStatusCode)
-        {
-            var contentText = await response.Content.ReadAsStringAsync();
-            var periods = JsonConvert.DeserializeObject<IList<PeriodDto>>(contentText);
-            return periods?.Select(f => _mapper.Map<PeriodModel>(f)).ToList() ?? new List<PeriodModel>();
-        }
-        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
     #endregion
@@ -1288,10 +1290,10 @@ public class DataProvider : IDataProvider
         throw new ArgumentNullException(nameof(id));
     }
 
-    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriodAsync(Guid departmentId, Guid periodId)
+    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriodAsync(Guid departmentId, Guid periodId, Guid? courseId = null)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-        var response = await client.GetAsync($"/department/planningitems?id={departmentId}&periodId={periodId}");
+        var response = await client.GetAsync($"/department/planningitems?id={departmentId}&periodId={periodId}{(courseId is not null ? $"&courseId={courseId}" : "")}");
         if (response.IsSuccessStatusCode)
         {
             var contentText = await response.Content.ReadAsStringAsync();

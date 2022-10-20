@@ -1,4 +1,5 @@
 ﻿using QCUniversidad.Api.Shared.Enums;
+using QCUniversidad.WebClient.Models.Courses;
 using QCUniversidad.WebClient.Models.LoadItem;
 using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.Subjects;
@@ -38,6 +39,10 @@ public class TeachingPlanItemModel
     public bool? FromPostgraduateCourse { get; set; }
 
     public IList<LoadItemModel>? LoadItems { get; set; }
+
+    public Guid CourseId { get; set; }
+    [Display(Name = "Curso", Description = "El curso planificado", Prompt = "Curso planificado")]
+    public CourseModel Course { get; set; }
 
     public Guid PeriodId { get; set; }
     public PeriodModel Period { get; set; }

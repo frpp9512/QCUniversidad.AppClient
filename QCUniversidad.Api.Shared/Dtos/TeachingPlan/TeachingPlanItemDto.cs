@@ -1,4 +1,5 @@
-﻿using QCUniversidad.Api.Shared.Dtos.LoadItem;
+﻿using QCUniversidad.Api.Shared.Dtos.Course;
+using QCUniversidad.Api.Shared.Dtos.LoadItem;
 using QCUniversidad.Api.Shared.Dtos.Period;
 using QCUniversidad.Api.Shared.Dtos.Subject;
 using QCUniversidad.Api.Shared.Enums;
@@ -24,7 +25,9 @@ public record TeachingPlanItemDto
     public double TotalLoadCovered { get; set; }
     public double LoadCoveredPercent => Math.Round((TotalLoadCovered / TotalHoursPlanned) * 100, 1);
     public bool AllowLoad { get; set; }
+    public Guid CourseId { get; set; }
+    public SimpleCourseDto Course { get; set; }
     public Guid PeriodId { get; set; }
-    public PeriodDto TeachingPlan { get; set; }
-    public IList<LoadItemDto> LoadItems { get; set; }
+    public SimplePeriodDto Period { get; set; }
+    public IList<SimpleLoadItemDto> LoadItems { get; set; }
 }

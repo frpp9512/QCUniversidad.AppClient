@@ -288,14 +288,11 @@ public class DataManager : IDataManager
             if (result > 0)
             {
                 var query = from planItem in _context.TeachingPlanItems
-                            join period in _context.Periods
-                            on planItem.PeriodId equals period.Id
-                            join course in _context.Courses
-                            on period.CourseId equals course.Id
-                            join c in _context.Careers
-                            on course.CareerId equals career.Id
-                            where c.Id == career.Id && planItem.FromPostgraduateCourse != career.PostgraduateCourse
-                            select planItem;
+                             join course in _context.Courses
+                             on planItem.CourseId equals course.Id
+                             where course.CareerId == career.Id && planItem.FromPostgraduateCourse != career.PostgraduateCourse
+                             select planItem;
+
                 if (query.Any())
                 {
                     await query.ForEachAsync(i => 
@@ -522,7 +519,7 @@ public class DataManager : IDataManager
                 throw new ArgumentNullException();
             }
             var query = from t in _context.Teachers
-                        where t.DepartmentId == departmentId
+                        where t.Active && t.DepartmentId == departmentId
                         select t;
             return await query.Include(t => t.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync();
         }
@@ -589,7 +586,7 @@ public class DataManager : IDataManager
         var depTeachersQuery = from teacher in _context.Teachers
                                join teacherDiscipline in _context.TeachersDisciplines
                                on teacher.Id equals teacherDiscipline.TeacherId
-                               where teacher.DepartmentId == departmentId
+                               where teacher.Active && teacher.DepartmentId == departmentId
                                      && disciplineId.HasValue 
                                         ? teacherDiscipline.DisciplineId == disciplineId : true
                                select teacher;
@@ -604,9 +601,10 @@ public class DataManager : IDataManager
         var depTeachersInPlanItemQuery = from teacher in _context.Teachers
                                          join loadItem in planItemLoads
                                          on teacher.Id equals loadItem.TeacherId
+                                         where teacher.Active
                                          select teacher;
 
-        var finalQuery = depTeachersQuery.Except(depTeachersInPlanItemQuery);
+        var finalQuery = depTeachersQuery.Except(depTeachersInPlanItemQuery).Where(t => t.Active);
 
         finalQuery = finalQuery.Include(t => t.Department);
         return await finalQuery.ToListAsync();
@@ -923,8 +921,7 @@ public class DataManager : IDataManager
     {
         try
         {
-            var id = await GetCurrentSchoolYearId();
-            return await _context.SchoolYears.FindAsync(id) ?? throw new NotCurrentSchoolYearDefined();
+            return await _context.SchoolYears.Include(sy => sy.Periods).Where(sy => sy.Current).FirstAsync() ?? throw new NotCurrentSchoolYearDefined();
         }
         catch (NotCurrentSchoolYearDefined)
         {
@@ -932,17 +929,9 @@ public class DataManager : IDataManager
         }
     }
 
-    private async Task<Guid> GetCurrentSchoolYearId()
-    {
-        var query = from schoolYear in _context.SchoolYears
-                    where schoolYear.Current
-                    select schoolYear.Id;
-        return await query.AnyAsync() ? await query.FirstAsync() : throw new NotCurrentSchoolYearDefined();
-    }
-
     public async Task<SchoolYearModel> GetSchoolYearAsync(Guid id)
     {
-        var schoolYear = await _context.SchoolYears.FirstOrDefaultAsync(sy => sy.Id.Equals(id));
+        var schoolYear = await _context.SchoolYears.Include(sy => sy.Periods).FirstOrDefaultAsync(sy => sy.Id.Equals(id));
         return schoolYear is null ? throw new SchoolYearNotFoundException() : schoolYear;
     }
 
@@ -950,9 +939,18 @@ public class DataManager : IDataManager
     {
         var schoolYears =
             (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
-            ? await _context.SchoolYears.Skip(from).Take(to).ToListAsync()
-            : await _context.SchoolYears.ToListAsync();
+            ? await _context.SchoolYears.Include(sy => sy.Periods).Skip(from).Take(to).ToListAsync()
+            : await _context.SchoolYears.Include(sy => sy.Periods).ToListAsync();
         return schoolYears.OrderByDescending(sy => sy.Current).ThenByDescending(sy => sy.Name).ToList();
+    }
+
+    public async Task<IList<CourseModel>> GetCoursesAsync(Guid schoolYearId)
+    {
+        var courses = await _context.Courses.Include(c => c.SchoolYear)
+                                            .Include(c => c.Curriculum)
+                                            .Where(c => c.SchoolYearId == schoolYearId)
+                                            .ToListAsync();
+        return courses;
     }
 
     public async Task<int> GetSchoolYearTotalAsync()
@@ -1074,20 +1072,14 @@ public class DataManager : IDataManager
     {
         var result =
             (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
-            ? await _context.Courses.Skip(from).Take(to).Include(y => y.SchoolYear).Include(y => y.Career).Include(y => y.Curriculum).Include(y => y.Periods).ToListAsync()
-            : await _context.Courses.Include(y => y.SchoolYear).Include(y => y.Career).Include(y => y.Curriculum).Include(y => y.Periods).ToListAsync();
+            ? await _context.Courses.Skip(from).Take(to).Include(y => y.SchoolYear).Include(y => y.Career).Include(y => y.Curriculum).ToListAsync()
+            : await _context.Courses.Include(y => y.SchoolYear).Include(y => y.Career).Include(y => y.Curriculum).ToListAsync();
         return result;
     }
 
     public async Task<int> GetCoursesCountAsync()
     {
         return await _context.Courses.CountAsync();
-    }
-
-    public async Task<int> GetCoursePeriodsCountAsync(Guid courseId)
-    {
-        var result = await _context.Periods.CountAsync(p => p.CourseId == courseId);
-        return result;
     }
 
     public async Task<CourseModel> GetCourseAsync(Guid id)
@@ -1098,7 +1090,6 @@ public class DataManager : IDataManager
                                                .Include(y => y.SchoolYear)
                                                .Include(y => y.Career)
                                                .Include(y => y.Curriculum)
-                                               .Include(y => y.Periods)
                                                .FirstOrDefaultAsync();
             return result ?? throw new CourseNotFoundException();
         }
@@ -1186,18 +1177,12 @@ public class DataManager : IDataManager
         return result;
     }
 
-    public async Task<bool> ExistPeriodWithOrder(Guid courseId, int order)
-    {
-        var result = await _context.Periods.AnyAsync(p => p.CourseId == courseId && p.OrderNumber == order);
-        return result;
-    }
-
     public async Task<IList<PeriodModel>> GetPeriodsAsync(int from, int to)
     {
         var result =
             (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
-            ? await _context.Periods.Skip(from).Take(to).Include(p => p.Course).ToListAsync()
-            : await _context.Periods.Include(p => p.Course).ToListAsync();
+            ? await _context.Periods.Skip(from).Take(to).Include(p => p.SchoolYear).ToListAsync()
+            : await _context.Periods.Include(p => p.SchoolYear).ToListAsync();
         return result;
     }
 
@@ -1211,7 +1196,7 @@ public class DataManager : IDataManager
         if (id != Guid.Empty)
         {
             var result = await _context.Periods.Where(p => p.Id == id)
-                                               .Include(p => p.Course)
+                                               .Include(p => p.SchoolYear)
                                                .FirstOrDefaultAsync();
             return result ?? throw new PeriodNotFoundException();
         }
@@ -1248,53 +1233,6 @@ public class DataManager : IDataManager
         throw new ArgumentNullException(nameof(id));
     }
 
-    public async Task<IList<PeriodModel>> GetPeriodsOfCourseForDepartment(Guid courseId, Guid departmentId)
-    {
-        if (courseId == Guid.Empty || departmentId == Guid.Empty)
-        {
-            throw new ArgumentNullException();
-        }
-        if (!await ExistsCourseAsync(courseId))
-        {
-            throw new CourseNotFoundException();
-        }
-        if (!await ExistDepartmentAsync(departmentId))
-        {
-            throw new DepartmentNotFoundException();
-        }
-        try
-        {
-            var disciplines = from discipline in _context.Disciplines
-                              where discipline.DepartmentId == departmentId
-                              select discipline;
-
-            var curriculums = from curriculum in _context.Curriculums
-                              join curriculumsDisciplines in _context.CurriculumsDisciplines
-                              on curriculum.Id equals curriculumsDisciplines.CurriculumId
-                              join discipline in disciplines
-                              on curriculumsDisciplines.DisciplineId equals discipline.Id
-                              select curriculum;
-
-            var courses = from course in _context.Courses
-                          join curriculum in curriculums
-                          on course.CurriculumId equals curriculum.Id
-                          where course.Id == courseId
-                          select course;
-
-            var periods = from period in _context.Periods
-                          join course in courses
-                          on period.CourseId equals course.Id
-                          select period;
-
-            periods = periods.Distinct();
-            return await periods.ToListAsync();
-        }
-        catch (Exception)
-        {
-            throw;
-        }
-    }
-
     public async Task<double> GetPeriodTimeFund(Guid periodId)
     {
         if (periodId == Guid.Empty)
@@ -1309,6 +1247,18 @@ public class DataManager : IDataManager
         return period.TimeFund;
     }
 
+    public async Task<IList<PeriodModel>> GetPeriodsOfSchoolYearAsync(Guid schoolYear)
+    {
+        var query = from period in _context.Periods
+                    where period.SchoolYearId == schoolYear
+                    select period;
+
+        return await query.ToListAsync();
+    }
+
+    public async Task<int> GetSchoolYearPeriodsCountAsync(Guid schoolYearId) 
+        => await _context.Periods.CountAsync(p => p.SchoolYearId == schoolYearId);
+
     #endregion
 
     #region TeachingPlanItems
@@ -1317,7 +1267,7 @@ public class DataManager : IDataManager
     {
         if (teachingPlanItem is not null)
         {
-            teachingPlanItem.FromPostgraduateCourse = await IsPeriodFromPostgraduateCourse(teachingPlanItem.PeriodId);
+            teachingPlanItem.FromPostgraduateCourse = await IsPostgraduateCourse(teachingPlanItem.CourseId);
             await _context.TeachingPlanItems.AddAsync(teachingPlanItem);
             var result = await _context.SaveChangesAsync();
             return result > 0;
@@ -1325,17 +1275,15 @@ public class DataManager : IDataManager
         throw new ArgumentNullException(nameof(teachingPlanItem));
     }
 
-    private async Task<bool> IsPeriodFromPostgraduateCourse(Guid periodId)
+    private async Task<bool> IsPostgraduateCourse(Guid courseId)
     {
-        var query = from period in _context.Periods
-                    join course in _context.Courses
-                    on period.CourseId equals course.Id
+        var query = from course in _context.Courses
                     join career in _context.Careers
                     on course.CareerId equals career.Id
-                    where period.Id == periodId
+                    where course.Id == courseId
                     select career.PostgraduateCourse;
 
-        return await query.FirstOrDefaultAsync();
+        return await query.FirstAsync();
     }
 
     public async Task<bool> ExistsTeachingPlanItemAsync(Guid id)
@@ -1348,8 +1296,8 @@ public class DataManager : IDataManager
     {
         var result =
             (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
-            ? await _context.TeachingPlanItems.Skip(from).Take(to).Include(p => p.Subject).ToListAsync()
-            : await _context.TeachingPlanItems.Include(p => p.Subject).ToListAsync();
+            ? await _context.TeachingPlanItems.Skip(from).Take(to).Include(p => p.Subject).Include(p => p.Course).ToListAsync()
+            : await _context.TeachingPlanItems.Include(p => p.Subject).Include(p => p.Course).ToListAsync();
         result.ForEach(i => i.TotalHoursPlanned = _planItemCalculator.CalculateValue(i));
         return result;
     }
@@ -1358,8 +1306,8 @@ public class DataManager : IDataManager
     {
         var result =
             (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
-            ? await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Skip(from).Take(to).Include(p => p.Subject).Include(p => p.LoadItems).ThenInclude(i => i.Teacher).ToListAsync()
-            : await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Include(p => p.Subject).Include(p => p.LoadItems).ThenInclude(i => i.Teacher).ToListAsync();
+            ? await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Skip(from).Take(to).Include(p => p.Subject).Include(p => p.Course).Include(p => p.LoadItems).ThenInclude(i => i.Teacher).ToListAsync()
+            : await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Include(p => p.Subject).Include(p => p.Course).Include(p => p.LoadItems).ThenInclude(i => i.Teacher).ToListAsync();
         result.ForEach(i => i.TotalHoursPlanned = _planItemCalculator.CalculateValue(i));
         return result;
     }
@@ -1383,6 +1331,7 @@ public class DataManager : IDataManager
                                                          .Include(p => p.Subject)
                                                          .Include(p => p.LoadItems)
                                                          .ThenInclude(li => li.Teacher)
+                                                         .Include(p => p.Course)
                                                          .FirstOrDefaultAsync();
             if (result is null)
             {
@@ -1424,7 +1373,7 @@ public class DataManager : IDataManager
         throw new ArgumentNullException(nameof(id));
     }
 
-    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId)
+    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId, Guid? courseId = null)
     {
         try
         {
@@ -1448,9 +1397,10 @@ public class DataManager : IDataManager
                             where planItem.PeriodId == periodId
                             select planItem;
 
-            var items = await planItems.Distinct().Include(i => i.Subject).Include(i => i.LoadItems).ThenInclude(li => li.Teacher).ToListAsync();
-            items.ForEach(i => i.TotalHoursPlanned = _planItemCalculator.CalculateValue(i));
-            return items;
+            var items = planItems.Distinct().Include(i => i.Subject).Include(p => p.Course).Include(i => i.LoadItems).ThenInclude(li => li.Teacher);
+            var planItemsList = courseId is not null ? await items.Where(i => i.CourseId == courseId).ToListAsync() : await items.ToListAsync();
+            planItemsList.ForEach(i => i.TotalHoursPlanned = _planItemCalculator.CalculateValue(i));
+            return planItemsList;
         }
         catch (Exception)
         {
@@ -1469,10 +1419,8 @@ public class DataManager : IDataManager
             throw new TeachingPlanItemNotFoundException();
         }
         var query = from planItem in _context.TeachingPlanItems
-                    join period in _context.Periods
-                    on planItem.PeriodId equals period.Id
                     join course in _context.Courses
-                    on period.CourseId equals course.Id
+                    on planItem.CourseId equals course.Id
                     join career in _context.Careers
                     on course.CareerId equals career.Id
                     where planItem.Id == teachingPlanId

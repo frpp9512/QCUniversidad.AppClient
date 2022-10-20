@@ -37,7 +37,7 @@ function SendDeleteCareerRequest(id) {
 
 function GetCareerName(id) {
     var row = document.getElementById(id);
-    var nameValue = row.children[0].innerHTML;
+    var nameValue = row.children[1].innerHTML;
     return nameValue;
 }
 

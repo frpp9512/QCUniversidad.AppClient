@@ -44,7 +44,7 @@ public class PeriodController : ControllerBase
         try
         {
             var result = await _dataManager.GetPeriodAsync(id);
-            var dto = _mapper.Map<EditPeriodDto>(result);
+            var dto = _mapper.Map<PeriodDto>(result);
             return Ok(dto);
         }
         catch (PeriodNotFoundException)
@@ -78,11 +78,11 @@ public class PeriodController : ControllerBase
 
     [HttpGet]
     [Route("periodscount")]
-    public async Task<IActionResult> GetPeriodsCount(Guid id)
+    public async Task<IActionResult> GetPeriodsCount(Guid schoolYearId)
     {
         try
         {
-            var count = await _dataManager.GetCoursePeriodsCountAsync(id);
+            var count = await _dataManager.GetSchoolYearPeriodsCountAsync(schoolYearId);
             return Ok(count);
         }
         catch (Exception ex)
@@ -98,21 +98,6 @@ public class PeriodController : ControllerBase
         try
         {
             var result = await _dataManager.ExistsPeriodAsync(id);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
-    }
-
-    [HttpGet]
-    [Route("existswithorder")]
-    public async Task<IActionResult> ExistsAsync(Guid courseId, int orderNumber)
-    {
-        try
-        {
-            var result = await _dataManager.ExistPeriodWithOrder(courseId, orderNumber);
             return Ok(result);
         }
         catch (Exception ex)
@@ -316,34 +301,6 @@ public class PeriodController : ControllerBase
             }
             var result = await _dataManager.DeleteTeachingPlanItemAsync(id);
             return result ? Ok(result) : Problem();
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
-    }
-
-    [HttpGet]
-    [Route("listofcoursefordepartment")]
-    public async Task<IActionResult> GetPeriodsOfCourseForDepartment(Guid courseId, Guid departmentId)
-    {
-        try
-        {
-            var result = await _dataManager.GetPeriodsOfCourseForDepartment(courseId, departmentId);
-            var dtos = result.Select(i => _mapper.Map<PeriodModel>(i));
-            return Ok(dtos);
-        }
-        catch (ArgumentNullException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (CourseNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (DepartmentNotFoundException ex)
-        {
-            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {

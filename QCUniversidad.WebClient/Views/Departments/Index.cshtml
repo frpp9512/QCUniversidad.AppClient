@@ -57,7 +57,14 @@
                             @item.Name
                         </td>
                         <td>
-                            @item.Description
+                            @if (!string.IsNullOrEmpty(item.Description))
+                            {
+                                @item.Description
+                            }
+                            else
+                            {
+                                <i class="text-muted">No tiene descripción</i>
+                            }
                         </td>
                         <td>
                             @item.InternalId

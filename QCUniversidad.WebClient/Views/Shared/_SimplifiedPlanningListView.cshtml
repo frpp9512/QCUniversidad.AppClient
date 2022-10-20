@@ -113,7 +113,9 @@
         @foreach (var item in Model)
         {
             var itemIndex = Model.IndexOf(item);
-            <div class="load-item" data-planitem-id="@item.Id" data-planitem-type="@item.Type">
+            <partial name="_LoadItem" model="(item, itemIndex)" />
+            
+            @*<div class="load-item" data-planitem-id="@item.Id" data-planitem-type="@item.Type">
                 <div class="load-item-header">
                     <div class="load-item-header-title">
                         <div class="load-item-title">
@@ -188,7 +190,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>*@
         }
     </div>
 

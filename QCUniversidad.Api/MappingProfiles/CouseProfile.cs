@@ -18,6 +18,7 @@ namespace QCUniversidad.Api.MappingProfiles
             CreateMap<CourseModel, NewCourseDto>();
             CreateMap<NewCourseDto, CourseModel>();
             CreateMap<EditCourseDto, CourseModel>();
+            CreateMap<CourseModel, SimpleCourseDto>();
         }
     }
 }

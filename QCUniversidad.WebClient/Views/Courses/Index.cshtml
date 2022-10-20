@@ -41,20 +41,25 @@
         <table class="table table-responsive table-hover">
             <thead>
                 <tr>
+                    <th>Año escolar</th>
                     <th>Denominación</th>
                     <th>Modalidad</th>
                     <th>Carrera</th>
                     <th>Año carrera</th>
-                    <th>Inicia <span class="fa fa-arrow-right m-1"></span> Culmina</th>
                     <th>Curriculum</th>
-                    <th>Periódos</th>
+                    <th>Matrícula</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in Model.Items)
+                @foreach (var item in Model.Items.OrderBy(i => i.SchoolYear.Name))
                 {
                     <tr id="@item.Id">
+                        <td>
+                            <a asp-action="Details" asp-controller="SchoolYears" asp-route-id="@item.SchoolYearId" class="link-info">
+                                @item.SchoolYear.Name <small><span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Año escolar</small></div> <div><b>@item.SchoolYear.Name</b></div> <div>@item.SchoolYear.Description</div>"></span></small>
+                            </a>
+                        </td>
                         <td>
                             @item.Denomination
                         </td>
@@ -70,17 +75,12 @@
                             @item.GetCareerYearLabel()
                         </td>
                         <td>
-                            <span class="badge bg-info">
-                                <span>@item.Starts.ToString("dd-MM-yyyy")</span><span class="fa fa-arrow-right m-1"></span><span>@item.Ends.ToString("dd-MM-yyyy")</span>
-                            </span>
-                        </td>
-                        <td>
                             <a asp-action="Details" asp-controller="Curriculums" asp-route-id="@item.CurriculumId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Curriculum</small></div> <div><b>@item.Curriculum?.Denomination</b></div> <div><i>@item.Curriculum?.Description</i></div>">
                                 @item.Curriculum?.Denomination <small><span class="fa fa-circle-info"></span></small>
                             </a>
                         </td>
                         <td>
-                            @item.Periods?.Count
+                            @item.Enrolment
                         </td>
                         <td>
                             <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">

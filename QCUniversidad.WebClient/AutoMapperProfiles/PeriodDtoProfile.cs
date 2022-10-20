@@ -19,6 +19,7 @@ namespace QCUniversidad.WebClient.AutoMapperProfiles
             CreateMap<CreatePeriodModel, PeriodModel>();
             CreateMap<EditPeriodDto, PeriodModel>();
             CreateMap<PeriodModel, EditPeriodDto>();
+            CreateMap<SimplePeriodDto, PeriodModel>();
         }
     }
 }

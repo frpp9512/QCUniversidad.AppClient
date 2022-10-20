@@ -32,5 +32,8 @@ public record TeachingPlanItemModel
     public Guid PeriodId { get; set; }
     public PeriodModel Period { get; set; }
 
+    public Guid CourseId { get; set; }
+    public CourseModel Course { get; set; }
+
     public IList<LoadItemModel> LoadItems { get; set; }
 }

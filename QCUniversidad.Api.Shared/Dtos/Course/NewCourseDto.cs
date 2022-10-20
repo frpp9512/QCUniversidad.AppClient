@@ -12,9 +12,8 @@ public record NewCourseDto
     public Guid SchoolYearId { get; set; }
     public int CareerYear { get; set; }
     public string Denomination { get; set; }
-    public DateTimeOffset Starts { get; set; }
-    public DateTimeOffset Ends { get; set; }
     public TeachingModality TeachingModality { get; set; }
+    public uint Enrolment { get; set; }
     public Guid CareerId { get; set; }
     public Guid CurriculumId { get; set; }
 }

@@ -41,7 +41,12 @@
                         <span asp-validation-for="Denomination" />
                     </div>
                     <div class="mb-3">
-                        <label asp-for="Curriculum" class="form-label"></label>
+                        <label asp-for="Enrolment" class="form-label"></label>
+                        <input asp-for="Enrolment" class="form-control"></input>
+                        <span asp-validation-for="Enrolment" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="CurriculumId" class="form-label"></label>
                         <div class="mb-3">
                             @{
                                 var curriculaGroups = Model.Curricula?.GroupBy(d => d.CareerId);
@@ -60,18 +65,9 @@
                         </div>
                         <span asp-validation-for="Curriculum" />
                     </div>
-                    <div class="mb-3">
-                        <label asp-for="Starts" class="form-label"></label>
-                        <input asp-for="Starts" type="date" class="form-control" onchange="BuildDenomination()" />
-                        <span asp-validation-for="Starts" />
-                    </div>
-                    <div class="mb-3">
-                        <label asp-for="Ends" class="form-label"></label>
-                        <input asp-for="Ends" type="date" class="form-control" onchange="BuildDenomination()" />
-                        <span asp-validation-for="Ends" />
-                    </div>
                 </fieldset>
                 <div class="form-footer mt-3">
+                    <input asp-for="SchoolYearId" type="hidden" />
                     <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
                     <button type="submit" class="btn btn-primary"><span class="fa fa-floppy-disk"></span> Guardar cambios</button>
                 </div>

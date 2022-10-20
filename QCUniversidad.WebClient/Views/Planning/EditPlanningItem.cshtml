@@ -17,7 +17,7 @@
                     <dt class="col-sm-3">Curriculum</dt>
                     <dd class="col-sm-9">@Model.Course?.Curriculum?.Denomination</dd>
                     <dt class="col-sm-3">Período</dt>
-                    <dd class="col-sm-9">(@Model.Period?.OrderNumber) @Model.Period?.Starts.ToString("dd-MM-yyyy") - @Model.Period?.Starts.ToString("dd-MM-yyyy")</dd>
+                    <dd class="col-sm-9">@Model.Period?.Starts.ToString("dd-MM-yyyy") - @Model.Period?.Starts.ToString("dd-MM-yyyy")</dd>
                 </dl>
             </div>
             <form asp-action="EditPlanningItem" method="post">

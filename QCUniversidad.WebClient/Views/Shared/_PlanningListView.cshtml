@@ -58,6 +58,9 @@
                                 <td align="right">
                                     <b>@Html.LabelFor(m => Model.First().TotalHoursPlanned)</b>
                                 </td>
+                                <th>
+                                    @Html.LabelFor(m => Model.First().Course)
+                                </th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -73,10 +76,10 @@
                                     <td>
                                         @Html.DisplayFor(m => item.Type)
                                     </td>
-                                    <td>
+                                    <td align="right">
                                         @item.HoursPlanned
                                     </td>
-                                    <td>
+                                    <td align="right">
                                         @item.GroupsAmount
                                     </td>
                                     <td align="right">
@@ -87,6 +90,11 @@
                                             </small>
                                         }
                                         @item.TotalHoursPlanned
+                                    </td>
+                                    <td>
+                                        <a asp-action="Details" asp-controller="Courses" asp-route-id="@item.Course.Id" class="link-info">
+                                            @item.Course.Denomination <small><span class="fa fa-circle-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Curso</small></div> <div><b>@item.Course?.Denomination</b></div> <div>Matrícula: @item.Course?.Enrolment</div>"></span></small>
+                                        </a>
                                     </td>
                                     <td>
                                         <a asp-action="EditPlanningItem" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
@@ -107,6 +115,7 @@
                                 <td id="totalCell" align="right">
                                     <b>@Model.Sum(i => i.HoursPlanned * i.GroupsAmount)</b>
                                 </td>
+                                <td></td>
                                 <td></td>
                             </tr>
                         </tfoot>

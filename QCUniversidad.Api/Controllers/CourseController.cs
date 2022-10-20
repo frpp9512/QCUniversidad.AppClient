@@ -38,6 +38,26 @@ public class CourseController : ControllerBase
     }
 
     [HttpGet]
+    [Route("listbyschoolyear")]
+    public async Task<IActionResult> GetListBySchoolYearAsync(Guid schoolYearId)
+    {
+        try
+        {
+            if (!await _dataManager.ExistSchoolYearAsync(schoolYearId))
+            {
+                return NotFound();
+            }
+            var result = await _dataManager.GetCoursesAsync(schoolYearId);
+            var dtos = result.Select(c => _mapper.Map<CourseDto>(c));
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
     [Route("count")]
     public async Task<IActionResult> GetCount()
     {
@@ -54,11 +74,11 @@ public class CourseController : ControllerBase
 
     [HttpGet]
     [Route("periodscount")]
-    public async Task<IActionResult> GetPeriodsCount(Guid id)
+    public async Task<IActionResult> GetPeriodsCount(Guid schoolYearId)
     {
         try
         {
-            var count = await _dataManager.GetCoursePeriodsCountAsync(id);
+            var count = await _dataManager.GetSchoolYearPeriodsCountAsync(schoolYearId);
             return Ok(count);
         }
         catch (Exception ex)

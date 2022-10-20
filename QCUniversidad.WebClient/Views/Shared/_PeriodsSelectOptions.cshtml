@@ -2,5 +2,5 @@
 
 @foreach (var period in Model)
 {
-    <option value="@period.Id">@period.OrderNumber</option>
+    <option value="@period.Id">@period.Starts.ToString("dd-MM-yyyy") - @period.Ends.ToString("dd-MM-yyyy")</option>
 }

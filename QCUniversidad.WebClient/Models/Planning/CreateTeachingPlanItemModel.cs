@@ -10,11 +10,16 @@ using System.Xml.Linq;
 using QCUniversidad.WebClient.Models.Subjects;
 using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.Courses;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace QCUniversidad.WebClient.Models.Planning;
 
 public class CreateTeachingPlanItemModel
 {
+    [Required]
+    [Display(Name = "Curso", Description = "Curso a planificar", Prompt = "Curso a planfificar")]
+    public Guid CourseId { get; set; }
+
     [Required]
     [Display(Name = "Asignatura", Description = "Asignatura planificada", Prompt = "Asignatura planificada")]
     public Guid SubjectId { get; set; }
@@ -33,10 +38,7 @@ public class CreateTeachingPlanItemModel
 
     [Required]
     public Guid PeriodId { get; set; }
-
     public PeriodModel? Period { get; set; }
 
-    public Guid? CourseId { get; set; }
-    public CourseModel? Course { get; set; }
-    public IList<SubjectModel>? Subjects { get; set; }
+    public IList<CourseModel>? Courses { get; set; }
 }

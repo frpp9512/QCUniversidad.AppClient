@@ -15,5 +15,6 @@ public class LoadItemDtoProfile : Profile
 	{
 		CreateMap<CreateLoadItemModel, NewLoadItemDto>();
 		CreateMap<LoadItemDto, LoadItemModel>();
+		CreateMap<SimpleLoadItemDto, LoadItemModel>();
 	}
 }

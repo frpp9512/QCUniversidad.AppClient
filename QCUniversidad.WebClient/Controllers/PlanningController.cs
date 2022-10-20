@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Planning;
+using QCUniversidad.WebClient.Models.SchoolYears;
 using QCUniversidad.WebClient.Services.Data;
+using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
 
@@ -25,20 +27,24 @@ public class PlanningController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(Guid? courseSelected = null, Guid? periodSelected = null)
+    public async Task<IActionResult> Index(Guid? periodSelected = null, Guid? schoolYearId = null)
     {
+        SchoolYearModel workingSchoolYear;
+        if ((!User.IsAdmin() && schoolYearId is not null) || schoolYearId is null)
+        {
+            workingSchoolYear = await _dataProvider.GetCurrentSchoolYear();
+        }
+        else
+        {
+            workingSchoolYear = await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
+        }
         var model = new PlanningIndexModel
         {
-            Courses = (await _dataProvider.GetCoursesAsync()).OrderByDescending(s => s.Starts).ToList()
+            SchoolYearId = workingSchoolYear.Id,
+            SchoolYear = workingSchoolYear,
+            Periods = await _dataProvider.GetPeriodsAsync(),
+            PeriodSelected = periodSelected
         };
-        if (courseSelected is not null && courseSelected != Guid.Empty)
-        {
-            model.CourseSelected = courseSelected;
-        }
-        if (periodSelected is not null && periodSelected != Guid.Empty)
-        {
-            model.PeriodSelected = periodSelected;
-        }
         return View(model);
     }
 
@@ -47,7 +53,7 @@ public class PlanningController : Controller
     {
         try
         {
-            var models = await _dataProvider.GetTeachingPlanItemsAsync(periodId, 0, 0);
+            var models = await _dataProvider.GetTeachingPlanItemsAsync(periodId);
             return PartialView("_PlanningListView", models);
         }
         catch (Exception)
@@ -82,18 +88,27 @@ public class PlanningController : Controller
     private async Task<CreateTeachingPlanItemModel> GetCreateViewModel(Guid periodId)
     {
         var periodModel = await _dataProvider.GetPeriodAsync(periodId);
-        var subjects = await _dataProvider.GetSubjectsForCourseAsync(periodModel.CourseId);
-        var course = await _dataProvider.GetCourseAsync(periodModel.CourseId);
+        var courses = await _dataProvider.GetCoursesAsync(periodModel.SchoolYearId);
         var viewModel = new CreateTeachingPlanItemModel
         {
-            Subjects = subjects,
             PeriodId = periodId,
             Period = periodModel,
-            CourseId = periodModel.CourseId,
-            Course = course
+            Courses = courses
         };
         return viewModel;
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetSubjectsOptionsForCourseAsync(Guid courseId)
+    {
+        if (!await _dataProvider.ExistsCourseAsync(courseId))
+        {
+            return NotFound();
+        }
+        var result = await _dataProvider.GetSubjectsForCourseAsync(courseId);
+        return PartialView("_SubjectsOptions", result);
+    }
+
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -108,7 +123,7 @@ public class PlanningController : Controller
                 if (result)
                 {
                     TempData["planItem-created"] = true;
-                    return RedirectToAction("Index", new { courseSelected = model.CourseId, periodSelected = model.PeriodId });
+                    return RedirectToAction("Index", new { periodSelected = model.PeriodId });
                 }
             }
             else
@@ -117,7 +132,6 @@ public class PlanningController : Controller
             }
         }
         model.Period = await _dataProvider.GetPeriodAsync(model.PeriodId);
-        model.Subjects = await _dataProvider.GetSubjectsForCourseAsync(model.Period.CourseId);
         return View(model);
     }
 
@@ -136,8 +150,8 @@ public class PlanningController : Controller
     {
         var planningItem = await _dataProvider.GetTeachingPlanItemAsync(id);
         var periodModel = await _dataProvider.GetPeriodAsync(planningItem.PeriodId);
-        var subjects = await _dataProvider.GetSubjectsForCourseAsync(periodModel.CourseId);
-        var course = await _dataProvider.GetCourseAsync(periodModel.CourseId);
+        var subjects = await _dataProvider.GetSubjectsForCourseAsync(planningItem.CourseId);
+        var course = await _dataProvider.GetCourseAsync(planningItem.CourseId);
         var viewModel = _mapper.Map<EditTeachingPlanItemModel>(planningItem);
         viewModel.Subjects = subjects;
         viewModel.PeriodId = planningItem.PeriodId;
@@ -160,7 +174,7 @@ public class PlanningController : Controller
                 if (result)
                 {
                     TempData["planItem-edited"] = true;
-                    return RedirectToAction("Index", new { courseSelected = model.CourseId, periodSelected = model.PeriodId });
+                    return RedirectToAction("Index", new { periodSelected = model.PeriodId });
                 }
             }
             else
@@ -168,9 +182,9 @@ public class PlanningController : Controller
                 ModelState.AddModelError("GroupsAmount", "Debe de definir al menos un grupo.");
             }
         }
-        model.Subjects = await _dataProvider.GetSubjectsForCourseAsync(model.CourseId.Value);
+        model.Subjects = await _dataProvider.GetSubjectsForCourseAsync(model.CourseId);
         model.Period = await _dataProvider.GetPeriodAsync(model.PeriodId);
-        model.Course = await _dataProvider.GetCourseAsync(model.CourseId.Value);
+        model.Course = await _dataProvider.GetCourseAsync(model.CourseId);
         return View(model);
     }
 

@@ -2,10 +2,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using QCUniversidad.WebClient.Models.Configuration;
+using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.SchoolYears;
 using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Services.Data;
+using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
 
@@ -71,6 +74,20 @@ public class SchoolYearsController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> DetailsAsync(Guid id)
+    {
+        try
+        {
+            var schoolYear = await _dataProvider.GetSchoolYearAsync(id);
+            return View(schoolYear);
+        }
+        catch (Exception)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+    }
+
+    [HttpGet]
     public async Task<IActionResult> EditAsync(Guid id)
     {
         try
@@ -132,5 +149,89 @@ public class SchoolYearsController : Controller
         {
             return Problem(ex.Message);
         }
+    }
+
+    [HttpPut]
+    public async Task<IActionResult> CreatePeriodAsync([FromBody] CreatePeriodModel model)
+    {
+        _logger.LogRequest(HttpContext);
+        try
+        {
+            if (!await _dataProvider.ExistSchoolYearAsync(model.SchoolYearId))
+            {
+                return NotFound("El año escolar no existe.");
+            }
+            if (model.Starts >= model.Ends)
+            {
+                return BadRequest(new { responseText = "La fecha de culminación debe de suceder a la de inicio." });
+            }
+            var result = await _dataProvider.CreatePeriodAsync(_mapper.Map<PeriodModel>(model));
+            if (result)
+            {
+                TempData["period-created"] = true;
+                return Ok(new { responseText = result });
+            }
+            return Problem("Ha ocurrido un problema creando el período.");
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetPeriodAsync(Guid id)
+    {
+        var result = await _dataProvider.GetPeriodAsync(id);
+        return Ok(JsonConvert.SerializeObject(result));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UpdatePeriodAsync(PeriodModel model)
+    {
+        _logger.LogRequest(HttpContext);
+        try
+        {
+            if (!await _dataProvider.ExistsPeriodAsync(model.Id))
+            {
+                return NotFound(new { responseText = "El periodo no existe." });
+            }
+            if (!await _dataProvider.ExistSchoolYearAsync(model.SchoolYearId))
+            {
+                return NotFound(new { responseText = "El año escolar no existe." });
+            }
+            if (model.Starts >= model.Ends)
+            {
+                return BadRequest(new { responseText = "La fecha de culminación debe de suceder a la de inicio." });
+            }
+            var result = await _dataProvider.UpdatePeriodAsync(model);
+            if (result)
+            {
+                TempData["period-updated"] = true;
+                return Ok(new { responseText = result });
+            }
+            return Problem("Ha ocurrido un problema actualizando el período.");
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeletePeriodAsync(Guid id)
+    {
+        _logger.LogRequest(HttpContext);
+        if (await _dataProvider.ExistsPeriodAsync(id))
+        {
+            var result = await _dataProvider.DeletePeriodAsync(id);
+            if (result)
+            {
+                TempData["period-deleted"] = true;
+                return Ok(new { responseText = "ok" });
+            }
+            return Problem("Ha ocurrido un problema eliminando el período.");
+        }
+        return NotFound(new { responseText = $"No existe el período con id {id}" });
     }
 }

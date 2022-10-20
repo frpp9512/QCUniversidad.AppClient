@@ -40,11 +40,13 @@ public class LoadDistributionController : Controller
         var schoolYear = schoolYearId is null ? await _dataProvider.GetCurrentSchoolYear() : await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
         var department = await _dataProvider.GetDepartmentAsync(workingDepartment);
         var courses = await _dataProvider.GetCoursesForDepartment(workingDepartment, schoolYear.Id);
+        var periods = await _dataProvider.GetPeriodsAsync(schoolYear.Id);
         var model = new LoadDistributionIndexModel
         {
             Department = department,
             Courses = courses,
-            SchoolYear = schoolYear
+            SchoolYear = schoolYear,
+            Periods = periods
         };
         return View(model);
     }
@@ -64,7 +66,7 @@ public class LoadDistributionController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetPeriodOptionsAsync(Guid courseId, Guid? departmentId)
+    public async Task<IActionResult> GetPeriodOptionsAsync(Guid courseId, Guid? schoolYearId, Guid? departmentId)
     {
         if (User.IsAdmin() && departmentId is null)
         {
@@ -73,7 +75,7 @@ public class LoadDistributionController : Controller
         var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
-            var result = await _dataProvider.GetPeriodsOfCourseForDepartment(courseId, workingDepartment);
+            var result = await _dataProvider.GetPeriodsAsync(schoolYearId);
             return PartialView("_PeriodOptions", result);
         }
         catch (Exception)
@@ -83,7 +85,7 @@ public class LoadDistributionController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetPlanningItemsViewAsync(Guid periodId, Guid? departmentId)
+    public async Task<IActionResult> GetPlanningItemsViewAsync(Guid periodId, Guid? departmentId, Guid? courseId = null)
     {
         if (User.IsAdmin() && departmentId is null)
         {
@@ -92,7 +94,7 @@ public class LoadDistributionController : Controller
         var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
-            var result = await _dataProvider.GetTeachingPlanItemsOfDepartmentOnPeriodAsync(workingDepartment, periodId);
+            var result = await _dataProvider.GetTeachingPlanItemsOfDepartmentOnPeriodAsync(workingDepartment, periodId, courseId);
             return PartialView("_SimplifiedPlanningListView", result);
         }
         catch (Exception)

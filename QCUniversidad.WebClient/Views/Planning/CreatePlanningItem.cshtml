@@ -12,12 +12,10 @@
             <hr />
             <div>
                 <dl class="row">
-                    <dt class="col-sm-3">Curso</dt>
-                    <dd class="col-sm-9">@Model.Course?.Denomination</dd>
-                    <dt class="col-sm-3">Curriculum</dt>
-                    <dd class="col-sm-9">@Model.Course?.Curriculum?.Denomination</dd>
+                    <dt class="col-sm-3">Año escolar</dt>
+                    <dd class="col-sm-9">@Model.Period?.SchoolYear?.Name</dd>
                     <dt class="col-sm-3">Período</dt>
-                    <dd class="col-sm-9">(@Model.Period?.OrderNumber) @Model.Period?.Starts.ToString("dd-MM-yyyy") - @Model.Period?.Starts.ToString("dd-MM-yyyy")</dd>
+                    <dd class="col-sm-9">@Model.Period?.Starts.ToString("dd-MM-yyyy") - @Model.Period?.Starts.ToString("dd-MM-yyyy")</dd>
                 </dl>
             </div>
             <form asp-action="CreatePlanningItem" method="post">
@@ -26,24 +24,27 @@
                 </div>
                 <fieldset>
                     <div class="mb-3">
-                        <label for="FacultyId" class="form-label">Seleccionar asignatura</label>
-                        <select asp-for="SubjectId" class="form-select select-subject" aria-label="Seleccionar asignatura" autofocus>
-                            @{
-                                var subjectGroups = Model.Subjects?.GroupBy(s => s.DisciplineId);
-                                if (subjectGroups is not null && subjectGroups.Any())
+                        <label asp-for="CourseId" class="form-label">Seleccionar curso</label>
+                        <select asp-for="CourseId" class="form-select select-course" aria-label="Seleccionar asignatura" onchange="LoadSubjectsForCourse()" autofocus>
+                            @if (Model.Courses is not null && Model.Courses.Any())
+                            {
+                                foreach (var course in Model.Courses)
                                 {
-                                    foreach (var group in subjectGroups)
-                                    {
-                                        <optgroup label="@group.First().Discipline?.Name">
-                                            @foreach (var item in group)
-                                            {
-                                                <option value="@item.Id">@item.Name</option>
-                                            }
-                                        </optgroup>
-                                    }
+                                    <option value="@course.Id">@course.Denomination</option>
                                 }
                             }
+                            else
+                            {
+                                <option value="none">No existen cursos</option>
+                            }
                         </select>
+                        <span asp-validation-for="CourseId" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="SubjectId" class="form-label">Seleccionar asignatura</label>
+                        <select asp-for="SubjectId" class="form-select select-subject" aria-label="Seleccionar asignatura" autofocus>
+                        </select>
+                        <span asp-validation-for="SubjectId" />
                     </div>
                     <div class="mb-3">
                         <label asp-for="Type" class="form-label"></label>
@@ -52,23 +53,18 @@
                     </div>
                     <div class="mb-3">
                         <label asp-for="HoursPlanned" class="form-label"></label>
-                        <input asp-for="HoursPlanned" class="form-control" onchange="CalculateTotalHours()" onkeydown="CalculateTotalHours()" />
+                        <input asp-for="HoursPlanned" class="form-control" onkeydown="CalculateTotalHours()" />
                         <span asp-validation-for="HoursPlanned" />
                     </div>
                     <div class="mb-3">
                         <label asp-for="GroupsAmount" class="form-label"></label>
-                        <input asp-for="GroupsAmount" class="form-control" onchange="CalculateTotalHours()" onkeydown="CalculateTotalHours()" />
+                        <input asp-for="GroupsAmount" class="form-control" onkeydown="CalculateTotalHours()" />
                         <span asp-validation-for="GroupsAmount" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="totalHoursInput" class="form-label">Horas totales</label>
-                        <input id="totalHoursInput" type="number" min="0" class="form-control" disabled />
                     </div>
                 </fieldset>
                 <div class="form-footer mt-3">
-                    <input asp-for="CourseId" type="hidden" />
                     <input asp-for="PeriodId" type="hidden" />
-                    <a asp-action="Index" asp-route-courseSelected="@Model.CourseId" asp-route-periodSelected="@Model.PeriodId" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    <a asp-action="Index" asp-route-periodSelected="@Model.PeriodId" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
                     <button type="submit" class="btn btn-primary"><span class="fa fa-plus"></span> Crear</button>
                 </div>
             </form>
@@ -76,23 +72,44 @@
     </div>
 </div>
 
+<partial name="_LoadingModal" />
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script src="~/js/loading-modal.js"></script>
     <script>
         $(document).ready(function () {
             $('.select-subject').select2({
                 placeholder: "Seleccione la asignatura"
             });
-            CalculateTotalHours();
+            $('.select-course').select2({
+                placeholder: "Seleccione el curso"
+            });
+            LoadSubjectsForCourse();
         });
 
-        function CalculateTotalHours() {
-            let hoursPlanned = document.getElementById("HoursPlanned").value;
-            let groupsAmount = document.getElementById("GroupsAmount").value;
-            let totalHours = hoursPlanned * groupsAmount;
-            document.getElementById("totalHoursInput").value = totalHours;
+        function LoadSubjectsForCourse() {
+            const courseSelect = document.getElementById("CourseId");
+            let selectedCourse = courseSelect.options[courseSelect.selectedIndex].value;
+            if (selectedCourse != "none") {
+                OpenLoadingModal("Cargando asignaturas del curso seleccionado...");
+                $.ajax({
+                    url: `/planning/GetSubjectsOptionsForCourse?courseId=${selectedCourse}`,
+                    type: "GET",
+                    success: function (data) {
+                        const subjectSelect = document.getElementById("SubjectId");
+                        subjectSelect.innerHTML = data;
+                        CloseLoadingModal();
+                    },
+                    error: function (xhr, status, error) {
+                        CloseLoadingModal();
+                        DisableLoadingPlanning();
+                        console.log(xhr, status, error);
+                    }
+                });
+            }
         }
     </script>
 }

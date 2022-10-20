@@ -12,7 +12,7 @@ using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
 
 namespace QCUniversidad.Api.Shared.Dtos.Period;
 
-public record PeriodDto
+public record SimplePeriodDto
 {
     public Guid Id { get; set; }
     public string? Description { get; set; }
@@ -20,6 +20,5 @@ public record PeriodDto
     public DateTimeOffset Ends { get; set; }
     public double TimeFund { get; set; }
     public Guid SchoolYearId { get; set; }
-    public SchoolYearDto SchoolYear { get; set; }
-    public IList<TeachingPlanItemSimpleDto>? PlanItems { get; set; }
+    public SimpleSchoolYearDto SchoolYear { get; set; }
 }

@@ -1,4 +1,5 @@
 ﻿using QCUniversidad.WebClient.Models.Courses;
+using QCUniversidad.WebClient.Models.Periods;
 using System.ComponentModel.DataAnnotations;
 
 namespace QCUniversidad.WebClient.Models.SchoolYears;
@@ -18,6 +19,8 @@ public record SchoolYearModel
     public bool Current { get; set; }
 
     public IList<CourseModel>? Courses { get; set; }
-
     public int? CoursesCount { get; set; }
+
+    public IList<PeriodModel>? Periods { get; set; }
+    public int? PeriodsCount { get; set; }
 }

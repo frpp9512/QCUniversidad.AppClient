@@ -59,16 +59,22 @@ namespace QCUniversidad.Api.Data.Context
                         .HasForeignKey(c => c.SchoolYearId)
                         .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<CourseModel>()
-                        .HasMany(c => c.Periods)
-                        .WithOne(p => p.Course)
-                        .HasForeignKey(c => c.CourseId)
+            modelBuilder.Entity<SchoolYearModel>()
+                        .HasMany(sy => sy.Periods)
+                        .WithOne(p => p.SchoolYear)
+                        .HasForeignKey(p => p.SchoolYearId)
                         .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<CourseModel>()
                         .HasOne(c => c.Career)
                         .WithMany(cr => cr.Courses)
                         .HasForeignKey(c => c.CareerId)
+                        .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CourseModel>()
+                        .HasMany(c => c.PlanItems)
+                        .WithOne(i => i.Course)
+                        .HasForeignKey(i => i.CourseId)
                         .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<DisciplineModel>()

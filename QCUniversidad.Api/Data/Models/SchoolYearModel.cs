@@ -29,6 +29,11 @@ namespace QCUniversidad.Api.Data.Models
         public bool Current { get; set; }
 
         /// <summary>
+        /// The period of the current school year.
+        /// </summary>
+        public IList<PeriodModel> Periods { get; set; }
+
+        /// <summary>
         /// The set of courses teached in the school year.
         /// </summary>
         public IList<CourseModel> Courses { get; set; }
