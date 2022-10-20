@@ -1,6 +1,6 @@
 :root {
     --main-color: #512bd4;
-    --text-color: #222020;
+    --text-color: #808080;
     --white: #ffffff;
 }
 
@@ -47,6 +47,33 @@ thead, tfoot {
 main {
     padding: 15px;
     border-radius: 5px;
+}
+
+.banner-title {
+    color: var(--main-color);
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.banner-subtitle {
+    color: var(--text-color);
+    font-weight: lighter;
+}
+
+.index-department-name {
+    color: var(--main-color);
+    font-weight: bolder;
+    font-size: 2.5rem;
+}
+
+.index-department-name::before {
+    content: 'Departamento de ';
+}
+
+.index-department-desc {
+    color: var(--text-color);
+    font-weight: lighter;
+    font-size: 1.5rem;
 }
 
 #main-container {

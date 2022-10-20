@@ -9,6 +9,7 @@ using QCUniversidad.Api.Shared.Dtos.Faculty;
 using QCUniversidad.Api.Shared.Dtos.LoadItem;
 using QCUniversidad.Api.Shared.Dtos.Period;
 using QCUniversidad.Api.Shared.Dtos.SchoolYear;
+using QCUniversidad.Api.Shared.Dtos.Statistics;
 using QCUniversidad.Api.Shared.Dtos.Subject;
 using QCUniversidad.Api.Shared.Dtos.Teacher;
 using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
@@ -22,6 +23,7 @@ using QCUniversidad.WebClient.Models.LoadDistribution;
 using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.Planning;
 using QCUniversidad.WebClient.Models.SchoolYears;
+using QCUniversidad.WebClient.Models.Statistics;
 using QCUniversidad.WebClient.Models.Subjects;
 using QCUniversidad.WebClient.Models.Teachers;
 using QCUniversidad.WebClient.Services.Platform;
@@ -1299,6 +1301,23 @@ public class DataProvider : IDataProvider
             var contentText = await response.Content.ReadAsStringAsync();
             var periods = JsonConvert.DeserializeObject<IList<TeachingPlanItemDto>>(contentText);
             return periods?.Select(f => _mapper.Map<TeachingPlanItemModel>(f)).ToList() ?? new List<TeachingPlanItemModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    #endregion
+
+    #region Statistics
+
+    public async Task<IList<StatisticItemModel>> GetGlobalStatisticsForDepartment(Guid departmentId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/statistics/departmentstatistics?departmentId={departmentId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var statisticsItems = JsonConvert.DeserializeObject<IList<StatisticItemDto>>(contentText);
+            return statisticsItems?.Select(f => _mapper.Map<StatisticItemModel>(f)).ToList() ?? new List<StatisticItemModel>();
         }
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }

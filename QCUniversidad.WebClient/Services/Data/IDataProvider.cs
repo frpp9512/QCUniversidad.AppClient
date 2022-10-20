@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using QCUniversidad.WebClient.Models.SchoolYears;
 using QCUniversidad.WebClient.Models.LoadDistribution;
+using QCUniversidad.WebClient.Models.Statistics;
 
 namespace QCUniversidad.WebClient.Services.Data;
 
@@ -171,6 +172,12 @@ public interface IDataProvider
     Task<bool> DeleteTeachingPlanItemAsync(Guid id);
 
     Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriodAsync(Guid departmentId, Guid periodId, Guid? courseId = null);
+
+    #endregion
+
+    #region Statistics
+
+    Task<IList<StatisticItemModel>> GetGlobalStatisticsForDepartment(Guid departmentId); 
 
     #endregion
 }

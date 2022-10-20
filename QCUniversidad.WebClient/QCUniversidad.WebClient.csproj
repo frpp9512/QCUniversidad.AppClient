@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Views\Shared\_ICard.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
     <PackageReference Include="IdentityModel" Version="6.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.9" />
@@ -33,6 +37,10 @@
   <ItemGroup>
     <Folder Include="wwwroot\img\loggedUser\" />
     <Folder Include="wwwroot\img\tmp\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Views\Home\_ICard.cshtml" />
   </ItemGroup>
 
   <ItemGroup>

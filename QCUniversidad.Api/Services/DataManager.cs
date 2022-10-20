@@ -183,7 +183,12 @@ public class DataManager : IDataManager
 
     public async Task<int> GetDeparmentTeachersCountAsync(Guid departmentId)
     {
-        throw new NotImplementedException();
+        if (!await ExistDepartmentAsync(departmentId))
+        {
+            throw new DepartmentNotFoundException();
+        }
+        var count = await _context.Teachers.CountAsync(t => t.DepartmentId == departmentId);
+        return count;
     }
 
     public async Task<bool> CreateDepartmentAsync(DepartmentModel department)
@@ -218,6 +223,121 @@ public class DataManager : IDataManager
         _context.Departments.Remove(department);
         var result = await _context.SaveChangesAsync();
         return result > 0;
+    }
+
+    public async Task<double> GetTotalLoadInPeriodAsync(Guid periodId)
+    {
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        var query = from planItem in _context.TeachingPlanItems
+                    where planItem.PeriodId == periodId
+                    select planItem.TotalHoursPlanned;
+
+        var result = await query.SumAsync();
+
+        return result;
+    }
+
+    public async Task<double> GetTotalLoadInPeriodAsync(Guid periodId, Guid departmentId)
+    {
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        var query = from planItem in _context.TeachingPlanItems
+                    where planItem.PeriodId == periodId
+                    join subject in _context.Subjects
+                    on planItem.SubjectId equals subject.Id
+                    join discipline in _context.Disciplines
+                    on subject.DisciplineId equals discipline.Id
+                    join department in _context.Departments
+                    on discipline.DepartmentId equals department.Id
+                    where discipline.DepartmentId == department.Id
+                    select planItem.TotalHoursPlanned;
+
+        var result = await query.SumAsync();
+
+        return result;
+    }
+
+    public async Task<double> GetTotalLoadCoveredInPeriodAsync(Guid periodId)
+    {
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        var query = from loadItem in _context.LoadItems
+                    join planItem in _context.TeachingPlanItems
+                    on loadItem.PlanningItemId equals planItem.Id
+                    where planItem.PeriodId == periodId
+                    join subject in _context.Subjects
+                    on planItem.SubjectId equals subject.Id
+                    join discipline in _context.Disciplines
+                    on subject.DisciplineId equals discipline.Id
+                    join department in _context.Departments
+                    on discipline.DepartmentId equals department.Id
+                    select loadItem.HoursCovered;
+
+        var result = await query.SumAsync();
+
+        return result;
+    }
+
+    public async Task<double> GetTotalLoadCoveredInPeriodAsync(Guid periodId, Guid departmentId)
+    {
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        var query = from loadItem in _context.LoadItems
+                    join planItem in _context.TeachingPlanItems
+                    on loadItem.PlanningItemId equals planItem.Id
+                    where planItem.PeriodId == periodId
+                    join subject in _context.Subjects
+                    on planItem.SubjectId equals subject.Id
+                    join discipline in _context.Disciplines
+                    on subject.DisciplineId equals discipline.Id
+                    join department in _context.Departments
+                    on discipline.DepartmentId equals department.Id
+                    where discipline.DepartmentId == departmentId
+                    select loadItem.HoursCovered;
+
+        var result = await query.SumAsync();
+
+        return result;
+    }
+
+    public async Task<double> CalculateRAPAsync(Guid departmentId)
+    {
+        var departmentDisciplines = from discipline in _context.Disciplines
+                                    where discipline.DepartmentId == departmentId
+                                    select discipline;
+
+        var departmentSubjects = from subject in _context.Subjects
+                                 join discipline in _context.Disciplines
+                                 on subject.DisciplineId equals discipline.Id
+                                 select subject;
+
+        var planItems = from planItem in _context.TeachingPlanItems
+                        join subject in departmentSubjects
+                        on planItem.SubjectId equals subject.Id
+                        select planItem;
+
+        var courses = from course in _context.Courses
+                      join planItem in planItems
+                      on course.Id equals planItem.CourseId
+                      select course;
+
+        courses = courses.Distinct().Include(c => c.Career);
+        var totalEnrolment = await courses.SumAsync(c => c.Career.PostgraduateCourse ? c.Enrolment / 3 : c.Enrolment);
+
+        var teachers = from teacher in _context.Teachers
+                       where teacher.DepartmentId == departmentId && teacher.Active
+                       select teacher;
+
+        return totalEnrolment / await teachers.CountAsync();
     }
 
     #endregion

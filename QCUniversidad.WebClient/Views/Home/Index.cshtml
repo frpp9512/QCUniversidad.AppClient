@@ -1,69 +1,53 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model IndexViewModel
+
+@{
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <img src="/img/site/logo.svg" width="150" class="m-5" />
-    <h1 class="display-4">QC Universidad</h1>
-    <p>Plataforma para el estudio de carga del parsonal docente universitario.</p>
-</div>
-
-<div class="icard-set">
-    <div class="icard">
-        <div class="icard-title"><span class="fa fa-warning"></span> Carga distribuida</div>
-        <div class="icard-content">
-            <div class="icard-value text-warning">
-                1560 <span class="icard-value-mu">h</span>
-            </div>
-            <div class="icard-value-ref">
-                2400 <span class="icard-value-mu">h</span>
-            </div>
-            <hr />
-        </div>
-        <div class="icard-footer">
-            <p>Quedan <strong>15</strong> elmentos de carga por distribuir.</p>
-        </div>
-    </div>
-
-    <div class="icard delay-1">
-        <div class="icard-title"><span class="fa fa-info"></span> Profesores</div>
-        <div class="icard-content">
-            <div class="icard-value">
-                34
-            </div>
-            <hr />
-        </div>
-        <div class="icard-footer">
-            <p><a href="#"><span class="fa fa-link"></span> Ver listado de profesores del departamento</a></p>
-        </div>
-    </div>
-
-    <div class="icard delay-2">
-        <div class="icard-title"><span class="fa fa-exclamation"></span> Relación alumno profesor <strong>RAP</strong></div>
-        <div class="icard-content">
-            <div class="icard-value text-danger">
-                16.2
-            </div>
-            <div class="icard-value-ref">
-                12.5
-            </div>
-            <hr />
-        </div>
-        <div class="icard-footer">
-            <p>Este indicador se encuentra deteriorado.</p>
-        </div>
-    </div>
-
-    <div class="icard delay-3">
-        <div class="icard-title"><span class="fa fa-info"></span> Carga del departamento</div>
-        <div class="icard-content">
-            <div class="icard-value text-warning">
-                64 <span class="icard-value-mu">%</span>
-            </div>
-            <hr />
-        </div>
-        <div class="icard-footer">
-            <p>Existe desaprovechamiento de la fuerza docente del departamento.</p>
-        </div>
+<div class="mb-3 d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start">
+    <img src="/img/site/logo.svg" width="50" class="m-2" />
+    <div class="d-flex flex-column">
+        <div class="banner-title">Bienvenido a QC Universidad</div>
+        <div class="banner-subtitle">Plataforma para la planificación y distribución de carga docente</div>
     </div>
 </div>
+
+<hr />
+
+@if (Model.Department is not null)
+{
+    <div class="d-flex flex-column text-center text-sm-start mb-5">
+        <div class="index-department-name">@Model.Department.Name</div>
+        <div class="index-department-desc">@Model.Department.Description</div>
+    </div>
+}
+
+<div id="global-statistics" class="text-center">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p>Cargando estadísticas globales</p>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            LoadGlobalStatistics();
+        });
+
+        function LoadGlobalStatistics() {
+            const statisticsDiv = document.getElementById("global-statistics");
+            $.ajax({
+                url: `/home/GetGlobalStatistics`,
+                type: "GET",
+                success: function (data) {
+                    statisticsDiv.innerHTML = data;
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr, status, error);
+                    statisticsDiv.innerHTML = 'Error reciviendo estadísticas';
+                }
+            });
+        }
+    </script>
+}

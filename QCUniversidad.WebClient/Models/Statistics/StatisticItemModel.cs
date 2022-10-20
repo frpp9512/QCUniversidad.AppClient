@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QCUniversidad.Api.Shared.Dtos.Statistics;
+namespace QCUniversidad.WebClient.Models.Statistics;
 
-public class StatisticItemDto
+public class StatisticItemModel
 {
     public string Name { get; set; }
     public double Value { get; set; }

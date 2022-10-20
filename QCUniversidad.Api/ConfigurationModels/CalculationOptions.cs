@@ -10,5 +10,6 @@ namespace QCUniversidad.Api.ConfigurationModels
     {
         public double PregraduateTotalHoursCoefficient { get; set; }
         public double PostgraduateTotalHoursCoefficient { get; set; }
+        public double RAPReference { get; set; }
     }
 }

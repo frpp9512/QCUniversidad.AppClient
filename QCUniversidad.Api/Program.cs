@@ -20,6 +20,7 @@ var connectionString = builder.Configuration.GetConnectionString("Sqlite");
 builder.Services.AddDbContext<QCUniversidadContext>(options => options.UseSqlite(connectionString));
 builder.Services.AddScoped<IDataManager, DataManager>();
 builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.Configure<CalculationOptions>(builder.Configuration.GetSection("CalculationOptions"));
 builder.Services.AddAuthentication(options => 
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

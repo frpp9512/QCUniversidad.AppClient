@@ -25,11 +25,6 @@ namespace SmartB1t.Security.Extensions.AspNetCore
                 new Claim(ClaimTypes.Name, user.Fullname),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
             };
-            //user.Roles.ForEach(ur => claims.Add(new Claim(ClaimTypes.Role, ur.Role.Name)));
-            //foreach (var role in user.Roles)
-            //{
-            //    claims.Add(new Claim(ClaimTypes.Role, role.Role.Name));
-            //}
             if (user.Roles?.Any() == true)
             {
                 claims.AddRange(user.Roles.Select(r => new Claim(ClaimTypes.Role, r.Role.Name)));
