@@ -242,6 +242,50 @@ public class TeacherController : ControllerBase
         }
     }
 
+    [HttpGet]
+    [Route("listsupport")]
+    public async Task<IActionResult> GetListSupport(Guid departmentId, Guid periodId)
+    {
+        if (departmentId == Guid.Empty)
+        {
+            return BadRequest("You must provide a department id.");
+        }
+        if (periodId == Guid.Empty)
+        {
+            return BadRequest("You must provide a period id.");
+        }
+        try
+        {
+            var result = await _dataManager.GetSupportTeachersAsync(departmentId, periodId);
+            var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
+            var dtos = result.Select(i => _mapper.Map<TeacherDto>(i, opts => opts.AfterMap(async (o, teacher) =>
+            {
+                var load = await _dataManager.GetTeacherLoadInPeriodAsync(teacher.Id, periodId);
+                teacher.Load = new TeacherLoadDto
+                {
+                    TeacherId = teacher.Id,
+                    TimeFund = periodTimeFund,
+                    Load = load,
+                    LoadPercent = Math.Round((load / periodTimeFund) * 100, 2),
+                    PeriodId = periodId
+                };
+                if (i.TeacherDisciplines?.Any() == true)
+                {
+                    teacher.Disciplines ??= new List<PopulatedDisciplineDto>();
+                    foreach (var td in i.TeacherDisciplines)
+                    {
+                        teacher.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
+                    }
+                }
+            })));
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
     [HttpPut]
     [Route("setload")]
     public async Task<IActionResult> SetLoadItem(NewLoadItemDto newLoadItem)

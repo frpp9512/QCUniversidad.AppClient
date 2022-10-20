@@ -85,6 +85,7 @@ public interface IDataManager
     Task<IList<TeacherModel>> GetTeachersOfDepartmentNotAssignedToPlanItemAsync(Guid departmentId, Guid planItemId, Guid? disciplineId = null);
     Task<bool> SetLoadToTeacher(Guid teacherId, Guid planItemId, double hours);
     Task<bool> DeleteLoadFromTeacherAsync(Guid loadItemId);
+    Task<IList<TeacherModel>> GetSupportTeachersAsync(Guid departmentId, Guid periodId);
 
     #endregion
 

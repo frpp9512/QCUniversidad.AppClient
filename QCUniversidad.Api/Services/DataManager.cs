@@ -653,7 +653,7 @@ public class DataManager : IDataManager
 
     public async Task<bool> DeleteLoadFromTeacherAsync(Guid loadItemId)
     {
-        if (!await ExistsLoadItemAsync(loadItemId))
+        if (await ExistsLoadItemAsync(loadItemId))
         {
             var loadItem = await _context.LoadItems.FindAsync(loadItemId);
             if (loadItem is not null)
@@ -668,6 +668,45 @@ public class DataManager : IDataManager
 
     private async Task<bool> ExistsLoadItemAsync(Guid loadItemId)
         => await _context.LoadItems.AnyAsync(i => i.Id == loadItemId);
+
+    public async Task<IList<TeacherModel>> GetSupportTeachersAsync(Guid departmentId, Guid periodId)
+    {
+        if (departmentId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(departmentId));
+        }
+        if (!await ExistDepartmentAsync(departmentId))
+        {
+            throw new DepartmentNotFoundException();
+        }
+        var disciplines = from discipline in _context.Disciplines
+                          where discipline.DepartmentId == departmentId
+                          select discipline;
+
+        var subjects = from subject in _context.Subjects
+                       join discipline in disciplines
+                       on subject.DisciplineId equals discipline.Id
+                       select subject;
+
+        var planItems = from planItem in _context.TeachingPlanItems
+                        join subject in subjects
+                        on planItem.SubjectId equals subject.Id
+                        where planItem.PeriodId == periodId
+                        select planItem;
+
+        var loadItems = from loadItem in _context.LoadItems
+                        join planItem in planItems
+                        on loadItem.PlanningItemId equals planItem.Id
+                        select loadItem;
+
+        var teachers = from teacher in _context.Teachers
+                       join loadItem in loadItems
+                       on teacher.Id equals loadItem.TeacherId
+                       where teacher.DepartmentId != departmentId
+                       select teacher;
+
+        return await teachers.Include(t => t.TeacherDisciplines).ThenInclude(td => td.Discipline).Include(t => t.Department).ToListAsync();
+    }
 
     #endregion
 

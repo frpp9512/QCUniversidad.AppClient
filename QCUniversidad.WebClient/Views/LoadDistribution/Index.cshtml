@@ -262,8 +262,12 @@
 
         function AddLoadToTeacher(planItemId) {
             if (selectedPlanItem == planItemId
-                && document.querySelectorAll(`div[data-planitem-id='${planItemId}']`).length == 1
-                && selectedMaxValue == document.getElementById('loadHours').valueMax) {
+                && document.querySelectorAll(`div[data-planitem-id='${planItemId}']`).length == 1) {
+
+                let maxValue = document.getElementById('loadHours').max;
+                if (selectedMaxValue == maxValue) {
+                    alert(`El valor máximo debe de ser ${maxValue}.`);
+                }
                 const selectTeacher = document.getElementById('selectTeacher');
                 let selectedTeacher = selectTeacher.options[selectTeacher.selectedIndex].value;
                 if (selectedTeacher == "none") {
@@ -302,6 +306,22 @@
             } else {
                 alert('Ha existido irregularidad. Actualize la página y continue con su actividad. Si continúa este comportamiento contacte a los administradores.');
             }
+        }
+
+        function DeleteLoadItem(loadItemId) {
+            OpenLoadingModal('Eliminando carga');
+            $.ajax({
+                url: `/loaddistribution/DeleteLoadItem?loadItemId=${loadItemId}`,
+                type: "DELETE",
+                success: function (data) {
+                    CloseLoadingModal();
+                    LoadPlanningItems();
+                },
+                error: function (xhr, status, error) {
+                    CloseLoadingModal();
+                    console.log(xhr, status, error);
+                }
+            });
         }
     </script>
 

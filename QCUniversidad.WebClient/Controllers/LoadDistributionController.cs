@@ -111,8 +111,14 @@ public class LoadDistributionController : Controller
         var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
-            var result = await _dataProvider.GetTeachersOfDepartmentForPeriodAsync(workingDepartment, periodId);
-            return PartialView("_TeachersWithLoadView", result);
+            var depTeachers = await _dataProvider.GetTeachersOfDepartmentForPeriodAsync(workingDepartment, periodId);
+            var supportTeachers = await _dataProvider.GetSupportTeachersAsync(workingDepartment, periodId);
+            var model = new TeachersViewModel
+            {
+                DepartmentsTeacher = depTeachers,
+                SupportTeachers = supportTeachers
+            };
+            return PartialView("_TeachersWithLoadView", model);
         }
         catch (Exception)
         {
@@ -161,5 +167,23 @@ public class LoadDistributionController : Controller
             }
         }
         return BadRequest("The model should not be null.");
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeleteLoadItemAsync(Guid loadItemId)
+    {
+        if(loadItemId == Guid.Empty)
+        {
+            return BadRequest();
+        }
+        try
+        {
+            var result = await _dataProvider.DeleteLoadItemAsync(loadItemId);
+            return result ? Ok(result) : Problem();
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
     }
 }

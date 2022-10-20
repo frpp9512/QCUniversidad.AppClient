@@ -87,6 +87,7 @@ public interface IDataProvider
     Task<bool> SetLoadItemAsync(CreateLoadItemModel newLoadItem);
     Task<IList<TeacherModel>> GetTeachersOfDepartmentForPeriodAsync(Guid departmentId, Guid periodId);
     Task<bool> DeleteLoadItemAsync(Guid loadItemId);
+    Task<IList<TeacherModel>> GetSupportTeachersAsync(Guid departmentId, Guid periodId);
 
     #endregion
 

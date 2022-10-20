@@ -312,31 +312,14 @@ dd {
 
 .icard-set {
     display: grid;
-    grid-template-columns: minmax(300px, 600px) minmax(300px, 600px) minmax(300px, 600px) minmax(300px, 600px);
-    grid-column-gap: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-rows: repeat(auto-fit, minmax(100px, 1fr));
     grid-row-gap: 15px;
+    grid-column-gap: 10px;
     justify-items: center;
     justify-content: center;
     grid-auto-flow: row;
     min-width: 300px;
-}
-
-@media (max-width: 1400px) {
-    .icard-set {
-        grid-template-columns: minmax(300px, 600px) minmax(300px, 600px) minmax(300px, 600px);
-    }
-}
-
-@media (max-width: 1000px) {
-    .icard-set {
-        grid-template-columns: minmax(300px, 600px) minmax(300px, 600px);
-    }
-}
-
-@media (max-width: 768px) {
-    .icard-set {
-        grid-template-columns: minmax(300px, 600px);
-    }
 }
 
 .icard {

@@ -113,7 +113,7 @@
         @foreach (var item in Model)
         {
             var itemIndex = Model.IndexOf(item);
-            <div class="load-item" data-planitem-id="@item.Id">
+            <div class="load-item" data-planitem-id="@item.Id" data-planitem-type="@item.Type">
                 <div class="load-item-header">
                     <div class="load-item-header-title">
                         <div class="load-item-title">
@@ -153,7 +153,7 @@
                                     </div>
                                     <div class="load-item-row-valuesection">
                                         <div class="load-item-row-btns">
-                                            <button class="load-item-deletebtn"><span class="fa fa-trash"></span></button>
+                                            <button class="load-item-deletebtn" onclick="DeleteLoadItem('@loadItem.Id')"><span class="fa fa-trash"></span></button>
                                         </div>
                                         <div class="load-item-row-value">
                                             @loadItem.HoursCovered
