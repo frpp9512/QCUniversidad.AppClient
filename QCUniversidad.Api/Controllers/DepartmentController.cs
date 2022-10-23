@@ -1,20 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using QCUniversidad.Api.ConfigurationModels;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Department;
 using QCUniversidad.Api.Shared.Dtos.Teacher;
 using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Controllers;
 
@@ -37,10 +28,7 @@ public class DepartmentController : ControllerBase
     public async Task<IActionResult> GetList(int from = 0, int to = 0)
     {
         var deparments = await _dataManager.GetDepartmentsAsync(from, to);
-        var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d, opts => opts.AfterMap(async (o, d) =>
-        {
-            d.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(d.Id);
-        })));
+        var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d, opts => opts.AfterMap(async (o, d) => d.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(d.Id))));
         return Ok(dtos);
     }
 
@@ -51,13 +39,37 @@ public class DepartmentController : ControllerBase
         if (facultyId != Guid.Empty)
         {
             var deparments = await _dataManager.GetDepartmentsAsync(facultyId);
-            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d, opts => opts.AfterMap(async (o, d) => 
-            {
-                d.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(d.Id);
-            })));
+            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d, opts => opts.AfterMap(async (o, d) => d.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(d.Id))));
             return Ok(dtos);
         }
         return BadRequest("You should provide a faculty id to load the departments from.");
+    }
+
+    [HttpGet]
+    [Route("listallwithload")]
+    public async Task<IActionResult> GetListWithLoad(Guid periodId)
+    {
+        try
+        {
+            var deparments = await _dataManager.GetDepartmentsAsync();
+            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d, opts => opts.AfterMap(async (o, d) =>
+            {
+                d.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(d.Id);
+                var load = await _dataManager.GetDepartmentTotalLoadInPeriodAsync(periodId, d.Id);
+                d.Load = load;
+                var loadCovered = await _dataManager.GetDepartmentTotalLoadCoveredInPeriodAsync(periodId, d.Id);
+                d.LoadCovered = loadCovered;
+                d.LoadCoveredPercent = load == 0 ? 0 : Math.Round(loadCovered / load * 100, 1);
+                var totalFund = await _dataManager.GetDepartmentTotalTimeFund(d.Id, periodId);
+                d.TotalTimeFund = totalFund;
+                d.LoadPercent = totalFund == 0 ? 0 : Math.Round(load / totalFund * 100, 1);
+            })));
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
     }
 
     [HttpGet]
@@ -193,7 +205,7 @@ public class DepartmentController : ControllerBase
         {
             var result = await _dataManager.GetTeachingPlanItemsOfDepartmentOnPeriod(id, periodId, courseId);
             var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
-            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemDto>(i, opts => opts.AfterMap(async (o, planItem) => 
+            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemDto>(i, opts => opts.AfterMap(async (o, planItem) =>
             {
                 if (planItem.LoadItems is not null)
                 {
@@ -207,7 +219,7 @@ public class DepartmentController : ControllerBase
                                 TeacherId = loadItem.Teacher.Id,
                                 TimeFund = periodTimeFund,
                                 Load = load,
-                                LoadPercent = Math.Round((load / periodTimeFund) * 100, 2),
+                                LoadPercent = Math.Round(load / periodTimeFund * 100, 2),
                                 PeriodId = periodId
                             };
                         }

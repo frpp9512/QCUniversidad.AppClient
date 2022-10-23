@@ -29,20 +29,14 @@ public class PlanningController : Controller
     [HttpGet]
     public async Task<IActionResult> Index(Guid? periodSelected = null, Guid? schoolYearId = null)
     {
-        SchoolYearModel workingSchoolYear;
-        if ((!User.IsAdmin() && schoolYearId is not null) || schoolYearId is null)
-        {
-            workingSchoolYear = await _dataProvider.GetCurrentSchoolYear();
-        }
-        else
-        {
-            workingSchoolYear = await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
-        }
+        var workingSchoolYear = (!User.IsAdmin() && schoolYearId is not null) || schoolYearId is null
+            ? await _dataProvider.GetCurrentSchoolYear()
+            : await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
         var model = new PlanningIndexModel
         {
             SchoolYearId = workingSchoolYear.Id,
             SchoolYear = workingSchoolYear,
-            Periods = await _dataProvider.GetPeriodsAsync(),
+            Periods = await _dataProvider.GetPeriodsAsync(workingSchoolYear.Id),
             PeriodSelected = periodSelected
         };
         return View(model);

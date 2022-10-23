@@ -1,22 +1,16 @@
-﻿using QCUniversidad.Api.Shared.Enums;
-using QCUniversidad.WebClient.Models.Careers;
+﻿using QCUniversidad.WebClient.Models.Careers;
+using QCUniversidad.WebClient.Models.Courses;
 using QCUniversidad.WebClient.Models.Curriculums;
 using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Faculties;
+using QCUniversidad.WebClient.Models.LoadDistribution;
 using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.Planning;
-using QCUniversidad.WebClient.Models.Courses;
+using QCUniversidad.WebClient.Models.SchoolYears;
+using QCUniversidad.WebClient.Models.Statistics;
 using QCUniversidad.WebClient.Models.Subjects;
 using QCUniversidad.WebClient.Models.Teachers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using QCUniversidad.WebClient.Models.SchoolYears;
-using QCUniversidad.WebClient.Models.LoadDistribution;
-using QCUniversidad.WebClient.Models.Statistics;
 
 namespace QCUniversidad.WebClient.Services.Data;
 
@@ -38,6 +32,7 @@ public interface IDataProvider
 
     Task<IList<DepartmentModel>> GetDepartmentsAsync(int from = 0, int to = 0);
     Task<IList<DepartmentModel>> GetDepartmentsAsync(Guid facultyId);
+    Task<IList<DepartmentModel>> GetDepartmentsWithLoadAsync(Guid periodId);
     Task<bool> ExistsDepartmentAsync(Guid departmentId);
     Task<int> GetDepartmentsCountAsync();
     Task<int> GetDepartmentDisciplinesCount(Guid departmentId);
@@ -76,7 +71,7 @@ public interface IDataProvider
 
     #region Teachers
 
-    Task<IList<TeacherModel>> GetTeachersAsync(int from, int to);
+    Task<IList<TeacherModel>> GetTeachersAsync(int from = 0, int to = 0);
     Task<int> GetTeachersCountAsync();
     Task<bool> ExistsTeacherAsync(Guid id);
     Task<TeacherModel> GetTeacherAsync(Guid teacherId);
@@ -177,7 +172,8 @@ public interface IDataProvider
 
     #region Statistics
 
-    Task<IList<StatisticItemModel>> GetGlobalStatisticsForDepartment(Guid departmentId); 
+    Task<IList<StatisticItemModel>> GetGlobalStatisticsAsync();
+    Task<IList<StatisticItemModel>> GetGlobalStatisticsForDepartmentAsync(Guid departmentId);
 
     #endregion
 }

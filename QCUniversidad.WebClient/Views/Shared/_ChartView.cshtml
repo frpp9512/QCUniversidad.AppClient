@@ -1,0 +1,10 @@
+﻿@model ChartModel
+
+<canvas id="@Model.ElementId"></canvas>
+
+@section Scripts {
+    <script>
+        const ctx = document.getElementById('@Model.ElementId').getContext('2d');
+        const chart = new Chart(ctx, JSON.parse('@Model.GetConfigJson()'), JSON.parse('@Model.GetDataJson()'));
+    </script>
+}

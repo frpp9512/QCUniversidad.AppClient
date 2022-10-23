@@ -6,6 +6,7 @@ using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Services.Data;
+using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
 
@@ -50,6 +51,28 @@ public class DepartmentsController : Controller
         {
             return RedirectToActionPermanent("Error", "Home");
         }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> LoadViewAsync()
+    {
+        var schoolYears = await _dataProvider.GetSchoolYearsAsync();
+        return View(schoolYears);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetPeriodOptionsAsync(Guid schoolYearId)
+    {
+        var result = await _dataProvider.GetPeriodsAsync(schoolYearId);
+        return PartialView("_PeriodOptions", result);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetDepartmentsLoadViewAsync(Guid periodId)
+    {
+        var departments = await _dataProvider.GetDepartmentsWithLoadAsync(periodId);
+        //return Ok("<h3>Vista de carga de los departamentos</h3>");
+        return PartialView("_DepartmentsLoadView", departments);
     }
 
     [HttpGet]

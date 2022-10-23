@@ -1,0 +1,33 @@
+﻿@model IList<DepartmentModel>
+
+@foreach (var item in Model)
+{
+    <div>
+        <div>
+            @item.Faculty?.Name
+        </div>
+        <div>
+            @item.Name
+        </div>
+        <div>
+            @item.Description
+        </div>
+        <div>
+            <div>
+                @item.TotalTimeFund
+            </div>
+            <div>
+                @item.Load
+            </div>
+            <div>
+                @item.LoadPercent
+            </div>
+            <div>
+                @item.LoadCovered
+            </div>
+            <div>
+                @item.LoadCoveredPercent
+            </div>
+        </div>
+    </div>
+}

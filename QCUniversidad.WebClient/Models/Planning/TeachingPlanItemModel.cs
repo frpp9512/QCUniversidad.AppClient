@@ -23,7 +23,7 @@ public class TeachingPlanItemModel
     [Range(0, 2287.2)]
     public double HoursPlanned { get; set; }
 
-    [Display(Name = "Grupos", Description = "Cantidad de grupos involucrados en la actividad", Prompt = "Cantidad de grupos")]
+    [Display(Name = "Cantidad de grupos", Description = "Cantidad de grupos involucrados en la actividad", Prompt = "Cantidad de grupos")]
     public uint GroupsAmount { get; set; }
 
     [NotMapped]

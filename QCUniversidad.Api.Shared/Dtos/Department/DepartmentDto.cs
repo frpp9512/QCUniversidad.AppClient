@@ -16,5 +16,10 @@ namespace QCUniversidad.Api.Shared.Dtos.Department
         public int DisciplinesCount { get; set; }
         public Guid FacultyId { get; set; }
         public FacultyDto Faculty { get; set; }
+        public double? TotalTimeFund { get; set; }
+        public double? Load { get; set; }
+        public double? LoadPercent { get; set; }
+        public double? LoadCovered { get; set; }
+        public double? LoadCoveredPercent { get; set; }
     }
 }

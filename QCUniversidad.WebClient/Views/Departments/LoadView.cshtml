@@ -1,0 +1,111 @@
+﻿@model IList<SchoolYearModel>
+
+<div class="row mt-3 mb-3 d-flex gap-3 flex-row">
+    <div>
+        <label for="selectSchoolyear">Año escolar</label>
+        <select class="form-select" aria-label="Seleccionar año escolar" id="selectSchoolYear" onchange="SchoolYearSelected()">
+            @foreach (var schoolYear in Model)
+            {
+                <option value="@schoolYear.Id">@schoolYear.Name</option>
+            }
+        </select>
+    </div>
+    <div>
+        <label for="selectedPeriod">Período</label>
+        <select class="form-select" aria-label="Seleccionar período" id="selectedPeriod" onchange="PeriodSelected()">
+        </select>
+    </div>
+</div>
+
+<div id="departmentsView">
+</div>
+
+@section Scripts {
+    <script>
+        var schoolYearSelected = null;
+        var periodSelected = null;
+
+        $(document).ready(function () {
+            SchoolYearSelected();
+        });
+
+        function SchoolYearSelected() {
+            const schoolYearSelect = document.getElementById("selectSchoolYear");
+            schoolYearSelected = schoolYearSelect.options[schoolYearSelect.selectedIndex].value;
+            LoadPeriods();
+        }
+
+        function PeriodSelected() {
+            const periodSelect = document.getElementById("selectedPeriod");
+            periodSelected = periodSelect.options[periodSelect.selectedIndex].value;
+            LoadView();
+        }
+
+        function LoadView() {
+            SetLoading();
+            $.ajax({
+                url: `/departments/GetDepartmentsLoadView?periodId=${periodSelected}`,
+                type: "GET",
+                success: function (data) {
+                    DisableLoading();
+                    const planningDetailsDiv = document.getElementById("departmentsView");
+                    planningDetailsDiv.innerHTML = data;
+                },
+                error: function (xhr, status, error) {
+                    DisableLoading();
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function LoadPeriods() {
+            const periodSelect = document.getElementById("selectedPeriod");
+            periodSelect.innerHTML = '';
+            SetLoading();
+            $.ajax({
+                url: `/departments/GetPeriodOptions?schoolYearId=${schoolYearSelected}`,
+                type: "GET",
+                success: function (data) {
+                    DisableLoading();
+                    periodSelect.innerHTML = data;
+                    PeriodSelected();
+                },
+                error: function (xhr, status, error) {
+                    DisableLoading();
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function CreateSpinnerNode() {
+            let spinnerNode = document.createElement("div");
+            spinnerNode.classList.add("spinner-grow");
+            spinnerNode.classList.add("m-5");
+            spinnerNode.role = "status";
+            let spinnerSpan = document.createElement("span");
+            spinnerSpan.classList.add("visually-hidden");
+            spinnerSpan.innerText = "Loading...";
+            spinnerNode.appendChild(spinnerSpan);
+            return spinnerNode;
+        }
+
+        function SetLoading() {
+            const planningDetailsDiv = document.getElementById("departmentsView");
+            planningDetailsDiv.innerHTML = "";
+            planningDetailsDiv.appendChild(CreateSpinnerNode());
+            const periodsSelect = document.getElementById("selectedPeriod");
+            periodsSelect.disabled = true;
+            const schoolYearSelect = document.getElementById("selectSchoolYear");
+            schoolYearSelect.disabled = true;
+        }
+
+        function DisableLoading() {
+            const planningDetailsDiv = document.getElementById("departmentsView");
+            planningDetailsDiv.innerHTML = "";
+            const periodsSelect = document.getElementById("selectedPeriod");
+            periodsSelect.disabled = false;
+            const schoolYearSelect = document.getElementById("selectSchoolYear");
+            schoolYearSelect.disabled = false;
+        }
+    </script>
+}

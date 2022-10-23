@@ -240,7 +240,7 @@ public class DataManager : IDataManager
         return result;
     }
 
-    public async Task<double> GetTotalLoadInPeriodAsync(Guid periodId, Guid departmentId)
+    public async Task<double> GetDepartmentTotalLoadInPeriodAsync(Guid periodId, Guid departmentId)
     {
         if (!await ExistsPeriodAsync(periodId))
         {
@@ -256,8 +256,9 @@ public class DataManager : IDataManager
                     on discipline.DepartmentId equals department.Id
                     where discipline.DepartmentId == department.Id
                     select planItem.TotalHoursPlanned;
+        var listResult = await query.ToListAsync();
 
-        var result = await query.SumAsync();
+        var result = listResult.Sum();
 
         return result;
     }
@@ -285,7 +286,7 @@ public class DataManager : IDataManager
         return result;
     }
 
-    public async Task<double> GetTotalLoadCoveredInPeriodAsync(Guid periodId, Guid departmentId)
+    public async Task<double> GetDepartmentTotalLoadCoveredInPeriodAsync(Guid periodId, Guid departmentId)
     {
         if (!await ExistsPeriodAsync(periodId))
         {
@@ -307,6 +308,21 @@ public class DataManager : IDataManager
         var result = await query.SumAsync();
 
         return result;
+    }
+
+    public async Task<double> GetDepartmentTotalTimeFund(Guid departmentId, Guid periodId)
+    {
+        if (!await ExistDepartmentAsync(departmentId))
+        {
+            throw new DepartmentNotFoundException();
+        }
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        var periodTimeFund = await GetPeriodTimeFund(periodId);
+        var teachersCount = await GetDeparmentTeachersCountAsync(departmentId);
+        return periodTimeFund * teachersCount;
     }
 
     public async Task<double> CalculateRAPAsync(Guid departmentId)

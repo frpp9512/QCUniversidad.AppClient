@@ -27,6 +27,79 @@ public class StatisticsController : ControllerBase
     }
 
     [HttpGet]
+    [Route("globalstatistics")]
+    public async Task<IActionResult> GlobalStatistics()
+    {
+        var items = new List<StatisticItemDto>();
+
+        var faculties = new StatisticItemDto
+        {
+            Name = "Facultades",
+            Description = "Cantidad de facultades en el sistema",
+            Value = await _dataManager.GetFacultiesTotalAsync(),
+        };
+        items.Add(faculties);
+
+        var departments = new StatisticItemDto
+        {
+            Name = "Departamentos",
+            Description = "Cantidad de departamentos en el sistema",
+            Value = await _dataManager.GetDepartmentsCountAsync(),
+        };
+        items.Add(departments);
+
+        var teachers = new StatisticItemDto
+        {
+            Name = "Profesores",
+            Description = "Cantidad de profesores en el sistema",
+            Value = await _dataManager.GetTeachersCountAsync(),
+        };
+        items.Add(teachers);
+
+        var disciplines = new StatisticItemDto
+        {
+            Name = "Disciplinas",
+            Description = "Cantidad de facultades en el sistema",
+            Value = await _dataManager.GetDisciplinesCountAsync(),
+        };
+        items.Add(disciplines);
+
+        var subjects = new StatisticItemDto
+        {
+            Name = "Asignaturas",
+            Description = "Cantidad de asignaturas en el sistema",
+            Value = await _dataManager.GetSubjectsCountAsync(),
+        };
+        items.Add(subjects);
+
+        var curriculums = new StatisticItemDto
+        {
+            Name = "Curriculums",
+            Description = "Cantidad de curriculums en el sistema",
+            Value = await _dataManager.GetFacultiesTotalAsync(),
+        };
+        items.Add(curriculums);
+
+        var schoolYears = new StatisticItemDto
+        {
+            Name = "Años escolares",
+            Description = "Cantidad de años escolares en el sistema",
+            Value = await _dataManager.GetFacultiesTotalAsync(),
+        };
+        items.Add(schoolYears);
+
+        var courses = new StatisticItemDto
+        {
+            Name = "Cursos",
+            Description = "Cantidad de cursos en el sistema",
+            Value = await _dataManager.GetFacultiesTotalAsync(),
+        };
+        items.Add(courses);
+
+        return Ok(items);
+    }
+
+    [HttpGet]
     [Route("departmentstatistics")]
     public async Task<IActionResult> DepartmentStatisticsAsync(Guid departmentId)
     {

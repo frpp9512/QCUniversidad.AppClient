@@ -167,6 +167,24 @@ public class DataProvider : IDataProvider
         throw new ArgumentNullException(nameof(facultyId));
     }
 
+    public async Task<IList<DepartmentModel>> GetDepartmentsWithLoadAsync(Guid periodId)
+    {
+        if (periodId != Guid.Empty)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/department/listallwithload?periodId={periodId}");
+            if (response.IsSuccessStatusCode)
+            {
+                var contentText = await response.Content.ReadAsStringAsync();
+                var dtos = JsonConvert.DeserializeObject<List<DepartmentDto>>(contentText);
+                var models = dtos.Select(dto => _mapper.Map<DepartmentModel>(dto)).ToList();
+                return models;
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+        throw new ArgumentNullException(nameof(periodId));
+    }
+
     public async Task<bool> ExistsDepartmentAsync(Guid departmentId)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
@@ -1138,7 +1156,8 @@ public class DataProvider : IDataProvider
     public async Task<IList<PeriodModel>> GetPeriodsAsync(Guid? schoolYearId = null)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-        var response = await client.GetAsync($"/period/list{(schoolYearId is null ? "" : $"?schoolYearId={schoolYearId}")}");
+        var query = schoolYearId is null ? "/period/list" : $"/period/listbyschoolyear?schoolYearId={schoolYearId}";
+        var response = await client.GetAsync($"/period/listbyschoolyear{(schoolYearId is null ? "" : $"?schoolYearId={schoolYearId}")}");
         if (response.IsSuccessStatusCode)
         {
             var contentText = await response.Content.ReadAsStringAsync();
@@ -1309,7 +1328,20 @@ public class DataProvider : IDataProvider
 
     #region Statistics
 
-    public async Task<IList<StatisticItemModel>> GetGlobalStatisticsForDepartment(Guid departmentId)
+    public async Task<IList<StatisticItemModel>> GetGlobalStatisticsAsync()
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/statistics/globalstatistics");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var statisticsItems = JsonConvert.DeserializeObject<IList<StatisticItemDto>>(contentText);
+            return statisticsItems?.Select(f => _mapper.Map<StatisticItemModel>(f)).ToList() ?? new List<StatisticItemModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<IList<StatisticItemModel>> GetGlobalStatisticsForDepartmentAsync(Guid departmentId)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
         var response = await client.GetAsync($"/statistics/departmentstatistics?departmentId={departmentId}");

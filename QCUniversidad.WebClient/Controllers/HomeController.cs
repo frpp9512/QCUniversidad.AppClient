@@ -1,13 +1,16 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.WebClient.Data.Contexts;
 using QCUniversidad.WebClient.Models;
 using QCUniversidad.WebClient.Models.Index;
 using QCUniversidad.WebClient.Models.Shared;
+using QCUniversidad.WebClient.Models.Teachers;
 using QCUniversidad.WebClient.Services.Data;
 using QCUniversidad.WebClient.Services.Platform;
 using SmartB1t.Security.WebSecurity.Local;
 using System.Diagnostics;
+using System.Drawing;
 
 namespace QCUniversidad.WebClient.Controllers
 {
@@ -28,17 +31,17 @@ namespace QCUniversidad.WebClient.Controllers
         public async Task<IActionResult> IndexAsync()
         {
             IndexViewModel model;
-            if (User.IsAdmin())
-            {
-                model = new IndexViewModel();
-            }
-            else
-            {
-                model = new IndexViewModel 
+            var schoolYear = await _dataProvider.GetCurrentSchoolYear();
+            model = User.IsAdmin()
+                ? new IndexViewModel
                 {
-                    Department = await _dataProvider.GetDepartmentAsync(User.GetDepartmentId())
+                    SchoolYear = schoolYear
+                }
+                : new IndexViewModel
+                {
+                    Department = await _dataProvider.GetDepartmentAsync(User.GetDepartmentId()),
+                    SchoolYear = schoolYear
                 };
-            }
             return View(model);
         }
 
@@ -55,14 +58,9 @@ namespace QCUniversidad.WebClient.Controllers
         {
             if (User.IsAdmin())
             {
-                return Ok("<h1>Usuario administrador, pendiente para definir estadísticas</h1>");
-            }
-            else
-            {
                 try
                 {
-                    var departmentId = User.GetDepartmentId();
-                    var statistics = await _dataProvider.GetGlobalStatisticsForDepartment(departmentId);
+                    var statistics = await _dataProvider.GetGlobalStatisticsAsync();
                     return PartialView("_ICardSet", statistics);
                 }
                 catch (Exception ex)
@@ -70,6 +68,43 @@ namespace QCUniversidad.WebClient.Controllers
                     return Problem(ex.Message);
                 }
             }
+            else
+            {
+                try
+                {
+                    var departmentId = User.GetDepartmentId();
+                    var statistics = await _dataProvider.GetGlobalStatisticsForDepartmentAsync(departmentId);
+                    return PartialView("_ICardSet", statistics);
+                }
+                catch (Exception ex)
+                {
+                    return Problem(ex.Message);
+                }
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTeachersChartAsync()
+        {
+            IList<TeacherModel> teachers;
+            if (User.IsAdmin())
+            {
+                teachers = await _dataProvider.GetTeachersAsync(0, 0);
+            }
+            else
+            {
+                var departmentId = User.GetDepartmentId();
+                teachers = await _dataProvider.GetTeachersOfDepartmentAsync(departmentId);
+            }
+            var chartModel = ModelListCharter.GetChartModel(ChartType.Doughnut,
+                                                            new List<TeacherCategory>((TeacherCategory[])Enum.GetValues(typeof(TeacherCategory))), 
+                                                            e => teachers.Count(t => t.Category == e),
+                                                            e => e.ToString(),
+                                                            title: "Gráfico de profesores por categoría",
+                                                            showXScale: false,
+                                                            showYScale: false,
+                                                            legendPosition: ChartLegendPosition.Left);
+            return Ok(chartModel.GetJson());
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

@@ -61,6 +61,14 @@ public class PeriodController : ControllerBase
         return Ok(dtos);
     }
 
+    [HttpGet("listbyschoolyear")]
+    public async Task<IActionResult> GetListBySchoolYearAsync(Guid schoolYearId)
+    {
+        var periods = await _dataManager.GetPeriodsOfSchoolYearAsync(schoolYearId);
+        var dtos = periods.Select(d => _mapper.Map<PeriodDto>(d));
+        return Ok(dtos);
+    }
+
     [HttpGet]
     [Route("count")]
     public async Task<IActionResult> GetCount()

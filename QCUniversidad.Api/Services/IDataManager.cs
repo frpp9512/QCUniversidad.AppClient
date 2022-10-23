@@ -41,10 +41,11 @@ public interface IDataManager
     Task<bool> UpdateDeparmentAsync(DepartmentModel department);
     Task<bool> DeleteDeparmentAsync(Guid deparmentId);
     Task<double> GetTotalLoadInPeriodAsync(Guid periodId);
-    Task<double> GetTotalLoadInPeriodAsync(Guid periodId, Guid departmentId);
+    Task<double> GetDepartmentTotalLoadInPeriodAsync(Guid periodId, Guid departmentId);
     Task<double> GetTotalLoadCoveredInPeriodAsync(Guid periodId);
-    Task<double> GetTotalLoadCoveredInPeriodAsync(Guid periodId, Guid departmentId);
+    Task<double> GetDepartmentTotalLoadCoveredInPeriodAsync(Guid periodId, Guid departmentId);
     Task<double> CalculateRAPAsync(Guid departmentId);
+    Task<double> GetDepartmentTotalTimeFund(Guid departmentId, Guid periodId);
 
     #endregion
 

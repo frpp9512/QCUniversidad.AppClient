@@ -39,17 +39,20 @@
                         <td>
                             @if (teacher.Disciplines?.Any() == true)
                             {
-                                <span class="badge bg-info">@teacher.Disciplines?.Count <span class="fa fa-info-circle"></span></span>
+                                <span class="badge bg-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Disciplinas</small></div> @string.Join("", teacher.Disciplines?.Select(d => $"<div>{d.Name}</div>").ToArray())">
+                                    @teacher.Disciplines?.Count 
+                                    <span class="fa fa-info-circle"></span>
+                                </span>
                             }
                             else
                             {
                                 <span class="badge bg-secondary">Sin disciplina</span>
                             }
                         </td>
-                        <td>
+                        <td align="right">
                             @if (teacher.Load is not null)
                             {
-                                <div class="d-flex align-items-center">
+                                <div class="d-flex align-items-center justify-content-end">
                                     <div style='margin-right: 3px;'>
                                         <b>@(teacher.Load.Load) h</b>
                                     </div>
