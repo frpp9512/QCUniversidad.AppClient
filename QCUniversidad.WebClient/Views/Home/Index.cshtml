@@ -37,9 +37,13 @@
 
 <hr />
 
-<div class="row justify-content-center">
+<div class="row justify-content-between">
     <div class="col-12 col-sm-6">
-        <div id="chart">
+        <div id="chart-1">
+        </div>
+    </div>
+    <div class="col-12 col-sm-6">
+        <div id="chart-2">
         </div>
     </div>
 </div>
@@ -73,7 +77,8 @@ else
     <script>
         $(document).ready(function () {
             LoadGlobalStatistics();
-            LoadChart('/home/GetTeachersChart', "#chart");
+            LoadChart('/home/GetTeachersChart', "#chart-1");
+            LoadChart('/home/GetTeachersChartByContractType', "#chart-2");
         });
 
         function LoadGlobalStatistics() {

@@ -41,7 +41,7 @@ public record CourseModel
     public TeachingModality TeachingModality { get; set; }
 
     [Required(ErrorMessage = "Debe de especificar la matrícula del estudio del curso.")]
-    [Display(Name = "Matrícula de estudiantes", Description = "La cantodad de estudiantes que participan en el curso.", Prompt = "Matrícula")]
+    [Display(Name = "Matrícula estimada", Description = "La cantidad estimada de estudiantes que participan en el curso.", Prompt = "Matrícula estimada")]
     public uint Enrolment { get; set; }
 
     public Guid CareerId { get; set; }

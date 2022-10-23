@@ -31,6 +31,14 @@ namespace QCUniversidad.WebClient.Models.Teachers
         [Display(Name = "Categoría", Prompt = "Categoría docente", Description = "Categoría docente del profesor.")]
         public TeacherCategory Category { get; set; }
 
+        [Required(ErrorMessage = "Debe de seleccionar la categoría del profesor.")]
+        [Display(Name = "Tipo de contrato", Prompt = "Tipo de contrato", Description = "Tipo de contrato por el cual esta vinculado el profesor al departamento.")]
+        public TeacherContractType ContractType { get; set; }
+
+        [Display(Name = "Correo electrónico", Prompt = "Correo electrónico", Description = "Dirección de correo electrónico del profesor.")]
+        [DataType(DataType.EmailAddress, ErrorMessage = "Escriba correctamente la dirección electrónica.")]
+        public string? Email { get; set; }
+
         public Guid DepartmentId { get; set; }
 
         public DepartmentModel? Department { get; set; }

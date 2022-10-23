@@ -46,11 +46,13 @@ public class DataManager : IDataManager
 {
     private readonly QCUniversidadContext _context;
     private readonly ICoefficientCalculator<TeachingPlanItemModel> _planItemCalculator;
+    private readonly ICoefficientCalculator<PeriodModel> _periodCalculator;
 
-    public DataManager(QCUniversidadContext context, ICoefficientCalculator<TeachingPlanItemModel> planItemCalculator)
+    public DataManager(QCUniversidadContext context, ICoefficientCalculator<TeachingPlanItemModel> planItemCalculator, ICoefficientCalculator<PeriodModel> periodCalculator)
     {
         _context = context;
         _planItemCalculator = planItemCalculator;
+        _periodCalculator = periodCalculator;
     }
 
     #region Faculties
@@ -1300,6 +1302,7 @@ public class DataManager : IDataManager
     {
         if (period is not null)
         {
+            period.TimeFund = _periodCalculator.CalculateValue(period);
             await _context.Periods.AddAsync(period);
             var result = await _context.SaveChangesAsync();
             return result > 0;
@@ -1343,6 +1346,7 @@ public class DataManager : IDataManager
     {
         if (period is not null)
         {
+            period.TimeFund = _periodCalculator.CalculateValue(period);
             _context.Periods.Update(period);
             var result = await _context.SaveChangesAsync();
             return result > 0;

@@ -69,6 +69,7 @@
             <th>Descripción</th>
             <th>Inicia <span class="fa fa-calendar-day"></span></th>
             <th>Termina <span class="fa fa-calendar-day"></span></th>
+            <th>Cantidad de meses</th>
             <th>Fondo de tiempo</th>
             <th></th>
         </tr>
@@ -91,7 +92,8 @@
                     </td>
                     <td>@period.Starts.ToString("dd-MM-yyyy")</td>
                     <td>@period.Ends.ToString("dd-MM-yyyy")</td>
-                    <td align="right">@period.TimeFund</td>
+                    <td align="right">@period.MonthsCount</td>
+                    <td align="right">@(period.TimeFund) h</td>
                     <td>
                         <button type="button" class="btn btn-sm btn-outline-warning" onclick="EditPeriod('@period.Id')"><span class="fa fa-edit"></span></button>
                         <button type="button" class="btn btn-sm btn-outline-danger" onclick="RiseDeleteModal('@period.Id')"><span class="fa fa-trash"></span></button>
@@ -133,8 +135,8 @@
                         <input type="date" class="form-control" id="newPeriodEnds" />
                     </div>
                     <div class="mb-3">
-                        <label for="newPeriodTimeFund" class="form-label">Fondo de tiempo</label>
-                        <input type="number" min="0" class="form-control" id="newPeriodTimeFund">
+                        <label for="newPeriodMonthsCount" class="form-label">Cantidad de meses del período</label>
+                        <input type="number" min="0" class="form-control" id="newPeriodMonthsCount">
                     </div>
                 </fieldset>
             </div>
@@ -172,8 +174,8 @@
                         <input type="date" class="form-control" id="editPeriodEnds" />
                     </div>
                     <div class="mb-3">
-                        <label for="editPeriodTimeFund" class="form-label">Fondo de tiempo</label>
-                        <input type="number" min="0" class="form-control" id="editPeriodTimeFund">
+                        <label for="editPeriodMonthsCount" class="form-label">Cantidad de meses del período</label>
+                        <input type="number" min="0" class="form-control" id="editPeriodMonthsCount">
                     </div>
                 </fieldset>
             </div>
@@ -246,12 +248,12 @@
                 ShowError("Fecha de culminación", "Especifique una fecha de culminación del período.")
                 return;
             }
-            let timeFund = document.getElementById("newPeriodTimeFund").value;
+            let monthsCount = document.getElementById("newPeriodMonthsCount").value;
             let creationModel = {
                 Description: periodDescription,
                 Starts: starts,
                 Ends: ends,
-                TimeFund: timeFund,
+                MonthsCount: monthsCount,
                 SchoolYearId: schoolYearId
             };
 
@@ -305,8 +307,8 @@
                         var endDate = new Date(period.Ends);
                         var formatedEndDate = `${endDate.getFullYear()}-${(endDate.getMonth() + 1) < 10 ? "0" + (endDate.getMonth() + 1) : (endDate.getMonth() + 1)}-${endDate.getDate() < 10 ? "0" + endDate.getDate() : endDate.getDate()}`;
                         ends.value = formatedEndDate;
-                        var timeFund = document.getElementById("editPeriodTimeFund");
-                        timeFund.value = period.TimeFund;
+                        var monthsCount = document.getElementById("editPeriodMonthsCount");
+                        monthsCount.value = period.MonthsCount;
                         var periodId = document.getElementById("editPeriodId");
                         periodId.value = period.Id;
                         requestingPeriodData = false;
@@ -333,14 +335,14 @@
                     ShowError("Fecha de culminación", "Especifique una fecha de culminación del período.")
                     return;
                 }
-                var timeFund = document.getElementById("editPeriodTimeFund").value;
+                var monthsCount = document.getElementById("editPeriodMonthsCount").value;
                 var periodId = document.getElementById("editPeriodId").value;
                 var editModel = {
                     Id: periodId,
                     Description: periodDescription,
                     Starts: starts,
                     Ends: ends,
-                    TimeFund: timeFund,
+                    MonthsCount: monthsCount,
                     SchoolYearId: schoolYearId
                 };
 

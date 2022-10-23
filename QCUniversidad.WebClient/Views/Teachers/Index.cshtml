@@ -43,6 +43,7 @@
                     <th>Nombre</th>
                     <th>Carné de identidad</th>
                     <th>Categoría</th>
+                    <th>Contrato</th>
                     <th>Departamento</th>
                     <th>Disciplinas</th>
                     <th></th>
@@ -62,25 +63,18 @@
                             @Html.DisplayFor(m => item.Category)
                         </td>
                         <td>
+                            @Html.DisplayFor(m => item.ContractType)
+                        </td>
+                        <td>
                             <a asp-action="Details" asp-controller="Departments" asp-route-id="@item.DepartmentId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Departamento</div></small><div><b>@item.Department?.Name</b></div><div><i>@item.Department?.Description</i></div><div><b>@item.Department?.InternalId</b></div>">
                                 @item.Department?.Name <small><span class="fa fa-info-circle"></span></small>
                             </a>
                         </td>
                         <td>
-                            @if (item.Disciplines?.Any() == true)
-                            {
-                                foreach (var discipline in item.Disciplines)
-                                {
-                                    <span class="badge bg-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Disciplina</small></div><div><b>@discipline.Name</b></div><div><i>@discipline.Description</i></div>">
-                                        @discipline.Name
-                                        <small><span class="fa fa-info-circle"></span></small>
-                                    </span>
-                                }
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">Sin disciplina</span>
-                            }
+                            <span class="badge bg-info">
+                                <span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Disciplinas</small></div> @string.Join("", item.Disciplines?.Select(d => $"<div>{d.Name}</div>").ToArray() ?? new string[0])"></span>
+                                @item.Disciplines?.Count
+                            </span>
                         </td>
                         <td>
                             <a asp-action="Edit" asp-controller="Teachers" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">

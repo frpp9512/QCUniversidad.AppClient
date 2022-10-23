@@ -16,13 +16,20 @@ public class CoefficientCalculator<T> : ICoefficientCalculator<T>
 	private readonly Expression<Func<T, double>> _memberExpression;
 	private readonly Func<double, double> _afterCalcFunction = null;
 
-	public CoefficientCalculator(double coeff, Expression<Func<T, double>> memberExpression)
+	public CoefficientCalculator(double coeff, Expression<Func<T, double>> valueMemberExpression)
 	{
 		_coeffFunction = _ => coeff;
-		_memberExpression = memberExpression;
+		_memberExpression = valueMemberExpression;
 	}
 
-	public CoefficientCalculator(Func<T, double> coeffFunction, Expression<Func<T, double>> memberExpression)
+    public CoefficientCalculator(double coeff, Expression<Func<T, double>> memberExpression, Func<double, double> afterCalcFunc)
+    {
+        _coeffFunction = _ => coeff;
+        _memberExpression = memberExpression;
+        _afterCalcFunction = afterCalcFunc;
+    }
+
+    public CoefficientCalculator(Func<T, double> coeffFunction, Expression<Func<T, double>> memberExpression)
 	{
 		_coeffFunction = coeffFunction;
 		_memberExpression = memberExpression;

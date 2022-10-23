@@ -37,6 +37,18 @@ namespace QCUniversidad.Api.Shared.Enums
         Laboratory,
 
         /// <summary>
+        /// CLasses of a ByMeeting type of course.
+        /// </summary>
+        [Display(Name = "Clase encuentro", Description = "Clases a los estudiantes de la modalidad de curso por encuentro.", Prompt = "Clase encuentro")]
+        MeetingClass,
+
+        /// <summary>
+        /// CLasses of a ByMeeting type of course.
+        /// </summary>
+        [Display(Name = "Curso de posgrado", Description = "Clases a los estudiantes de postgrado, maestría o doctorado.", Prompt = "Curso de posgrado")]
+        PostgraduateClass,
+
+        /// <summary>
         /// Other school activities
         /// </summary>
         [Display(Name = "Otra", Description = "Otros tipos de actividades docentes", Prompt = "Otra")]

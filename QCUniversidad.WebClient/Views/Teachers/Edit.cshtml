@@ -38,6 +38,11 @@
                         <span asp-validation-for="PersonalId" />
                     </div>
                     <div class="mb-3">
+                        <label asp-for="ContractType" class="form-label"></label>
+                        <select asp-for="ContractType" asp-items="@Html.GetEnumSelectList<TeacherContractType>()" class="form-control selected-teacherContract"></select>
+                        <span asp-validation-for="ContractType" />
+                    </div>
+                    <div class="mb-3">
                         <label asp-for="Category" class="form-label"></label>
                         <select asp-for="Category" asp-items="@Html.GetEnumSelectList<TeacherCategory>()" class="form-control selected-teacherCategory"></select>
                         <span asp-validation-for="Category" />
@@ -58,6 +63,11 @@
                                 }
                             </select>
                         }
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" />
                     </div>
                 </fieldset>
                 <div class="form-footer mt-3">

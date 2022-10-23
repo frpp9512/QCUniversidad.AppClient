@@ -20,6 +20,12 @@ public static class ModelValueCalculatorExtensions
                                                                                                 : options.PregraduateTotalHoursCoefficient,
                                                                                             model => model.HoursPlanned * model.GroupsAmount,
                                                                                             value => Math.Round(value, 2)));
+
+        services = services.AddTransient<ICoefficientCalculator<PeriodModel>>(services => new CoefficientCalculator<PeriodModel>(
+                                                                                options.MonthTimeFund, 
+                                                                                p => p.MonthsCount, 
+                                                                                value => Math.Round(value, 2)));
+
         return services;
     }
 }
