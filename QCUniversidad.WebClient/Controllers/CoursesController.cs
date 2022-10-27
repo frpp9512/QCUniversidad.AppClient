@@ -148,8 +148,22 @@ public class CoursesController : Controller
 
     private async Task LoadEditViewModel(EditCourseModel viewmodel)
     {
-        var curriculums = await _dataProvider.GetCurriculumsAsync();
+        var curriculums = await _dataProvider.GetCurriculumsForCareerAsync(viewmodel.CareerId);
         viewmodel.Curricula = curriculums;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetCurriculumOptionsForCareerAsync(Guid careerId)
+    {
+        try
+        {
+            var curriculums = await _dataProvider.GetCurriculumsForCareerAsync(careerId);
+            return PartialView("_CurriculumOptions", curriculums);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
     }
 
     [HttpPost]

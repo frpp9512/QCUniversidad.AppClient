@@ -1169,6 +1169,27 @@ public class DataManager : IDataManager
         return result;
     }
 
+    public async Task<IList<CurriculumModel>> GetCurriculumsForCareerAsync(Guid careerId)
+    {
+        if (careerId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(careerId));
+        }
+        try
+        {
+            if (!await ExistsCareerAsync(careerId))
+            {
+                throw new CareerNotFoundException();
+            }
+            var curriculums = await _context.Curriculums.Where(c => c.CareerId == careerId).ToListAsync();
+            return curriculums;
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
     public async Task<CurriculumModel> GetCurriculumAsync(Guid id)
     {
         if (id != Guid.Empty)

@@ -110,6 +110,7 @@ public interface IDataProvider
     #region Curriculums
 
     Task<IList<CurriculumModel>> GetCurriculumsAsync(int from = 0, int to = 0);
+    Task<IList<CurriculumModel>> GetCurriculumsForCareerAsync(Guid careerId);
     Task<int> GetCurriculumsCountAsync();
     Task<bool> ExistsCurriculumAsync(Guid id);
     Task<CurriculumModel> GetCurriculumAsync(Guid curriculumId);

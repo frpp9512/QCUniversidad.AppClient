@@ -871,6 +871,19 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
+    public async Task<IList<CurriculumModel>> GetCurriculumsForCareerAsync(Guid careerId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/curriculum/listforcareer?careerId={careerId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var curriculums = JsonConvert.DeserializeObject<IList<CurriculumDto>>(contentText);
+            return curriculums?.Select(f => _mapper.Map<CurriculumModel>(f)).ToList() ?? new List<CurriculumModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
     public async Task<int> GetCurriculumsCountAsync()
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();

@@ -35,7 +35,7 @@
                         @{
                             var careerGroups = Model.Careers?.GroupBy(d => d.FacultyId);
                             <label for="CareerId">Carrera</label>
-                            <select asp-for="CareerId" class="form-control selected-career" aria-label="select" onchange="BuildDenomination()">
+                            <select asp-for="CareerId" class="form-control selected-career" aria-label="select" onchange="CareerSelectChanged()">
                                 @foreach (var group in careerGroups)
                                 {
                                     <optgroup label="@group.FirstOrDefault()?.Faculty?.Name">
@@ -127,6 +127,8 @@
             autoGenerateSwitch.checked = false;
             var denomination = document.getElementById("Denomination");
             denomination.readOnly = false;
+
+            GetCurriculumsForCareer();
         });
 
         function GetAutoGenerateSwitchStatus() {
@@ -183,6 +185,31 @@
                 denomination.readOnly = false;
                 console.log(denomination.readOnly)
             }
+        }
+
+        function CareerSelectChanged() {
+            BuildDenomination();
+            GetCurriculumsForCareer();
+        }
+
+        function GetCurriculumsForCareer() {
+            // GetCurriculumOptionsForCareer
+            const careerSelect = document.getElementById("CareerId");
+            let careerSelected = careerSelect.options[careerSelect.selectedIndex].value;
+            careerSelect.disabled = true;
+            $.ajax({
+                url: `/courses/GetCurriculumOptionsForCareer?careerId=${careerSelected}`,
+                type: "GET",
+                success: function (data) {
+                    const curriculumSelect = document.getElementById("CurriculumId");
+                    curriculumSelect.innerHTML = data;
+                    careerSelect.disabled = false;
+                },
+                error: function (xhr, status, error) {
+                    careerSelect.disabled = false;
+                    console.log(xhr, status, error);
+                }
+            });
         }
     </script>
 }

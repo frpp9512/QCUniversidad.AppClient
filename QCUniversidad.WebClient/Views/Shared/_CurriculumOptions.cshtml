@@ -1,0 +1,13 @@
+﻿@model IList<CurriculumModel>
+
+@if (Model.Any())
+{
+    @foreach (var curriculum in Model)
+    {
+        <option value="@curriculum.Id">@curriculum.Denomination</option>
+    }
+}
+else
+{
+    <option value"none">No existen curriculums para la carrera</option>
+}

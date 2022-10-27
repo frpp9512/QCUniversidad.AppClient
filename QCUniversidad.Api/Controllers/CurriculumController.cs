@@ -37,6 +37,25 @@ public class CurriculumController : ControllerBase
         return Ok(dtos);
     }
 
+    [HttpGet("listforcareer")]
+    public async Task<IActionResult> GetListForCareerAsync(Guid careerId)
+    {
+        try
+        {
+            var curriculums = await _dataManager.GetCurriculumsForCareerAsync(careerId);
+            var dtos = curriculums.Select(d => _mapper.Map<CurriculumDto>(d));
+            return Ok(dtos);
+        }
+        catch (CareerNotFoundException)
+        {
+            return BadRequest("The career do not exists.");
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
     [HttpGet]
     [Route("count")]
     public async Task<IActionResult> GetCount()
