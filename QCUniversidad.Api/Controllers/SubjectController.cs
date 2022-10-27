@@ -42,9 +42,49 @@ public class SubjectController : ControllerBase
         {
             if (!await _dataManager.ExistsCourseAsync(courseId))
             {
-                return BadRequest("The school year do not exists.");
+                return BadRequest("The course do not exists.");
             }
             var result = await _dataManager.GetSubjectsForCourseAsync(courseId);
+            var dtos = result.Select(r => _mapper.Map<SubjectDto>(r));
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("getforcourseinperiod")]
+    public async Task<IActionResult> GetListForCourseInPeriodAsync(Guid courseId, Guid periodId)
+    {
+        try
+        {
+            var subjects = await _dataManager.GetSubjectsForCourseInPeriodAsync(courseId, periodId);
+            var dtos = subjects.Select(s => _mapper.Map<SubjectDto>(s));
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("getforcoursenotassignedtoperiod")]
+    public async Task<IActionResult> GetListForCourseNotAssignedInPeriod(Guid courseId, Guid periodId)
+    {
+        try
+        {
+            if (!await _dataManager.ExistsCourseAsync(courseId))
+            {
+                return NotFound("The course do not exists.");
+            }
+            if (!await _dataManager.ExistsPeriodAsync(periodId))
+            {
+                return NotFound("The period do not exists.");
+            }
+            var result = await _dataManager.GetSubjectsForCourseNotAssignedInPeriodAsync(courseId, periodId);
             var dtos = result.Select(r => _mapper.Map<SubjectDto>(r));
             return Ok(dtos);
         }
@@ -141,6 +181,109 @@ public class SubjectController : ControllerBase
         catch (SubjectNotFoundException)
         {
             return NotFound($"The subject with id '{id}' was not found.");
+        }
+    }
+
+    [HttpGet]
+    [Route("periodsubjects")]
+    public async Task<IActionResult> GetPeriodSubjectsAsync(Guid periodId, Guid courseId)
+    {
+        try
+        {
+            var periodSubjects = await _dataManager.GetPeriodSubjectsForCourseAsync(periodId, courseId);
+            var dtos = periodSubjects.Select(ps => _mapper.Map<SimplePeriodSubjectDto>(ps));
+            return Ok(dtos);
+        }
+        catch (PeriodNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (CourseNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpPut]
+    [Route("periodsubject")]
+    public async Task<IActionResult> CreatePeriodSubjectAsync(NewPeriodSubjectDto dto)
+    {
+        try
+        {
+            var model = _mapper.Map<PeriodSubjectModel>(dto);
+            var result = await _dataManager.CreatePeriodSubjectAsync(model);
+            return result ? Ok(result) : Problem();
+        }
+        catch (PeriodNotFoundException)
+        {
+            return NotFound("El período no existe.");
+        }
+        catch (CourseNotFoundException)
+        {
+            return NotFound("El curso no existe.");
+        }
+        catch (SubjectNotFoundException)
+        {
+            return NotFound("La asignatura no existe.");
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("periodsubject")]
+    public async Task<IActionResult> GetPeriodSubjectAsync(Guid id)
+    {
+        try
+        {
+            var result = await _dataManager.GetPeriodSubjectAsync(id);
+            var dto = _mapper.Map<PeriodSubjectDto>(result);
+            return Ok(dto);
+        }
+        catch (PeriodSubjectNotFoundException)
+        {
+            return NotFound("The period subject was not found.");
+        }
+    }
+
+    [HttpPost]
+    [Route("updateperiodsubject")]
+    public async Task<IActionResult> UpdatePeriodSubjectAsync(EditPeriodSubjectDto periodSubject)
+    {
+        try
+        {
+            var model = _mapper.Map<PeriodSubjectModel>(periodSubject);
+            var result = await _dataManager.UpdatePeriodSubjectAsync(model);
+            return result ? Ok(result) : Problem();
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpDelete]
+    [Route("deleteperiodsubject")]
+    public async Task<IActionResult> DeletePeriodSubjectAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            return BadRequest("The id of the period subject should not be empty.");
+        }
+        try
+        {
+            var result = await _dataManager.DeletePeriodSubjectAsync(id);
+            return result ? Ok(result) : Problem();
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
         }
     }
 }

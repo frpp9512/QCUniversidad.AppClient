@@ -37,17 +37,6 @@
 
 <hr />
 
-<div class="row justify-content-between">
-    <div class="col-12 col-sm-6">
-        <div id="chart-1">
-        </div>
-    </div>
-    <div class="col-12 col-sm-6">
-        <div id="chart-2">
-        </div>
-    </div>
-</div>
-
 @if (Model.Department is not null)
 {
     <div class="d-flex flex-column text-center text-sm-start mb-5">
@@ -62,6 +51,17 @@ else
         <div class="index-desc">Gestión de todos los elementos y generación de informes globales</div>
     </div>
 }
+
+<div class="row justify-content-between">
+    <div class="col-12 col-sm-6">
+        <div id="chart-1">
+        </div>
+    </div>
+    <div class="col-12 col-sm-6">
+        <div id="chart-2">
+        </div>
+    </div>
+</div>
 
 <div id="global-statistics" class="text-center">
     <div class="spinner-border text-primary" role="status">

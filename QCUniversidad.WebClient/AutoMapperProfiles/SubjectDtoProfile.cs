@@ -23,5 +23,9 @@ public class SubjectDtoProfile : Profile
         CreateMap<CreateSubjectModel, SubjectModel>();
         CreateMap<SubjectModel, EditSubjectModel>().ForMember(e => e.DisciplineName, opt => opt.MapFrom(s => s.Discipline.Name));
         CreateMap<EditSubjectModel, SubjectModel>();
+        CreateMap<CreatePeriodSubjectModel, PeriodSubjectModel>();
+        CreateMap<PeriodSubjectModel, NewPeriodSubjectDto>();
+        CreateMap<PeriodSubjectModel, EditPeriodSubjectDto>();
+        CreateMap<PeriodSubjectDto, PeriodSubjectModel>();
     }
 }

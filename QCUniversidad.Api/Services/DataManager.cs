@@ -39,6 +39,7 @@ public class TeachingPlanNotFoundException : Exception { }
 public class TeachingPlanItemNotFoundException : Exception { }
 public class PlanItemFullyCoveredException : Exception { }
 public class LoadItemNotFoundException : Exception { }
+public class PeriodSubjectNotFoundException : Exception { }
 
 #endregion
 
@@ -426,15 +427,15 @@ public class DataManager : IDataManager
             if (result > 0)
             {
                 var query = from planItem in _context.TeachingPlanItems
-                             join course in _context.Courses
-                             on planItem.CourseId equals course.Id
-                             where course.CareerId == career.Id && planItem.FromPostgraduateCourse != career.PostgraduateCourse
-                             select planItem;
+                            join course in _context.Courses
+                            on planItem.CourseId equals course.Id
+                            where course.CareerId == career.Id && planItem.FromPostgraduateCourse != career.PostgraduateCourse
+                            select planItem;
 
                 if (query.Any())
                 {
-                    await query.ForEachAsync(i => 
-                    { 
+                    await query.ForEachAsync(i =>
+                    {
                         i.FromPostgraduateCourse = career.PostgraduateCourse;
                         _context.Update(i);
                     });
@@ -725,7 +726,7 @@ public class DataManager : IDataManager
                                join teacherDiscipline in _context.TeachersDisciplines
                                on teacher.Id equals teacherDiscipline.TeacherId
                                where teacher.Active && teacher.DepartmentId == departmentId
-                                     && disciplineId.HasValue 
+                                     && disciplineId.HasValue
                                         ? teacherDiscipline.DisciplineId == disciplineId : true
                                select teacher;
         depTeachersQuery = depTeachersQuery.Distinct();
@@ -776,7 +777,7 @@ public class DataManager : IDataManager
         {
             throw new PlanItemFullyCoveredException();
         }
-        var loadItem = new LoadItemModel 
+        var loadItem = new LoadItemModel
         {
             TeacherId = teacherId,
             PlanningItemId = planItemId,
@@ -894,6 +895,56 @@ public class DataManager : IDataManager
         return await query.ToListAsync();
     }
 
+    public async Task<IList<SubjectModel>> GetSubjectsForCourseInPeriodAsync(Guid courseId, Guid periodId)
+    {
+        if (!await ExistsCourseAsync(courseId))
+        {
+            throw new CourseNotFoundException();
+        }
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        try
+        {
+            var query = from subject in _context.Subjects
+                        join periodSubject in _context.PeriodSubjects
+                        on subject.Id equals periodSubject.SubjectId
+                        where periodSubject.PeriodId == periodId && periodSubject.CourseId == courseId
+                        select subject;
+
+            return await query.Include(s => s.Discipline).ToListAsync();
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
+    public async Task<IList<SubjectModel>> GetSubjectsForCourseNotAssignedInPeriodAsync(Guid courseId, Guid periodId)
+    {
+        var courseSubjectsQuery = from s in _context.Subjects
+                                  join d in _context.Disciplines
+                                  on s.DisciplineId equals d.Id
+                                  join cd in _context.CurriculumsDisciplines
+                                  on d.Id equals cd.DisciplineId
+                                  join sy in _context.Courses
+                                  on cd.CurriculumId equals sy.CurriculumId
+                                  where sy.Id == courseId && s.Active
+                                  select s;
+
+        var assignedSubjectsQuery = from periodSubject in _context.PeriodSubjects
+                                    join subject in _context.Subjects
+                                    on periodSubject.SubjectId equals subject.Id
+                                    where periodSubject.CourseId == courseId && periodSubject.PeriodId == periodId
+                                    select subject;
+
+        var subjects = courseSubjectsQuery.Except(assignedSubjectsQuery);
+        subjects = subjects.Include(s => s.Discipline);
+
+        return await subjects.ToListAsync();
+    }
+
     public async Task<SubjectModel> GetSubjectAsync(Guid id)
     {
         if (id != Guid.Empty)
@@ -961,6 +1012,120 @@ public class DataManager : IDataManager
                     select loadItem;
 
         return await query.CountAsync() > 0;
+    }
+
+    public async Task<IList<PeriodSubjectModel>> GetPeriodSubjectsForCourseAsync(Guid periodId, Guid courseId)
+    {
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        if (!await ExistsCourseAsync(courseId))
+        {
+            throw new CourseNotFoundException();
+        }
+        var query = from periodSubject in _context.PeriodSubjects
+                    where periodSubject.PeriodId == periodId && periodSubject.CourseId == courseId
+                    select periodSubject;
+        query = query.Include(ps => ps.Subject);
+
+        return await query.ToListAsync();
+    }
+
+    public async Task<bool> CreatePeriodSubjectAsync(PeriodSubjectModel newPeriodSubject)
+    {
+        try
+        {
+            if (!await ExistsPeriodAsync(newPeriodSubject.PeriodId))
+            {
+                throw new PeriodNotFoundException();
+            }
+            if (!await ExistsCourseAsync(newPeriodSubject.CourseId))
+            {
+                throw new CourseNotFoundException();
+            }
+            if (!await ExistsSubjectAsync(newPeriodSubject.SubjectId))
+            {
+                throw new SubjectNotFoundException();
+            }
+            _context.PeriodSubjects.Add(newPeriodSubject);
+            var result = await _context.SaveChangesAsync();
+            return result > 0;
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
+    public async Task<PeriodSubjectModel> GetPeriodSubjectAsync(Guid id)
+    {
+        try
+        {
+            var result = await _context.PeriodSubjects.Where(ps => ps.Id == id)
+                                                      .Include(ps => ps.Course)
+                                                      .Include(ps => ps.Period)
+                                                      .Include(ps => ps.Subject)
+                                                      .FirstOrDefaultAsync();
+            return result ?? throw new PeriodSubjectNotFoundException();
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
+    public async Task<bool> ExistsPeriodSubjectAsync(Guid id)
+    {
+        try
+        {
+            return await _context.PeriodSubjects.AnyAsync(ps => ps.Id == id);
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+
+    public async Task<bool> UpdatePeriodSubjectAsync(PeriodSubjectModel periodSubject)
+    {
+        if (periodSubject is null)
+        {
+            throw new ArgumentNullException(nameof(periodSubject));
+        }
+        try
+        {
+            _context.PeriodSubjects.Update(periodSubject);
+            var result = await _context.SaveChangesAsync();
+            return result > 0;
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
+    public async Task<bool> DeletePeriodSubjectAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(id));
+        }
+        if (!await ExistsPeriodSubjectAsync(id))
+        {
+            throw new PeriodSubjectNotFoundException();
+        }
+        try
+        {
+            var periodSubject = await _context.PeriodSubjects.FirstAsync(ps => ps.Id == id);
+            _context.PeriodSubjects.Remove(periodSubject);
+            var result = await _context.SaveChangesAsync();
+            return result > 0;
+        }
+        catch (Exception)
+        {
+            throw;
+        }
     }
 
     #endregion
@@ -1396,7 +1561,7 @@ public class DataManager : IDataManager
         return await query.ToListAsync();
     }
 
-    public async Task<int> GetSchoolYearPeriodsCountAsync(Guid schoolYearId) 
+    public async Task<int> GetSchoolYearPeriodsCountAsync(Guid schoolYearId)
         => await _context.Periods.CountAsync(p => p.SchoolYearId == schoolYearId);
 
     #endregion

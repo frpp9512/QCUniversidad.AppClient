@@ -1,5 +1,6 @@
 ﻿using QCUniversidad.Api.Shared.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace QCUniversidad.Api.Data.Models;
 
@@ -23,6 +24,31 @@ public record TeacherModel
     /// </summary>
     [MaxLength(11), MinLength(11)]
     public string? PersonalId { get; set; }
+
+    /// <summary>
+    /// The birthdate of the teacher.
+    /// </summary>
+    [NotMapped]
+    public DateTime? Birthday
+    {
+        get 
+        {
+            if (!string.IsNullOrEmpty(PersonalId))
+            {
+                var currentYearSection = DateTime.Now.Year.ToString().Substring(2, 2);
+                var yearSection = PersonalId.Substring(0, 2);
+                var monthSection = PersonalId.Substring(2, 2);
+                var daySection = PersonalId.Substring(4, 2);
+                var currentYearSectionValue = int.Parse(currentYearSection);
+                var yearSectionValue = int.Parse(yearSection);
+                var birthDayYear = currentYearSectionValue < yearSectionValue ? int.Parse($"19{yearSectionValue}") : int.Parse($"20{yearSectionValue}");
+                var monthSectionValue = int.Parse(monthSection);
+                var daySectionValue = int.Parse(daySection);
+                return new DateTime(birthDayYear, monthSectionValue, daySectionValue);
+            }
+            return null;
+        }
+    }
 
     /// <summary>
     /// The position that occupies in the university.

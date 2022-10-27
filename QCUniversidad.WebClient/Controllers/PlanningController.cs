@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Microsoft.Extensions.Options;
 using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Planning;
 using QCUniversidad.WebClient.Models.SchoolYears;
+using QCUniversidad.WebClient.Models.Subjects;
 using QCUniversidad.WebClient.Services.Data;
 using QCUniversidad.WebClient.Services.Platform;
 
@@ -27,17 +29,20 @@ public class PlanningController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(Guid? periodSelected = null, Guid? schoolYearId = null)
+    public async Task<IActionResult> Index(Guid? periodSelected = null, Guid? schoolYearId = null, Guid? courseSelected = null)
     {
         var workingSchoolYear = (!User.IsAdmin() && schoolYearId is not null) || schoolYearId is null
             ? await _dataProvider.GetCurrentSchoolYear()
             : await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
+        var courses = await _dataProvider.GetCoursesAsync(workingSchoolYear.Id);
         var model = new PlanningIndexModel
         {
             SchoolYearId = workingSchoolYear.Id,
             SchoolYear = workingSchoolYear,
             Periods = await _dataProvider.GetPeriodsAsync(workingSchoolYear.Id),
-            PeriodSelected = periodSelected
+            PeriodSelected = periodSelected,
+            Courses = courses,
+            CourseSelected = courseSelected
         };
         return View(model);
     }
@@ -93,14 +98,25 @@ public class PlanningController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetSubjectsOptionsForCourseAsync(Guid courseId)
+    public async Task<IActionResult> GetSubjectsOptionsForCourseAsync(Guid courseId, Guid periodId)
     {
         if (!await _dataProvider.ExistsCourseAsync(courseId))
         {
             return NotFound();
         }
-        var result = await _dataProvider.GetSubjectsForCourseAsync(courseId);
-        return PartialView("_SubjectsOptions", result);
+        if (!await _dataProvider.ExistsPeriodAsync(periodId))
+        {
+            return NotFound();
+        }
+        try
+        {
+            var result = await _dataProvider.GetSubjectsForCourseInPeriodAsync(courseId, periodId);
+            return PartialView("_SubjectsOptions", result);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
     }
 
 
@@ -199,5 +215,149 @@ public class PlanningController : Controller
             }
         }
         return BadRequest("El id debe de ser correcto.");
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetPeriodSubjectsViewAsync(Guid periodId, Guid courseId)
+    {
+        try
+        {
+            var periodSubjects = await _dataProvider.GetPeriodSubjectsForCourseAsync(periodId, courseId);
+            return PartialView("_PeriodSubjectsView", periodSubjects);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetSubjectsForCourseAsync(Guid courseId, Guid periodId)
+    {
+        try
+        {
+            var subjects = await _dataProvider.GetSubjectsForCourseNotAssignedInPeriodAsync(courseId, periodId);
+            return PartialView("_SubjectSelectOptions", subjects);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpPut]
+    public async Task<IActionResult> CreatePeriodSubjectAsync([FromBody] CreatePeriodSubjectModel model)
+    {
+        try
+        {
+            if (model is null)
+            {
+                return BadRequest();
+            }
+            if (!await _dataProvider.ExistsPeriodAsync(model.PeriodId))
+            {
+                return NotFound("El período seleccionado no existe.");
+            }
+            if (!await _dataProvider.ExistsCourseAsync(model.CourseId))
+            {
+                return NotFound("El curso seleccionado no existe.");
+            }
+            if (!await _dataProvider.ExistsSubjectAsync(model.SubjectId))
+            {
+                return NotFound("La asignatura seleccionada no existe.");
+            }
+            var result = await _dataProvider.CreatePeriodSubjectAsync(_mapper.Map<PeriodSubjectModel>(model));
+            return result ? Ok(result) : Problem();
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> EditPeriodSubjectAsync(PeriodSubjectModel model)
+    {
+        try
+        {
+            var result = await _dataProvider.UpdatePeriodSubjectAsync(model);
+            return result ? Ok(result) : Problem();
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetPeriodSubjectInfoAsync(Guid periodSubjectId)
+    {
+        if (periodSubjectId == Guid.Empty)
+        {
+            return BadRequest();
+        }
+        try
+        {
+            var result = await _dataProvider.GetPeriodSubjectAsync(periodSubjectId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetPeriodInfoAsync(Guid periodId)
+    {
+        if (periodId == Guid.Empty)
+        {
+            return BadRequest();
+        }
+        try
+        {
+            var result = await _dataProvider.GetPeriodAsync(periodId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetSubjectInfoAsync(Guid subjectId)
+    {
+        if (subjectId == Guid.Empty)
+        {
+            return BadRequest();
+        }
+        try
+        {
+            var result = await _dataProvider.GetSubjectAsync(subjectId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeletePeriodSubjectAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            return BadRequest();
+        }
+        try
+        {
+            var result = await _dataProvider.DeletePeriodSubjectAsync(id);
+            return result ? Ok(result) : Problem();
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
     }
 }

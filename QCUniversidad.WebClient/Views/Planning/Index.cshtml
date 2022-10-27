@@ -54,22 +54,62 @@
 </div>
 
 <div class="row">
-    <div class="col d-flex justify-content-center" id="planningContent">
-        <div class="spinner-grow m-5" role="status">
-            <span class="visually-hidden">Loading...</span>
+    <div class="container">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="periodSubjects-tab" data-bs-toggle="tab" data-bs-target="#periodSubjects" type="button" role="tab" aria-controls="periodSubjects" aria-selected="true">Asignaturas</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="planning-tab" data-bs-toggle="tab" data-bs-target="#planning" type="button" role="tab" aria-controls="profile" aria-selected="false">Planificación</button>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="periodSubjects" role="tabpanel" aria-labelledby="home-tab">
+                <div class="d-flex justify-content-between align-items-end">
+                    <div class="col col-lg-3 col-sm-6 col-12">
+                        <label for="selectedCourse">Curso</label>
+                        <select asp-for="CourseSelected" class="form-select" aria-label="Seleccionar curso" id="selectedCourse" onchange="CourseSelected()">
+                            @foreach (var course in Model.Courses)
+                            {
+                                <option value="@course.Id">@course.Denomination</option>
+                            }
+                        </select>
+                    </div>
+                    <button class="btn btn-info" onclick="LoadPeriodSubjects()"><span class="fa fa-refresh"></span></button>
+                </div>
+                <div id="periodSubjects-content" class="d-flex justify-content-center flex-column">
+                    <div class="spinner-grow m-5" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="planning" role="tabpanel" aria-labelledby="profile-tab">
+                <div class="col d-flex justify-content-center" id="planningContent">
+                    <div class="spinner-grow m-5" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+<partial name="_LoadingModal" />
+<partial name="_MessageModal" />
+
 @section Scripts {
     <script src="~/lib/popper/popper.min.js"></script>
+    <script src="~/js/loading-modal.js"></script>
+    <script src="~/js/message-modal.js"></script>
     <script>
         var periodToSelect = '@(Model.PeriodSelected is null ? "" : Model.PeriodSelected.ToString())';
         var deleteModal = null;
+        var periodSubjectDeleteModal = null;
         var requestingDelete = false;
 
         $(document).ready(function () {
             PeriodSelected();
+            LoadPeriodSubjects();
         });
 
         function LoadTooltips() {
@@ -90,6 +130,7 @@
         function PeriodSelected() {
             const periodsSelect = document.getElementById("selectedPeriod");
             let selected = periodsSelect.options[periodsSelect.selectedIndex].value;
+            LoadPeriodSubjects();
             SetLoadingPlanning();
 
             $.ajax({
@@ -192,6 +233,8 @@
             let subjectSelected = subjectFilterSelect.options[subjectFilterSelect.selectedIndex].value;
             const typeFilterSelect = document.getElementById("activityFilter");
             let typeSelected = typeFilterSelect.options[typeFilterSelect.selectedIndex].innerText;
+            const coursesSelect = document.getElementById("filterCourses");
+            let courseSelected = coursesSelect.options[coursesSelect.selectedIndex].value;
             let itemsRows = document.getElementById("planningItemsTable").getElementsByTagName("tbody")[0].getElementsByTagName("tr");
             let totalShowed = 0;
             for (let i = 0; i < itemsRows.length; i++) {
@@ -200,7 +243,10 @@
                 let allTd = row.getElementsByTagName("td");
                 let subjectTd = allTd[0];
                 let typeTd = allTd[1];
-                if (((subjectSelected == "all") || (subjectTd.id == subjectSelected)) && ((typeSelected == "Todos") || (typeTd.innerText.indexOf(typeSelected) >= 0))) {
+                let courseTd = allTd[5].getAttribute("data-course-id");
+                if (((subjectSelected == "all") || (subjectTd.id == subjectSelected)) 
+                    && ((typeSelected == "Todos") || (typeTd.innerText.indexOf(typeSelected) >= 0))
+                    && ((courseSelected == "all") || (courseSelected == courseTd))) {
                     let totalHours = allTd[4].innerText;
                     totalShowed = totalShowed + parseFloat(totalHours);
                 } else {
@@ -276,6 +322,309 @@
         function HideCreateModalSpinner() {
             var spinner = document.getElementById("deleteModalLoadingSpinner");
             spinner.hidden = true;
+        }
+
+        function SetLoadingPeriodSubjects() {
+            const planningDetailsDiv = document.getElementById("periodSubjects-content");
+            planningDetailsDiv.innerHTML = "";
+            planningDetailsDiv.appendChild(CreateSpinnerNode());
+            const periodsSelect = document.getElementById("selectedCourse");
+            periodsSelect.disabled = true;
+        }
+
+        function DisableLoadingPeriodSubjects() {
+            const planningDetailsDiv = document.getElementById("periodSubjects-content");
+            planningDetailsDiv.innerHTML = "";
+            const periodsSelect = document.getElementById("selectedCourse");
+            periodsSelect.disabled = false;
+        }
+
+        function LoadPeriodSubjects() {
+            const periodsSelect = document.getElementById("selectedPeriod");
+            let periodSelected = periodsSelect.options[periodsSelect.selectedIndex].value;
+            const courseSelect = document.getElementById("selectedCourse");
+            let courseSelected = courseSelect.options[courseSelect.selectedIndex].value;
+            SetLoadingPeriodSubjects();
+
+            $.ajax({
+                url: `/planning/GetPeriodSubjectsView?periodId=${periodSelected}&courseId=${courseSelected}`,
+                type: "GET",
+                success: function (data) {
+                    DisableLoadingPeriodSubjects();
+                    const periodSubjectsContent = document.getElementById("periodSubjects-content");
+                    periodSubjectsContent.innerHTML = data;
+                    periodSubjectDeleteModal = new bootstrap.Modal(document.getElementById('deletePeriodSubjectModal'), { keyboard: true });
+                    LoadTooltips();
+                },
+                error: function (xhr, status, error) {
+                    DisableLoadingPeriodSubjects();
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function CourseSelected() {
+            LoadPeriodSubjects();
+        }
+
+        function CreatePeriodSubject() {
+            const periodsSelect = document.getElementById("selectedPeriod");
+            let periodSelected = periodsSelect.options[periodsSelect.selectedIndex].value;
+            const courseSelect = document.getElementById("selectedCourse");
+            let courseSelected = courseSelect.options[courseSelect.selectedIndex].value;
+
+            SetCreateLoading();
+
+            $.ajax({
+                url: `/planning/GetSubjectsForCourse?courseId=${courseSelected}&periodId=${periodSelected}`,
+                type: "GET",
+                success: function (data) {
+                    const subjectSelect = document.getElementById("subjectSelected");
+                    subjectSelect.innerHTML = data;
+                    if (subjectSelect.options.length == 0) {
+                        ShowMessage("Asignaturas ya asignadas", "Todas las asignaturas corresponientes a este curso ya han sido asignadas.");
+                    } else {
+                        DisableCreateLoading();
+                        const addModal = new bootstrap.Modal(document.getElementById('addPeriodSubjectModal'));
+                        addModal.show();
+                    }
+                },
+                error: function (xhr, status, error) {
+                    DisableCreateLoading();
+                    addModal.hide();
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function AddPeriodSubject() {
+            const courseSelect = document.getElementById("selectedCourse");
+            let courseSelected = courseSelect.options[courseSelect.selectedIndex].value;
+            const periodsSelect = document.getElementById("selectedPeriod");
+            let periodSelected = periodsSelect.options[periodsSelect.selectedIndex].value;
+            const subjectSelect = document.getElementById("subjectSelected");
+            let subjectSelected = subjectSelect.options[subjectSelect.selectedIndex].value;
+            let midTermExams = document.getElementById("midTermExamsCount").value;
+            if (midTermExams <= 0 || midTermExams > 5) {
+                alert("Debe de especificar un valor válido para la cantidad de exámenes parciales.");
+                return;
+            }
+            let finalExam = document.getElementById("finalExam").checked;
+            let createModel = {
+                PeriodId: periodSelected,
+                CourseId: courseSelected,
+                SubjectId: subjectSelected,
+                MidtermExamsCount: midTermExams,
+                HaveFinalExam: finalExam
+            };
+
+            console.log(createModel);
+
+            SetCreateLoading();
+
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("PUT", "/planning/CreatePeriodSubject", true);
+            xhttp.setRequestHeader("Content-Type", "application/json");
+            xhttp.onreadystatechange = function () {
+                const addModal = bootstrap.Modal.getInstance(document.getElementById('addPeriodSubjectModal'));
+                addModal.hide();
+                LoadPeriodSubjects();
+                DisableCreateLoading();
+            };
+            xhttp.onerror = function () {
+                const addModal = bootstrap.Modal.getInstance(document.getElementById('addPeriodSubjectModal'));
+                addModal.hide();
+                CloseLoadingModal();
+                console.log(xhr, status, error);
+            };
+            xhttp.send(JSON.stringify(createModel));
+        }
+
+        function EditPeriodSubject(periodSubjectId) {
+            if (true) {
+                $.ajax({
+                    url: `/planning/GetPeriodSubjectInfo?periodSubjectId=${periodSubjectId}`,
+                    type: "GET",
+                    success: function (data) {
+                        let periodSubjectModel = data;
+                        let subjectModel = data.subject;
+                        const periodSubjectEdited = document.getElementById("periodSubjectEdited");
+                        periodSubjectEdited.value = periodSubjectModel.id;
+                        const subjectName = document.getElementById("editedSubjectSelected");
+                        subjectName.value = subjectModel.name;
+                        const subjectId = document.getElementById("editedSubjectSelectedId");
+                        subjectId.value = subjectModel.id;
+                        const midTermExams = document.getElementById("editedMidTermExamsCount");
+                        midTermExams.value = periodSubjectModel.midtermExamsCount;
+                        const finalExam = document.getElementById("editedFinalExam");
+                        finalExam.checked = periodSubjectModel.haveFinalExam;
+                        const editModal = new bootstrap.Modal(document.getElementById('editPeriodSubjectModal'));
+                        editModal.show();
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(xhr, status, error);
+                    }
+                });
+            } else {
+                ShowError("Error", "Ha ocurrido un error a la hora de intentar editar una asignatura del período.");
+            }
+        }
+
+        function SaveChangesOfPeriodSubject() {
+            const courseSelect = document.getElementById("selectedCourse");
+            let courseSelected = courseSelect.options[courseSelect.selectedIndex].value;
+            const periodsSelect = document.getElementById("selectedPeriod");
+            let periodSelected = periodsSelect.options[periodsSelect.selectedIndex].value;
+            const subjectId = document.getElementById("editedSubjectSelectedId");
+            let subjectSelected = subjectId.value;
+            let midTermExams = document.getElementById("editedMidTermExamsCount").value;
+            if (midTermExams <= 0 || midTermExams > 5) {
+                alert("Debe de especificar un valor válido para la cantidad de exámenes parciales.");
+                return;
+            }
+            let finalExam = document.getElementById("editedFinalExam").checked;
+            const periodSubjectSelected = document.getElementById("periodSubjectEdited");
+            let periodSubjectId = periodSubjectSelected.value;
+            let createModel = {
+                Id: periodSubjectId,
+                PeriodId: periodSelected,
+                CourseId: courseSelected,
+                SubjectId: subjectSelected,
+                MidtermExamsCount: midTermExams,
+                HaveFinalExam: finalExam
+            };
+            SetEditLoading();
+            $.ajax({
+                url: `/planning/EditPeriodSubject`,
+                type: "POST",
+                data: createModel,
+                success: function (data) {
+                    CloseLoadingModal();
+                    const editModal = bootstrap.Modal.getInstance(document.getElementById('editPeriodSubjectModal'));
+                    DisableEditLoading();
+                    editModal.hide();
+                    LoadPeriodSubjects();
+                },
+                error: function (xhr, status, error) {
+                    CloseLoadingModal();
+                    DisableEditLoading();
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function SetCreateLoading() {
+            ShowCreateModalSpinner();
+            HideCreateModalButtons();
+        }
+
+        function DisableCreateLoading() {
+            HideCreateModalSpinner();
+            ShowCreateModalButtons();
+        }
+
+        function SetEditLoading() {
+            ShowEditModalSpinner();
+            HideEditModalButtons();
+        }
+
+        function DisableEditLoading() {
+            HideEditModalSpinner();
+            ShowEditModalButtons();
+        }
+
+        function ShowCreateModalSpinner() {
+            var spinner = document.getElementById("createModalLoadingSpinner");
+            spinner.hidden = false;
+        }
+
+        function HideCreateModalSpinner() {
+            var spinner = document.getElementById("createModalLoadingSpinner");
+            spinner.hidden = true;
+        }
+
+        function HideEditModalButtons() {
+            var footer = document.getElementById('editModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = true;
+            }
+        }
+
+        function ShowEditModalButtons() {
+            var footer = document.getElementById('editModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = false;
+            }
+        }
+
+        function ShowEditModalSpinner() {
+            var spinner = document.getElementById("editModalLoadingSpinner");
+            spinner.hidden = false;
+        }
+
+        function HideEditModalSpinner() {
+            var spinner = document.getElementById("editModalLoadingSpinner");
+            spinner.hidden = true;
+        }
+
+        function DeletePeriodSubject(periodSubjectId) {
+            RiseDeleteModal(periodSubjectId);
+        }
+
+        function RiseDeleteModal(id) {
+            SetDeleteModalTextContent("¿Esta seguro que desea eliminar el elemento?");
+            var button = document.getElementById("modal-deleteperiodsubject-primarybutton");
+            button.onclick = function () {
+                SendDeletePeriodSubjectRequest(id);
+            };
+            periodSubjectDeleteModal.show();
+        }
+
+        function SendDeletePeriodSubjectRequest(id) {
+            if (!requestingDelete) {
+                requestingDelete = true;
+                HideCreateModalButtons();
+                ShowCreateModalSpinner();
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("DELETE", "/planning/DeletePeriodSubject?id=" + id, true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        // Response
+                        var response = this.responseText;
+                        console.log(response);
+                        periodSubjectDeleteModal.hide();
+                        LoadPeriodSubjects();
+                    }
+                    requestingDelete = false;
+                    ShowCreateModalButtons();
+                    HideCreateModalSpinner();
+                };
+                xhttp.send();
+            }
+        }
+
+        function SetDeleteModalTextContent(value) {
+            var content = document.getElementById('modal-deleteperiodsubject-content');
+            content.innerHTML = value;
+        }
+
+        function HideCreateModalButtons() {
+            var footer = document.getElementById('deletePeriodSubjectModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = true;
+            }
+        }
+
+        function ShowCreateModalButtons() {
+            var footer = document.getElementById('deletePeriodSubjectModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = false;
+            }
         }
     </script>
 }

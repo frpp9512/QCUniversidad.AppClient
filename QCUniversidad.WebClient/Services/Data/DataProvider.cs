@@ -692,6 +692,32 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
+    public async Task<IList<SubjectModel>> GetSubjectsForCourseInPeriodAsync(Guid courseId, Guid periodId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/subject/getforcourseinperiod?courseId={courseId}&periodId={periodId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var teachers = JsonConvert.DeserializeObject<IList<SubjectDto>>(contentText);
+            return teachers?.Select(f => _mapper.Map<SubjectModel>(f)).ToList() ?? new List<SubjectModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<IList<SubjectModel>> GetSubjectsForCourseNotAssignedInPeriodAsync(Guid courseId, Guid periodId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/subject/getforcoursenotassignedtoperiod?courseId={courseId}&periodId={periodId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var teachers = JsonConvert.DeserializeObject<IList<SubjectDto>>(contentText);
+            return teachers?.Select(f => _mapper.Map<SubjectModel>(f)).ToList() ?? new List<SubjectModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
     public async Task<int> GetSubjectsCountAsync()
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
@@ -764,6 +790,68 @@ public class DataProvider : IDataProvider
             return response.IsSuccessStatusCode;
         }
         throw new ArgumentNullException(nameof(subjectId));
+    }
+
+    public async Task<IList<PeriodSubjectModel>> GetPeriodSubjectsForCourseAsync(Guid periodId, Guid courseId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/subject/periodsubjects?periodId={periodId}&courseId={courseId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var teachers = JsonConvert.DeserializeObject<IList<PeriodSubjectDto>>(contentText);
+            return teachers?.Select(f => _mapper.Map<PeriodSubjectModel>(f)).ToList() ?? new List<PeriodSubjectModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<bool> CreatePeriodSubjectAsync(PeriodSubjectModel newPeriodSubject)
+    {
+        if (newPeriodSubject is not null)
+        {
+            var dto = _mapper.Map<NewPeriodSubjectDto>(newPeriodSubject);
+            var serializedDtos = JsonConvert.SerializeObject(dto);
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.PutAsync("/subject/periodsubject", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
+            return response.IsSuccessStatusCode;
+        }
+        throw new ArgumentNullException(nameof(newPeriodSubject));
+    }
+
+    public async Task<PeriodSubjectModel> GetPeriodSubjectAsync(Guid id)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/subject/periodsubject?id={id}");
+        if (response.IsSuccessStatusCode)
+        {
+            var subject = JsonConvert.DeserializeObject<PeriodSubjectDto>(await response.Content.ReadAsStringAsync());
+            return _mapper.Map<PeriodSubjectModel>(subject);
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<bool> UpdatePeriodSubjectAsync(PeriodSubjectModel model)
+    {
+        if (model is not null)
+        {
+            var dto = _mapper.Map<EditPeriodSubjectDto>(model);
+            var serializedDto = JsonConvert.SerializeObject(dto);
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.PostAsync("/subject/updateperiodsubject", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+            return response.IsSuccessStatusCode;
+        }
+        throw new ArgumentNullException(nameof(model));
+    }
+
+    public async Task<bool> DeletePeriodSubjectAsync(Guid id)
+    {
+        if (id != Guid.Empty)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.DeleteAsync($"/subject/deleteperiodsubject?id={id}");
+            return response.IsSuccessStatusCode;
+        }
+        throw new ArgumentNullException(nameof(id));
     }
 
     #endregion

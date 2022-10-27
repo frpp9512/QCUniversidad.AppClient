@@ -7,18 +7,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QCUniversidad.Api.MappingProfiles
+namespace QCUniversidad.Api.MappingProfiles;
+
+public class SubjectProfile : Profile
 {
-    public class SubjectProfile : Profile
+    public SubjectProfile()
     {
-        public SubjectProfile()
-        {
-            CreateMap<SubjectModel, SubjectDto>();
-            CreateMap<SubjectDto, SubjectModel>();
-            CreateMap<SubjectModel, NewSubjectDto>();
-            CreateMap<NewSubjectDto, SubjectModel>();
-            CreateMap<SubjectModel, EditSubjectDto>();
-            CreateMap<EditSubjectDto, SubjectModel>();
-        }
+        CreateMap<SubjectModel, SubjectDto>();
+        CreateMap<SubjectDto, SubjectModel>();
+        CreateMap<SubjectModel, NewSubjectDto>();
+        CreateMap<NewSubjectDto, SubjectModel>();
+        CreateMap<SubjectModel, EditSubjectDto>();
+        CreateMap<EditSubjectDto, SubjectModel>();
+        CreateMap<PeriodSubjectModel, SimplePeriodSubjectDto>();
+        CreateMap<PeriodSubjectModel, PeriodSubjectDto>();
+        CreateMap<NewPeriodSubjectDto, PeriodSubjectModel>();
+        CreateMap<EditPeriodSubjectDto, PeriodSubjectModel>();
     }
 }

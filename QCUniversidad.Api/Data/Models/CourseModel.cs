@@ -66,4 +66,9 @@ public record CourseModel
     /// The set of plan items associated to the course.
     /// </summary>
     public IList<TeachingPlanItemModel>? PlanItems { get; set; }
+
+    /// <summary>
+    /// The set of subjects teached in a specific period to this course.
+    /// </summary>
+    public IList<PeriodSubjectModel> PeriodSubjects { get; set; }
 }

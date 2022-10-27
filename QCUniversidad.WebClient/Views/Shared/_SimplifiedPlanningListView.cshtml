@@ -6,9 +6,19 @@
     var types = Model.Select(tp => tp.Type).Distinct();
 }
 
-<div class="d-flex justify-content-between mt-2">
+<div class="d-flex align-content-center align-items-center justify-content-between mt-2">
     <div>
         <h4>Planificación del período para el departamento</h4>
+    </div>
+    <div style="display: flex; flex-direction: row; align-items: center; justify-content: end; min-width: 10rem;">
+        <select class="form-select-sm" id="subject-filter">
+            <option value="all">Todas</option>
+            @foreach (var subject in subjects)
+            {
+                <option value="@string.Join("", subject.Id.ToString().Split("-"))">@subject.Name</option>
+            }
+        </select>
+        <small><span class="fa fa-info-circle text-info m-1" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-filter'></span> Filtro</small></div> <div><b>Filtro de asignaturas</b></div> <div>Muestra solamente los elementos de carga de la asignatura seleccionada.</div>"></span></small>
     </div>
     <div style="display: flex; flex-direction: row; align-items: center; justify-content: end;">
         <button class="btn btn-sm btn-outline-primary" style="margin-right: 5px;" id="showTable" onclick="SetView('table')">
@@ -52,8 +62,8 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        <tr>
-                            <td id="@item.SubjectId">
+                        <tr data-planitemrow-subject="@string.Join("", item.SubjectId.ToString().Split("-"))">
+                            <td>
                                 <a asp-action="Details" asp-controller="Subjects" asp-route-id="@item.Subject?.Id" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Asignatura</small></div> <div><b>@item.Subject?.Name</b></div> <div><i>@item.Subject?.Description</i></div>">
                                     @item.Subject?.Name <small><span class="fa fa-info-circle"></span></small>
                                 </a>

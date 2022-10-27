@@ -29,6 +29,7 @@ namespace QCUniversidad.Api.Data.Context
         public DbSet<TeacherModel> Teachers { get; set; }
         public DbSet<TeacherDiscipline> TeachersDisciplines { get; set; }
 
+        public DbSet<PeriodSubjectModel> PeriodSubjects { get; set; }
         public DbSet<TeachingPlanItemModel> TeachingPlanItems { get; set; }
 
         public DbSet<LoadItemModel> LoadItems { get; set; }
@@ -133,6 +134,24 @@ namespace QCUniversidad.Api.Data.Context
                         .HasMany(d => d.Disciplines)
                         .WithOne(d => d.Department)
                         .HasForeignKey(d => d.DepartmentId)
+                        .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PeriodSubjectModel>()
+                        .HasOne(ps => ps.Period)
+                        .WithMany(p => p.PeriodSubjects)
+                        .HasForeignKey(ps => ps.PeriodId)
+                        .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PeriodSubjectModel>()
+                        .HasOne(ps => ps.Course)
+                        .WithMany(c => c.PeriodSubjects)
+                        .HasForeignKey(ps => ps.CourseId)
+                        .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PeriodSubjectModel>()
+                        .HasOne(ps => ps.Subject)
+                        .WithMany(c => c.PeriodsSubject)
+                        .HasForeignKey(ps => ps.SubjectId)
                         .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<TeachingPlanItemModel>()

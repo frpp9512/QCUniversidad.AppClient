@@ -35,13 +35,13 @@
                         @if (User.IsInRole("Jefe de departamento") || User.IsAdmin())
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="LoadDistribution" asp-action="Index">Distribución de carga</a>
+                                <a class="nav-link" asp-controller="LoadDistribution" asp-action="Index">Distribución</a>
                             </li>
                         }
                         @if (User.IsInRole("Planificador") || User.IsAdmin())
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Planning" asp-action="Index">Planificación docente</a>
+                                <a class="nav-link" asp-controller="Planning" asp-action="Index">Planificación</a>
                             </li>
                         }
                         @if (User.IsAdmin())

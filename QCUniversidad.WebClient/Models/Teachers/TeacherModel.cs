@@ -4,6 +4,7 @@ using QCUniversidad.WebClient.Models.Disciplines;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,6 +39,8 @@ namespace QCUniversidad.WebClient.Models.Teachers
         [Display(Name = "Correo electrónico", Prompt = "Correo electrónico", Description = "Dirección de correo electrónico del profesor.")]
         [DataType(DataType.EmailAddress, ErrorMessage = "Escriba correctamente la dirección electrónica.")]
         public string? Email { get; set; }
+
+        public DateTime? Birthday { get; set; }
 
         public Guid DepartmentId { get; set; }
 

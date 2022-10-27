@@ -15,5 +15,7 @@ namespace QCUniversidad.WebClient.Models.Planning
         public SchoolYearModel SchoolYear { get; set; }
         public IList<PeriodModel> Periods { get; set; }
         public Guid? PeriodSelected { get; set; }
+        public Guid? CourseSelected { get; set; }
+        public IList<CourseModel> Courses { get; set; }
     }
 }

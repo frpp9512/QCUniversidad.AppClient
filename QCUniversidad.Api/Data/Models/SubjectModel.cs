@@ -40,5 +40,10 @@ namespace QCUniversidad.Api.Data.Models
         /// Defines if the subject is active for planning and load distribution.
         /// </summary>
         public bool Active { get; set; } = true;
+
+        /// <summary>
+        /// The set of periods when the subject is teached to a couse.
+        /// </summary>
+        public IList<PeriodSubjectModel> PeriodsSubject { get; set; }
     }
 }

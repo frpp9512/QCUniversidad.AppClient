@@ -91,12 +91,19 @@ public interface IDataProvider
 
     Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to);
     Task<IList<SubjectModel>> GetSubjectsForCourseAsync(Guid courseId);
+    Task<IList<SubjectModel>> GetSubjectsForCourseInPeriodAsync(Guid courseId, Guid periodId);
+    Task<IList<SubjectModel>> GetSubjectsForCourseNotAssignedInPeriodAsync(Guid courseId, Guid periodId);
     Task<int> GetSubjectsCountAsync();
     Task<bool> ExistsSubjectAsync(Guid id);
     Task<SubjectModel> GetSubjectAsync(Guid subjectId);
     Task<bool> CreateSubjectAsync(SubjectModel newSubject);
     Task<bool> UpdateSubjectAsync(SubjectModel subject);
     Task<bool> DeleteSubjectAsync(Guid subjectId);
+    Task<IList<PeriodSubjectModel>> GetPeriodSubjectsForCourseAsync(Guid periodId, Guid courseId);
+    Task<bool> CreatePeriodSubjectAsync(PeriodSubjectModel newPeriodSubject);
+    Task<PeriodSubjectModel> GetPeriodSubjectAsync(Guid id);
+    Task<bool> UpdatePeriodSubjectAsync(PeriodSubjectModel model);
+    Task<bool> DeletePeriodSubjectAsync(Guid id);
 
     #endregion
 

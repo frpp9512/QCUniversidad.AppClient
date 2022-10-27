@@ -93,10 +93,11 @@
         function LoadSubjectsForCourse() {
             const courseSelect = document.getElementById("CourseId");
             let selectedCourse = courseSelect.options[courseSelect.selectedIndex].value;
+            let period = document.getElementById("PeriodId").value;
             if (selectedCourse != "none") {
                 OpenLoadingModal("Cargando asignaturas del curso seleccionado...");
                 $.ajax({
-                    url: `/planning/GetSubjectsOptionsForCourse?courseId=${selectedCourse}`,
+                    url: `/planning/GetSubjectsOptionsForCourse?courseId=${selectedCourse}&periodId=${period}`,
                     type: "GET",
                     success: function (data) {
                         const subjectSelect = document.getElementById("SubjectId");
@@ -105,7 +106,6 @@
                     },
                     error: function (xhr, status, error) {
                         CloseLoadingModal();
-                        DisableLoadingPlanning();
                         console.log(xhr, status, error);
                     }
                 });

@@ -617,3 +617,17 @@ dd {
     color: white;
     background-color: #ff0000;
 }
+
+.blinker {
+    animation: blink 0.7s infinite alternate;
+}
+
+@keyframes blink {
+    from {
+        color: #ccc;
+    }
+
+    from {
+        color: #aaa;
+    }
+}

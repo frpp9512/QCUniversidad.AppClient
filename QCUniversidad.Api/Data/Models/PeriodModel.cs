@@ -49,4 +49,9 @@ public record PeriodModel
     /// The shool year when the period occurs.
     /// </summary>
     public SchoolYearModel? SchoolYear { get; set; }
+
+    /// <summary>
+    /// The set of subjects teached in the period.
+    /// </summary>
+    public IList<PeriodSubjectModel> PeriodSubjects { get; set; }
 }
