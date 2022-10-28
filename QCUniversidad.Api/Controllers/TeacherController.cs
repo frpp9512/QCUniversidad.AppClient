@@ -2,17 +2,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Extensions;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Discipline;
 using QCUniversidad.Api.Shared.Dtos.LoadItem;
 using QCUniversidad.Api.Shared.Dtos.Teacher;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
+using QCUniversidad.Api.Shared.Enums;
 
 namespace QCUniversidad.Api.Controllers;
 
@@ -34,7 +29,7 @@ public class TeacherController : ControllerBase
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
         var teachers = await _dataManager.GetTeachersAsync(from, to);
-        var dtos = teachers.Select(d => _mapper.Map<TeacherDto>(d, opt => opt.AfterMap((o, t) => 
+        var dtos = teachers.Select(d => _mapper.Map<TeacherDto>(d, opt => opt.AfterMap((o, t) =>
         {
             if (d.TeacherDisciplines?.Any() == true)
             {
@@ -42,7 +37,7 @@ public class TeacherController : ControllerBase
                 foreach (var td in d.TeacherDisciplines)
                 {
                     t.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
-                } 
+                }
             }
         })));
         return Ok(dtos);
@@ -83,7 +78,7 @@ public class TeacherController : ControllerBase
     {
         if (teacherDto is not null)
         {
-            var result = await _dataManager.CreateTeacherAsync(_mapper.Map<TeacherModel>(teacherDto, opts => opts.AfterMap((o, t) => 
+            var result = await _dataManager.CreateTeacherAsync(_mapper.Map<TeacherModel>(teacherDto, opts => opts.AfterMap((o, t) =>
             {
                 if (teacherDto.SelectedDisciplines?.Any() == true)
                 {
@@ -194,7 +189,7 @@ public class TeacherController : ControllerBase
         {
             var result = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
             var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
-            var dtos = result.Select(i => _mapper.Map<TeacherDto>(i, opts => opts.AfterMap(async (o, teacher) => 
+            var dtos = result.Select(i => _mapper.Map<TeacherDto>(i, opts => opts.AfterMap(async (o, teacher) =>
             {
                 var load = await _dataManager.GetTeacherLoadInPeriodAsync(teacher.Id, periodId);
                 teacher.Load = new TeacherLoadDto
@@ -202,7 +197,7 @@ public class TeacherController : ControllerBase
                     TeacherId = teacher.Id,
                     TimeFund = periodTimeFund,
                     Load = load,
-                    LoadPercent = Math.Round((load / periodTimeFund) * 100, 2),
+                    LoadPercent = Math.Round(load / periodTimeFund * 100, 2),
                     PeriodId = periodId
                 };
                 if (i.TeacherDisciplines?.Any() == true)
@@ -266,7 +261,7 @@ public class TeacherController : ControllerBase
                     TeacherId = teacher.Id,
                     TimeFund = periodTimeFund,
                     Load = load,
-                    LoadPercent = Math.Round((load / periodTimeFund) * 100, 2),
+                    LoadPercent = Math.Round(load / periodTimeFund * 100, 2),
                     PeriodId = periodId
                 };
                 if (i.TeacherDisciplines?.Any() == true)
@@ -333,6 +328,69 @@ public class TeacherController : ControllerBase
         catch (LoadItemNotFoundException)
         {
             return NotFound();
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("loaditems")]
+    public async Task<IActionResult> GetLoadItemsAsync(Guid id, Guid periodId)
+    {
+        if (id == Guid.Empty)
+        {
+            return BadRequest("Should provide a teacher id.");
+        }
+        try
+        {
+            var teachingLoadItems = await _dataManager.GetTeacherLoadItemsInPeriodAsync(id, periodId);
+            var teachingLoadViewItems = teachingLoadItems.Select(item => new LoadViewItemDto
+            {
+                LoadId = item.Id,
+                Type = LoadViewItemType.Teaching,
+                Status = LoadViewItemStatus.Setted,
+                TeacherId = id,
+                Teacher = item.Teacher is not null ? _mapper.Map<SimpleTeacherDto>(item.Teacher) : null,
+                Name = item.PlanningItem.Subject?.Name,
+                Description = $"{item.PlanningItem.Course?.Denomination} - {item.PlanningItem.Type.GetPlanItemTypeDisplayValue()} {item.PlanningItem.HoursPlanned}h x {item.PlanningItem.GroupsAmount} grupos",
+                Value = item.HoursCovered
+            });
+            var nonTeachingLoadItems = await _dataManager.GetTeacherNonTeachingLoadItemsInPeriodAsync(id, periodId);
+            var recalculationAllowed = await _dataManager.IsPeriodInCurrentYear(periodId);
+            var nonTeachingLoadViewItems = nonTeachingLoadItems.Select(item => new LoadViewItemDto
+            {
+                LoadId = item.Id,
+                Type = LoadViewItemType.NonTeaching,
+                Autogenerated = item.Type.GetEnumDisplayAutogenerateValue(),
+                Status = LoadViewItemStatus.Setted,
+                Name = item.Type.GetEnumDisplayNameValue(),
+                AllowRecalculation = recalculationAllowed,
+                NonTeachingLoadType = item.Type,
+                Description = item.Description,
+                TeacherId = id,
+                Value = item.Load
+            });
+            var missingTypes = Enum.GetValues<NonTeachingLoadType>().Where(t => !nonTeachingLoadItems.Any(l => l.Type == t));
+            var missingNonTeachingLoadItems = missingTypes.Select(type => new LoadViewItemDto 
+            {
+                Type = LoadViewItemType.NonTeaching,
+                Autogenerated = type.GetEnumDisplayAutogenerateValue(),
+                Status = LoadViewItemStatus.NotSetted,
+                Name = type.GetEnumDisplayNameValue(),
+                AllowRecalculation = recalculationAllowed,
+                NonTeachingLoadType = type,
+                Description = type.GetEnumDisplayDescriptionValue(),
+                TeacherId = id,
+                Value = 0
+            });
+            var items = new List<LoadViewItemDto>();
+            items.AddRange(teachingLoadViewItems);
+            items.AddRange(nonTeachingLoadViewItems);
+            items.AddRange(missingNonTeachingLoadItems);
+
+            return Ok(items);
         }
         catch (Exception ex)
         {

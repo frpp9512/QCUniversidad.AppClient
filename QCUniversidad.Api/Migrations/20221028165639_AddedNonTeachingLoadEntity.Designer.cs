@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using QCUniversidad.Api.Data.Context;
 
@@ -10,9 +11,10 @@ using QCUniversidad.Api.Data.Context;
 namespace QCUniversidad.Api.Migrations
 {
     [DbContext(typeof(QCUniversidadContext))]
-    partial class QCUniversidadContextModelSnapshot : ModelSnapshot
+    [Migration("20221028165639_AddedNonTeachingLoadEntity")]
+    partial class AddedNonTeachingLoadEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.8");
@@ -561,7 +563,7 @@ namespace QCUniversidad.Api.Migrations
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.NonTeachingLoadModel", b =>
                 {
                     b.HasOne("QCUniversidad.Api.Data.Models.PeriodModel", "Period")
-                        .WithMany("NonTeachingLoad")
+                        .WithMany()
                         .HasForeignKey("PeriodId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -727,8 +729,6 @@ namespace QCUniversidad.Api.Migrations
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.PeriodModel", b =>
                 {
-                    b.Navigation("NonTeachingLoad");
-
                     b.Navigation("PeriodSubjects");
 
                     b.Navigation("TeachingPlan");

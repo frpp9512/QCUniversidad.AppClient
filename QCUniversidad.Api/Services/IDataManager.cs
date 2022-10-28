@@ -87,6 +87,10 @@ public interface IDataManager
     Task<bool> UpdateTeacherAsync(TeacherModel teacher);
     Task<bool> DeleteTeacherAsync(Guid id);
     Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId);
+    Task<IList<LoadItemModel>> GetTeacherLoadItemsInPeriodAsync(Guid teacherId, Guid periodId);
+    Task<IList<NonTeachingLoadModel>> GetTeacherNonTeachingLoadItemsInPeriodAsync(Guid teacherId, Guid periodId);
+    Task<NonTeachingLoadModel> GetTeacherNonTeachingLoadItemInPeriodAsync(NonTeachingLoadType type, Guid teacherId, Guid periodId);
+    Task<NonTeachingLoadModel> RecalculateTeacherNonTeachingLoadItemInPeriodAsync(NonTeachingLoadType type, Guid teacherId, Guid periodId);
     Task<double> GetTeacherLoadInPeriodAsync(Guid teacherId, Guid periodId);
     Task<IList<TeacherModel>> GetTeachersOfDepartmentNotAssignedToPlanItemAsync(Guid departmentId, Guid planItemId, Guid? disciplineId = null);
     Task<bool> SetLoadToTeacher(Guid teacherId, Guid planItemId, double hours);
@@ -172,6 +176,7 @@ public interface IDataManager
     Task<bool> DeletePeriodAsync(Guid id);
     Task<IList<PeriodModel>> GetPeriodsOfSchoolYearAsync(Guid schoolYear);
     Task<double> GetPeriodTimeFund(Guid periodId);
+    Task<bool> IsPeriodInCurrentYear(Guid periodId);
 
     #endregion
 

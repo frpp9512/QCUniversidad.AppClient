@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using QCUniversidad.Api.ConfigurationModels;
 using QCUniversidad.Api.Data.Models;
 using System;

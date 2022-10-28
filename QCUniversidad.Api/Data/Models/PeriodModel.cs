@@ -41,6 +41,11 @@ public record PeriodModel
     public IList<TeachingPlanItemModel>? TeachingPlan { get; set; }
 
     /// <summary>
+    /// The non-teaching load of the teachers in the period.
+    /// </summary>
+    public IList<NonTeachingLoadModel>? NonTeachingLoad { get; set; }
+
+    /// <summary>
     /// The id of the shool year when the period occurs.
     /// </summary>
     public Guid SchoolYearId { get; set; }

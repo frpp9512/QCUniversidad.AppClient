@@ -21,6 +21,7 @@
                     <th>Categoría</th>
                     <th>Disciplinas</th>
                     <th>Carga</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -60,10 +61,30 @@
                                 </div>
                             }
                         </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-info" onclick="OpenTeacherLoadDeatils('@teacher.Id')"><span class="fa fa-truck-loading"></span></button>
+                        </td>
                     </tr>
                 }
             </tbody>
         </table>
+    </div>
+
+    <!-- Load modal -->
+    <div class="modal fade" id="teacherLoadDetailsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="teacherLoadDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="teacherLoadDetailsModalLabel">Carga del profesor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="teacherLoadDetailsModal-content">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span class="fa fa-rectangle-xmark"></span> Cerrar</button>
+                </div>
+            </div>
+        </div>
     </div>
 }
 else

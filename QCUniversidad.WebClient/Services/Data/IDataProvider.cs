@@ -5,6 +5,7 @@ using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Faculties;
 using QCUniversidad.WebClient.Models.LoadDistribution;
+using QCUniversidad.WebClient.Models.LoadItem;
 using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.Planning;
 using QCUniversidad.WebClient.Models.SchoolYears;
@@ -80,6 +81,7 @@ public interface IDataProvider
     Task<bool> DeleteTeacherAsync(Guid teacherId);
     Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId);
     Task<IList<TeacherModel>> GetTeachersOfDepartmentNotAssignedToLoadItemAsync(Guid departmentId, Guid planItemId, Guid? disciplineId = null);
+    Task<IList<LoadViewItemModel>> GetTeacherLoadItemsInPeriodAsync(Guid teacherId, Guid periodId);
     Task<bool> SetLoadItemAsync(CreateLoadItemModel newLoadItem);
     Task<IList<TeacherModel>> GetTeachersOfDepartmentForPeriodAsync(Guid departmentId, Guid periodId);
     Task<bool> DeleteLoadItemAsync(Guid loadItemId);

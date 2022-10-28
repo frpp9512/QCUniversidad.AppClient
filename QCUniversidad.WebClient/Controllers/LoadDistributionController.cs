@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.LoadDistribution;
+using QCUniversidad.WebClient.Models.LoadItem;
 using QCUniversidad.WebClient.Services.Data;
 using QCUniversidad.WebClient.Services.Platform;
 
@@ -182,6 +183,34 @@ public class LoadDistributionController : Controller
         {
             var result = await _dataProvider.DeleteLoadItemAsync(loadItemId);
             return result ? Ok(result) : Problem();
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetTeacherLoadDetailsModalContentAsync(Guid teacherId, Guid periodId)
+    {
+        if (teacherId == Guid.Empty)
+        {
+            return BadRequest("Should provide a teacher id.");
+        }
+        if (periodId == Guid.Empty)
+        {
+            return BadRequest("Should provide a period id.");
+        }
+        try
+        {
+            var teacher = await _dataProvider.GetTeacherAsync(teacherId);
+            var loadItems = await _dataProvider.GetTeacherLoadItemsInPeriodAsync(teacherId, periodId);
+            var model = new TeacherLoadViewModel 
+            { 
+                Teacher = teacher,
+                LoadItems = loadItems
+            };
+            return PartialView("_TeacherLoadViewContent", model);
         }
         catch (Exception ex)
         {

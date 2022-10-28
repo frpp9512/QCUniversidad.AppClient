@@ -20,6 +20,7 @@ using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Faculties;
 using QCUniversidad.WebClient.Models.LoadDistribution;
+using QCUniversidad.WebClient.Models.LoadItem;
 using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.Planning;
 using QCUniversidad.WebClient.Models.SchoolYears;
@@ -612,6 +613,19 @@ public class DataProvider : IDataProvider
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<TeacherDto>>(contentText);
             return teachers?.Select(f => _mapper.Map<TeacherModel>(f)).ToList() ?? new List<TeacherModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<IList<LoadViewItemModel>> GetTeacherLoadItemsInPeriodAsync(Guid teacherId, Guid periodId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/teacher/loaditems?id={teacherId}&periodId={periodId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var teachers = JsonConvert.DeserializeObject<IList<LoadViewItemDto>>(contentText);
+            return teachers?.Select(f => _mapper.Map<LoadViewItemModel>(f)).ToList() ?? new List<LoadViewItemModel>();
         }
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }

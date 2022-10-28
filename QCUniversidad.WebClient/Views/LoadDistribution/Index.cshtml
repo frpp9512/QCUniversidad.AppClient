@@ -66,6 +66,7 @@
     <script src="~/lib/percentage-circle/circle.js"></script>
     <script src="~/lib/popper/popper.min.js"></script>
     <script src="~/js/loading-modal.js"></script>
+    <script src="~/js/loaditemsview.js"></script>
     <script>
         const selectedDepartment = '@(Model.Department.Id)';
         const selectedSchoolYear = '@(User.IsAdmin() ? Model.SchoolYear.Id : null)';
@@ -305,6 +306,55 @@
                 error: function (xhr, status, error) {
                     CloseLoadingModal();
                     console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function OpenTeacherLoadDeatils(teacherId) {
+            const periodSelect = document.getElementById("selectedPeriod");
+            selectedPeriod = periodSelect.options[periodSelect.selectedIndex].value;
+            OpenLoadingModal("Cargando elementos de carga del profesor");
+            $.ajax({
+                url: `/loaddistribution/GetTeacherLoadDetailsModalContent?teacherId=${teacherId}&periodId=${selectedPeriod}`,
+                type: "GET",
+                success: function (data) {
+                    CloseLoadingModal();
+                    const modalContent = document.getElementById("teacherLoadDetailsModal-content");
+                    modalContent.innerHTML = data;
+                    const modalElement = document.getElementById("teacherLoadDetailsModal");
+                    let modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                    LoadCollapsers();
+                    LoadTooltips();
+                },
+                error: function (xhr, status, error) {
+                    CloseLoadingModal();
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function LoadCollapsers() {
+            const collapsers = document.querySelectorAll("button.list-collapser");
+            collapsers.forEach(c => c.onclick = function () {
+                let parent = c.parentElement;
+                if (parent.hasAttribute("collapses")) {
+                    let collapses = parent.getAttribute("collapses");
+                    let collapsed = document.getElementById(collapses);
+                    if (collapsed.hasAttribute("collapsed")) {
+                        collapsed.removeAttribute("collapsed");
+                        let iconSpan = c.querySelector("span.fa");
+                        iconSpan.classList.remove("fa-chevron-down");
+                        iconSpan.classList.add("fa-chevron-up");
+                        collapsed.style.height = "100%";
+                    } else {
+                        collapsed.setAttribute("collapsed", "collapsed");
+                        let iconSpan = c.querySelector("span.fa");
+                        iconSpan.classList.add("fa-chevron-down");
+                        iconSpan.classList.remove("fa-chevron-up");
+                        collapsed.style.overflow = "hidden";
+                        collapsed.style.height = "0";
+                    }
                 }
             });
         }

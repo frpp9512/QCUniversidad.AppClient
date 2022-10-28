@@ -91,6 +91,11 @@ public record TeacherModel
     public IList<LoadItemModel>? LoadItems { get; set; }
 
     /// <summary>
+    /// The set of non-teaching load of the teacher.
+    /// </summary>
+    public IList<NonTeachingLoadModel>? NonTeachingLoadItems { get; set; }
+
+    /// <summary>
     /// Defines if the teacher is active for generate load distribution.
     /// </summary>
     public bool Active { get; set; } = true;
