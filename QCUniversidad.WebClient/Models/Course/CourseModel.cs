@@ -32,6 +32,9 @@ public record CourseModel
     [Range(1, 8, ErrorMessage = "El año de la carrera debe de ser mayor que 1 y no mayor que 8.")]
     public int CareerYear { get; set; } = 1;
 
+    [Display(Name = "Curso terminal", Description = "Define si el curso es el último de la carrera.", Prompt = "Curso terminal")]
+    public bool LastCourse { get; set; }
+
     [Required(ErrorMessage = "Debe de especificar una denominación para el curso")]
     [Display(Name = "Denominación del curso", Description = "Como se va a denominar el curso.", Prompt = "Ej. '2022-2023'")]
     public string Denomination { get; set; }

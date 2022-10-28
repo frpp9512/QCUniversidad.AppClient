@@ -35,7 +35,7 @@ public enum NonTeachingLoadType
     /// <summary>
     /// Should be provided by base value. (Beginner, Average, Experienced)
     /// </summary>
-    [Display(Name = "Cursos recividos y superación", Description = "Tiempo necesario para la autosuperación y participación en cursos en función del nivel de experiencia del profesor.")]
+    [Display(Name = "Cursos recibidos y superación", Description = "Tiempo necesario para la autosuperación y participación en cursos en función del nivel de experiencia del profesor.")]
     CoursesReceivedAndImprovement,
 
     /// <summary>

@@ -73,6 +73,10 @@
                         </td>
                         <td>
                             @item.GetCareerYearLabel()
+                            @if (item.LastCourse)
+                            {
+                                <small><span class="fa fa-flag-checkered text-success" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Año terminal</small></div> <div>Es el último curso de la carrera.</div>"></span></small>
+                            }
                         </td>
                         <td>
                             <a asp-action="Details" asp-controller="Curriculums" asp-route-id="@item.CurriculumId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Curriculum</small></div> <div><b>@item.Curriculum?.Denomination</b></div> <div><i>@item.Curriculum?.Description</i></div>">

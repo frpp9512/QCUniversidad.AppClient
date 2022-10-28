@@ -16,6 +16,8 @@ public record CourseDto
 
     public int CareerYear { get; set; }
 
+    public bool LastCourse { get; set; }
+
     public string? Denomination { get; set; }
 
     public TeachingModality TeachingModality { get; set; }

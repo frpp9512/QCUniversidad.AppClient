@@ -11,6 +11,7 @@ public record NewCourseDto
 {
     public Guid SchoolYearId { get; set; }
     public int CareerYear { get; set; }
+    public bool LastCourse { get; set; }
     public string Denomination { get; set; }
     public TeachingModality TeachingModality { get; set; }
     public uint Enrolment { get; set; }

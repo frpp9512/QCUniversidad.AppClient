@@ -28,6 +28,11 @@ public record CourseModel
     public int CareerYear { get; set; }
 
     /// <summary>
+    /// Defines if is the last course of the career.
+    /// </summary>
+    public bool LastCourse { get; set; }
+
+    /// <summary>
     /// The denomination of the school year. Example: 2021-2022.
     /// </summary>
     public string? Denomination { get; set; }

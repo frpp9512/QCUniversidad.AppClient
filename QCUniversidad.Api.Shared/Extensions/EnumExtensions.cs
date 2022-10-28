@@ -2,7 +2,7 @@
 using QCUniversidad.Api.Shared.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace QCUniversidad.Api.Extensions;
+namespace QCUniversidad.Api.Shared.Extensions;
 
 public static class EnumExtensions
 {

@@ -25,6 +25,18 @@
     <dt class="col-sm-3">Año de carrera</dt>
     <dd class="col-sm-9">@Model.GetCareerYearLabel()</dd>
 
+    <dt class="col-sm-3">Año terminal</dt>
+    <dd class="col-sm-9">
+        @if (Model.LastCourse)
+        {
+            <span class="fa fa-flag-checkered text-success" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Curso terminal</small></div> <div>Este es el curso terminal de la carrera.</div>"></span>
+        }
+        else
+        {
+            <span class="fa fa-times"></span>
+        }
+    </dd>
+
     <dt class="col-sm-3">Curriculum</dt>
     <dd class="col-sm-9">
         <a asp-action="Details" asp-controller="Curriculum" asp-route-id="@Model.CurriculumId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Curriculum</small></div> <div><b>@Model.Curriculum?.Denomination</b></div> <div><i>@Model.Curriculum?.Description</i></div>">

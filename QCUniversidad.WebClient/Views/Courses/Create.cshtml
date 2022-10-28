@@ -59,6 +59,14 @@
                         <span asp-validation-for="CareerYear" />
                     </div>
                     <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="LastCourse" class="form-check-input" type="checkbox" checked>
+                            <label asp-for="LastCourse" class="form-check-label"></label>
+                            <small><span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Año terminal</small></div> <div>Define si es el año terminal del curso.</div>"></span></small>
+                        </div>
+                        <span asp-validation-for="LastCourse" />
+                    </div>
+                    <div class="mb-3">
                         <label asp-for="Denomination" class="form-label"></label>
                         <input asp-for="Denomination" class="form-control" />
                         <div class="d-flex justify-content-end">
@@ -71,7 +79,7 @@
                     </div>
                     <div class="mb-3">
                         <label asp-for="Enrolment" class="form-label"></label>
-                        <input asp-for="Enrolment" class="form-control"></input>
+                        <input asp-for="Enrolment" class="form-control" />
                         <span asp-validation-for="Enrolment" />
                     </div>
                     <div class="mb-3">
@@ -209,6 +217,19 @@
                     careerSelect.disabled = false;
                     console.log(xhr, status, error);
                 }
+            });
+        }
+    </script>
+    <script src="~/lib/popper/popper.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            LoadTooltips();
+        });
+
+        function LoadTooltips() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
             });
         }
     </script>

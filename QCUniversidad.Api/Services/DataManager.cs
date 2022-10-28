@@ -1,28 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using QCUniversidad.Api.ConfigurationModels;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
-using QCUniversidad.Api.Extensions;
-using QCUniversidad.Api.Migrations;
 using QCUniversidad.Api.Shared.Enums;
-using SQLitePCL;
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
+using QCUniversidad.Api.Shared.Extensions;
 
 namespace QCUniversidad.Api.Services;
 
@@ -75,7 +58,7 @@ public class DataManager : IDataManager
     public async Task<IList<FacultyModel>> GetFacultiesAsync(int from = 0, int to = 0)
     {
         var faculties =
-            (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
+            (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
             ? await _context.Faculties.Skip(from).Take(to).ToListAsync()
             : await _context.Faculties.ToListAsync();
         return faculties;
@@ -97,7 +80,7 @@ public class DataManager : IDataManager
     {
         if (faculty is not null)
         {
-            await _context.AddAsync(faculty);
+            _ = await _context.AddAsync(faculty);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -108,7 +91,7 @@ public class DataManager : IDataManager
     {
         if (faculty is not null)
         {
-            _context.Update(faculty);
+            _ = _context.Update(faculty);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -132,7 +115,7 @@ public class DataManager : IDataManager
         try
         {
             var faculty = await GetFacultyAsync(facultyId);
-            _context.Remove(faculty);
+            _ = _context.Remove(faculty);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -148,7 +131,7 @@ public class DataManager : IDataManager
 
     public async Task<IList<DepartmentModel>> GetDepartmentsAsync(int from, int to)
     {
-        var deparments = (from != 0 && from == to) || from >= 0 && to >= from && !(from == 0 && from == to)
+        var deparments = (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
                          ? await _context.Departments.Skip(from).Take(to).Include(d => d.Faculty).ToListAsync()
                          : await _context.Departments.Include(d => d.Faculty).ToListAsync();
         return deparments;
@@ -208,7 +191,7 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(department));
         }
-        await _context.Departments.AddAsync(department);
+        _ = await _context.Departments.AddAsync(department);
         var result = await _context.SaveChangesAsync();
         return result > 0;
     }
@@ -219,7 +202,7 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(department));
         }
-        _context.Departments.Update(department);
+        _ = _context.Departments.Update(department);
         var result = await _context.SaveChangesAsync();
         return result > 0;
     }
@@ -231,7 +214,7 @@ public class DataManager : IDataManager
             throw new ArgumentNullException(nameof(departmentId));
         }
         var department = await GetDepartmentAsync(departmentId);
-        _context.Departments.Remove(department);
+        _ = _context.Departments.Remove(department);
         var result = await _context.SaveChangesAsync();
         return result > 0;
     }
@@ -385,7 +368,7 @@ public class DataManager : IDataManager
     {
         if (career is not null)
         {
-            await _context.Careers.AddAsync(career);
+            _ = await _context.Careers.AddAsync(career);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -394,7 +377,7 @@ public class DataManager : IDataManager
 
     public async Task<IList<CareerModel>> GetCareersAsync(int from = 0, int to = 0)
     {
-        var result = (from != 0 && from == to) || from >= 0 && to >= from && !(from == 0 && from == to)
+        var result = (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
                      ? await _context.Careers.Skip(from).Take(to).Include(c => c.Faculty).ToListAsync()
                      : await _context.Careers.Include(c => c.Faculty).ToListAsync();
         return result;
@@ -430,7 +413,7 @@ public class DataManager : IDataManager
     {
         if (career is not null)
         {
-            _context.Careers.Update(career);
+            _ = _context.Careers.Update(career);
             var result = await _context.SaveChangesAsync();
             if (result > 0)
             {
@@ -445,9 +428,9 @@ public class DataManager : IDataManager
                     await query.ForEachAsync(i =>
                     {
                         i.FromPostgraduateCourse = career.PostgraduateCourse;
-                        _context.Update(i);
+                        _ = _context.Update(i);
                     });
-                    await _context.SaveChangesAsync();
+                    _ = await _context.SaveChangesAsync();
                 }
             }
             return result > 0;
@@ -462,7 +445,7 @@ public class DataManager : IDataManager
             try
             {
                 var career = await GetCareerAsync(careerId);
-                _context.Careers.Remove(career);
+                _ = _context.Careers.Remove(career);
                 var result = await _context.SaveChangesAsync();
                 return result > 0;
             }
@@ -482,7 +465,7 @@ public class DataManager : IDataManager
     {
         if (discipline is not null)
         {
-            await _context.Disciplines.AddAsync(discipline);
+            _ = await _context.Disciplines.AddAsync(discipline);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -498,16 +481,13 @@ public class DataManager : IDataManager
     public async Task<IList<DisciplineModel>> GetDisciplinesAsync(int from, int to)
     {
         var result =
-            (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
+            (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
             ? await _context.Disciplines.Skip(from).Take(to).Include(d => d.Department).ToListAsync()
             : await _context.Disciplines.Include(d => d.Department).ToListAsync();
         return result;
     }
 
-    public async Task<int> GetDisciplinesCountAsync()
-    {
-        return await _context.Disciplines.CountAsync();
-    }
+    public async Task<int> GetDisciplinesCountAsync() => await _context.Disciplines.CountAsync();
 
     public async Task<int> GetDisciplineSubjectsCountAsync(Guid disciplineId)
     {
@@ -536,7 +516,7 @@ public class DataManager : IDataManager
     {
         if (discipline is not null)
         {
-            _context.Disciplines.Update(discipline);
+            _ = _context.Disciplines.Update(discipline);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -550,7 +530,7 @@ public class DataManager : IDataManager
             try
             {
                 var discipline = await GetDisciplineAsync(disciplineId);
-                _context.Disciplines.Remove(discipline);
+                _ = _context.Disciplines.Remove(discipline);
                 var result = await _context.SaveChangesAsync();
                 return result > 0;
             }
@@ -570,7 +550,7 @@ public class DataManager : IDataManager
     {
         if (teacher is not null)
         {
-            await _context.Teachers.AddAsync(teacher);
+            _ = await _context.Teachers.AddAsync(teacher);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -583,10 +563,7 @@ public class DataManager : IDataManager
         return result;
     }
 
-    public async Task<int> GetTeachersCountAsync()
-    {
-        return await _context.Teachers.CountAsync();
-    }
+    public async Task<int> GetTeachersCountAsync() => await _context.Teachers.CountAsync();
 
     public async Task<int> GetTeacherDisciplinesCountAsync(Guid id)
     {
@@ -597,7 +574,7 @@ public class DataManager : IDataManager
     public async Task<IList<TeacherModel>> GetTeachersAsync(int from, int to)
     {
         var result =
-            (from != 0 && from == to) && (from >= 0 && to >= from) && !(from == 0 && from == to)
+            from != 0 && from == to && from >= 0 && to >= from && !(from == 0 && from == to)
             ? await _context.Teachers.Where(t => t.Active).Skip(from).Take(to).Include(d => d.Department).Include(d => d.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync()
             : await _context.Teachers.Where(t => t.Active).Include(d => d.Department).Include(d => d.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync();
         return result;
@@ -623,7 +600,7 @@ public class DataManager : IDataManager
             await _context.TeachersDisciplines.Where(td => td.TeacherId == teacher.Id)
                                               .ForEachAsync(td => _context.Remove(td));
             await _context.TeachersDisciplines.AddRangeAsync(teacher.TeacherDisciplines);
-            _context.Teachers.Update(teacher);
+            _ = _context.Teachers.Update(teacher);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -639,12 +616,12 @@ public class DataManager : IDataManager
                 var teacher = await GetTeacherAsync(id);
                 if (!await TeacherHaveLoad(id))
                 {
-                    _context.Teachers.Remove(teacher);
+                    _ = _context.Teachers.Remove(teacher);
                 }
                 else
                 {
                     teacher.Active = false;
-                    _context.Teachers.Update(teacher);
+                    _ = _context.Teachers.Update(teacher);
                 }
                 var result = await _context.SaveChangesAsync();
                 return result > 0;
@@ -760,7 +737,7 @@ public class DataManager : IDataManager
             {
                 loadItem = calculated;
             }
-            _context.NonTeachingLoad.Update(loadItem);
+            _ = _context.NonTeachingLoad.Update(loadItem);
             var result = await _context.SaveChangesAsync();
             return result > 0 ? loadItem : throw new DatabaseOperationException();
         }
@@ -942,7 +919,7 @@ public class DataManager : IDataManager
         {
             try
             {
-                await RecalculateTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
+                _ = await RecalculateTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
             }
             catch { }
         }
@@ -955,7 +932,7 @@ public class DataManager : IDataManager
         {
             try
             {
-                await RecalculateTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
+                _ = await RecalculateTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
             }
             catch { }
         }
@@ -991,9 +968,9 @@ public class DataManager : IDataManager
         var depTeachersQuery = from teacher in _context.Teachers
                                join teacherDiscipline in _context.TeachersDisciplines
                                on teacher.Id equals teacherDiscipline.TeacherId
-                               where teacher.Active && teacher.DepartmentId == departmentId
-                                     && disciplineId.HasValue
-                                        ? teacherDiscipline.DisciplineId == disciplineId : true
+                               where !teacher.Active || teacher.DepartmentId != departmentId
+                                     || !disciplineId.HasValue
+|| teacherDiscipline.DisciplineId == disciplineId
                                select teacher;
         depTeachersQuery = depTeachersQuery.Distinct();
 
@@ -1049,7 +1026,7 @@ public class DataManager : IDataManager
             PlanningItemId = planItemId,
             HoursCovered = hours > hoursToCover ? hoursToCover : hours
         };
-        await _context.AddAsync(loadItem);
+        _ = await _context.AddAsync(loadItem);
         var result = await _context.SaveChangesAsync();
         await RecalculateNonTeachingLoadItemsAsync(teacherId, planItem.PeriodId);
         return result > 0;
@@ -1062,7 +1039,7 @@ public class DataManager : IDataManager
             var loadItem = await _context.LoadItems.Where(l => l.Id == loadItemId).Include(l => l.PlanningItem).FirstOrDefaultAsync();
             if (loadItem is not null)
             {
-                _context.Remove(loadItem);
+                _ = _context.Remove(loadItem);
                 var result = await _context.SaveChangesAsync();
                 await RecalculateNonTeachingLoadItemsAsync(loadItem.TeacherId, loadItem.PlanningItem.PeriodId);
                 return result > 0;
@@ -1121,7 +1098,7 @@ public class DataManager : IDataManager
     {
         if (subject is not null)
         {
-            await _context.Subjects.AddAsync(subject);
+            _ = await _context.Subjects.AddAsync(subject);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -1134,15 +1111,12 @@ public class DataManager : IDataManager
         return result;
     }
 
-    public async Task<int> GetSubjectsCountAsync()
-    {
-        return await _context.Subjects.CountAsync();
-    }
+    public async Task<int> GetSubjectsCountAsync() => await _context.Subjects.CountAsync();
 
     public async Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to)
     {
         var result =
-            (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
+            (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
             ? await _context.Subjects.Where(s => s.Active).Skip(from).Take(to).Include(d => d.Discipline).ToListAsync()
             : await _context.Subjects.Where(s => s.Active).Include(d => d.Discipline).ToListAsync();
         return result;
@@ -1229,7 +1203,7 @@ public class DataManager : IDataManager
     {
         if (subject is not null)
         {
-            _context.Subjects.Update(subject);
+            _ = _context.Subjects.Update(subject);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -1245,12 +1219,12 @@ public class DataManager : IDataManager
                 var subject = await GetSubjectAsync(id);
                 if (!await SubjectHaveLoad(id))
                 {
-                    _context.Subjects.Remove(subject);
+                    _ = _context.Subjects.Remove(subject);
                 }
                 else
                 {
                     subject.Active = false;
-                    _context.Update(subject);
+                    _ = _context.Update(subject);
                 }
                 var result = await _context.SaveChangesAsync();
                 return result > 0;
@@ -1316,7 +1290,7 @@ public class DataManager : IDataManager
             {
                 throw new SubjectNotFoundException();
             }
-            _context.PeriodSubjects.Add(newPeriodSubject);
+            _ = _context.PeriodSubjects.Add(newPeriodSubject);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -1349,7 +1323,7 @@ public class DataManager : IDataManager
         {
             return await _context.PeriodSubjects.AnyAsync(ps => ps.Id == id);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             throw;
         }
@@ -1363,7 +1337,7 @@ public class DataManager : IDataManager
         }
         try
         {
-            _context.PeriodSubjects.Update(periodSubject);
+            _ = _context.PeriodSubjects.Update(periodSubject);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -1386,7 +1360,7 @@ public class DataManager : IDataManager
         try
         {
             var periodSubject = await _context.PeriodSubjects.FirstAsync(ps => ps.Id == id);
-            _context.PeriodSubjects.Remove(periodSubject);
+            _ = _context.PeriodSubjects.Remove(periodSubject);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -1404,7 +1378,7 @@ public class DataManager : IDataManager
     {
         if (curriculum is not null)
         {
-            await _context.Curriculums.AddAsync(curriculum);
+            _ = await _context.Curriculums.AddAsync(curriculum);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -1417,10 +1391,7 @@ public class DataManager : IDataManager
         return result;
     }
 
-    public async Task<int> GetCurriculumsCountAsync()
-    {
-        return await _context.Curriculums.CountAsync();
-    }
+    public async Task<int> GetCurriculumsCountAsync() => await _context.Curriculums.CountAsync();
 
     public async Task<int> GetCurriculumDisciplinesCountAsync(Guid id)
     {
@@ -1431,7 +1402,7 @@ public class DataManager : IDataManager
     public async Task<IList<CurriculumModel>> GetCurriculumsAsync(int from, int to)
     {
         var result =
-            (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
+            (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
             ? await _context.Curriculums.Skip(from).Take(to).Include(c => c.Career).Include(c => c.CurriculumDisciplines).ThenInclude(cs => cs.Discipline).ToListAsync()
             : await _context.Curriculums.Include(c => c.Career).Include(c => c.CurriculumDisciplines).ThenInclude(cs => cs.Discipline).ToListAsync();
         return result;
@@ -1479,7 +1450,7 @@ public class DataManager : IDataManager
             await _context.CurriculumsDisciplines.Where(td => td.CurriculumId == curriculum.Id)
                                               .ForEachAsync(td => _context.Remove(td));
             await _context.CurriculumsDisciplines.AddRangeAsync(curriculum.CurriculumDisciplines);
-            _context.Curriculums.Update(curriculum);
+            _ = _context.Curriculums.Update(curriculum);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -1493,7 +1464,7 @@ public class DataManager : IDataManager
             try
             {
                 var curriculum = await GetCurriculumAsync(id);
-                _context.Curriculums.Remove(curriculum);
+                _ = _context.Curriculums.Remove(curriculum);
                 var result = await _context.SaveChangesAsync();
                 return result > 0;
             }
@@ -1530,7 +1501,7 @@ public class DataManager : IDataManager
     public async Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from = 0, int to = 0)
     {
         var schoolYears =
-            (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
+            (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
             ? await _context.SchoolYears.Include(sy => sy.Periods).Skip(from).Take(to).ToListAsync()
             : await _context.SchoolYears.Include(sy => sy.Periods).ToListAsync();
         return schoolYears.OrderByDescending(sy => sy.Current).ThenByDescending(sy => sy.Name).ToList();
@@ -1565,7 +1536,7 @@ public class DataManager : IDataManager
             {
                 await RemoveCurrentSchoolYearMark();
             }
-            await _context.AddAsync(schoolYear);
+            _ = await _context.AddAsync(schoolYear);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -1580,7 +1551,7 @@ public class DataManager : IDataManager
             {
                 await RemoveCurrentSchoolYearMark();
             }
-            _context.Update(schoolYear);
+            _ = _context.Update(schoolYear);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -1606,11 +1577,11 @@ public class DataManager : IDataManager
                 if (nextCurrent is not null)
                 {
                     nextCurrent.Current = true;
-                    _context.SchoolYears.Update(nextCurrent);
+                    _ = _context.SchoolYears.Update(nextCurrent);
                     goal++;
                 }
             }
-            _context.Remove(schoolYear);
+            _ = _context.Remove(schoolYear);
             var result = await _context.SaveChangesAsync();
             return result >= goal;
         }
@@ -1628,9 +1599,9 @@ public class DataManager : IDataManager
         foreach (var schoolYear in query)
         {
             schoolYear.Current = false;
-            _context.Update(schoolYear);
+            _ = _context.Update(schoolYear);
         }
-        await _context.SaveChangesAsync();
+        _ = await _context.SaveChangesAsync();
     }
 
     #endregion
@@ -1641,7 +1612,7 @@ public class DataManager : IDataManager
     {
         if (course is not null)
         {
-            await _context.Courses.AddAsync(course);
+            _ = await _context.Courses.AddAsync(course);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -1663,16 +1634,13 @@ public class DataManager : IDataManager
     public async Task<IList<CourseModel>> GetCoursesAsync(int from, int to)
     {
         var result =
-            (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
+            (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
             ? await _context.Courses.Skip(from).Take(to).Include(y => y.SchoolYear).Include(y => y.Career).Include(y => y.Curriculum).ToListAsync()
             : await _context.Courses.Include(y => y.SchoolYear).Include(y => y.Career).Include(y => y.Curriculum).ToListAsync();
         return result;
     }
 
-    public async Task<int> GetCoursesCountAsync()
-    {
-        return await _context.Courses.CountAsync();
-    }
+    public async Task<int> GetCoursesCountAsync() => await _context.Courses.CountAsync();
 
     public async Task<CourseModel> GetCourseAsync(Guid id)
     {
@@ -1692,7 +1660,7 @@ public class DataManager : IDataManager
     {
         if (course is not null)
         {
-            _context.Courses.Update(course);
+            _ = _context.Courses.Update(course);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -1706,7 +1674,7 @@ public class DataManager : IDataManager
             try
             {
                 var course = await GetCourseAsync(id);
-                _context.Courses.Remove(course);
+                _ = _context.Courses.Remove(course);
                 var result = await _context.SaveChangesAsync();
                 return result > 0;
             }
@@ -1757,7 +1725,7 @@ public class DataManager : IDataManager
         if (period is not null)
         {
             period.TimeFund = _periodCalculator.CalculateValue(period);
-            await _context.Periods.AddAsync(period);
+            _ = await _context.Periods.AddAsync(period);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -1773,16 +1741,13 @@ public class DataManager : IDataManager
     public async Task<IList<PeriodModel>> GetPeriodsAsync(int from, int to)
     {
         var result =
-            (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
+            (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
             ? await _context.Periods.Skip(from).Take(to).Include(p => p.SchoolYear).ToListAsync()
             : await _context.Periods.Include(p => p.SchoolYear).ToListAsync();
         return result;
     }
 
-    public async Task<int> GetPeriodsCountAsync()
-    {
-        return await _context.Periods.CountAsync();
-    }
+    public async Task<int> GetPeriodsCountAsync() => await _context.Periods.CountAsync();
 
     public async Task<PeriodModel> GetPeriodAsync(Guid id)
     {
@@ -1801,7 +1766,7 @@ public class DataManager : IDataManager
         if (period is not null)
         {
             period.TimeFund = _periodCalculator.CalculateValue(period);
-            _context.Periods.Update(period);
+            _ = _context.Periods.Update(period);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -1815,7 +1780,7 @@ public class DataManager : IDataManager
             try
             {
                 var period = await GetPeriodAsync(id);
-                _context.Periods.Remove(period);
+                _ = _context.Periods.Remove(period);
                 var result = await _context.SaveChangesAsync();
                 return result > 0;
             }
@@ -1873,7 +1838,7 @@ public class DataManager : IDataManager
         if (teachingPlanItem is not null)
         {
             teachingPlanItem.FromPostgraduateCourse = await IsPostgraduateCourse(teachingPlanItem.CourseId);
-            await _context.TeachingPlanItems.AddAsync(teachingPlanItem);
+            _ = await _context.TeachingPlanItems.AddAsync(teachingPlanItem);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -1900,7 +1865,7 @@ public class DataManager : IDataManager
     public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(int from, int to)
     {
         var result =
-            (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
+            (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
             ? await _context.TeachingPlanItems.Skip(from).Take(to).Include(p => p.Subject).Include(p => p.Course).ToListAsync()
             : await _context.TeachingPlanItems.Include(p => p.Subject).Include(p => p.Course).ToListAsync();
         result.ForEach(i => i.TotalHoursPlanned = _planItemCalculator.CalculateValue(i));
@@ -1910,22 +1875,16 @@ public class DataManager : IDataManager
     public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, int from, int to)
     {
         var result =
-            (from != 0 && from == to) || (from >= 0 && to >= from) && !(from == 0 && from == to)
+            (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
             ? await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Skip(from).Take(to).Include(p => p.Subject).Include(p => p.Course).Include(p => p.LoadItems).ThenInclude(i => i.Teacher).ToListAsync()
             : await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Include(p => p.Subject).Include(p => p.Course).Include(p => p.LoadItems).ThenInclude(i => i.Teacher).ToListAsync();
         result.ForEach(i => i.TotalHoursPlanned = _planItemCalculator.CalculateValue(i));
         return result;
     }
 
-    public async Task<int> GetTeachingPlanItemsCountAsync()
-    {
-        return await _context.TeachingPlanItems.CountAsync();
-    }
+    public async Task<int> GetTeachingPlanItemsCountAsync() => await _context.TeachingPlanItems.CountAsync();
 
-    public async Task<int> GetTeachingPlanItemsCountAsync(Guid periodId)
-    {
-        return await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).CountAsync();
-    }
+    public async Task<int> GetTeachingPlanItemsCountAsync(Guid periodId) => await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).CountAsync();
 
     public async Task<TeachingPlanItemModel> GetTeachingPlanItemAsync(Guid id)
     {
@@ -1952,7 +1911,7 @@ public class DataManager : IDataManager
     {
         if (teachingPlanItem is not null)
         {
-            _context.TeachingPlanItems.Update(teachingPlanItem);
+            _ = _context.TeachingPlanItems.Update(teachingPlanItem);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
@@ -1966,7 +1925,7 @@ public class DataManager : IDataManager
             try
             {
                 var teachingPlanItem = await GetTeachingPlanItemAsync(id);
-                _context.TeachingPlanItems.Remove(teachingPlanItem);
+                _ = _context.TeachingPlanItems.Remove(teachingPlanItem);
                 var result = await _context.SaveChangesAsync();
                 return result > 0;
             }
