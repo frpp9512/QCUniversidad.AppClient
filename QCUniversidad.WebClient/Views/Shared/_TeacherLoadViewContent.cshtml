@@ -1,6 +1,185 @@
-﻿@model TeacherLoadViewModel
+﻿@using QCUniversidad.Api.Shared.Enums
+@using QCUniversidad.Api.Shared.Extensions
+@model TeacherLoadViewModel
 
 <h3>@Model.Teacher.Fullname</h3>
 <p>@Model.Teacher.Position</p>
 
 <partial name="_LoadItemView" model="@Model.LoadItems" />
+
+<!-- Add UniversityExtensionActions load -->
+<div class="modal fade" id="UniversityExtensionActionsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="UniversityExtensionActionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="UniversityExtensionActionsModalLabel">Definir carga de @NonTeachingLoadType.UniversityExtensionActions.GetEnumDisplayNameValue()</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @{
+                    var uacards = new List<SelectCardModel>();
+                    var uavalues = Enum.GetValues(typeof(UniversityExtensionActionsOptions));
+                    foreach (UniversityExtensionActionsOptions value in uavalues)
+                    {
+                        uacards.Add(new SelectCardModel
+                {
+                    Id = $"card-{value.ToString()}",
+                    GroupName = "UniversityExtensionActionsOptions",
+                    Title = value.GetEnumDisplayNameValue(),
+                    Description = value.GetEnumDisplayDescriptionValue(),
+                    Value = value.ToString()
+                });
+                    }
+                }
+                <partial name="_SelectCardSet" model="uacards" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary"><span class="fa fa-plus-square"></span> Agregar carga</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add CoursesReceivedAndImprovement load -->
+<div class="modal fade" id="CoursesReceivedAndImprovementModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="CoursesReceivedAndImprovementLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="CoursesReceivedAndImprovementLabel">Definir carga de @NonTeachingLoadType.CoursesReceivedAndImprovement.GetEnumDisplayNameValue()</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @{
+                    var cards = new List<SelectCardModel>();
+                    var values = Enum.GetValues(typeof(CoursesReceivedAndImprovementOptions));
+                    foreach (CoursesReceivedAndImprovementOptions value in values)
+                    {
+                        cards.Add(new SelectCardModel
+                {
+                    Id = $"card-{value.ToString()}",
+                    GroupName = "CoursesReceivedAndImprovementOptions",
+                    Title = value.GetEnumDisplayNameValue(),
+                    Description = value.GetEnumDisplayDescriptionValue(),
+                    Value = value.ToString()
+                });
+                    }
+                }
+                <partial name="_SelectCardSet" model="cards" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary"><span class="fa fa-plus-square"></span> Agregar carga</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Add UndergraduateTutoring load -->
+<div class="modal fade" id="UndergraduateTutoringModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="UndergraduateTutoringLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="UndergraduateTutoringLabel">Definir carga de @NonTeachingLoadType.UndergraduateTutoring.GetEnumDisplayNameValue()</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="IntegrativeProjectDiplomants" class="form-label">Proyecto Integrador</label>
+                    <input type="number" min="0" class="form-control" id="IntegrativeProjectDiplomants" placeholder="Cantidad de diplomantes">
+                </div>
+                <div class="mb-3">
+                    <label for="ThesisDiplomants" class="form-label">Tesis de pregrado</label>
+                    <input type="number" min="0" class="form-control" id="ThesisDiplomants" placeholder="Cantidad de diplomantes">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary"><span class="fa fa-plus-square"></span> Agregar carga</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add GraduateTutoring load -->
+<div class="modal fade" id="GraduateTutoringModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="GraduateTutoringLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="GraduateTutoringLabel">Definir carga de @NonTeachingLoadType.GraduateTutoring.GetEnumDisplayNameValue()</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="IntegrativeProjectDiplomants" class="form-label">Diplomado o mestría</label>
+                    <input type="number" min="0" class="form-control" id="DiplomaOrMastersDegreeDiplomants" placeholder="Cantidad de diplomantes">
+                </div>
+                <div class="mb-3">
+                    <label for="ThesisDiplomants" class="form-label">Doctorado</label>
+                    <input type="number" min="0" class="form-control" id="DoctorateDiplomants" placeholder="Cantidad de diplomantes">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary"><span class="fa fa-plus-square"></span> Agregar carga</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add ParticipationInProjects load -->
+<div class="modal fade" id="ParticipationInProjectsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="ParticipationInProjectsLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ParticipationInProjectsLabel">Definir carga de @NonTeachingLoadType.ParticipationInProjects.GetEnumDisplayNameValue()</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @{
+                    var ppcards = new List<SelectCardModel>();
+                    var ppvalues = Enum.GetValues(typeof(ParticipationInProjectsOptions));
+                    foreach (ParticipationInProjectsOptions value in ppvalues)
+                    {
+                        ppcards.Add(new SelectCardModel
+                        {
+                            Id = $"card-{value.ToString()}",
+                            GroupName = "ParticipationInProjectsOptions",
+                            Title = value.GetEnumDisplayNameValue(),
+                            Description = value.GetEnumDisplayDescriptionValue(),
+                            Value = value.ToString()
+                        });
+                    }
+                }
+                <partial name="_SelectCardSet" model="ppcards" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary"><span class="fa fa-plus-square"></span> Agregar carga</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add GraduateTutoring load -->
+<div class="modal fade" id="OtherFunctionsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="OtherFunctionsLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="OtherFunctionsLabel">Definir carga de @NonTeachingLoadType.OtherFunctions.GetEnumDisplayNameValue()</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="OtherFunctionsValue" class="form-label">Cantidad de tiempo destinado a otras funciones (h/mes)</label>
+                    <input type="number" min="0" class="form-control" id="OtherFunctionsValue" placeholder="Tiempo de otras funciones">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary"><span class="fa fa-plus-square"></span> Agregar carga</button>
+            </div>
+        </div>
+    </div>
+</div>

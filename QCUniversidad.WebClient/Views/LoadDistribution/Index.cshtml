@@ -67,6 +67,7 @@
     <script src="~/lib/popper/popper.min.js"></script>
     <script src="~/js/loading-modal.js"></script>
     <script src="~/js/loaditemsview.js"></script>
+    <script src="~/js/select-card.js"></script>
     <script>
         const selectedDepartment = '@(Model.Department.Id)';
         const selectedSchoolYear = '@(User.IsAdmin() ? Model.SchoolYear.Id : null)';
@@ -358,6 +359,7 @@
                 }
             });
         }
+
     </script>
 
     <script>
@@ -396,6 +398,54 @@
                     break;
                 default:
                     break;
+            }
+        }
+    </script>
+
+    <script>
+
+        function AddNonTeachingLoad(type, teacherId) {
+            if (type == "UniversityExtensionActions") {
+                const ueaModalElement = document.getElementById("UniversityExtensionActionsModal");
+                let ueaModal = new bootstrap.Modal(ueaModalElement);
+                ueaModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "CoursesReceivedAndImprovement") {
+                const criModalElement = document.getElementById("CoursesReceivedAndImprovementModal");
+                let criModal = new bootstrap.Modal(criModalElement);
+                criModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "UndergraduateTutoring") {
+                const utModalElement = document.getElementById("UndergraduateTutoringModal");
+                let utModal = new bootstrap.Modal(utModalElement);
+                utModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "GraduateTutoring") {
+                const gtModalElement = document.getElementById("GraduateTutoringModal");
+                let gtModal = new bootstrap.Modal(gtModalElement);
+                gtModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "ParticipationInProjects") {
+                const ppModalElement = document.getElementById("ParticipationInProjectsModal");
+                let ppModal = new bootstrap.Modal(ppModalElement);
+                ppModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "OtherFunctions") {
+                const ofModalElement = document.getElementById("OtherFunctionsModal");
+                let ofModal = new bootstrap.Modal(ofModalElement);
+                ofModal.show();
+                InitializeSelectCards();
+                return;
             }
         }
     </script>

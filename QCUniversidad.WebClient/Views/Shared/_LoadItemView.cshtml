@@ -8,7 +8,7 @@
 
 <div class="load-list">
     <div class="load-list-divider">
-        <div class="list-divider-title">Carga docente (@(teachingLoad.Count()) elementos, @(teachingLoad.Sum(l => l.Value))h)</div>
+        <div class="list-divider-title">Carga docente (@(teachingLoad.Count()) elementos, @(Math.Round(teachingLoad.Sum(l => l.Value)))h)</div>
         <div class="list-divider-collapser" collapses="teachingload"><button class="list-collapser"><span class="fa fa-chevron-up"></span></button></div>
     </div>
     <div class="load-section" id="teachingload">
@@ -36,7 +36,7 @@
         </div>
     </div>
     <div class="load-list-divider">
-        <div class="list-divider-title">Carga no docente (@(nonTeachingLoad.Count(l => l.Status == QCUniversidad.Api.Shared.Enums.LoadViewItemStatus.Setted)) elementos, @(nonTeachingLoad.Sum(i => i.Value))h)</div>
+        <div class="list-divider-title">Carga no docente (@(nonTeachingLoad.Count(l => l.Status == QCUniversidad.Api.Shared.Enums.LoadViewItemStatus.Setted)) elementos, @(Math.Round(nonTeachingLoad.Sum(i => i.Value)))h)</div>
         <div class="list-divider-collapser" collapses="nonteachingload"><button class="list-collapser"><span class="fa fa-chevron-up"></span></button></div>
     </div>
     <div class="load-section" id="nonteachingload">
@@ -52,7 +52,7 @@
                     }
                     else
                     {
-                        <button class="qcbtn" onclick=""><span class="fa fa-plus-square"></span> Agregar</button>
+                        <button class="qcbtn" onclick="AddNonTeachingLoad('@item.NonTeachingLoadType.Value.ToString()', '@item.TeacherId')"><span class="fa fa-plus-square"></span> Agregar</button>
                     }
                 </div>
             </div>
@@ -60,14 +60,14 @@
         <div class="load-info-total">
             <div class="load-total-name">Total de carga</div>
             <div class="load-content">
-                <span>@nonTeachingLoad.Sum(i => i.Value)</span>
+                <span>@Math.Round(nonTeachingLoad.Sum(i => i.Value))</span>
             </div>
         </div>
     </div>
     <div class="load-info-maintotal">
         <div class="load-maintotal-name">Total de carga global</div>
         <div class="load-maintotal-content">
-            <span>@(teachingLoad.Sum(i => i.Value) + nonTeachingLoad.Sum(i => i.Value))</span>
+            <span>@(Math.Round(teachingLoad.Sum(i => i.Value) + nonTeachingLoad.Sum(i => i.Value)))</span>
         </div>
     </div>
 </div>

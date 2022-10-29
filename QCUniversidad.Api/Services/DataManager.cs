@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper.Execution;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using QCUniversidad.Api.ConfigurationModels;
@@ -732,14 +733,14 @@ public class DataManager : IDataManager
                 loadItem.Load = calculated.Load;
                 loadItem.BaseValue = calculated.BaseValue;
                 loadItem.Description = calculated.Description;
+                _ = _context.NonTeachingLoad.Update(loadItem);
             }
             else
             {
-                loadItem = calculated;
+                _ = _context.NonTeachingLoad.Add(calculated);
             }
-            _ = _context.NonTeachingLoad.Update(loadItem);
             var result = await _context.SaveChangesAsync();
-            return result > 0 ? loadItem : throw new DatabaseOperationException();
+            return result > 0 ? (loadItem is null ? calculated : loadItem) : throw new DatabaseOperationException();
         }
         throw new ArgumentException("The non-teaching load type should be auto-generated.", nameof(type));
     }
@@ -856,7 +857,49 @@ public class DataManager : IDataManager
                 };
                 return oaItem;
             case NonTeachingLoadType.ExamGrade:
-                return null;
+                var planItemsQuery = from loadItem in _context.LoadItems
+                                     join planItem in _context.TeachingPlanItems
+                                     on loadItem.PlanningItemId equals planItem.Id
+                                     where loadItem.TeacherId == teacherId && planItem.PeriodId == periodId
+                                     select new { PlanItemId = planItem.Id, planItem.CourseId, planItem.SubjectId };
+
+                double total = 0;
+
+                foreach (var info in planItemsQuery.Distinct())
+                {
+                    var teachersCountQuery = from planItem in _context.TeachingPlanItems
+                                             join loadItem in _context.LoadItems
+                                             on planItem.Id equals loadItem.PlanningItemId
+                                             where planItem.Id == info.PlanItemId
+                                             select loadItem.TeacherId;
+
+                    var subject = await _context.PeriodSubjects.Where(ps => ps.SubjectId == info.SubjectId).FirstOrDefaultAsync();
+
+                    var teachersCount = await teachersCountQuery.Distinct().CountAsync();
+                    var courseEnrolment = await _context.Courses.Where(c => c.Id == info.CourseId).Select(c => c.Enrolment).FirstAsync();
+                    var midTermExams = subject.MidtermExamsCount;
+                    var finalExams = subject.HaveFinalExam ? 1 : 0;
+
+                    var midTermExamGrade = midTermExams * _calculationOptions.ExamGradeMidTermAverageTime * courseEnrolment;
+                    var finalExamGrade = finalExams * _calculationOptions.ExamGradeFinalAverageTime * courseEnrolment;
+                    var secondFinalExamGrade = (finalExamGrade * _calculationOptions.SecondExamGradeFinalCoefficient) * _calculationOptions.ExamGradeFinalAverageTime * courseEnrolment;
+                    var thirdFinalExamGrade = (finalExamGrade * _calculationOptions.ThirdExamGradeFinalCoefficient) * _calculationOptions.ExamGradeFinalAverageTime * courseEnrolment;
+
+                    var examGrade = (midTermExamGrade + finalExamGrade + secondFinalExamGrade + thirdFinalExamGrade) / teachersCount;
+
+                    total += examGrade;
+                }
+
+                var examGradeLoad = new NonTeachingLoadModel
+                {
+                    Type = NonTeachingLoadType.ExamGrade,
+                    Description = NonTeachingLoadType.ExamGrade.GetEnumDisplayDescriptionValue(),
+                    TeacherId = teacherId,
+                    PeriodId = periodId,
+                    BaseValue = JsonConvert.SerializeObject(total),
+                    Load = Math.Round(total, 2)
+                };
+                return examGradeLoad;
             case NonTeachingLoadType.ThesisCourtAndRevision:
                 return null;
             case NonTeachingLoadType.UndergraduateTutoring:
@@ -902,7 +945,7 @@ public class DataManager : IDataManager
                                    where ntl.TeacherId == teacherId && ntl.PeriodId == periodId
                                    select ntl.Load;
 
-        var nonTeachingValue = await _context.NonTeachingLoad.Where(item => item.TeacherId == teacherId && item.PeriodId == periodId).SumAsync(item => item.Load);
+        var nonTeachingValue = Math.Round(await _context.NonTeachingLoad.Where(item => item.TeacherId == teacherId && item.PeriodId == periodId).SumAsync(item => item.Load), 2);
         if (nonTeachingValue == 0)
         {
             await RecalculateAutogenerateTeachingLoadItemsAsync(teacherId, periodId);
@@ -965,12 +1008,15 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(planItemId));
         }
+        //var depTeachersQuery = from teacher in _context.Teachers
+        //                       join teacherDiscipline in _context.TeachersDisciplines
+        //                       on teacher.Id equals teacherDiscipline.TeacherId
+        //                       where (teacher.Active || teacher.DepartmentId == departmentId)
+        //                             //|| !disciplineId.HasValue
+        //                             //|| teacherDiscipline.DisciplineId == disciplineId
+        //                       select teacher;
         var depTeachersQuery = from teacher in _context.Teachers
-                               join teacherDiscipline in _context.TeachersDisciplines
-                               on teacher.Id equals teacherDiscipline.TeacherId
-                               where !teacher.Active || teacher.DepartmentId != departmentId
-                                     || !disciplineId.HasValue
-|| teacherDiscipline.DisciplineId == disciplineId
+                               where teacher.DepartmentId == departmentId
                                select teacher;
         depTeachersQuery = depTeachersQuery.Distinct();
 
@@ -1925,8 +1971,15 @@ public class DataManager : IDataManager
             try
             {
                 var teachingPlanItem = await GetTeachingPlanItemAsync(id);
+                var loadItemsAffected = await _context.LoadItems.Where(l => l.PlanningItemId == id)
+                                                             .Select(l => new { teacherId = l.TeacherId, periodId = teachingPlanItem.PeriodId })
+                                                             .ToListAsync();
                 _ = _context.TeachingPlanItems.Remove(teachingPlanItem);
                 var result = await _context.SaveChangesAsync();
+                foreach (var item in loadItemsAffected)
+                {
+                    await RecalculateAutogenerateTeachingLoadItemsAsync(item.teacherId, item.periodId);
+                }
                 return result > 0;
             }
             catch (TeachingPlanItemNotFoundException)

@@ -1,4 +1,5 @@
 ﻿using QCUniversidad.Api.Shared.Enums;
+using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.Teachers;
 
 namespace QCUniversidad.WebClient.Models.LoadItem;
@@ -16,4 +17,6 @@ public class LoadViewItemModel
     public NonTeachingLoadType? NonTeachingLoadType { get; set; }
     public Guid TeacherId { get; set; }
     public TeacherModel? Teacher { get; set; }
+    public Guid? PeriodId { get; set; }
+    public PeriodModel? Period { get; set; }
 }

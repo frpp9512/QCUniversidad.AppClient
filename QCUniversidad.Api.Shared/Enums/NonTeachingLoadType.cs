@@ -9,7 +9,7 @@ public enum NonTeachingLoadType
     /// Should be auto generated.
     /// </summary>
     [Recalculate]
-    [Display(Name = "Consultas", Description = "Tiempo necesario para impartir consultas a los estudiantes de las asignaturas que imparte.", AutoGenerateField = true)]
+    [Display(Name = "Consultas", Description = "Tiempo necesario para impartir consultas a los estudiantes de pregrado de las asignaturas que imparte.", AutoGenerateField = true)]
     Consultation,
 
     /// <summary>

@@ -355,7 +355,8 @@ public class TeacherController : ControllerBase
                 Teacher = item.Teacher is not null ? _mapper.Map<SimpleTeacherDto>(item.Teacher) : null,
                 Name = item.PlanningItem.Subject?.Name,
                 Description = $"{item.PlanningItem.Course?.Denomination} - {item.PlanningItem.Type.GetPlanItemTypeDisplayValue()} {item.PlanningItem.HoursPlanned}h x {item.PlanningItem.GroupsAmount} grupos",
-                Value = item.HoursCovered
+                Value = item.HoursCovered,
+                PeriodId = periodId
             });
             var nonTeachingLoadItems = await _dataManager.GetTeacherNonTeachingLoadItemsInPeriodAsync(id, periodId);
             var recalculationAllowed = await _dataManager.IsPeriodInCurrentYear(periodId);
@@ -370,7 +371,8 @@ public class TeacherController : ControllerBase
                 NonTeachingLoadType = item.Type,
                 Description = item.Description,
                 TeacherId = id,
-                Value = item.Load
+                Value = item.Load,
+                PeriodId = periodId
             });
             var missingTypes = Enum.GetValues<NonTeachingLoadType>().Where(t => !nonTeachingLoadItems.Any(l => l.Type == t));
             var missingNonTeachingLoadItems = missingTypes.Select(type => new LoadViewItemDto
@@ -383,7 +385,8 @@ public class TeacherController : ControllerBase
                 NonTeachingLoadType = type,
                 Description = type.GetEnumDisplayDescriptionValue(),
                 TeacherId = id,
-                Value = 0
+                Value = 0,
+                PeriodId = periodId
             });
             var items = new List<LoadViewItemDto>();
             items.AddRange(teachingLoadViewItems);
