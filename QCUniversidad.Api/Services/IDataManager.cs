@@ -96,6 +96,7 @@ public interface IDataManager
     Task<bool> SetLoadToTeacher(Guid teacherId, Guid planItemId, double hours);
     Task<bool> DeleteLoadFromTeacherAsync(Guid loadItemId);
     Task<IList<TeacherModel>> GetSupportTeachersAsync(Guid departmentId, Guid periodId);
+    Task<bool> SetNonTeachingLoadAsync(NonTeachingLoadType type, string baseValue, Guid teacherId, Guid periodId);
 
     #endregion
 

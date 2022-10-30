@@ -958,7 +958,8 @@ dd {
 
 .select-card .select-card-indicator {
     background-color: rgba(92, 92, 184, 0);
-    width: 10px;
+    max-width: 5px;
+    min-width: 5px;
     border-radius: 25px;
 }
 
@@ -989,5 +990,4 @@ dd {
 .select-card-description {
     font-size: 0.8rem;
 }
-
 /* end of select card */

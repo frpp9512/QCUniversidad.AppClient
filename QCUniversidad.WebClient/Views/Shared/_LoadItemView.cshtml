@@ -1,4 +1,5 @@
 ﻿@model IList<LoadViewItemModel>
+@using QCUniversidad.Api.Shared.Extensions
 
 @{
     var teachingLoad = Model.Where(item => item.Type == QCUniversidad.Api.Shared.Enums.LoadViewItemType.Teaching);
@@ -29,7 +30,7 @@
             </div>
         }
         <div class="load-info-total">
-            <div class="load-total-name">Total de carga</div>
+            <div class="load-total-name">Total de carga docente</div>
             <div class="load-content">
                 <span>@teachingLoad.Sum(l => l.Value)</span>
             </div>
@@ -48,6 +49,16 @@
                 <div class="load-content">
                     @if (item.Status == QCUniversidad.Api.Shared.Enums.LoadViewItemStatus.Setted)
                     {
+                        @if (!item.NonTeachingLoadType.Value.GetEnumDisplayAutogenerateValue() && item.AllowRecalculation)
+                        {
+                            <div style="margin-right: 0.5rem;">
+                                <button class="btn btn-sm btn-outline-light" onclick="AddNonTeachingLoad('@item.NonTeachingLoadType.Value.ToString()', '@item.TeacherId')">
+                                    <small>
+                                        <span class="fa fa-refresh"></span>
+                                    </small>
+                                </button>
+                            </div>
+                        }
                         <span>@item.Value</span>
                     }
                     else
@@ -58,7 +69,7 @@
             </div>
         }
         <div class="load-info-total">
-            <div class="load-total-name">Total de carga</div>
+            <div class="load-total-name">Total de carga no docente</div>
             <div class="load-content">
                 <span>@Math.Round(nonTeachingLoad.Sum(i => i.Value))</span>
             </div>

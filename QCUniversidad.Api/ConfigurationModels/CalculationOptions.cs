@@ -17,4 +17,7 @@ public class CalculationOptions
     public double ExamGradeFinalAverageTime { get; set; }
     public double SecondExamGradeFinalCoefficient { get; set; }
     public double ThirdExamGradeFinalCoefficient { get; set; }
+    public SpecificCalculationValue[] SpecificCalculationValues { get; set; }
+
+    public double? this[string key] => SpecificCalculationValues?.FirstOrDefault(value => value.Key == key)?.Value;
 }

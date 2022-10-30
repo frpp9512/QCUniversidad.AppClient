@@ -13,5 +13,6 @@ public class LoadItemDtoProfile : Profile
 		_ = CreateMap<LoadItemDto, LoadItemModel>();
 		_ = CreateMap<SimpleLoadItemDto, LoadItemModel>();
 		_ = CreateMap<LoadViewItemDto, LoadViewItemModel>();
+		_ = CreateMap<SetNonTeachingLoadModel, SetNonTeachingLoadDto>();
 	}
 }

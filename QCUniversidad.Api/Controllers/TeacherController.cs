@@ -8,6 +8,7 @@ using QCUniversidad.Api.Shared.Dtos.LoadItem;
 using QCUniversidad.Api.Shared.Dtos.Teacher;
 using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.Api.Shared.Extensions;
+using System.Runtime.CompilerServices;
 
 namespace QCUniversidad.Api.Controllers;
 
@@ -218,6 +219,40 @@ public class TeacherController : ControllerBase
     }
 
     [HttpGet]
+    [Route("withload")]
+    public async Task<IActionResult> GetTeacherWithLoadAsync(Guid id, Guid periodId)
+    {
+        try
+        {
+            var teacher = await _dataManager.GetTeacherAsync(id);
+            var dto = _mapper.Map<TeacherDto>(teacher);
+            var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
+            var load = await _dataManager.GetTeacherLoadInPeriodAsync(teacher.Id, periodId);
+            dto.Load = new TeacherLoadDto
+            {
+                TeacherId = teacher.Id,
+                TimeFund = periodTimeFund,
+                Load = load,
+                LoadPercent = Math.Round(load / periodTimeFund * 100, 2),
+                PeriodId = periodId
+            };
+            if (teacher.TeacherDisciplines?.Any() == true)
+            {
+                dto.Disciplines ??= new List<PopulatedDisciplineDto>();
+                foreach (var td in teacher.TeacherDisciplines)
+                {
+                    dto.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
+                }
+            }
+            return Ok(dto);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
     [Route("listofdepartmentnotinplanitem")]
     public async Task<IActionResult> GetTeachersOfDepartmentNotInLoadItem(Guid departmentId, Guid planItemId, Guid? disciplineId = null)
     {
@@ -399,5 +434,56 @@ public class TeacherController : ControllerBase
         {
             return Problem(ex.Message);
         }
+    }
+
+    [HttpPost]
+    [Route("setnonteachingload")]
+    public async Task<IActionResult> SetNonTeachingLoadAsync(SetNonTeachingLoadDto model)
+    {
+        if (model is null)
+        {
+            return BadRequest("No model provided.");
+        }
+        if (Enum.TryParse(typeof(NonTeachingLoadType), model.Type, out var parsedType))
+        {
+            if (parsedType is not null)
+            {
+                var type = (NonTeachingLoadType)parsedType;
+                try
+                {
+                    var result = await _dataManager.SetNonTeachingLoadAsync(type, model.BaseValue, model.TeacherId, model.PeriodId);
+                    return result ? Ok(result) : Problem();
+                }
+                catch (TeacherNotFoundException)
+                {
+                    return NotFound("The teacher was not found");
+                }
+                catch (PeriodNotFoundException)
+                {
+                    return NotFound("The period was not found");
+                }
+                catch (ArgumentNullException ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+                catch (NonTeachingLoadUnsettableException)
+                {
+                    return BadRequest("The provided load type cannot be setted, it is autocalculated.");
+                }
+                catch (ArgumentException ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+                catch (ConfigurationException)
+                {
+                    return Problem("Error accessing the configuration values.");
+                }
+                catch (Exception ex)
+                {
+                    return Problem(ex.Message);
+                }
+            }
+        }
+        return BadRequest("The provided type is invalid.");
     }
 }

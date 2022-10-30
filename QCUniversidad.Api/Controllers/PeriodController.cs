@@ -131,8 +131,15 @@ public class PeriodController : ControllerBase
     {
         if (period is not null)
         {
-            var result = await _dataManager.UpdatePeriodAsync(_mapper.Map<PeriodModel>(period));
-            return Ok(result);
+            try
+            {
+                var result = await _dataManager.UpdatePeriodAsync(_mapper.Map<PeriodModel>(period));
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
         }
         return BadRequest("The period cannot be null.");
     }

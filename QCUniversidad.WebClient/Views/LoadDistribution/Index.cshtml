@@ -314,22 +314,24 @@
         function OpenTeacherLoadDeatils(teacherId) {
             const periodSelect = document.getElementById("selectedPeriod");
             selectedPeriod = periodSelect.options[periodSelect.selectedIndex].value;
-            OpenLoadingModal("Cargando elementos de carga del profesor");
+            const modalElement = document.getElementById("teacherLoadDetailsModal");
+            let modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modal.toggle();
+            LoadTeacherLoadDetailsModalContent(teacherId);
+        }
+
+        function LoadTeacherLoadDetailsModalContent(teacherId) {
             $.ajax({
                 url: `/loaddistribution/GetTeacherLoadDetailsModalContent?teacherId=${teacherId}&periodId=${selectedPeriod}`,
                 type: "GET",
                 success: function (data) {
-                    CloseLoadingModal();
                     const modalContent = document.getElementById("teacherLoadDetailsModal-content");
                     modalContent.innerHTML = data;
-                    const modalElement = document.getElementById("teacherLoadDetailsModal");
-                    let modal = new bootstrap.Modal(modalElement);
-                    modal.show();
                     LoadCollapsers();
                     LoadTooltips();
+                    LoadMeters();
                 },
                 error: function (xhr, status, error) {
-                    CloseLoadingModal();
                     console.log(xhr, status, error);
                 }
             });
@@ -358,6 +360,205 @@
                     }
                 }
             });
+        }
+
+        function GetSelectedPeriod() {
+            const periodSelect = document.getElementById("selectedPeriod");
+            selectedPeriod = periodSelect.options[periodSelect.selectedIndex].value;
+            return selectedPeriod;
+        }
+
+        function AddNonTeachingLoad(type, teacherId) {
+            if (type == "UniversityExtensionActions") {
+                const ueaModalElement = document.getElementById("UniversityExtensionActionsModal");
+                let ueaModal = bootstrap.Modal.getOrCreateInstance(ueaModalElement);
+                let ueaModalBtn = document.getElementById("UniversityExtensionActionsModalButton");
+                ueaModalBtn.onclick = function () {
+                    ueaModal.hide();
+                    let selected = GetSelectCardGroupSelectedValue("UniversityExtensionActionsOptions");
+                    let model = {
+                        Type: "UniversityExtensionActions",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                ueaModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "CoursesReceivedAndImprovement") {
+                const criModalElement = document.getElementById("CoursesReceivedAndImprovementModal");
+                let criModal = bootstrap.Modal.getOrCreateInstance(criModalElement);
+                let criModalBtn = document.getElementById("CoursesReceivedAndImprovementModalButton");
+                criModalBtn.onclick = function () {
+                    criModal.hide();
+                    let selected = GetSelectCardGroupSelectedValue("CoursesReceivedAndImprovementOptions");
+                    let model = {
+                        Type: "CoursesReceivedAndImprovement",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                criModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "UndergraduateTutoring") {
+                const utModalElement = document.getElementById("UndergraduateTutoringModal");
+                let utModal = bootstrap.Modal.getOrCreateInstance(utModalElement);
+                let utModalBtn = document.getElementById("UndergraduateTutoringModalButton");
+                utModalBtn.onclick = function () {
+                    utModal.hide();
+                    let integrativeProjectDiplomants = document.getElementById("IntegrativeProjectDiplomants");
+                    let thesisDiplomants = document.getElementById("ThesisDiplomants");
+                    let loadModel = {
+                        IntegrativeProjectDiplomants: integrativeProjectDiplomants.value,
+                        ThesisDiplomants: thesisDiplomants.value
+                    };
+                    let selected = JSON.stringify(loadModel);
+                    let model = {
+                        Type: "UndergraduateTutoring",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                            integrativeProjectDiplomants.value = 0;
+                            thesisDiplomants.value = 0;
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                utModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "GraduateTutoring") {
+                const gtModalElement = document.getElementById("GraduateTutoringModal");
+                let gtModal = bootstrap.Modal.getOrCreateInstance(gtModalElement);
+                let gtModalBtn = document.getElementById("GraduateTutoringModalButton");
+                gtModalBtn.onclick = function () {
+                    gtModal.hide();
+                    let diplomaOrMastersDegreeDiplomants = document.getElementById("DiplomaOrMastersDegreeDiplomants");
+                    let doctorateDiplomants = document.getElementById("DoctorateDiplomants");
+                    let loadModel = {
+                        DiplomaOrMastersDegreeDiplomants: diplomaOrMastersDegreeDiplomants.value,
+                        DoctorateDiplomants: doctorateDiplomants.value
+                    };
+                    let selected = JSON.stringify(loadModel);
+                    let model = {
+                        Type: "GraduateTutoring",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                            diplomaOrMastersDegreeDiplomants.value = 0;
+                            doctorateDiplomants.value = 0;
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                gtModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "ParticipationInProjects") {
+                const ppModalElement = document.getElementById("ParticipationInProjectsModal");
+                let ppModal = bootstrap.Modal.getOrCreateInstance(ppModalElement);
+                let ppModalBtn = document.getElementById("ParticipationInProjectsModalButton");
+                ppModalBtn.onclick = function () {
+                    ppModal.hide();
+                    let selected = GetSelectCardGroupSelectedValue("ParticipationInProjectsOptions");
+                    let model = {
+                        Type: "ParticipationInProjects",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                ppModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "OtherFunctions") {
+                const ofModalElement = document.getElementById("OtherFunctionsModal");
+                let ofModal = bootstrap.Modal.getOrCreateInstance(ofModalElement);
+                let ofModalBtn = document.getElementById("OtherFunctionsModalButton");
+                ofModalBtn.onclick = function () {
+                    ofModal.hide();
+                    let selected = document.getElementById("OtherFunctionsValue").value;
+                    let model = {
+                        Type: "OtherFunctions",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                ofModal.show();
+                InitializeSelectCards();
+                return;
+            }
         }
 
     </script>
@@ -398,54 +599,6 @@
                     break;
                 default:
                     break;
-            }
-        }
-    </script>
-
-    <script>
-
-        function AddNonTeachingLoad(type, teacherId) {
-            if (type == "UniversityExtensionActions") {
-                const ueaModalElement = document.getElementById("UniversityExtensionActionsModal");
-                let ueaModal = new bootstrap.Modal(ueaModalElement);
-                ueaModal.show();
-                InitializeSelectCards();
-                return;
-            }
-            if (type == "CoursesReceivedAndImprovement") {
-                const criModalElement = document.getElementById("CoursesReceivedAndImprovementModal");
-                let criModal = new bootstrap.Modal(criModalElement);
-                criModal.show();
-                InitializeSelectCards();
-                return;
-            }
-            if (type == "UndergraduateTutoring") {
-                const utModalElement = document.getElementById("UndergraduateTutoringModal");
-                let utModal = new bootstrap.Modal(utModalElement);
-                utModal.show();
-                InitializeSelectCards();
-                return;
-            }
-            if (type == "GraduateTutoring") {
-                const gtModalElement = document.getElementById("GraduateTutoringModal");
-                let gtModal = new bootstrap.Modal(gtModalElement);
-                gtModal.show();
-                InitializeSelectCards();
-                return;
-            }
-            if (type == "ParticipationInProjects") {
-                const ppModalElement = document.getElementById("ParticipationInProjectsModal");
-                let ppModal = new bootstrap.Modal(ppModalElement);
-                ppModal.show();
-                InitializeSelectCards();
-                return;
-            }
-            if (type == "OtherFunctions") {
-                const ofModalElement = document.getElementById("OtherFunctionsModal");
-                let ofModal = new bootstrap.Modal(ofModalElement);
-                ofModal.show();
-                InitializeSelectCards();
-                return;
             }
         }
     </script>

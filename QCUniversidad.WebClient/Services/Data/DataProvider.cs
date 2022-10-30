@@ -554,6 +554,18 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
+    public async Task<TeacherModel> GetTeacherAsync(Guid teacherId, Guid periodId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/teacher/withload?id={teacherId}&periodId={periodId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var discipline = JsonConvert.DeserializeObject<TeacherModel>(await response.Content.ReadAsStringAsync());
+            return _mapper.Map<TeacherModel>(discipline);
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
     public async Task<bool> CreateTeacherAsync(TeacherModel newTeacher)
     {
         if (newTeacher is not null)
@@ -632,8 +644,8 @@ public class DataProvider : IDataProvider
 
     public async Task<bool> SetLoadItemAsync(CreateLoadItemModel newLoadItem)
     {
-        _ = _mapper.Map<NewLoadItemDto>(newLoadItem);
-        var serializedDto = JsonConvert.SerializeObject(newLoadItem);
+        var dto = _mapper.Map<NewLoadItemDto>(newLoadItem);
+        var serializedDto = JsonConvert.SerializeObject(dto);
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
         var response = await client.PutAsync("/teacher/setload", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
         return response.IsSuccessStatusCode;
@@ -674,6 +686,15 @@ public class DataProvider : IDataProvider
             return teachers?.Select(f => _mapper.Map<TeacherModel>(f)).ToList() ?? new List<TeacherModel>();
         }
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<bool> SetNonTeachingLoadAsync(SetNonTeachingLoadModel model)
+    {
+        var dto = _mapper.Map<SetNonTeachingLoadDto>(model);
+        var serializedDto = JsonConvert.SerializeObject(dto);
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.PostAsync("/teacher/setnonteachingload", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+        return response.IsSuccessStatusCode;
     }
 
     #endregion

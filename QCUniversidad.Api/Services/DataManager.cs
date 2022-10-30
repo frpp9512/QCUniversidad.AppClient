@@ -7,6 +7,7 @@ using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.Api.Shared.Extensions;
+using QCUniversidad.Api.Shared.CommonModels;
 
 namespace QCUniversidad.Api.Services;
 
@@ -28,9 +29,9 @@ public class TeachingPlanItemNotFoundException : Exception { }
 public class PlanItemFullyCoveredException : Exception { }
 public class LoadItemNotFoundException : Exception { }
 public class PeriodSubjectNotFoundException : Exception { }
-
 public class DatabaseOperationException : Exception { }
-
+public class NonTeachingLoadUnsettableException : Exception { }
+public class ConfigurationException : Exception { }
 #endregion
 
 public class DataManager : IDataManager
@@ -742,7 +743,38 @@ public class DataManager : IDataManager
             var result = await _context.SaveChangesAsync();
             return result > 0 ? (loadItem is null ? calculated : loadItem) : throw new DatabaseOperationException();
         }
-        throw new ArgumentException("The non-teaching load type should be auto-generated.", nameof(type));
+        else
+        {
+            var loadItem = await GetTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
+            if (loadItem is not null)
+            {
+                await SetNonTeachingLoadAsync(loadItem.Type, loadItem.BaseValue, teacherId, periodId);
+            }
+        }
+        return null;
+    }
+
+    public async Task RecalculateAllTeachersInPeriodAsync(Guid periodId)
+    {
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        if (!await IsPeriodInCurrentYear(periodId))
+        {
+            return;
+        }
+        var teachersQuery = from teacher in _context.Teachers
+                            where teacher.Active
+                            select teacher.Id;
+        var teachersId = await teachersQuery.ToListAsync();
+        foreach (NonTeachingLoadType type in Enum.GetValues<NonTeachingLoadType>())
+        {
+            foreach (var teacherId in teachersId)
+            {
+                await RecalculateTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
+            }
+        }
     }
 
     private async Task<NonTeachingLoadModel> CalculateNonTeachingLoadOfTypeAsync(NonTeachingLoadType type, Guid teacherId, Guid periodId)
@@ -790,8 +822,6 @@ public class DataManager : IDataManager
                     Load = Math.Round((calculationModel.MainClassesValue * _calculationOptions.ClassPreparationPrimaryCoefficient) + (calculationModel.SecondaryClassesValue * _calculationOptions.ClassPreparationSecondaryCoefficient), 2)
                 };
                 return cpItem;
-            case NonTeachingLoadType.CoursesReceivedAndImprovement:
-                return null;
             case NonTeachingLoadType.Meetings:
                 var mQuery = from period in _context.Periods
                              where period.Id == periodId
@@ -911,6 +941,8 @@ public class DataManager : IDataManager
             case NonTeachingLoadType.UniversityExtensionActions:
                 return null;
             case NonTeachingLoadType.OtherFunctions:
+                return null;
+            case NonTeachingLoadType.CoursesReceivedAndImprovement:
                 return null;
             default:
                 return null;
@@ -1134,6 +1166,242 @@ public class DataManager : IDataManager
                        select teacher;
 
         return await teachers.Include(t => t.TeacherDisciplines).ThenInclude(td => td.Discipline).Include(t => t.Department).ToListAsync();
+    }
+
+    public async Task<bool> SetNonTeachingLoadAsync(NonTeachingLoadType type, string baseValue, Guid teacherId, Guid periodId)
+    {
+        if (!await ExistsTeacherAsync(teacherId))
+        {
+            throw new TeacherNotFoundException();
+        }
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        if (string.IsNullOrEmpty(baseValue))
+        {
+            throw new ArgumentNullException(nameof(baseValue));
+        }
+        switch (type)
+        {
+            case NonTeachingLoadType.ThesisCourtAndRevision:
+                break;
+            case NonTeachingLoadType.CoursesReceivedAndImprovement:
+                if (Enum.TryParse(baseValue, out CoursesReceivedAndImprovementOptions option))
+                {
+                    var calculationValue = _calculationOptions[$"{nameof(CoursesReceivedAndImprovementOptions)}.{option}"];
+                    if (calculationValue is not null)
+                    {
+                        var loadValue = calculationValue.Value * await GetPeriodMonthsCountAsync(periodId);
+                        var existingLoad = await GetTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
+                        if (existingLoad is not null)
+                        {
+                            existingLoad.BaseValue = JsonConvert.SerializeObject(option);
+                            existingLoad.Load = loadValue;
+                            existingLoad.Description = $"{option.GetEnumDisplayNameValue()} - {option.GetEnumDisplayDescriptionValue()}";
+                            _context.NonTeachingLoad.Update(existingLoad);
+                        }
+                        else
+                        {
+                            var newUELoad = new NonTeachingLoadModel
+                            {
+                                BaseValue = JsonConvert.SerializeObject(option),
+                                Load = loadValue,
+                                Description = $"{option.GetEnumDisplayNameValue()} - {option.GetEnumDisplayDescriptionValue()}",
+                                Type = type,
+                                TeacherId = teacherId,
+                                PeriodId = periodId
+                            };
+                            _context.NonTeachingLoad.Add(newUELoad);
+                        }
+
+                        return await _context.SaveChangesAsync() > 0;
+                    }
+                    throw new ConfigurationException();
+                }
+                throw new ArgumentException($"The base value supplied for {type} load type is invalid.", nameof(baseValue));
+            case NonTeachingLoadType.UndergraduateTutoring:
+                var utModel = JsonConvert.DeserializeObject<UndergraduateTutoringModel>(baseValue);
+                if (utModel is not null)
+                {
+                    var ipCalculationBase = _calculationOptions[$"{nameof(UndergraduateTutoringModel)}.{nameof(utModel.IntegrativeProjectDiplomants)}"];
+                    var tCalculationBase = _calculationOptions[$"{nameof(UndergraduateTutoringModel)}.{nameof(utModel.ThesisDiplomants)}"];
+                    if (ipCalculationBase is not null && tCalculationBase is not null)
+                    {
+                        var monthCount = await GetPeriodMonthsCountAsync(periodId);
+                        var loadValue = (utModel.IntegrativeProjectDiplomants * ipCalculationBase.Value * monthCount) + (utModel.ThesisDiplomants * tCalculationBase.Value * monthCount);
+                        var existingLoad = await GetTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
+                        if (existingLoad is not null)
+                        {
+                            existingLoad.BaseValue = baseValue;
+                            existingLoad.Load = loadValue;
+                            existingLoad.Description = $"Diplomantes estimados: {utModel.IntegrativeProjectDiplomants} de proyecto integrador y {utModel.ThesisDiplomants} de tesis";
+                            _context.NonTeachingLoad.Update(existingLoad);
+                        }
+                        else
+                        {
+                            var newUELoad = new NonTeachingLoadModel
+                            {
+                                BaseValue = baseValue,
+                                Load = loadValue,
+                                Description = $"Diplomantes estimados: {utModel.IntegrativeProjectDiplomants} de proyecto integrador y {utModel.ThesisDiplomants} de tesis",
+                                Type = type,
+                                TeacherId = teacherId,
+                                PeriodId = periodId
+                            };
+                            _context.NonTeachingLoad.Add(newUELoad);
+                        }
+
+                        return await _context.SaveChangesAsync() > 0;
+                    }
+                }
+                throw new ArgumentException($"The base value supplied for {type} load type is invalid.", nameof(baseValue));
+            case NonTeachingLoadType.GraduateTutoring:
+                var gtModel = JsonConvert.DeserializeObject<GraduateTutoringModel>(baseValue);
+                if (gtModel is not null)
+                {
+                    var dmCalculationBase = _calculationOptions[$"{nameof(GraduateTutoringModel)}.{nameof(gtModel.DiplomaOrMastersDegreeDiplomants)}"];
+                    var dCalculationBase = _calculationOptions[$"{nameof(GraduateTutoringModel)}.{nameof(gtModel.DoctorateDiplomants)}"];
+                    if (dmCalculationBase is not null && dCalculationBase is not null)
+                    {
+                        var monthCount = await GetPeriodMonthsCountAsync(periodId);
+                        var loadValue = (gtModel.DiplomaOrMastersDegreeDiplomants * dmCalculationBase.Value * monthCount) + (gtModel.DoctorateDiplomants * dmCalculationBase.Value * monthCount);
+                        var existingLoad = await GetTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
+                        if (existingLoad is not null)
+                        {
+                            existingLoad.BaseValue = baseValue;
+                            existingLoad.Load = loadValue;
+                            existingLoad.Description = $"Diplomantes estimados: {gtModel.DiplomaOrMastersDegreeDiplomants} de diplmado y/o maestría, y {gtModel.DoctorateDiplomants} de doctorado.";
+                            _context.NonTeachingLoad.Update(existingLoad);
+                        }
+                        else
+                        {
+                            var newUELoad = new NonTeachingLoadModel
+                            {
+                                BaseValue = baseValue,
+                                Load = loadValue,
+                                Description = $"Diplomantes estimados: {gtModel.DiplomaOrMastersDegreeDiplomants} de diplmado y/o maestría, y {gtModel.DoctorateDiplomants} de doctorado.",
+                                Type = type,
+                                TeacherId = teacherId,
+                                PeriodId = periodId
+                            };
+                            _context.NonTeachingLoad.Add(newUELoad);
+                        }
+
+                        return await _context.SaveChangesAsync() > 0;
+                    }
+                }
+                throw new ArgumentException($"The base value supplied for {type} load type is invalid.", nameof(baseValue));
+            case NonTeachingLoadType.ParticipationInProjects:
+                if (Enum.TryParse(baseValue, out ParticipationInProjectsOptions ppoption))
+                {
+                    var calculationValue = _calculationOptions[$"{nameof(ParticipationInProjectsOptions)}.{ppoption}"];
+                    if (calculationValue is not null)
+                    {
+                        var loadValue = calculationValue.Value * await GetPeriodMonthsCountAsync(periodId);
+                        var existingUELoad = await GetTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
+                        if (existingUELoad is not null)
+                        {
+                            existingUELoad.BaseValue = JsonConvert.SerializeObject(ppoption);
+                            existingUELoad.Load = loadValue;
+                            existingUELoad.Description = $"{ppoption.GetEnumDisplayNameValue()} - {ppoption.GetEnumDisplayDescriptionValue()}";
+                            _context.NonTeachingLoad.Update(existingUELoad);
+                        }
+                        else
+                        {
+                            var newUELoad = new NonTeachingLoadModel
+                            {
+                                BaseValue = JsonConvert.SerializeObject(ppoption),
+                                Load = loadValue,
+                                Description = $"{ppoption.GetEnumDisplayNameValue()} - {ppoption.GetEnumDisplayDescriptionValue()}",
+                                Type = type,
+                                TeacherId = teacherId,
+                                PeriodId = periodId
+                            };
+                            _context.NonTeachingLoad.Add(newUELoad);
+                        }
+
+                        return await _context.SaveChangesAsync() > 0;
+                    };
+                    throw new ConfigurationException();
+                }
+                throw new ArgumentException($"The base value supplied for {type} load type is invalid.", nameof(baseValue));
+            case NonTeachingLoadType.UniversityExtensionActions:
+                if (Enum.TryParse(baseValue, out UniversityExtensionActionsOptions ueoption))
+                {
+                    var calculationValue = _calculationOptions[$"{nameof(UniversityExtensionActionsOptions)}.{ueoption}"];
+                    if (calculationValue is not null)
+                    {
+                        var loadValue = calculationValue.Value * await GetPeriodMonthsCountAsync(periodId);
+                        var existingUELoad = await GetTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
+                        if (existingUELoad is not null)
+                        {
+                            existingUELoad.BaseValue = JsonConvert.SerializeObject(ueoption);
+                            existingUELoad.Load = loadValue;
+                            existingUELoad.Description = $"{ueoption.GetEnumDisplayNameValue()} - {ueoption.GetEnumDisplayDescriptionValue()}";
+                            _context.NonTeachingLoad.Update(existingUELoad);
+                        }
+                        else
+                        {
+                            var newUELoad = new NonTeachingLoadModel
+                            {
+                                BaseValue = JsonConvert.SerializeObject(ueoption),
+                                Load = loadValue,
+                                Description = $"{ueoption.GetEnumDisplayNameValue()} - {ueoption.GetEnumDisplayDescriptionValue()}",
+                                Type = type,
+                                TeacherId = teacherId,
+                                PeriodId = periodId
+                            };
+                            _context.NonTeachingLoad.Add(newUELoad);
+                        }
+
+                        return await _context.SaveChangesAsync() > 0;
+                    };
+                    throw new ConfigurationException();
+                }
+                throw new ArgumentException($"The base value supplied for {type} load type is invalid.", nameof(baseValue));
+            case NonTeachingLoadType.OtherFunctions:
+                if (double.TryParse(baseValue, out var ofCalculationOptions))
+                {
+                    var loadValue = ofCalculationOptions * await GetPeriodMonthsCountAsync(periodId);
+                    var existingUELoad = await GetTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
+                    if (existingUELoad is not null)
+                    {
+                        existingUELoad.BaseValue = JsonConvert.SerializeObject(ofCalculationOptions);
+                        existingUELoad.Load = loadValue;
+                        existingUELoad.Description = $"{ofCalculationOptions} h/mes - {type.GetEnumDisplayDescriptionValue()}";
+                        _context.NonTeachingLoad.Update(existingUELoad);
+                    }
+                    else
+                    {
+                        var newUELoad = new NonTeachingLoadModel
+                        {
+                            BaseValue = JsonConvert.SerializeObject(ofCalculationOptions),
+                            Load = loadValue,
+                            Description = $"{ofCalculationOptions} h/mes - {type.GetEnumDisplayDescriptionValue()}",
+                            Type = type,
+                            TeacherId = teacherId,
+                            PeriodId = periodId
+                        };
+                        _context.NonTeachingLoad.Add(newUELoad);
+                    }
+                    
+                    return await _context.SaveChangesAsync() > 0;
+                }
+                throw new ArgumentException($"The base value supplied for {type} load type is invalid.", nameof(baseValue));
+            default:
+                throw new NonTeachingLoadUnsettableException();
+        }
+        return false;
+    }
+
+    private async Task<double> GetPeriodMonthsCountAsync(Guid periodId)
+    {
+        var monthsCountQuery = from period in _context.Periods
+                               where period.Id == periodId
+                               select period.MonthsCount;
+        var monthsCount = await monthsCountQuery.FirstAsync();
+        return monthsCount;
     }
 
     #endregion
@@ -1706,8 +1974,25 @@ public class DataManager : IDataManager
     {
         if (course is not null)
         {
+            var updateTeachers = false;
+            if (course.Id != Guid.Empty)
+            {
+                var currentEnrolment = await GetCourseEnrolmentAsync(course.Id);
+                var newEnrolment = course.Enrolment;
+                updateTeachers = currentEnrolment != newEnrolment;
+            }
             _ = _context.Courses.Update(course);
             var result = await _context.SaveChangesAsync();
+
+            if (updateTeachers)
+            {
+                var currentYear = await GetCurrentSchoolYear();
+                foreach (var period in currentYear.Periods)
+                {
+                    await RecalculateAllTeachersInPeriodAsync(period.Id);
+                }
+            }
+
             return result > 0;
         }
         throw new ArgumentNullException(nameof(course));
@@ -1762,6 +2047,14 @@ public class DataManager : IDataManager
         throw new ArgumentNullException();
     }
 
+    private async Task<uint> GetCourseEnrolmentAsync(Guid courseId)
+    {
+        var query = from course in _context.Courses
+                    where course.Id == courseId
+                    select course.Enrolment;
+        return await query.CountAsync() > 0 ? await query.FirstAsync() : throw new CourseNotFoundException();
+    }
+
     #endregion
 
     #region Periods
@@ -1812,8 +2105,22 @@ public class DataManager : IDataManager
         if (period is not null)
         {
             period.TimeFund = _periodCalculator.CalculateValue(period);
+            var recalculateTeachers = false;
+            if (period.Id != Guid.Empty)
+            {
+                var currentMonthsCount = await GetPeriodMonthsCountAsync(period.Id);
+                var newMonthsCount = period.MonthsCount;
+                recalculateTeachers = (currentMonthsCount != newMonthsCount) && await IsPeriodInCurrentYear(period.Id);
+            }
+
             _ = _context.Periods.Update(period);
             var result = await _context.SaveChangesAsync();
+
+            if (recalculateTeachers)
+            {
+                await RecalculateAllTeachersInPeriodAsync(period.Id);
+            }
+
             return result > 0;
         }
         throw new ArgumentNullException(nameof(period));

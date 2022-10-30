@@ -40,3 +40,11 @@
         }
     });
 }
+
+function GetSelectCardGroupSelectedValue(groupName) {
+    let cards = document.querySelectorAll(`.select-card[selection-group='${groupName}'][selected]`);
+    if (cards.length == 0) {
+        return null;
+    }
+    return cards[0].getAttribute("value");
+}

@@ -2,8 +2,19 @@
 @using QCUniversidad.Api.Shared.Extensions
 @model TeacherLoadViewModel
 
-<h3>@Model.Teacher.Fullname</h3>
-<p>@Model.Teacher.Position</p>
+<div class="d-flex flex-row align-content-center">
+    <div class="d-flex flex-column align-items-center pt-2">
+        <svg data-value="@Model.Teacher.Load.LoadPercent" style="width: 50px; height: 50px;" class="circle-percentage" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-chart-pie'></span> Gráfico</small></div> <div><b>@(Model.Teacher.Load.LoadPercent)% de carga distribuida</b></div> <div>Representa el porciento de carga distribuida.</div>">
+            <circle r="45" cx="50" cy="50" />
+            <path class="meter" style="stroke-width: "10px" d="M5,50a45,45 0 1,0 90,0a45,45 0 1,0 -90,0" stroke-linecap="round" stroke-linejoin="round" stroke-dashoffset="282.78302001953125" stroke-dasharray="282.78302001953125" />
+            <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="2rem"></text>
+        </svg>
+    </div>
+    <div class="d-flex flex-column align-content-center" style="margin-left: 15px">
+        <h3>@Model.Teacher.Fullname</h3>
+        <p>@Model.Teacher.Position</p>
+    </div>
+</div>
 
 <partial name="_LoadItemView" model="@Model.LoadItems" />
 
@@ -35,7 +46,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary"><span class="fa fa-plus-square"></span> Agregar carga</button>
+                <button type="button" class="btn btn-primary" id="UniversityExtensionActionsModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
             </div>
         </div>
     </div>
@@ -69,7 +80,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary"><span class="fa fa-plus-square"></span> Agregar carga</button>
+                <button type="button" class="btn btn-primary" id="CoursesReceivedAndImprovementModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
             </div>
         </div>
     </div>
@@ -96,7 +107,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary"><span class="fa fa-plus-square"></span> Agregar carga</button>
+                <button type="button" class="btn btn-primary" id="UndergraduateTutoringModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
             </div>
         </div>
     </div>
@@ -112,17 +123,17 @@
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label for="IntegrativeProjectDiplomants" class="form-label">Diplomado o mestría</label>
+                    <label for="DiplomaOrMastersDegreeDiplomants" class="form-label">Diplomado o mestría</label>
                     <input type="number" min="0" class="form-control" id="DiplomaOrMastersDegreeDiplomants" placeholder="Cantidad de diplomantes">
                 </div>
                 <div class="mb-3">
-                    <label for="ThesisDiplomants" class="form-label">Doctorado</label>
+                    <label for="DoctorateDiplomants" class="form-label">Doctorado</label>
                     <input type="number" min="0" class="form-control" id="DoctorateDiplomants" placeholder="Cantidad de diplomantes">
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary"><span class="fa fa-plus-square"></span> Agregar carga</button>
+                <button type="button" class="btn btn-primary" id="GraduateTutoringModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
             </div>
         </div>
     </div>
@@ -143,26 +154,26 @@
                     foreach (ParticipationInProjectsOptions value in ppvalues)
                     {
                         ppcards.Add(new SelectCardModel
-                        {
-                            Id = $"card-{value.ToString()}",
-                            GroupName = "ParticipationInProjectsOptions",
-                            Title = value.GetEnumDisplayNameValue(),
-                            Description = value.GetEnumDisplayDescriptionValue(),
-                            Value = value.ToString()
-                        });
+                {
+                    Id = $"card-{value.ToString()}",
+                    GroupName = "ParticipationInProjectsOptions",
+                    Title = value.GetEnumDisplayNameValue(),
+                    Description = value.GetEnumDisplayDescriptionValue(),
+                    Value = value.ToString()
+                });
                     }
                 }
                 <partial name="_SelectCardSet" model="ppcards" />
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary"><span class="fa fa-plus-square"></span> Agregar carga</button>
+                <button type="button" class="btn btn-primary" id="ParticipationInProjectsModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Add GraduateTutoring load -->
+<!-- Add OtherFunctions load -->
 <div class="modal fade" id="OtherFunctionsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="OtherFunctionsLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -178,7 +189,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary"><span class="fa fa-plus-square"></span> Agregar carga</button>
+                <button type="button" class="btn btn-primary" id="OtherFunctionsModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
             </div>
         </div>
     </div>

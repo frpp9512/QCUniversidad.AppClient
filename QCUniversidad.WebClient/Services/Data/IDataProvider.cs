@@ -76,6 +76,7 @@ public interface IDataProvider
     Task<int> GetTeachersCountAsync();
     Task<bool> ExistsTeacherAsync(Guid id);
     Task<TeacherModel> GetTeacherAsync(Guid teacherId);
+    Task<TeacherModel> GetTeacherAsync(Guid teacherId, Guid periodId);
     Task<bool> CreateTeacherAsync(TeacherModel newTeacher);
     Task<bool> UpdateTeacherAsync(TeacherModel teacher);
     Task<bool> DeleteTeacherAsync(Guid teacherId);
@@ -86,6 +87,7 @@ public interface IDataProvider
     Task<IList<TeacherModel>> GetTeachersOfDepartmentForPeriodAsync(Guid departmentId, Guid periodId);
     Task<bool> DeleteLoadItemAsync(Guid loadItemId);
     Task<IList<TeacherModel>> GetSupportTeachersAsync(Guid departmentId, Guid periodId);
+    Task<bool> SetNonTeachingLoadAsync(SetNonTeachingLoadModel model);
 
     #endregion
 

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.LoadDistribution;
 using QCUniversidad.WebClient.Models.LoadItem;
@@ -58,7 +59,7 @@ public class LoadDistributionController : Controller
     {
         var schoolYears = await _dataProvider.GetSchoolYearsAsync();
         var departments = await _dataProvider.GetDepartmentsAsync();
-        var model = new SelectDepartmentViewModel 
+        var model = new SelectDepartmentViewModel
         {
             Departments = departments,
             SchoolYears = schoolYears
@@ -175,7 +176,7 @@ public class LoadDistributionController : Controller
     [HttpDelete]
     public async Task<IActionResult> DeleteLoadItemAsync(Guid loadItemId)
     {
-        if(loadItemId == Guid.Empty)
+        if (loadItemId == Guid.Empty)
         {
             return BadRequest();
         }
@@ -203,10 +204,10 @@ public class LoadDistributionController : Controller
         }
         try
         {
-            var teacher = await _dataProvider.GetTeacherAsync(teacherId);
+            var teacher = await _dataProvider.GetTeacherAsync(teacherId, periodId);
             var loadItems = await _dataProvider.GetTeacherLoadItemsInPeriodAsync(teacherId, periodId);
-            var model = new TeacherLoadViewModel 
-            { 
+            var model = new TeacherLoadViewModel
+            {
                 Teacher = teacher,
                 LoadItems = loadItems
             };
@@ -216,5 +217,19 @@ public class LoadDistributionController : Controller
         {
             return Problem(ex.Message);
         }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SetNonTeachingLoadAsync(SetNonTeachingLoadModel model)
+    {
+        if (model is not null)
+        {
+            if (Enum.TryParse(typeof(NonTeachingLoadType), model.Type, out var type))
+            {
+                var result = await _dataProvider.SetNonTeachingLoadAsync(model);
+                return result ? Ok(result) : BadRequest();
+            }
+        }
+        return BadRequest();
     }
 }
