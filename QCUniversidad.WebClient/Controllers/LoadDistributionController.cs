@@ -3,9 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using QCUniversidad.Api.Shared.Enums;
+using QCUniversidad.Api.Shared.Extensions;
 using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.LoadDistribution;
 using QCUniversidad.WebClient.Models.LoadItem;
+using QCUniversidad.WebClient.Models.Shared;
+using QCUniversidad.WebClient.Models.Teachers;
 using QCUniversidad.WebClient.Services.Data;
 using QCUniversidad.WebClient.Services.Platform;
 
@@ -53,16 +56,40 @@ public class LoadDistributionController : Controller
         return View(model);
     }
 
+    public async Task<IActionResult> WorkForceAsync(Guid? departmentId = null, Guid? schoolYearId = null)
+    {
+        if (User.IsAdmin() && departmentId is null)
+        {
+            return RedirectToAction("SelectDepartment", new { redirectTo = "WorkForce" });
+        }
+        if (!User.IsAdmin() && schoolYearId is not null)
+        {
+            schoolYearId = null;
+        }
+        var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
+        var schoolYear = schoolYearId is null ? await _dataProvider.GetCurrentSchoolYear() : await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
+        var department = await _dataProvider.GetDepartmentAsync(workingDepartment);
+        var periods = await _dataProvider.GetPeriodsAsync(schoolYear.Id);
+        var model = new WorkForceViewModel 
+        {
+            Department = department,
+            Periods = periods,
+            SchoolYear = schoolYear
+        };
+        return View(model);
+    }
+
     [HttpGet]
     [Authorize(Roles = "Administrador")]
-    public async Task<IActionResult> SelectDepartmentAsync()
+    public async Task<IActionResult> SelectDepartmentAsync(string redirectTo = "Index")
     {
         var schoolYears = await _dataProvider.GetSchoolYearsAsync();
         var departments = await _dataProvider.GetDepartmentsAsync();
         var model = new SelectDepartmentViewModel
         {
             Departments = departments,
-            SchoolYears = schoolYears
+            SchoolYears = schoolYears,
+            RedirectTo = redirectTo
         };
         return View(model);
     }
@@ -231,5 +258,85 @@ public class LoadDistributionController : Controller
             }
         }
         return BadRequest();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetWorkForceChartDataAsync(Guid periodId, Guid? departmentId = null)
+    {
+        if (User.IsAdmin() && departmentId is null)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+        var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
+        try
+        {
+            var depTeachers = await _dataProvider.GetTeachersOfDepartmentForPeriodAsync(workingDepartment, periodId);
+            var chartData = ModelListCharter.GetChartModel(ChartType.Bar, depTeachers, t => t.Load.LoadPercent, t => t.FirstName, title: "Distribución de carga", subtitle: "Comparación de la distribución de cargas entre los profesores del departamento.", showXGrid: false);
+            return Ok(chartData.GetJson());
+        }
+        catch (Exception)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetTeachersChartAsync(Guid? departmentId = null)
+    {
+        IList<TeacherModel> teachers;
+        if (User.IsAdmin() && departmentId == null)
+        {
+            return BadRequest();
+        }
+        else
+        {
+            if (User.IsAdmin())
+            {
+                teachers = await _dataProvider.GetTeachersOfDepartmentAsync(departmentId.Value);
+            }
+            else
+            {
+                teachers = await _dataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
+            }
+        }
+        var chartModel = ModelListCharter.GetChartModel(ChartType.Doughnut,
+                                                        new List<TeacherCategory>((TeacherCategory[])Enum.GetValues(typeof(TeacherCategory))),
+                                                        e => teachers.Count(t => t.Category == e),
+                                                        e => e.GetEnumDisplayNameValue(),
+                                                        title: "Profesores por categoría",
+                                                        showXScale: false,
+                                                        showYScale: false,
+                                                        legendPosition: ChartLegendPosition.Left);
+        return Ok(chartModel.GetJson());
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetTeachersChartByContractTypeAsync(Guid? departmentId = null)
+    {
+        IList<TeacherModel> teachers;
+        if (User.IsAdmin() && departmentId == null)
+        {
+            return BadRequest();
+        }
+        else
+        {
+            if (User.IsAdmin())
+            {
+                teachers = await _dataProvider.GetTeachersOfDepartmentAsync(departmentId.Value);
+            }
+            else
+            {
+                teachers = await _dataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
+            }
+        }
+        var chartModel = ModelListCharter.GetChartModel(ChartType.Doughnut,
+                                                        new List<TeacherContractType>((TeacherContractType[])Enum.GetValues(typeof(TeacherContractType))),
+                                                        e => teachers.Count(t => t.ContractType == e),
+                                                        e => e.GetEnumDisplayNameValue(),
+                                                        title: "Profesores por tipo de contrato",
+                                                        showXScale: false,
+                                                        showYScale: false,
+                                                        legendPosition: ChartLegendPosition.Left);
+        return Ok(chartModel.GetJson());
     }
 }

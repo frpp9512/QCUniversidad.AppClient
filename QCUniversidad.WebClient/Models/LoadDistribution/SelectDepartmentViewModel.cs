@@ -12,5 +12,6 @@ namespace QCUniversidad.WebClient.Models.LoadDistribution
     {
         public IList<SchoolYearModel> SchoolYears { get; set; }
         public IList<DepartmentModel> Departments { get; set; }
+        public string RedirectTo { get; set; }
     }
 }

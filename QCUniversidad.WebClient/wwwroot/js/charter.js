@@ -1,5 +1,6 @@
 ﻿function LoadChart(dataEndpoint, containerSelector) {
     const container = document.querySelector(containerSelector);
+    container.querySelectorAll('*').forEach(n => n.remove());
     container.style.display = "flex";
     container.style.justifyContent = "center";
     container.style.alignItems = "center";
@@ -9,9 +10,9 @@
         type: "GET",
         success: function (data) {
             chartModel = JSON.parse(data);
-            console.log(chartModel.config);
             const canva = document.createElement("canvas");
             canva.id = chartModel.elementId;
+            canva.classList.add("fadeIn");
             container.removeChild(container.children[0]);
             container.appendChild(canva);
             const ctx = canva.getContext("2d");

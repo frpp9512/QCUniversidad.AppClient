@@ -37,6 +37,9 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="LoadDistribution" asp-action="Index">Distribución</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="LoadDistribution" asp-action="WorkForce">Fuerza de trabajo</a>
+                            </li>
                         }
                         @if (User.IsInRole("Planificador") || User.IsAdmin())
                         {

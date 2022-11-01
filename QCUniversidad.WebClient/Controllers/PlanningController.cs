@@ -29,7 +29,7 @@ public class PlanningController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(Guid? periodSelected = null, Guid? schoolYearId = null, Guid? courseSelected = null)
+    public async Task<IActionResult> Index(Guid? periodSelected = null, Guid? schoolYearId = null, Guid? courseSelected = null, string? tab = "periodsubjects")
     {
         var workingSchoolYear = (!User.IsAdmin() && schoolYearId is not null) || schoolYearId is null
             ? await _dataProvider.GetCurrentSchoolYear()
@@ -42,7 +42,8 @@ public class PlanningController : Controller
             Periods = await _dataProvider.GetPeriodsAsync(workingSchoolYear.Id),
             PeriodSelected = periodSelected,
             Courses = courses,
-            CourseSelected = courseSelected
+            CourseSelected = courseSelected,
+            Tab = tab
         };
         return View(model);
     }
@@ -133,7 +134,7 @@ public class PlanningController : Controller
                 if (result)
                 {
                     TempData["planItem-created"] = true;
-                    return RedirectToAction("Index", new { periodSelected = model.PeriodId });
+                    return RedirectToAction("Index", new { periodSelected = model.PeriodId, tab = "planning" });
                 }
             }
             else

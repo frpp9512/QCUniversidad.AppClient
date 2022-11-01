@@ -59,4 +59,6 @@ public record PeriodModel
     /// The set of subjects teached in the period.
     /// </summary>
     public IList<PeriodSubjectModel> PeriodSubjects { get; set; }
+
+    public override string ToString() => $"{Starts.ToString("dd-MM-yyyy")} - {Ends.ToString("dd-MM-yyyy")}";
 }

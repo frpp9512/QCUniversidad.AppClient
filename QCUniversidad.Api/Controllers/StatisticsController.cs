@@ -151,6 +151,40 @@ public class StatisticsController : ControllerBase
             };
             items.Add(rap);
 
+            var currentSchoolYear = await _dataManager.GetCurrentSchoolYear();
+            var periods = currentSchoolYear.Periods;
+            foreach (var period in periods.OrderBy(p => p.Starts))
+            {
+                var periodLoad = await _dataManager.GetDepartmentTotalLoadCoveredInPeriodAsync(period.Id, departmentId);
+                var periodTimeFund = period.TimeFund;
+                var percent = periodLoad / periodTimeFund;
+                var state = percent switch
+                {
+                    double i when i < 0.6 => StatisticState.TooLow,
+                    double i when i < 0.8 && i >= 0.6 => StatisticState.Low,
+                    double i when i <= 1 && i >= 0.8 => StatisticState.Ok,
+                    _ => StatisticState.TooHigh
+                };
+                var description = state switch
+                {
+                    StatisticState.TooLow => "La fuerza de trabajo esta altamente desaprovechada",
+                    StatisticState.Low => "La fuerza de trabajo esta desaprovechada",
+                    StatisticState.Ok => "Existe un aprovechamiento adecuado de la fuerza de trabajo",
+                    StatisticState.High => "Existe sobrecarga de la fuerza de trabajo",
+                    StatisticState.TooHigh => "Existe sobrecarga de la fuerza de trabajo",
+                    _ => "Carga del departamento referente al período."
+                };
+                var periodLoadStat = new StatisticItemDto
+                {
+                    Name = $"Carga del período {period.ToString()}",
+                    Value = periodLoad,
+                    RefValue = periodTimeFund,
+                    State = state,
+                    Description = description
+                };
+                items.Add(periodLoadStat);
+            }
+
             return Ok(items);
         }
         catch (Exception ex)

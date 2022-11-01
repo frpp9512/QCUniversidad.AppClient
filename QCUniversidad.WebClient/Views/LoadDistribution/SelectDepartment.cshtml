@@ -52,7 +52,7 @@
             let selected = depSelect.options[depSelect.selectedIndex].value;
             const sySelect = document.getElementById("SchoolYearId");
             let sySelected = sySelect.options[sySelect.selectedIndex].value;
-            location.href = `/loaddistribution/index?departmentId=${selected}&schoolYearId=${sySelected}`;
+            location.href = `/loaddistribution/@Model.RedirectTo?departmentId=${selected}&schoolYearId=${sySelected}`;
         }
     </script>
 }

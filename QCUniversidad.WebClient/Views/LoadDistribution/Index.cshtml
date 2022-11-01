@@ -5,56 +5,47 @@
     ViewData["Title"] = "Distribución de carga";
 }
 
-<h1>Distribución de carga</h1>
-<hr />
-
-<h6>Año escolar: @Model.SchoolYear.Name</h6>
-
-<h3>Departamento de @Model.Department.Name</h3>
-<p>@Model.Department.Description</p>
-
-<div class="row mt-3 mb-3">
-    <div class="col col-lg-3 col-sm-6 col-12">
-        <label for="selectedCourse">Curso</label>
-        <div class="d-flex flex-row align-items-center">
-            <select class="form-select" aria-label="Seleccionar curso" id="selectedCourse">
-                <option value="none">Todos</option>
-                @foreach (var course in Model.Courses)
-                {
-                    <option value="@course.Id">@course.Denomination</option>
-                }
-            </select>
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start">
+        <div class="d-flex flex-column">
+            <div class="banner-title">Distribución de carga</div>
+            <div class="banner-subtitle">para el departamento de @Model.Department.Name</div>
         </div>
     </div>
-    <div class="col col-lg-3 col-sm-6 col-12 mb-3 mb-sm-3 mb-lg-0">
-        <label for="selectedPeriod">Período</label>
-        <select class="form-select" aria-label="Seleccionar período" id="selectedPeriod">
-            @foreach (var period in Model.Periods)
-            {
-                <option value="@period.Id">@period.ToString()</option>
-            }
-        </select>
-    </div>
-    <div class="col align-self-end">
-        <button class="btn btn-info" onclick="PeriodSelected()"><span class="fa fa-refresh"></span><span class="d-sm-inline-block d-lg-none">Actualizar</span></button>
+    <div class="d-flex flex-column align-items-center">
+        <div class="index-schoolyearheader">
+            Año escolar actual
+        </div>
+        <div class="index-schoolyearname">
+            @Model.SchoolYear.Name
+        </div>
+        @if (!string.IsNullOrEmpty(Model.SchoolYear.Description))
+        {
+            <div class="index-schoolyeardesc">
+                @Model.SchoolYear.Description
+            </div>
+        }
     </div>
 </div>
 
-<div class="container">
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="load-tab" data-bs-toggle="tab" data-bs-target="#load" type="button" role="tab" aria-controls="home" aria-selected="true"><span class="fa fa-truck-ramp-box"></span> Carga</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="work-force-tab" data-bs-toggle="tab" data-bs-target="#work-force" type="button" role="tab" aria-controls="profile" aria-selected="false"><span class="fa fa-users-between-lines"></span> Fuerza de trabajo</button>
-        </li>
-    </ul>
-    <div class="tab-content" id="myTabContent">
-        <div class="tab-pane fade show active" id="load" role="tabpanel" aria-labelledby="home-tab">
-        </div>
-        <div class="tab-pane fade" id="work-force" role="tabpanel" aria-labelledby="profile-tab">
-        </div>
-    </div>
+<div class="options-selector mb-3" id="courseSelector">
+    <div class="options-selector-label">Curso</div>
+    <div class="option-selector" value="all" selected>Todos</div>
+    @foreach (var course in Model.Courses)
+    {
+        <div class="option-selector" value="@course.Id">@course.Denomination</div>
+    }
+</div>
+
+<div class="options-selector mb-4" id="periodSelector">
+    <div class="options-selector-label">Período</div>
+    @foreach (var period in Model.Periods)
+    {
+        <div class="option-selector" value="@period.Id" @(Model.Periods.First().Id == period.Id ? "selected" : "")>@period.ToString()</div>
+    }
+</div>
+
+<div id="load">
 </div>
 
 <div id="modalContainer">
@@ -68,6 +59,7 @@
     <script src="~/js/loading-modal.js"></script>
     <script src="~/js/loaditemsview.js"></script>
     <script src="~/js/select-card.js"></script>
+    <script src="~/js/options-selector.js"></script>
     <script>
         const selectedDepartment = '@(Model.Department.Id)';
         const selectedSchoolYear = '@(User.IsAdmin() ? Model.SchoolYear.Id : null)';
@@ -77,13 +69,14 @@
         var selectedMaxValue = -1;
 
         $(document).ready(function () {
-            const coursesSelect = document.getElementById("selectedCourse");
-            coursesSelect.onchange = CourseSelect;
-            selectedCourse = coursesSelect.options[coursesSelect.selectedIndex].value;
-            const periodSelect = document.getElementById("selectedPeriod");
-            periodSelect.onchange = PeriodSelected;
-            selectedPeriod = periodSelect.options[periodSelect.selectedIndex].value;
+            const coursesSelect = document.getElementById("courseSelector");
+            coursesSelect.addEventListener("option-selector-changed", () => CourseSelect());
+            selectedCourse = getSelectorOptionsSelectedValue("#courseSelector");
+            const periodSelect = document.getElementById("periodSelector");
+            periodSelect.addEventListener("option-selector-changed", () => PeriodSelected());
+            selectedPeriod = getSelectorOptionsSelectedValue("#periodSelector");
             CourseSelect();
+            InitializeSelectors();
         });
 
         function SetToggleButtons() {
@@ -103,11 +96,14 @@
             });
         }
 
-        function CourseSelect() {
-            const courseSelect = document.getElementById("selectedCourse");
-            selectedCourse = courseSelect.options[courseSelect.selectedIndex].value;
+        function PeriodSelected() {
+            selectedPeriod = getSelectorOptionsSelectedValue("#periodSelector");
             LoadPlanningItems();
-            LoadTeachers();
+        }
+
+        function CourseSelect() {
+            selectedCourse = getSelectorOptionsSelectedValue("#courseSelector");
+            LoadPlanningItems();
         }
 
         function LoadPlanningItems() {
@@ -131,32 +127,6 @@
             });
         }
 
-        function LoadTeachers() {
-            SetLoadingTeachers();
-            $.ajax({
-                url: `/loaddistribution/GetTeachersForDepartmentInPeriod?periodId=${selectedPeriod}&departmentId=${selectedDepartment}`,
-                type: "GET",
-                success: function (data) {
-                    DisableLoadingTeachers();
-                    const planningDetailsDiv = document.getElementById("work-force");
-                    planningDetailsDiv.innerHTML = data;
-                    LoadTooltips();
-                    LoadMeters();
-                },
-                error: function (xhr, status, error) {
-                    DisableLoadingTeachers();
-                    console.log(xhr, status, error);
-                }
-            });
-        }
-
-        function PeriodSelected() {
-            const periodSelect = document.getElementById("selectedPeriod");
-            selectedPeriod = periodSelect.options[periodSelect.selectedIndex].value;
-            LoadPlanningItems();
-            LoadTeachers();
-        }
-
         function CreateSpinnerNode() {
             let spinnerNode = document.createElement("div");
             spinnerNode.classList.add("spinner-grow");
@@ -175,9 +145,9 @@
             planningDetailsDiv.classList.add("d-flex");
             planningDetailsDiv.classList.add("justify-content-center");
             planningDetailsDiv.appendChild(CreateSpinnerNode());
-            const periodsSelect = document.getElementById("selectedPeriod");
+            const periodsSelect = document.getElementById("periodSelector");
             periodsSelect.disabled = true;
-            const coursesSelect = document.getElementById("selectedCourse");
+            const coursesSelect = document.getElementById("courseSelector");
             coursesSelect.disabled = true;
         }
 
@@ -186,32 +156,9 @@
             planningDetailsDiv.innerHTML = "";
             planningDetailsDiv.classList.remove("d-flex");
             planningDetailsDiv.classList.remove("justify-content-center");
-            const periodsSelect = document.getElementById("selectedPeriod");
+            const periodsSelect = document.getElementById("periodSelector");
             periodsSelect.disabled = false;
-            const coursesSelect = document.getElementById("selectedCourse");
-            coursesSelect.disabled = false;
-        }
-
-        function SetLoadingTeachers() {
-            const planningDetailsDiv = document.getElementById("work-force");
-            planningDetailsDiv.innerHTML = "";
-            planningDetailsDiv.classList.add("d-flex");
-            planningDetailsDiv.classList.add("justify-content-center");
-            planningDetailsDiv.appendChild(CreateSpinnerNode());
-            const periodsSelect = document.getElementById("selectedPeriod");
-            periodsSelect.disabled = true;
-            const coursesSelect = document.getElementById("selectedCourse");
-            coursesSelect.disabled = true;
-        }
-
-        function DisableLoadingTeachers() {
-            const planningDetailsDiv = document.getElementById("work-force");
-            planningDetailsDiv.innerHTML = "";
-            planningDetailsDiv.classList.remove("d-flex");
-            planningDetailsDiv.classList.remove("justify-content-center");
-            const periodsSelect = document.getElementById("selectedPeriod");
-            periodsSelect.disabled = false;
-            const coursesSelect = document.getElementById("selectedCourse");
+            const coursesSelect = document.getElementById("courseSelector");
             coursesSelect.disabled = false;
         }
 
@@ -310,257 +257,6 @@
                 }
             });
         }
-
-        function OpenTeacherLoadDeatils(teacherId) {
-            const periodSelect = document.getElementById("selectedPeriod");
-            selectedPeriod = periodSelect.options[periodSelect.selectedIndex].value;
-            const modalElement = document.getElementById("teacherLoadDetailsModal");
-            let modal = bootstrap.Modal.getOrCreateInstance(modalElement);
-            modal.toggle();
-            LoadTeacherLoadDetailsModalContent(teacherId);
-        }
-
-        function LoadTeacherLoadDetailsModalContent(teacherId) {
-            $.ajax({
-                url: `/loaddistribution/GetTeacherLoadDetailsModalContent?teacherId=${teacherId}&periodId=${selectedPeriod}`,
-                type: "GET",
-                success: function (data) {
-                    const modalContent = document.getElementById("teacherLoadDetailsModal-content");
-                    modalContent.innerHTML = data;
-                    LoadCollapsers();
-                    LoadTooltips();
-                    LoadMeters();
-                },
-                error: function (xhr, status, error) {
-                    console.log(xhr, status, error);
-                }
-            });
-        }
-
-        function LoadCollapsers() {
-            const collapsers = document.querySelectorAll("button.list-collapser");
-            collapsers.forEach(c => c.onclick = function () {
-                let parent = c.parentElement;
-                if (parent.hasAttribute("collapses")) {
-                    let collapses = parent.getAttribute("collapses");
-                    let collapsed = document.getElementById(collapses);
-                    if (collapsed.hasAttribute("collapsed")) {
-                        collapsed.removeAttribute("collapsed");
-                        let iconSpan = c.querySelector("span.fa");
-                        iconSpan.classList.remove("fa-chevron-down");
-                        iconSpan.classList.add("fa-chevron-up");
-                        collapsed.style.height = "100%";
-                    } else {
-                        collapsed.setAttribute("collapsed", "collapsed");
-                        let iconSpan = c.querySelector("span.fa");
-                        iconSpan.classList.add("fa-chevron-down");
-                        iconSpan.classList.remove("fa-chevron-up");
-                        collapsed.style.overflow = "hidden";
-                        collapsed.style.height = "0";
-                    }
-                }
-            });
-        }
-
-        function GetSelectedPeriod() {
-            const periodSelect = document.getElementById("selectedPeriod");
-            selectedPeriod = periodSelect.options[periodSelect.selectedIndex].value;
-            return selectedPeriod;
-        }
-
-        function AddNonTeachingLoad(type, teacherId) {
-            if (type == "UniversityExtensionActions") {
-                const ueaModalElement = document.getElementById("UniversityExtensionActionsModal");
-                let ueaModal = bootstrap.Modal.getOrCreateInstance(ueaModalElement);
-                let ueaModalBtn = document.getElementById("UniversityExtensionActionsModalButton");
-                ueaModalBtn.onclick = function () {
-                    ueaModal.hide();
-                    let selected = GetSelectCardGroupSelectedValue("UniversityExtensionActionsOptions");
-                    let model = {
-                        Type: "UniversityExtensionActions",
-                        BaseValue: selected,
-                        TeacherId: teacherId,
-                        PeriodId: GetSelectedPeriod()
-                    };
-                    $.ajax({
-                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
-                        type: "POST",
-                        data: model,
-                        success: function (data) {
-                            LoadTeacherLoadDetailsModalContent(teacherId);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(xhr, status, error);
-                        }
-                    });
-                };
-                ueaModal.show();
-                InitializeSelectCards();
-                return;
-            }
-            if (type == "CoursesReceivedAndImprovement") {
-                const criModalElement = document.getElementById("CoursesReceivedAndImprovementModal");
-                let criModal = bootstrap.Modal.getOrCreateInstance(criModalElement);
-                let criModalBtn = document.getElementById("CoursesReceivedAndImprovementModalButton");
-                criModalBtn.onclick = function () {
-                    criModal.hide();
-                    let selected = GetSelectCardGroupSelectedValue("CoursesReceivedAndImprovementOptions");
-                    let model = {
-                        Type: "CoursesReceivedAndImprovement",
-                        BaseValue: selected,
-                        TeacherId: teacherId,
-                        PeriodId: GetSelectedPeriod()
-                    };
-                    $.ajax({
-                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
-                        type: "POST",
-                        data: model,
-                        success: function (data) {
-                            LoadTeacherLoadDetailsModalContent(teacherId);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(xhr, status, error);
-                        }
-                    });
-                };
-                criModal.show();
-                InitializeSelectCards();
-                return;
-            }
-            if (type == "UndergraduateTutoring") {
-                const utModalElement = document.getElementById("UndergraduateTutoringModal");
-                let utModal = bootstrap.Modal.getOrCreateInstance(utModalElement);
-                let utModalBtn = document.getElementById("UndergraduateTutoringModalButton");
-                utModalBtn.onclick = function () {
-                    utModal.hide();
-                    let integrativeProjectDiplomants = document.getElementById("IntegrativeProjectDiplomants");
-                    let thesisDiplomants = document.getElementById("ThesisDiplomants");
-                    let loadModel = {
-                        IntegrativeProjectDiplomants: integrativeProjectDiplomants.value,
-                        ThesisDiplomants: thesisDiplomants.value
-                    };
-                    let selected = JSON.stringify(loadModel);
-                    let model = {
-                        Type: "UndergraduateTutoring",
-                        BaseValue: selected,
-                        TeacherId: teacherId,
-                        PeriodId: GetSelectedPeriod()
-                    };
-                    $.ajax({
-                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
-                        type: "POST",
-                        data: model,
-                        success: function (data) {
-                            LoadTeacherLoadDetailsModalContent(teacherId);
-                            integrativeProjectDiplomants.value = 0;
-                            thesisDiplomants.value = 0;
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(xhr, status, error);
-                        }
-                    });
-                };
-                utModal.show();
-                InitializeSelectCards();
-                return;
-            }
-            if (type == "GraduateTutoring") {
-                const gtModalElement = document.getElementById("GraduateTutoringModal");
-                let gtModal = bootstrap.Modal.getOrCreateInstance(gtModalElement);
-                let gtModalBtn = document.getElementById("GraduateTutoringModalButton");
-                gtModalBtn.onclick = function () {
-                    gtModal.hide();
-                    let diplomaOrMastersDegreeDiplomants = document.getElementById("DiplomaOrMastersDegreeDiplomants");
-                    let doctorateDiplomants = document.getElementById("DoctorateDiplomants");
-                    let loadModel = {
-                        DiplomaOrMastersDegreeDiplomants: diplomaOrMastersDegreeDiplomants.value,
-                        DoctorateDiplomants: doctorateDiplomants.value
-                    };
-                    let selected = JSON.stringify(loadModel);
-                    let model = {
-                        Type: "GraduateTutoring",
-                        BaseValue: selected,
-                        TeacherId: teacherId,
-                        PeriodId: GetSelectedPeriod()
-                    };
-                    $.ajax({
-                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
-                        type: "POST",
-                        data: model,
-                        success: function (data) {
-                            LoadTeacherLoadDetailsModalContent(teacherId);
-                            diplomaOrMastersDegreeDiplomants.value = 0;
-                            doctorateDiplomants.value = 0;
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(xhr, status, error);
-                        }
-                    });
-                };
-                gtModal.show();
-                InitializeSelectCards();
-                return;
-            }
-            if (type == "ParticipationInProjects") {
-                const ppModalElement = document.getElementById("ParticipationInProjectsModal");
-                let ppModal = bootstrap.Modal.getOrCreateInstance(ppModalElement);
-                let ppModalBtn = document.getElementById("ParticipationInProjectsModalButton");
-                ppModalBtn.onclick = function () {
-                    ppModal.hide();
-                    let selected = GetSelectCardGroupSelectedValue("ParticipationInProjectsOptions");
-                    let model = {
-                        Type: "ParticipationInProjects",
-                        BaseValue: selected,
-                        TeacherId: teacherId,
-                        PeriodId: GetSelectedPeriod()
-                    };
-                    $.ajax({
-                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
-                        type: "POST",
-                        data: model,
-                        success: function (data) {
-                            LoadTeacherLoadDetailsModalContent(teacherId);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(xhr, status, error);
-                        }
-                    });
-                };
-                ppModal.show();
-                InitializeSelectCards();
-                return;
-            }
-            if (type == "OtherFunctions") {
-                const ofModalElement = document.getElementById("OtherFunctionsModal");
-                let ofModal = bootstrap.Modal.getOrCreateInstance(ofModalElement);
-                let ofModalBtn = document.getElementById("OtherFunctionsModalButton");
-                ofModalBtn.onclick = function () {
-                    ofModal.hide();
-                    let selected = document.getElementById("OtherFunctionsValue").value;
-                    let model = {
-                        Type: "OtherFunctions",
-                        BaseValue: selected,
-                        TeacherId: teacherId,
-                        PeriodId: GetSelectedPeriod()
-                    };
-                    $.ajax({
-                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
-                        type: "POST",
-                        data: model,
-                        success: function (data) {
-                            LoadTeacherLoadDetailsModalContent(teacherId);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(xhr, status, error);
-                        }
-                    });
-                };
-                ofModal.show();
-                InitializeSelectCards();
-                return;
-            }
-        }
-
     </script>
 
     <script>

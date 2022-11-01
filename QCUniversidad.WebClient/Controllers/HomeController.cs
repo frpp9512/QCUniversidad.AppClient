@@ -78,54 +78,6 @@ public class HomeController : Controller
         }
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetTeachersChartAsync()
-    {
-        IList<TeacherModel> teachers;
-        if (User.IsAdmin())
-        {
-            teachers = await _dataProvider.GetTeachersAsync(0, 0);
-        }
-        else
-        {
-            var departmentId = User.GetDepartmentId();
-            teachers = await _dataProvider.GetTeachersOfDepartmentAsync(departmentId);
-        }
-        var chartModel = ModelListCharter.GetChartModel(ChartType.Doughnut,
-                                                        new List<TeacherCategory>((TeacherCategory[])Enum.GetValues(typeof(TeacherCategory))),
-                                                        e => teachers.Count(t => t.Category == e),
-                                                        e => e.GetEnumDisplayNameValue(),
-                                                        title: "Profesores por categoría",
-                                                        showXScale: false,
-                                                        showYScale: false,
-                                                        legendPosition: ChartLegendPosition.Left);
-        return Ok(chartModel.GetJson());
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> GetTeachersChartByContractTypeAsync()
-    {
-        IList<TeacherModel> teachers;
-        if (User.IsAdmin())
-        {
-            teachers = await _dataProvider.GetTeachersAsync(0, 0);
-        }
-        else
-        {
-            var departmentId = User.GetDepartmentId();
-            teachers = await _dataProvider.GetTeachersOfDepartmentAsync(departmentId);
-        }
-        var chartModel = ModelListCharter.GetChartModel(ChartType.Doughnut,
-                                                        new List<TeacherContractType>((TeacherContractType[])Enum.GetValues(typeof(TeacherContractType))),
-                                                        e => teachers.Count(t => t.ContractType == e),
-                                                        e => e.GetEnumDisplayNameValue(),
-                                                        title: "Profesores por tipo de contrato",
-                                                        showXScale: false,
-                                                        showYScale: false,
-                                                        legendPosition: ChartLegendPosition.Left);
-        return Ok(chartModel.GetJson());
-    }
-
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error() => View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
 }

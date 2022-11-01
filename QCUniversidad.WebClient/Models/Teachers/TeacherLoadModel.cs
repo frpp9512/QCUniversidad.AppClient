@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Cors;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,5 +14,7 @@ public class TeacherLoadModel
     public Guid PeriodId { get; set; }
     public double Load { get; set; }
     public double TimeFund { get; set; }
+
+    [Display(Name = "Carga")]
     public double LoadPercent { get; set; }
 }

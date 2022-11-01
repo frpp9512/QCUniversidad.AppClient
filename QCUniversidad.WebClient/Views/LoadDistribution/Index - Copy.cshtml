@@ -1,0 +1,605 @@
+﻿@using QCUniversidad.WebClient.Services.Platform
+@model LoadDistributionIndexModel
+
+@{
+    ViewData["Title"] = "Distribución de carga";
+}
+
+<h1>Distribución de carga</h1>
+<hr />
+
+<h6>Año escolar: @Model.SchoolYear.Name</h6>
+
+<h3>Departamento de @Model.Department.Name</h3>
+<p>@Model.Department.Description</p>
+
+<div class="row mt-3 mb-3">
+    <div class="col col-lg-3 col-sm-6 col-12">
+        <label for="selectedCourse">Curso</label>
+        <div class="d-flex flex-row align-items-center">
+            <select class="form-select" aria-label="Seleccionar curso" id="selectedCourse">
+                <option value="none">Todos</option>
+                @foreach (var course in Model.Courses)
+                {
+                    <option value="@course.Id">@course.Denomination</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="col col-lg-3 col-sm-6 col-12 mb-3 mb-sm-3 mb-lg-0">
+        <label for="selectedPeriod">Período</label>
+        <select class="form-select" aria-label="Seleccionar período" id="selectedPeriod">
+            @foreach (var period in Model.Periods)
+            {
+                <option value="@period.Id">@period.ToString()</option>
+            }
+        </select>
+    </div>
+    <div class="col align-self-end">
+        <button class="btn btn-info" onclick="PeriodSelected()"><span class="fa fa-refresh"></span><span class="d-sm-inline-block d-lg-none">Actualizar</span></button>
+    </div>
+</div>
+
+<div class="container">
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="load-tab" data-bs-toggle="tab" data-bs-target="#load" type="button" role="tab" aria-controls="home" aria-selected="true"><span class="fa fa-truck-ramp-box"></span> Carga</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="work-force-tab" data-bs-toggle="tab" data-bs-target="#work-force" type="button" role="tab" aria-controls="profile" aria-selected="false"><span class="fa fa-users-between-lines"></span> Fuerza de trabajo</button>
+        </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="load" role="tabpanel" aria-labelledby="home-tab">
+        </div>
+        <div class="tab-pane fade" id="work-force" role="tabpanel" aria-labelledby="profile-tab">
+        </div>
+    </div>
+</div>
+
+<div id="modalContainer">
+</div>
+
+<partial name="_LoadingModal" />
+
+@section Scripts {
+    <script src="~/lib/percentage-circle/circle.js"></script>
+    <script src="~/lib/popper/popper.min.js"></script>
+    <script src="~/js/loading-modal.js"></script>
+    <script src="~/js/loaditemsview.js"></script>
+    <script src="~/js/select-card.js"></script>
+    <script>
+        const selectedDepartment = '@(Model.Department.Id)';
+        const selectedSchoolYear = '@(User.IsAdmin() ? Model.SchoolYear.Id : null)';
+        var selectedCourse = null;
+        var selectedPeriod = null;
+        var selectedPlanItem = '';
+        var selectedMaxValue = -1;
+
+        $(document).ready(function () {
+            const coursesSelect = document.getElementById("selectedCourse");
+            coursesSelect.onchange = CourseSelect;
+            selectedCourse = coursesSelect.options[coursesSelect.selectedIndex].value;
+            const periodSelect = document.getElementById("selectedPeriod");
+            periodSelect.onchange = PeriodSelected;
+            selectedPeriod = periodSelect.options[periodSelect.selectedIndex].value;
+            CourseSelect();
+        });
+
+        function SetToggleButtons() {
+            let buttons = document.querySelectorAll("button.pi-toggle-btn");
+            if (buttons.length > 0) {
+                buttons.forEach(b => b.onclick = function () {
+                    b.children[0].classList.toggle("fa-chevron-down");
+                    b.children[0].classList.toggle("fa-chevron-up");
+                });
+            }
+        }
+
+        function LoadTooltips() {
+            let tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            let tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+
+        function CourseSelect() {
+            const courseSelect = document.getElementById("selectedCourse");
+            selectedCourse = courseSelect.options[courseSelect.selectedIndex].value;
+            LoadPlanningItems();
+            LoadTeachers();
+        }
+
+        function LoadPlanningItems() {
+            SetLoadingPlanning();
+            $.ajax({
+                url: `/loaddistribution/GetPlanningItemsView?periodId=${selectedPeriod}&departmentId=${selectedDepartment}&courseId=${selectedCourse}`,
+                type: "GET",
+                success: function (data) {
+                    DisableLoadingPlanning();
+                    const planningDetailsDiv = document.getElementById("load");
+                    planningDetailsDiv.innerHTML = data;
+                    LoadTooltips();
+                    RefreshView();
+                    LoadMeters();
+                    SetToggleButtons();
+                },
+                error: function (xhr, status, error) {
+                    DisableLoadingPlanning();
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function LoadTeachers() {
+            SetLoadingTeachers();
+            $.ajax({
+                url: `/loaddistribution/GetTeachersForDepartmentInPeriod?periodId=${selectedPeriod}&departmentId=${selectedDepartment}`,
+                type: "GET",
+                success: function (data) {
+                    DisableLoadingTeachers();
+                    const planningDetailsDiv = document.getElementById("work-force");
+                    planningDetailsDiv.innerHTML = data;
+                    LoadTooltips();
+                    LoadMeters();
+                },
+                error: function (xhr, status, error) {
+                    DisableLoadingTeachers();
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function PeriodSelected() {
+            const periodSelect = document.getElementById("selectedPeriod");
+            selectedPeriod = periodSelect.options[periodSelect.selectedIndex].value;
+            LoadPlanningItems();
+            LoadTeachers();
+        }
+
+        function CreateSpinnerNode() {
+            let spinnerNode = document.createElement("div");
+            spinnerNode.classList.add("spinner-grow");
+            spinnerNode.classList.add("m-5");
+            spinnerNode.role = "status";
+            let spinnerSpan = document.createElement("span");
+            spinnerSpan.classList.add("visually-hidden");
+            spinnerSpan.innerText = "Loading...";
+            spinnerNode.appendChild(spinnerSpan);
+            return spinnerNode;
+        }
+
+        function SetLoadingPlanning() {
+            const planningDetailsDiv = document.getElementById("load");
+            planningDetailsDiv.innerHTML = "";
+            planningDetailsDiv.classList.add("d-flex");
+            planningDetailsDiv.classList.add("justify-content-center");
+            planningDetailsDiv.appendChild(CreateSpinnerNode());
+            const periodsSelect = document.getElementById("selectedPeriod");
+            periodsSelect.disabled = true;
+            const coursesSelect = document.getElementById("selectedCourse");
+            coursesSelect.disabled = true;
+        }
+
+        function DisableLoadingPlanning() {
+            const planningDetailsDiv = document.getElementById("load");
+            planningDetailsDiv.innerHTML = "";
+            planningDetailsDiv.classList.remove("d-flex");
+            planningDetailsDiv.classList.remove("justify-content-center");
+            const periodsSelect = document.getElementById("selectedPeriod");
+            periodsSelect.disabled = false;
+            const coursesSelect = document.getElementById("selectedCourse");
+            coursesSelect.disabled = false;
+        }
+
+        function SetLoadingTeachers() {
+            const planningDetailsDiv = document.getElementById("work-force");
+            planningDetailsDiv.innerHTML = "";
+            planningDetailsDiv.classList.add("d-flex");
+            planningDetailsDiv.classList.add("justify-content-center");
+            planningDetailsDiv.appendChild(CreateSpinnerNode());
+            const periodsSelect = document.getElementById("selectedPeriod");
+            periodsSelect.disabled = true;
+            const coursesSelect = document.getElementById("selectedCourse");
+            coursesSelect.disabled = true;
+        }
+
+        function DisableLoadingTeachers() {
+            const planningDetailsDiv = document.getElementById("work-force");
+            planningDetailsDiv.innerHTML = "";
+            planningDetailsDiv.classList.remove("d-flex");
+            planningDetailsDiv.classList.remove("justify-content-center");
+            const periodsSelect = document.getElementById("selectedPeriod");
+            periodsSelect.disabled = false;
+            const coursesSelect = document.getElementById("selectedCourse");
+            coursesSelect.disabled = false;
+        }
+
+        var loadingAddLoadModal = false;
+
+        function RiseAddLoadModal(planItemId, disciplineId) {
+            loadingAddLoadModal = true;
+            OpenLoadingModal('Cargando información para agregar carga');
+            $.ajax({
+                url: `/loaddistribution/GetAddLoadModal?planItemId=${planItemId}&departmentId=${selectedDepartment}&disciplineId=${disciplineId}`,
+                type: "GET",
+                success: function (data) {
+                    loadingAddLoadModal = false;
+                    const modalDiv = document.getElementById("modalContainer");
+                    modalDiv.innerHTML = data;
+                    LoadTooltips();
+                    CloseLoadingModal();
+                    let myModal = new bootstrap.Modal(document.getElementById('addload-modal'));
+                    myModal.show();
+                    $('.select-teacher').select2({
+                        placeholder: "Seleccione el profesor",
+                        dropdownParent: $('#addload-modal')
+                    });
+                    selectedPlanItem = planItemId;
+                    selectedMaxValue = document.getElementById("loadHours").valueMax;
+                },
+                error: function (xhr, status, error) {
+                    loadingAddLoadModal = false;
+                    CloseLoadingModal();
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function AddLoadToTeacher(planItemId) {
+            if (selectedPlanItem == planItemId
+                && document.querySelectorAll(`div[data-planitem-id='${planItemId}']`).length == 1) {
+
+                let maxValue = document.getElementById('loadHours').max;
+                if (selectedMaxValue == maxValue) {
+                    alert(`El valor máximo debe de ser ${maxValue}.`);
+                }
+                const selectTeacher = document.getElementById('selectTeacher');
+                let selectedTeacher = selectTeacher.options[selectTeacher.selectedIndex].value;
+                if (selectedTeacher == "none") {
+                    alert("Debe de seleccionar un profesor para agregar la carga.");
+                    return;
+                }
+                const loadInput = document.getElementById('loadHours');
+                let load = loadInput.value;
+                if (load > selectedMaxValue) {
+                    alert(`La cantidad de horas no debe de exeder el máximo disponible de ${selectedMaxValue} horas.`);
+                    return;
+                }
+                console.log(`Add load of ${load} hours to teacher with id ${selectedTeacher}`);
+                OpenLoadingModal("Agregando carga al profesor");
+                let model = {
+                    TeacherId: selectedTeacher,
+                    PlanningItemId: planItemId,
+                    HoursCovered: load
+                };
+
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("PUT", "/loaddistribution/setteacherload", true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                xhttp.onreadystatechange = function () {
+                    if (this.status == 200) {
+
+                    } else {
+                        console.log("Error creando periodo", `${this.status} - ${this.statusText} - ${this.responseText}`)
+                    }
+                    CloseLoadingModal();
+                    PeriodSelected();
+                    let myModal = bootstrap.Modal.getInstance(document.getElementById('addload-modal'));
+                    myModal.hide();
+                };
+                xhttp.send(JSON.stringify(model));
+            } else {
+                alert('Ha existido irregularidad. Actualize la página y continue con su actividad. Si continúa este comportamiento contacte a los administradores.');
+            }
+        }
+
+        function DeleteLoadItem(loadItemId) {
+            OpenLoadingModal('Eliminando carga');
+            $.ajax({
+                url: `/loaddistribution/DeleteLoadItem?loadItemId=${loadItemId}`,
+                type: "DELETE",
+                success: function (data) {
+                    CloseLoadingModal();
+                    LoadPlanningItems();
+                    LoadTeachers();
+                },
+                error: function (xhr, status, error) {
+                    CloseLoadingModal();
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function OpenTeacherLoadDeatils(teacherId) {
+            const periodSelect = document.getElementById("selectedPeriod");
+            selectedPeriod = periodSelect.options[periodSelect.selectedIndex].value;
+            const modalElement = document.getElementById("teacherLoadDetailsModal");
+            let modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modal.toggle();
+            LoadTeacherLoadDetailsModalContent(teacherId);
+        }
+
+        function LoadTeacherLoadDetailsModalContent(teacherId) {
+            $.ajax({
+                url: `/loaddistribution/GetTeacherLoadDetailsModalContent?teacherId=${teacherId}&periodId=${selectedPeriod}`,
+                type: "GET",
+                success: function (data) {
+                    const modalContent = document.getElementById("teacherLoadDetailsModal-content");
+                    modalContent.innerHTML = data;
+                    LoadCollapsers();
+                    LoadTooltips();
+                    LoadMeters();
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function LoadCollapsers() {
+            const collapsers = document.querySelectorAll("button.list-collapser");
+            collapsers.forEach(c => c.onclick = function () {
+                let parent = c.parentElement;
+                if (parent.hasAttribute("collapses")) {
+                    let collapses = parent.getAttribute("collapses");
+                    let collapsed = document.getElementById(collapses);
+                    if (collapsed.hasAttribute("collapsed")) {
+                        collapsed.removeAttribute("collapsed");
+                        let iconSpan = c.querySelector("span.fa");
+                        iconSpan.classList.remove("fa-chevron-down");
+                        iconSpan.classList.add("fa-chevron-up");
+                        collapsed.style.height = "100%";
+                    } else {
+                        collapsed.setAttribute("collapsed", "collapsed");
+                        let iconSpan = c.querySelector("span.fa");
+                        iconSpan.classList.add("fa-chevron-down");
+                        iconSpan.classList.remove("fa-chevron-up");
+                        collapsed.style.overflow = "hidden";
+                        collapsed.style.height = "0";
+                    }
+                }
+            });
+        }
+
+        function GetSelectedPeriod() {
+            const periodSelect = document.getElementById("selectedPeriod");
+            selectedPeriod = periodSelect.options[periodSelect.selectedIndex].value;
+            return selectedPeriod;
+        }
+
+        function AddNonTeachingLoad(type, teacherId) {
+            if (type == "UniversityExtensionActions") {
+                const ueaModalElement = document.getElementById("UniversityExtensionActionsModal");
+                let ueaModal = bootstrap.Modal.getOrCreateInstance(ueaModalElement);
+                let ueaModalBtn = document.getElementById("UniversityExtensionActionsModalButton");
+                ueaModalBtn.onclick = function () {
+                    ueaModal.hide();
+                    let selected = GetSelectCardGroupSelectedValue("UniversityExtensionActionsOptions");
+                    let model = {
+                        Type: "UniversityExtensionActions",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                ueaModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "CoursesReceivedAndImprovement") {
+                const criModalElement = document.getElementById("CoursesReceivedAndImprovementModal");
+                let criModal = bootstrap.Modal.getOrCreateInstance(criModalElement);
+                let criModalBtn = document.getElementById("CoursesReceivedAndImprovementModalButton");
+                criModalBtn.onclick = function () {
+                    criModal.hide();
+                    let selected = GetSelectCardGroupSelectedValue("CoursesReceivedAndImprovementOptions");
+                    let model = {
+                        Type: "CoursesReceivedAndImprovement",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                criModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "UndergraduateTutoring") {
+                const utModalElement = document.getElementById("UndergraduateTutoringModal");
+                let utModal = bootstrap.Modal.getOrCreateInstance(utModalElement);
+                let utModalBtn = document.getElementById("UndergraduateTutoringModalButton");
+                utModalBtn.onclick = function () {
+                    utModal.hide();
+                    let integrativeProjectDiplomants = document.getElementById("IntegrativeProjectDiplomants");
+                    let thesisDiplomants = document.getElementById("ThesisDiplomants");
+                    let loadModel = {
+                        IntegrativeProjectDiplomants: integrativeProjectDiplomants.value,
+                        ThesisDiplomants: thesisDiplomants.value
+                    };
+                    let selected = JSON.stringify(loadModel);
+                    let model = {
+                        Type: "UndergraduateTutoring",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                            integrativeProjectDiplomants.value = 0;
+                            thesisDiplomants.value = 0;
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                utModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "GraduateTutoring") {
+                const gtModalElement = document.getElementById("GraduateTutoringModal");
+                let gtModal = bootstrap.Modal.getOrCreateInstance(gtModalElement);
+                let gtModalBtn = document.getElementById("GraduateTutoringModalButton");
+                gtModalBtn.onclick = function () {
+                    gtModal.hide();
+                    let diplomaOrMastersDegreeDiplomants = document.getElementById("DiplomaOrMastersDegreeDiplomants");
+                    let doctorateDiplomants = document.getElementById("DoctorateDiplomants");
+                    let loadModel = {
+                        DiplomaOrMastersDegreeDiplomants: diplomaOrMastersDegreeDiplomants.value,
+                        DoctorateDiplomants: doctorateDiplomants.value
+                    };
+                    let selected = JSON.stringify(loadModel);
+                    let model = {
+                        Type: "GraduateTutoring",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                            diplomaOrMastersDegreeDiplomants.value = 0;
+                            doctorateDiplomants.value = 0;
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                gtModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "ParticipationInProjects") {
+                const ppModalElement = document.getElementById("ParticipationInProjectsModal");
+                let ppModal = bootstrap.Modal.getOrCreateInstance(ppModalElement);
+                let ppModalBtn = document.getElementById("ParticipationInProjectsModalButton");
+                ppModalBtn.onclick = function () {
+                    ppModal.hide();
+                    let selected = GetSelectCardGroupSelectedValue("ParticipationInProjectsOptions");
+                    let model = {
+                        Type: "ParticipationInProjects",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                ppModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "OtherFunctions") {
+                const ofModalElement = document.getElementById("OtherFunctionsModal");
+                let ofModal = bootstrap.Modal.getOrCreateInstance(ofModalElement);
+                let ofModalBtn = document.getElementById("OtherFunctionsModalButton");
+                ofModalBtn.onclick = function () {
+                    ofModal.hide();
+                    let selected = document.getElementById("OtherFunctionsValue").value;
+                    let model = {
+                        Type: "OtherFunctions",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                ofModal.show();
+                InitializeSelectCards();
+                return;
+            }
+        }
+
+    </script>
+
+    <script>
+        var currentView = "grid";
+
+        function SetView(view) {
+            if (view == null || view == '') {
+                return;
+            }
+            currentView = view;
+            RefreshView();
+        }
+
+        function RefreshView() {
+            const showTableBtn = document.getElementById("showTable");
+            const showGridBtn = document.getElementById("showGrid");
+            const tableView = document.getElementById("tableView");
+            const gridView = document.getElementById("gridView");
+
+            switch (currentView) {
+                case "grid":
+                    showTableBtn.classList.remove("btn-primary");
+                    showTableBtn.classList.add("btn-outline-primary");
+                    showGridBtn.classList.add("btn-primary");
+                    showGridBtn.classList.remove("btn-outline-primary");
+                    tableView.style.visibility = "collapse";
+                    gridView.style.visibility = "visible";
+                    break;
+                case "table":
+                    showTableBtn.classList.add("btn-primary");
+                    showTableBtn.classList.remove("btn-outline-primary");
+                    showGridBtn.classList.remove("btn-primary");
+                    showGridBtn.classList.add("btn-outline-primary");
+                    tableView.style.visibility = "visible";
+                    gridView.style.visibility = "collapse";
+                    break;
+                default:
+                    break;
+            }
+        }
+    </script>
+}

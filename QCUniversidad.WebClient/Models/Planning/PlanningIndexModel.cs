@@ -17,5 +17,6 @@ namespace QCUniversidad.WebClient.Models.Planning
         public Guid? PeriodSelected { get; set; }
         public Guid? CourseSelected { get; set; }
         public IList<CourseModel> Courses { get; set; }
+        public string Tab { get; set; } = "periodsubjects";
     }
 }

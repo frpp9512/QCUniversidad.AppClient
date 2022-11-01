@@ -8,6 +8,7 @@ using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.Api.Shared.Extensions;
 using QCUniversidad.Api.Shared.CommonModels;
+using System.Net.WebSockets;
 
 namespace QCUniversidad.Api.Services;
 
@@ -288,7 +289,7 @@ public class DataManager : IDataManager
         {
             throw new PeriodNotFoundException();
         }
-        var query = from loadItem in _context.LoadItems
+        var loadItemsQuery = from loadItem in _context.LoadItems
                     join planItem in _context.TeachingPlanItems
                     on loadItem.PlanningItemId equals planItem.Id
                     where planItem.PeriodId == periodId
@@ -301,9 +302,18 @@ public class DataManager : IDataManager
                     where discipline.DepartmentId == departmentId
                     select loadItem.HoursCovered;
 
-        var result = await query.SumAsync();
+        var nonTeachingLoadQuery = from ntl in _context.NonTeachingLoad
+                                   join teacher in _context.Teachers
+                                   on ntl.TeacherId equals teacher.Id
+                                   where ntl.PeriodId == periodId && teacher.DepartmentId == departmentId
+                                   select ntl.Load;
 
-        return result;
+        var isPeriodFromCurrentYear = !await IsPeriodInCurrentYear(periodId);
+        var teachersCount = await _context.Teachers.CountAsync(t => t.DepartmentId == departmentId && (isPeriodFromCurrentYear ? t.Active : true));
+
+        var result = (await loadItemsQuery.SumAsync() + await nonTeachingLoadQuery.SumAsync()) / teachersCount;
+
+        return Math.Round(result, 2);
     }
 
     public async Task<double> GetDepartmentTotalTimeFund(Guid departmentId, Guid periodId)
@@ -887,37 +897,51 @@ public class DataManager : IDataManager
                 };
                 return oaItem;
             case NonTeachingLoadType.ExamGrade:
-                var planItemsQuery = from loadItem in _context.LoadItems
-                                     join planItem in _context.TeachingPlanItems
-                                     on loadItem.PlanningItemId equals planItem.Id
-                                     where loadItem.TeacherId == teacherId && planItem.PeriodId == periodId
-                                     select new { PlanItemId = planItem.Id, planItem.CourseId, planItem.SubjectId };
+                var loadSubjects = from loadItem in _context.LoadItems
+                                   join planItem in _context.TeachingPlanItems
+                                   on loadItem.PlanningItemId equals planItem.Id
+                                   where loadItem.TeacherId == teacherId && planItem.PeriodId == periodId
+                                   select new { planItem.SubjectId, planItem.CourseId };
 
                 double total = 0;
 
-                foreach (var info in planItemsQuery.Distinct())
+                var loadSubjectsInfo = await loadSubjects.ToListAsync();
+                var loadSubjectsGroup = loadSubjectsInfo.GroupBy(ls => ls.CourseId);
+
+                foreach (var lsc in loadSubjectsGroup)
                 {
-                    var teachersCountQuery = from planItem in _context.TeachingPlanItems
-                                             join loadItem in _context.LoadItems
-                                             on planItem.Id equals loadItem.PlanningItemId
-                                             where planItem.Id == info.PlanItemId
-                                             select loadItem.TeacherId;
+                    var currentCourse = lsc.First().CourseId;
+                    var courseEnrolmentQuery = from course in _context.Courses
+                                               where course.Id == currentCourse
+                                               select course.Enrolment;
+                    var courseEnrolment = await courseEnrolmentQuery.FirstAsync();
 
-                    var subject = await _context.PeriodSubjects.Where(ps => ps.SubjectId == info.SubjectId).FirstOrDefaultAsync();
+                    double subtotal = 0;
 
-                    var teachersCount = await teachersCountQuery.Distinct().CountAsync();
-                    var courseEnrolment = await _context.Courses.Where(c => c.Id == info.CourseId).Select(c => c.Enrolment).FirstAsync();
-                    var midTermExams = subject.MidtermExamsCount;
-                    var finalExams = subject.HaveFinalExam ? 1 : 0;
+                    foreach (var ls in lsc)
+                    {
+                        var periodSubjectDataQuery = from periodSubject in _context.PeriodSubjects
+                                                     where periodSubject.PeriodId == periodId && periodSubject.CourseId == ls.CourseId && periodSubject.SubjectId == ls.SubjectId
+                                                     select new { periodSubject.MidtermExamsCount, FinalExam = periodSubject.HaveFinalExam ? 1 : 0 };
+                        var periodSubjectData = await periodSubjectDataQuery.FirstAsync();
 
-                    var midTermExamGrade = midTermExams * _calculationOptions.ExamGradeMidTermAverageTime * courseEnrolment;
-                    var finalExamGrade = finalExams * _calculationOptions.ExamGradeFinalAverageTime * courseEnrolment;
-                    var secondFinalExamGrade = (finalExamGrade * _calculationOptions.SecondExamGradeFinalCoefficient) * _calculationOptions.ExamGradeFinalAverageTime * courseEnrolment;
-                    var thirdFinalExamGrade = (finalExamGrade * _calculationOptions.ThirdExamGradeFinalCoefficient) * _calculationOptions.ExamGradeFinalAverageTime * courseEnrolment;
+                        var teachersCountQuery = from loadItem in _context.LoadItems
+                                                 join planItem in _context.TeachingPlanItems
+                                                 on loadItem.PlanningItemId equals planItem.Id
+                                                 where planItem.PeriodId == periodId && planItem.SubjectId == ls.SubjectId && planItem.CourseId == ls.CourseId
+                                                 select loadItem.TeacherId;
+                        var teachersCount = await teachersCountQuery.Distinct().CountAsync();
 
-                    var examGrade = (midTermExamGrade + finalExamGrade + secondFinalExamGrade + thirdFinalExamGrade) / teachersCount;
+                        var midTermExamValue = periodSubjectData.MidtermExamsCount * _calculationOptions.ExamGradeMidTermAverageTime * courseEnrolment;
+                        var finalExamParam = _calculationOptions.ExamGradeFinalAverageTime * courseEnrolment;
+                        var finalExamValue = periodSubjectData.FinalExam * finalExamParam;
+                        var secondFinalExamValue = (periodSubjectData.FinalExam * _calculationOptions.SecondExamGradeFinalCoefficient) * finalExamParam;
+                        var thirdFinalExamValue = (periodSubjectData.FinalExam * _calculationOptions.ThirdExamGradeFinalCoefficient) * finalExamParam;
 
-                    total += examGrade;
+                        var examGradeValue = (midTermExamValue + finalExamValue + secondFinalExamValue + thirdFinalExamValue) / teachersCount;
+                        subtotal += examGradeValue;
+                    }
+                    total += subtotal;
                 }
 
                 var examGradeLoad = new NonTeachingLoadModel

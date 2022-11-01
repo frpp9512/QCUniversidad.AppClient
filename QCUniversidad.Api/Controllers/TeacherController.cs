@@ -169,7 +169,7 @@ public class TeacherController : ControllerBase
         try
         {
             var result = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
-            var dtos = result.Select(i => _mapper.Map<TeacherModel>(i));
+            var dtos = result.Select(i => _mapper.Map<TeacherDto>(i));
             return Ok(dtos);
         }
         catch (Exception ex)

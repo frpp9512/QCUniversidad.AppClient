@@ -1,5 +1,14 @@
 :root {
-    --main-color: #512bd4;
+    --main-color: rgba(92, 92, 184, 1);
+    --main-color-90: rgba(92, 92, 184, 0.9);
+    --main-color-80: rgba(92, 92, 184, 0.8);
+    --main-color-70: rgba(92, 92, 184, 0.7);
+    --main-color-60: rgba(92, 92, 184, 0.6);
+    --main-color-50: rgba(92, 92, 184, 0.5);
+    --main-color-40: rgba(92, 92, 184, 0.4);
+    --main-color-30: rgba(92, 92, 184, 0.3);
+    --main-color-20: rgba(92, 92, 184, 0.2);
+    --main-color-10: rgba(92, 92, 184, 0.1);
     --text-color: #808080;
     --white: #ffffff;
 }
@@ -30,6 +39,7 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
     color: var(--main-color);
+    font-weight: bolder;
 }
 
 p {
@@ -49,6 +59,31 @@ main {
     border-radius: 5px;
 }
 
+.nav-link {
+    color: var(--main-color);
+    font-weight: 600;
+}
+
+.nav-link.active {
+    color: var(--text-color);
+}
+
+.font-light {
+    font-weight: lighter;
+}
+
+.font-heavy {
+    font-weight: bolder;
+}
+
+.font-bold {
+    font-weight: bold;
+}
+
+.font-main-color {
+    color: var(--main-color);
+}
+
 .banner-title {
     color: var(--main-color);
     font-weight: bold;
@@ -63,7 +98,7 @@ main {
 .index-department-name {
     color: var(--main-color);
     font-weight: bolder;
-    font-size: 2.5rem;
+    font-size: 2rem;
 }
 
 .index-department-name::before {
@@ -73,7 +108,7 @@ main {
 .index-department-desc {
     color: var(--text-color);
     font-weight: lighter;
-    font-size: 1.5rem;
+    font-size: 1rem;
 }
 
 .index-name {
@@ -92,10 +127,11 @@ main {
     font-size: 0.75rem;
     font-weight: bolder;
     color: var(--text-color);
+    margin-bottom: -1px;
 }
 
 .index-schoolyearname {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: bolder;
     color: var(--main-color);
     margin: -3px;
@@ -398,7 +434,7 @@ dd {
     flex-direction: column;
     border: 1px solid #eee;
     border-radius: 5px;
-    box-shadow: #ccc 1px 1px 5px;
+    box-shadow: #ccc 0px 0px 5px;
     min-width: 300px;
     animation-duration: 1s;
     animation-name: fadeInUp;
@@ -406,8 +442,9 @@ dd {
 }
 
     .icard:hover {
-        box-shadow: #bbb 2px 2px 8px;
+        box-shadow: #bbb 0px 0px 8px;
         transition: ease 0.25s;
+        background-color: var(--main-color-10);
     }
 
     .icard .icard-title {
@@ -425,7 +462,7 @@ dd {
     }
 
         .icard .icard-content .icard-value {
-            font-size: 3.5rem;
+            font-size: 2.5rem;
             color: #222020;
             display: flex;
             align-items: baseline;
@@ -480,10 +517,16 @@ dd {
         align-items: center;
         justify-content: space-between;
         border: 1px solid #ccc;
-        box-shadow: #ccc 1px 1px 5px;
+        box-shadow: #ccc 0px 0px 5px;
         border-radius: 5px;
         padding: 10px;
+        min-height: 120px
     }
+
+.load-item-header:hover {
+    background-color: var(--main-color-10);
+    transition: 0.2s;
+}
 
 .load-item-header .load-item-header-title {
     display: flex;
@@ -495,7 +538,7 @@ dd {
 
 .load-item-course {
     font-weight: bold;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     color: #808080;
     margin-bottom: 3px;
 }
@@ -991,3 +1034,66 @@ dd {
     font-size: 0.8rem;
 }
 /* end of select card */
+
+/* options selector */
+
+.options-selector {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+@media (max-width: 480px) {
+    .options-selector {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+
+.option-selector {
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0px 0px 5px #ccc;
+    transition: 0.2s;
+    color: rgba(92, 92, 184, 1);
+}
+
+    .option-selector:hover {
+        background-color: rgba(92, 92, 184, 0.8);
+        color: white;
+        box-shadow: 0px 0px 10px rgba(92, 92, 184, 0.5);
+        ;
+        transition: 0.2s;
+    }
+
+    .option-selector:active {
+        background-color: rgba(92, 92, 184, 1);
+        color: white;
+        box-shadow: inset 0px 0px 10px rgba(92, 92, 184, 0.5);
+        transition: 0.2s;
+    }
+
+    .option-selector[selected] {
+        background-color: rgba(92, 92, 184, 0.9);
+        box-shadow: inset 0px 0px 3px #555;
+        color: white;
+    }
+
+        .option-selector[selected]:hover {
+            background-color: rgba(92, 92, 184, 0.8);
+        }
+
+        .option-selector[selected]:active {
+            background-color: rgba(92, 92, 184, 1);
+            box-shadow: inset 0px 0px 3px #555;
+        }
+
+.options-selector-label {
+    color: rgba(92, 92, 184, 1);
+    margin-right: 10px;
+}
+
+/* end of options selector */

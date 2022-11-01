@@ -2,17 +2,17 @@
 @using QCUniversidad.Api.Shared.Extensions
 @model TeacherLoadViewModel
 
-<div class="d-flex flex-row align-content-center">
-    <div class="d-flex flex-column align-items-center pt-2">
+<div class="d-flex flex-row align-content-center justify-content-between">
+    <div class="d-flex flex-column align-content-center mb-3">
+        <h5>@Model.Teacher.Fullname</h5>
+        <div class="font-light">@Model.Teacher.Position</div>
+    </div>
+    <div class="d-flex flex-column align-items-center">
         <svg data-value="@Model.Teacher.Load.LoadPercent" style="width: 50px; height: 50px;" class="circle-percentage" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-chart-pie'></span> Gráfico</small></div> <div><b>@(Model.Teacher.Load.LoadPercent)% de carga distribuida</b></div> <div>Representa el porciento de carga distribuida.</div>">
             <circle r="45" cx="50" cy="50" />
             <path class="meter" style="stroke-width: "10px" d="M5,50a45,45 0 1,0 90,0a45,45 0 1,0 -90,0" stroke-linecap="round" stroke-linejoin="round" stroke-dashoffset="282.78302001953125" stroke-dasharray="282.78302001953125" />
             <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="2rem"></text>
         </svg>
-    </div>
-    <div class="d-flex flex-column align-content-center" style="margin-left: 15px">
-        <h3>@Model.Teacher.Fullname</h3>
-        <p>@Model.Teacher.Position</p>
     </div>
 </div>
 

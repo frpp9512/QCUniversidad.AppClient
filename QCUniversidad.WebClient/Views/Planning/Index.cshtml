@@ -30,60 +30,67 @@
     </div>
 }
 
-<h1>Planificación docente</h1>
-<hr />
-
-<dl class="row">
-    <dt class="col-sm-3">Año escolar</dt>
-    <dd class="col-sm-9">@Model.SchoolYear?.Name</dd>
-
-    <dt class="col-sm-3">Matrícula</dt>
-    <dd class="col-sm-9">@Model.SchoolYear?.Description</dd>
-</dl>
-
-<div class="row mt-3 mb-3">
-    <div class="col col-lg-3 col-sm-6 col-12">
-        <label for="selectedPeriod">Período</label>
-        <select asp-for="PeriodSelected" class="form-select" aria-label="Seleccionar período" id="selectedPeriod" onchange="PeriodSelected()">
-            @foreach (var period in Model.Periods)
-            {
-                <option value="@period.Id">@period.Starts.ToString("dd-MM-yyyy") - @period.Ends.ToString("dd-MM-yyyy")</option>
-            }
-        </select>
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start">
+        <div class="d-flex flex-column">
+            <div class="banner-title">Planificación</div>
+            <div class="banner-subtitle">de las cargas docentes</div>
+        </div>
     </div>
+    <div class="d-flex flex-column align-items-center">
+        <div class="index-schoolyearheader">
+            Año escolar actual
+        </div>
+        <div class="index-schoolyearname">
+            @Model.SchoolYear.Name
+        </div>
+        @if (!string.IsNullOrEmpty(Model.SchoolYear.Description))
+        {
+            <div class="index-schoolyeardesc">
+                @Model.SchoolYear.Description
+            </div>
+        }
+    </div>
+</div>
+
+<div class="options-selector mb-4" id="periodSelector">
+    <div class="options-selector-label">Período</div>
+    @foreach (var period in Model.Periods)
+    {
+        <div class="option-selector" value="@period.Id" @(Model.Periods.First().Id == period.Id ? "selected" : "")>@period.ToString()</div>
+    }
+</div>
+
+<div class="options-selector mb-4" id="courseSelector">
+    <div class="options-selector-label">Curso</div>
+    @foreach (var course in Model.Courses)
+    {
+        <div class="option-selector" value="@course.Id" @(course.Id == Model.Courses.First().Id ? "selected" : "")>@course.Denomination</div>
+    }
 </div>
 
 <div class="row">
     <div class="container">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="periodSubjects-tab" data-bs-toggle="tab" data-bs-target="#periodSubjects" type="button" role="tab" aria-controls="periodSubjects" aria-selected="true">Asignaturas</button>
+                <button class="nav-link @(Model.Tab == "periodsubjects" ? "active" : "")" id="periodSubjects-tab" data-bs-toggle="tab" data-bs-target="#periodSubjects" type="button" role="tab" aria-controls="periodSubjects" aria-selected="true">Asignaturas</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="planning-tab" data-bs-toggle="tab" data-bs-target="#planning" type="button" role="tab" aria-controls="profile" aria-selected="false">Planificación</button>
+                <button class="nav-link @(Model.Tab == "planning" ? "active" : "")" id="planning-tab" data-bs-toggle="tab" data-bs-target="#planning" type="button" role="tab" aria-controls="profile" aria-selected="false">Planificación</button>
             </li>
         </ul>
         <div class="tab-content" id="myTabContent">
-            <div class="tab-pane fade show active" id="periodSubjects" role="tabpanel" aria-labelledby="home-tab">
-                <div class="d-flex justify-content-between align-items-end">
-                    <div class="col col-lg-3 col-sm-6 col-12">
-                        <label for="selectedCourse">Curso</label>
-                        <select asp-for="CourseSelected" class="form-select" aria-label="Seleccionar curso" id="selectedCourse" onchange="CourseSelected()">
-                            @foreach (var course in Model.Courses)
-                            {
-                                <option value="@course.Id">@course.Denomination</option>
-                            }
-                        </select>
-                    </div>
+            <div class="tab-pane fade @(Model.Tab == "periodsubjects" ? "show active" : "")" id="periodSubjects" role="tabpanel" aria-labelledby="home-tab">
+                @*<div class="d-flex justify-content-end align-items-end">
                     <button class="btn btn-info" onclick="LoadPeriodSubjects()"><span class="fa fa-refresh"></span></button>
-                </div>
+                </div>*@
                 <div id="periodSubjects-content" class="d-flex justify-content-center flex-column">
                     <div class="spinner-grow m-5" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade" id="planning" role="tabpanel" aria-labelledby="profile-tab">
+            <div class="tab-pane fade @(Model.Tab == "planning" ? "show active" : "")" id="planning" role="tabpanel" aria-labelledby="profile-tab">
                 <div class="col d-flex justify-content-center" id="planningContent">
                     <div class="spinner-grow m-5" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -101,6 +108,7 @@
     <script src="~/lib/popper/popper.min.js"></script>
     <script src="~/js/loading-modal.js"></script>
     <script src="~/js/message-modal.js"></script>
+    <script src="~/js/options-selector.js"></script>
     <script>
         var periodToSelect = '@(Model.PeriodSelected is null ? "" : Model.PeriodSelected.ToString())';
         var deleteModal = null;
@@ -110,6 +118,13 @@
         $(document).ready(function () {
             PeriodSelected();
             LoadPeriodSubjects();
+            InitializeSelectors();
+            const periodSelect = document.getElementById("periodSelector");
+            periodSelect.addEventListener("option-selector-changed", () => {
+                PeriodSelected();
+            });
+            const coursesSelect = document.getElementById("courseSelector");
+            coursesSelect.addEventListener("option-selector-changed", () => LoadPeriodSubjects());
         });
 
         function LoadTooltips() {
@@ -120,16 +135,14 @@
         }
 
         function CallNewElementPage() {
-            const periodsSelect = document.getElementById("selectedPeriod");
-            let selected = periodsSelect.options[periodsSelect.selectedIndex].value;
+            let selected = getSelectorOptionsSelectedValue("#periodSelector");
             if (selected != null && selected != '') {
                 location.href = "/planning/createplanningitem?periodId=" + selected;
             }
         }
 
         function PeriodSelected() {
-            const periodsSelect = document.getElementById("selectedPeriod");
-            let selected = periodsSelect.options[periodsSelect.selectedIndex].value;
+            let selected = getSelectorOptionsSelectedValue("#periodSelector");
             LoadPeriodSubjects();
             SetLoadingPlanning();
 
@@ -150,8 +163,6 @@
             });
 
             LoadTooltips();
-
-            console.log("periods select changed", periodsSelect.selectedIndex, selected);
         }
 
         function GetYearNumber(yearNumber) {
@@ -217,14 +228,14 @@
             const planningDetailsDiv = document.getElementById("planningContent");
             planningDetailsDiv.innerHTML = "";
             planningDetailsDiv.appendChild(CreateSpinnerNode());
-            const periodsSelect = document.getElementById("selectedPeriod");
+            const periodsSelect = document.getElementById("periodSelector");
             periodsSelect.disabled = true;
         }
 
         function DisableLoadingPlanning() {
             const planningDetailsDiv = document.getElementById("planningContent");
             planningDetailsDiv.innerHTML = "";
-            const periodsSelect = document.getElementById("selectedPeriod");
+            const periodsSelect = document.getElementById("periodSelector");
             periodsSelect.disabled = false;
         }
 
@@ -233,8 +244,8 @@
             let subjectSelected = subjectFilterSelect.options[subjectFilterSelect.selectedIndex].value;
             const typeFilterSelect = document.getElementById("activityFilter");
             let typeSelected = typeFilterSelect.options[typeFilterSelect.selectedIndex].innerText;
-            const coursesSelect = document.getElementById("filterCourses");
-            let courseSelected = coursesSelect.options[coursesSelect.selectedIndex].value;
+            let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
+
             let itemsRows = document.getElementById("planningItemsTable").getElementsByTagName("tbody")[0].getElementsByTagName("tr");
             let totalShowed = 0;
             for (let i = 0; i < itemsRows.length; i++) {
@@ -328,22 +339,20 @@
             const planningDetailsDiv = document.getElementById("periodSubjects-content");
             planningDetailsDiv.innerHTML = "";
             planningDetailsDiv.appendChild(CreateSpinnerNode());
-            const periodsSelect = document.getElementById("selectedCourse");
+            const periodsSelect = document.getElementById("courseSelector");
             periodsSelect.disabled = true;
         }
 
         function DisableLoadingPeriodSubjects() {
             const planningDetailsDiv = document.getElementById("periodSubjects-content");
             planningDetailsDiv.innerHTML = "";
-            const periodsSelect = document.getElementById("selectedCourse");
+            const periodsSelect = document.getElementById("courseSelector");
             periodsSelect.disabled = false;
         }
 
         function LoadPeriodSubjects() {
-            const periodsSelect = document.getElementById("selectedPeriod");
-            let periodSelected = periodsSelect.options[periodsSelect.selectedIndex].value;
-            const courseSelect = document.getElementById("selectedCourse");
-            let courseSelected = courseSelect.options[courseSelect.selectedIndex].value;
+            let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
+            let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
             SetLoadingPeriodSubjects();
 
             $.ajax({
@@ -368,10 +377,8 @@
         }
 
         function CreatePeriodSubject() {
-            const periodsSelect = document.getElementById("selectedPeriod");
-            let periodSelected = periodsSelect.options[periodsSelect.selectedIndex].value;
-            const courseSelect = document.getElementById("selectedCourse");
-            let courseSelected = courseSelect.options[courseSelect.selectedIndex].value;
+            let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
+            let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
 
             SetCreateLoading();
 
@@ -398,10 +405,8 @@
         }
 
         function AddPeriodSubject() {
-            const courseSelect = document.getElementById("selectedCourse");
-            let courseSelected = courseSelect.options[courseSelect.selectedIndex].value;
-            const periodsSelect = document.getElementById("selectedPeriod");
-            let periodSelected = periodsSelect.options[periodsSelect.selectedIndex].value;
+            let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
+            let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
             const subjectSelect = document.getElementById("subjectSelected");
             let subjectSelected = subjectSelect.options[subjectSelect.selectedIndex].value;
             let midTermExams = document.getElementById("midTermExamsCount").value;
@@ -471,10 +476,8 @@
         }
 
         function SaveChangesOfPeriodSubject() {
-            const courseSelect = document.getElementById("selectedCourse");
-            let courseSelected = courseSelect.options[courseSelect.selectedIndex].value;
-            const periodsSelect = document.getElementById("selectedPeriod");
-            let periodSelected = periodsSelect.options[periodsSelect.selectedIndex].value;
+            let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
+            let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
             const subjectId = document.getElementById("editedSubjectSelectedId");
             let subjectSelected = subjectId.value;
             let midTermExams = document.getElementById("editedMidTermExamsCount").value;
@@ -570,11 +573,11 @@
         }
 
         function DeletePeriodSubject(periodSubjectId) {
-            RiseDeleteModal(periodSubjectId);
+            RiseDeletePeriodSubjectModal(periodSubjectId);
         }
 
-        function RiseDeleteModal(id) {
-            SetDeleteModalTextContent("¿Esta seguro que desea eliminar el elemento?");
+        function RiseDeletePeriodSubjectModal(id) {
+            SetDeletePeriodSubjectModalTextContent("¿Esta seguro que desea eliminar el elemento?");
             var button = document.getElementById("modal-deleteperiodsubject-primarybutton");
             button.onclick = function () {
                 SendDeletePeriodSubjectRequest(id);
@@ -585,8 +588,8 @@
         function SendDeletePeriodSubjectRequest(id) {
             if (!requestingDelete) {
                 requestingDelete = true;
-                HideCreateModalButtons();
-                ShowCreateModalSpinner();
+                HideCreatePeriodSubjectModalButtons();
+                ShowCreatePeriodSubjectModalSpinner();
                 var xhttp = new XMLHttpRequest();
                 xhttp.open("DELETE", "/planning/DeletePeriodSubject?id=" + id, true);
                 xhttp.setRequestHeader("Content-Type", "application/json");
@@ -606,12 +609,12 @@
             }
         }
 
-        function SetDeleteModalTextContent(value) {
+        function SetDeletePeriodSubjectModalTextContent(value) {
             var content = document.getElementById('modal-deleteperiodsubject-content');
             content.innerHTML = value;
         }
 
-        function HideCreateModalButtons() {
+        function HideCreatePeriodSubjectModalButtons() {
             var footer = document.getElementById('deletePeriodSubjectModalFooter');
             var buttons = footer.getElementsByTagName("button");
             for (var i = 0; i < buttons.length; i++) {
@@ -619,7 +622,7 @@
             }
         }
 
-        function ShowCreateModalButtons() {
+        function ShowCreatePeriodSubjectModalButtons() {
             var footer = document.getElementById('deletePeriodSubjectModalFooter');
             var buttons = footer.getElementsByTagName("button");
             for (var i = 0; i < buttons.length; i++) {

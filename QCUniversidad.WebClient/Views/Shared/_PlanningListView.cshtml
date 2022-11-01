@@ -9,15 +9,15 @@
 
 <div class="container-fluid justify-content-between fadeIn">
     <div class="row">
-        <div class="col-12 col-sm-6 align-self-center">
+        <div class="col-12 col-md-6 align-self-center">
             <div class="col-12">
                 <button type="button" class="btn btn-success" onclick="CallNewElementPage()"><span class="fa fa-plus"></span> Nuevo elemento</button>
                 <button type="button" class="btn btn-outline-success"><span class="fa fa-file-excel"></span> Exportar</button>
             </div>
         </div>
-        <div class="col-12 col-sm-6">
-            <div class="row">
-                <div class="col">
+        <div class="col-12 col-md-6">
+            <div class="d-flex flex-row gap-1 align-items-baseline justify-content-end">
+                <div>
                     <label for="filterCourses" class="form-label">Filtrar curso</label>
                     <select id="filterCourses" class="form-select" onchange="FilterChanged()">
                         <option value="all">Todos</option>
@@ -27,7 +27,7 @@
                         }
                     </select>
                 </div>
-                <div class="col">
+                <div>
                     <label for="filterSubjects" class="form-label">Filtrar asignatura</label>
                     <select id="filterSubjects" class="form-select" onchange="FilterChanged()">
                         <option value="all">Todas</option>
@@ -37,7 +37,7 @@
                         }
                     </select>
                 </div>
-                <div class="col">
+                <div>
                     <label for="activityFilter" class="form-label">Filtrar tipo</label>
                     <select asp-items="@Html.GetEnumSelectList<TeachingActivityType>()" id="activityFilter" class="form-select" onchange="FilterChanged()">
                         <option>Todos</option>

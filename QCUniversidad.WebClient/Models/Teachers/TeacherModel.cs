@@ -15,6 +15,8 @@ namespace QCUniversidad.WebClient.Models.Teachers
     {
         public Guid Id { get; set; }
 
+        public string? FirstName => Fullname.Split(' ').First();
+
         [Required(ErrorMessage = "Debe de definir el nombre completo del profesor.")]
         [Display(Name = "Nombre completo", Prompt = "Nombre completo", Description = "El nombre completo del profesor.")]
         public string Fullname { get; set; }
