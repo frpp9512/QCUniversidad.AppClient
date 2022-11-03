@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using QCUniversidad.WebClient.Models.Careers;
 using QCUniversidad.WebClient.Models.Faculties;
 
 namespace QCUniversidad.WebClient.Models.Departments
@@ -25,7 +26,8 @@ namespace QCUniversidad.WebClient.Models.Departments
         public int DisciplinesCount { get; set; }
         public Guid FacultyId { get; set; }
         public FacultyModel? Faculty { get; set; }
-
+        public Guid[]? SelectedCareers { get; set; }
+        public CareerModel[]? Careers { get; set; }
         public double? TotalTimeFund { get; set; }
         public double? Load { get; set; }
         public double? LoadPercent { get; set; }

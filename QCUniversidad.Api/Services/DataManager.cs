@@ -129,7 +129,7 @@ public class DataManager : IDataManager
     }
 
     #endregion
-
+    
     #region Departments
 
     public async Task<IList<DepartmentModel>> GetDepartmentsAsync(int from, int to)
@@ -174,6 +174,8 @@ public class DataManager : IDataManager
     {
         var department = await _context.Departments.Where(d => d.Id == departmentId)
                                                    .Include(d => d.Faculty)
+                                                   .Include(d => d.DepartmentCareers)
+                                                        .ThenInclude(dc => dc.Career)
                                                    .FirstOrDefaultAsync();
         return department ?? throw new DepartmentNotFoundException();
     }
@@ -205,6 +207,8 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(department));
         }
+        await _context.DepartmentsCareers.Where(dc => dc.DepartmentId == department.Id)
+                                         .ForEachAsync(dc => _context.Remove(dc));
         _ = _context.Departments.Update(department);
         var result = await _context.SaveChangesAsync();
         return result > 0;
@@ -290,17 +294,17 @@ public class DataManager : IDataManager
             throw new PeriodNotFoundException();
         }
         var loadItemsQuery = from loadItem in _context.LoadItems
-                    join planItem in _context.TeachingPlanItems
-                    on loadItem.PlanningItemId equals planItem.Id
-                    where planItem.PeriodId == periodId
-                    join subject in _context.Subjects
-                    on planItem.SubjectId equals subject.Id
-                    join discipline in _context.Disciplines
-                    on subject.DisciplineId equals discipline.Id
-                    join department in _context.Departments
-                    on discipline.DepartmentId equals department.Id
-                    where discipline.DepartmentId == departmentId
-                    select loadItem.HoursCovered;
+                             join planItem in _context.TeachingPlanItems
+                             on loadItem.PlanningItemId equals planItem.Id
+                             where planItem.PeriodId == periodId
+                             join subject in _context.Subjects
+                             on planItem.SubjectId equals subject.Id
+                             join discipline in _context.Disciplines
+                             on subject.DisciplineId equals discipline.Id
+                             join department in _context.Departments
+                             on discipline.DepartmentId equals department.Id
+                             where discipline.DepartmentId == departmentId
+                             select loadItem.HoursCovered;
 
         var nonTeachingLoadQuery = from ntl in _context.NonTeachingLoad
                                    join teacher in _context.Teachers
@@ -409,7 +413,11 @@ public class DataManager : IDataManager
     {
         if (careerId != Guid.Empty)
         {
-            var result = await _context.Careers.Where(c => c.Id == careerId).Include(c => c.Faculty).FirstOrDefaultAsync();
+            var result = await _context.Careers.Where(c => c.Id == careerId)
+                                               .Include(c => c.Faculty)
+                                               .Include(c => c.CareerDepartments)
+                                                    .ThenInclude(cd => cd.Department)
+                                               .FirstOrDefaultAsync();
             return result ?? throw new CareerNotFoundException();
         }
         throw new ArgumentNullException(nameof(careerId));
@@ -646,7 +654,7 @@ public class DataManager : IDataManager
         throw new ArgumentNullException(nameof(id));
     }
 
-    public async Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId)
+    public async Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId, bool loadInactives = false)
     {
         try
         {
@@ -655,7 +663,7 @@ public class DataManager : IDataManager
                 throw new ArgumentNullException();
             }
             var query = from t in _context.Teachers
-                        where t.Active && t.DepartmentId == departmentId
+                        where (loadInactives ? true : t.Active) && t.DepartmentId == departmentId
                         select t;
             return await query.Include(t => t.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync();
         }
@@ -903,7 +911,7 @@ public class DataManager : IDataManager
                                    where loadItem.TeacherId == teacherId && planItem.PeriodId == periodId
                                    select new { planItem.SubjectId, planItem.CourseId };
 
-                double total = 0;
+                double examGradeTotal = 0;
 
                 var loadSubjectsInfo = await loadSubjects.ToListAsync();
                 var loadSubjectsGroup = loadSubjectsInfo.GroupBy(ls => ls.CourseId);
@@ -941,7 +949,7 @@ public class DataManager : IDataManager
                         var examGradeValue = (midTermExamValue + finalExamValue + secondFinalExamValue + thirdFinalExamValue) / teachersCount;
                         subtotal += examGradeValue;
                     }
-                    total += subtotal;
+                    examGradeTotal += subtotal;
                 }
 
                 var examGradeLoad = new NonTeachingLoadModel
@@ -950,12 +958,53 @@ public class DataManager : IDataManager
                     Description = NonTeachingLoadType.ExamGrade.GetEnumDisplayDescriptionValue(),
                     TeacherId = teacherId,
                     PeriodId = periodId,
-                    BaseValue = JsonConvert.SerializeObject(total),
-                    Load = Math.Round(total, 2)
+                    BaseValue = JsonConvert.SerializeObject(examGradeTotal),
+                    Load = Math.Round(examGradeTotal, 2)
                 };
                 return examGradeLoad;
             case NonTeachingLoadType.ThesisCourtAndRevision:
-                return null;
+                if (await IsLastPeriodAsync(periodId))
+                {
+                    var teacherDepartmentId = await _context.Teachers.Where(t => t.Id == teacherId).Select(t => t.DepartmentId).FirstAsync();
+                    var teacherDepartmentCount = await _context.Teachers.CountAsync(t => t.DepartmentId == teacherDepartmentId && t.Active);
+                    var schoolYearIdQuery = from period in _context.Periods
+                                            join schoolYear in _context.SchoolYears
+                                            on period.SchoolYearId equals schoolYear.Id
+                                            where period.Id == periodId
+                                            select schoolYear.Id;
+                    var schoolYearId = await schoolYearIdQuery.FirstAsync();
+                    var finalCoursesEnrolmentQuery = from course in _context.Courses
+                                                     where course.SchoolYearId == schoolYearId && course.LastCourse
+                                                     join career in _context.Careers
+                                                     on course.CareerId equals career.Id
+                                                     join departmentCareer in _context.DepartmentsCareers
+                                                     on career.Id equals departmentCareer.CareerId
+                                                     where departmentCareer.DepartmentId == teacherDepartmentId
+                                                     select course.Enrolment;
+                    var finalCoursesEnrolmentResult = await finalCoursesEnrolmentQuery.ToListAsync();
+                    var finalCoursesEnrolment = finalCoursesEnrolmentResult.Select(ce => (double)ce).Sum();
+                    var thesisCourtTotal = (finalCoursesEnrolment * _calculationOptions.ThesisCourtCountMultiplier) / teacherDepartmentCount;
+                    var thesisCourtLoadValue = thesisCourtTotal * _calculationOptions.ThesisCourtCoefficient;
+                    var thesisCourtLoad = new NonTeachingLoadModel
+                    {
+                        Type = NonTeachingLoadType.ThesisCourtAndRevision,
+                        Description = $"{Math.Round(finalCoursesEnrolment / 3, 2)} tribunales de pregrado",
+                        TeacherId = teacherId,
+                        PeriodId = periodId,
+                        BaseValue = JsonConvert.SerializeObject(finalCoursesEnrolmentQuery),
+                        Load = Math.Round(thesisCourtLoadValue, 2)
+                    };
+                    return thesisCourtLoad;
+                }
+                return new NonTeachingLoadModel
+                {
+                    Type = NonTeachingLoadType.ThesisCourtAndRevision,
+                    Description = $"Esta carga se calcula solamente en el último período del año",
+                    TeacherId = teacherId,
+                    PeriodId = periodId,
+                    BaseValue = JsonConvert.SerializeObject(0),
+                    Load = 0
+                };
             case NonTeachingLoadType.UndergraduateTutoring:
                 return null;
             case NonTeachingLoadType.GraduateTutoring:
@@ -971,6 +1020,24 @@ public class DataManager : IDataManager
             default:
                 return null;
         }
+    }
+
+    private async Task<bool> IsLastPeriodAsync(Guid periodId)
+    {
+        var schoolYearQuery = from period in _context.Periods
+                              where period.Id == periodId
+                              select period.SchoolYearId;
+        if (!await schoolYearQuery.AnyAsync())
+        {
+            throw new PeriodNotFoundException();
+        }
+        var schoolYearId = await schoolYearQuery.FirstAsync();
+        //var lastPeriod = await _context.Periods.Where(p => p.SchoolYearId == schoolYearId).OrderByDescending(p => p.Starts).FirstAsync();
+        var lastPeriodQuery = await _context.Periods.Where(p => p.SchoolYearId == schoolYearId)
+                                               .Select(p => new { p.Id, Starts = p.Starts.DateTime })
+                                               .ToListAsync();
+        var lastPeriod = lastPeriodQuery.OrderByDescending(p => p.Starts).First();
+        return lastPeriod.Id == periodId;
     }
 
     public async Task<double> GetTeacherLoadInPeriodAsync(Guid teacherId, Guid periodId)
@@ -1047,11 +1114,8 @@ public class DataManager : IDataManager
         {
             throw new TeacherNotFoundException();
         }
-        var query = from teacher in _context.Teachers
-                    where teacher.Id == teacherId
-                    select teacher;
 
-        return await query.CountAsync() > 0;
+        return await _context.LoadItems.CountAsync(l => l.TeacherId == teacherId) > 0;
     }
 
     public async Task<IList<TeacherModel>> GetTeachersOfDepartmentNotAssignedToPlanItemAsync(Guid departmentId, Guid planItemId, Guid? disciplineId = null)
@@ -1208,8 +1272,42 @@ public class DataManager : IDataManager
         }
         switch (type)
         {
-            case NonTeachingLoadType.ThesisCourtAndRevision:
-                break;
+            case NonTeachingLoadType.PostgraduateThesisCourtAndRevision:
+                var ptcModel = JsonConvert.DeserializeObject<PostgraduateThesisCourtModel>(baseValue);
+                if (ptcModel is not null)
+                {
+                    var ptcDmCalculationBase = _calculationOptions[$"{nameof(PostgraduateThesisCourtModel)}.{nameof(ptcModel.MastersAndDiplomantsThesisCourts)}"];
+                    var ptcPhdCalculationBase = _calculationOptions[$"{nameof(PostgraduateThesisCourtModel)}.{nameof(ptcModel.DoctorateThesisCourts)}"];
+                    if (ptcDmCalculationBase is not null && ptcPhdCalculationBase is not null)
+                    {
+                        var monthCount = await GetPeriodMonthsCountAsync(periodId);
+                        var loadValue = (ptcModel.MastersAndDiplomantsThesisCourts * ptcDmCalculationBase * monthCount) + (ptcModel.DoctorateThesisCourts * ptcPhdCalculationBase * monthCount);
+                        var existingLoad = await GetTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
+                        if (existingLoad is not null)
+                        {
+                            existingLoad.BaseValue = JsonConvert.SerializeObject(ptcModel);
+                            existingLoad.Load = loadValue.Value;
+                            existingLoad.Description = $"Tribunales estimados: {ptcModel.MastersAndDiplomantsThesisCourts} de maestría, postgrado y/o diplomado, {ptcModel.DoctorateThesisCourts} de doctorado";
+                            _context.NonTeachingLoad.Update(existingLoad);
+                        }
+                        else
+                        {
+                            var newPTCLoad = new NonTeachingLoadModel
+                            {
+                                BaseValue = baseValue,
+                                Load = loadValue.Value,
+                                Description = $"Tribunales estimados: {ptcModel.MastersAndDiplomantsThesisCourts} de maestría, postgrado y/o diplomado, {ptcModel.DoctorateThesisCourts} de doctorado",
+                                Type = type,
+                                TeacherId = teacherId,
+                                PeriodId = periodId
+                            };
+                            _context.NonTeachingLoad.Add(newPTCLoad);
+                        }
+                        return await _context.SaveChangesAsync() > 0;
+                    }
+                    throw new ConfigurationException();
+                }
+                throw new ArgumentException($"The base value supplied for {type} load type is invalid.", nameof(baseValue));
             case NonTeachingLoadType.CoursesReceivedAndImprovement:
                 if (Enum.TryParse(baseValue, out CoursesReceivedAndImprovementOptions option))
                 {
@@ -1238,7 +1336,6 @@ public class DataManager : IDataManager
                             };
                             _context.NonTeachingLoad.Add(newUELoad);
                         }
-
                         return await _context.SaveChangesAsync() > 0;
                     }
                     throw new ConfigurationException();
@@ -1409,7 +1506,7 @@ public class DataManager : IDataManager
                         };
                         _context.NonTeachingLoad.Add(newUELoad);
                     }
-                    
+
                     return await _context.SaveChangesAsync() > 0;
                 }
                 throw new ArgumentException($"The base value supplied for {type} load type is invalid.", nameof(baseValue));
@@ -1950,8 +2047,20 @@ public class DataManager : IDataManager
     {
         if (course is not null)
         {
+            var recalculate = course.LastCourse;
+
             _ = await _context.Courses.AddAsync(course);
             var result = await _context.SaveChangesAsync();
+
+            if (recalculate)
+            {
+                var currentYear = await GetCurrentSchoolYear();
+                foreach (var period in currentYear.Periods)
+                {
+                    await RecalculateAllTeachersInPeriodAsync(period.Id);
+                }
+            }
+
             return result > 0;
         }
         throw new ArgumentNullException(nameof(course));
@@ -2249,12 +2358,12 @@ public class DataManager : IDataManager
         return result;
     }
 
-    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, int from, int to)
+    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, Guid? courseId = null, int from = 0, int to = 0)
     {
         var result =
             (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
-            ? await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Skip(from).Take(to).Include(p => p.Subject).Include(p => p.Course).Include(p => p.LoadItems).ThenInclude(i => i.Teacher).ToListAsync()
-            : await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Include(p => p.Subject).Include(p => p.Course).Include(p => p.LoadItems).ThenInclude(i => i.Teacher).ToListAsync();
+            ? await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Where(tp => courseId != null ? tp.CourseId == courseId : true).Skip(from).Take(to).Include(p => p.Subject).Include(p => p.Course).Include(p => p.LoadItems).ThenInclude(i => i.Teacher).ToListAsync()
+            : await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Where(tp => courseId != null ? tp.CourseId == courseId : true).Include(p => p.Subject).Include(p => p.Course).Include(p => p.LoadItems).ThenInclude(i => i.Teacher).ToListAsync();
         result.ForEach(i => i.TotalHoursPlanned = _planItemCalculator.CalculateValue(i));
         return result;
     }

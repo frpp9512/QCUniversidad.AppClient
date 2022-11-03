@@ -1,13 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using QCUniversidad.Api.Data.Models;
+﻿using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Shared.Enums;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Services;
 
@@ -86,7 +78,7 @@ public interface IDataManager
     Task<TeacherModel> GetTeacherAsync(Guid id);
     Task<bool> UpdateTeacherAsync(TeacherModel teacher);
     Task<bool> DeleteTeacherAsync(Guid id);
-    Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId);
+    Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId, bool loadInactives = false);
     Task<IList<LoadItemModel>> GetTeacherLoadItemsInPeriodAsync(Guid teacherId, Guid periodId);
     Task<IList<NonTeachingLoadModel>> GetTeacherNonTeachingLoadItemsInPeriodAsync(Guid teacherId, Guid periodId);
     Task<NonTeachingLoadModel> GetTeacherNonTeachingLoadItemInPeriodAsync(NonTeachingLoadType type, Guid teacherId, Guid periodId);
@@ -188,7 +180,7 @@ public interface IDataManager
     Task<int> GetTeachingPlanItemsCountAsync();
     Task<int> GetTeachingPlanItemsCountAsync(Guid periodId);
     Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(int from, int to);
-    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, int from, int to);
+    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, Guid? courseId = null, int from = 0, int to = 0);
     Task<TeachingPlanItemModel> GetTeachingPlanItemAsync(Guid id);
     Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItemModel period);
     Task<bool> DeleteTeachingPlanItemAsync(Guid id);

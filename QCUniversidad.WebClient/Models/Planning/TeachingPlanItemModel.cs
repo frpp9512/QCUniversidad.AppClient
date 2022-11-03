@@ -19,7 +19,7 @@ public class TeachingPlanItemModel
     [Display(Name = "Actividad", Description = "Actividad planificada", Prompt = "Tipo de activdad")]
     public TeachingActivityType Type { get; set; }
 
-    [Display(Name = "Cantidad de horas", Description = "Horas planificadas", Prompt = "Cantidad de horas planificadas")]
+    [Display(Name = "Horas clase", Description = "Horas planificadas", Prompt = "Cantidad de horas planificadas")]
     [Range(0, 2287.2)]
     public double HoursPlanned { get; set; }
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Cors;
+using QCUniversidad.Api.Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -17,4 +18,6 @@ public class TeacherLoadModel
 
     [Display(Name = "Carga")]
     public double LoadPercent { get; set; }
+
+    public TeacherLoadStatus Status { get; set; }
 }

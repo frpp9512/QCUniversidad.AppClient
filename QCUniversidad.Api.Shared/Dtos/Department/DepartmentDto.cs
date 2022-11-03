@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using QCUniversidad.Api.Shared.Dtos.Career;
 using QCUniversidad.Api.Shared.Dtos.Faculty;
 
 namespace QCUniversidad.Api.Shared.Dtos.Department
@@ -16,6 +17,7 @@ namespace QCUniversidad.Api.Shared.Dtos.Department
         public int DisciplinesCount { get; set; }
         public Guid FacultyId { get; set; }
         public FacultyDto Faculty { get; set; }
+        public IList<SimpleCareerDto>? Careers { get; set; }
         public double? TotalTimeFund { get; set; }
         public double? Load { get; set; }
         public double? LoadPercent { get; set; }

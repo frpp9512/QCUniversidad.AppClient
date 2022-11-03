@@ -122,6 +122,27 @@ namespace QCUniversidad.Api.Migrations
                     b.ToTable("Curriculums");
                 });
 
+            modelBuilder.Entity("QCUniversidad.Api.Data.Models.DepartmentCareer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("CareerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("DepartmentId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CareerId");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.ToTable("DepartmentsCareers");
+                });
+
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.DepartmentModel", b =>
                 {
                     b.Property<Guid>("Id")
@@ -520,6 +541,25 @@ namespace QCUniversidad.Api.Migrations
                     b.Navigation("Career");
                 });
 
+            modelBuilder.Entity("QCUniversidad.Api.Data.Models.DepartmentCareer", b =>
+                {
+                    b.HasOne("QCUniversidad.Api.Data.Models.CareerModel", "Career")
+                        .WithMany("CareerDepartments")
+                        .HasForeignKey("CareerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QCUniversidad.Api.Data.Models.DepartmentModel", "Department")
+                        .WithMany("DepartmentCareers")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Career");
+
+                    b.Navigation("Department");
+                });
+
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.DepartmentModel", b =>
                 {
                     b.HasOne("QCUniversidad.Api.Data.Models.FacultyModel", "Faculty")
@@ -688,6 +728,8 @@ namespace QCUniversidad.Api.Migrations
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.CareerModel", b =>
                 {
+                    b.Navigation("CareerDepartments");
+
                     b.Navigation("Courses");
 
                     b.Navigation("Curricula");
@@ -707,6 +749,8 @@ namespace QCUniversidad.Api.Migrations
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.DepartmentModel", b =>
                 {
+                    b.Navigation("DepartmentCareers");
+
                     b.Navigation("Disciplines");
 
                     b.Navigation("Teachers");

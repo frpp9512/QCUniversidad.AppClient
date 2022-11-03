@@ -2,6 +2,7 @@
 
 public class CalculationOptions
 {
+    public double ClassHoursToRealHoursConversionCoefficient { get; set; }
     public double PregraduateTotalHoursCoefficient { get; set; }
     public double PostgraduateTotalHoursCoefficient { get; set; }
     public double RAPReference { get; set; }
@@ -17,6 +18,10 @@ public class CalculationOptions
     public double ExamGradeFinalAverageTime { get; set; }
     public double SecondExamGradeFinalCoefficient { get; set; }
     public double ThirdExamGradeFinalCoefficient { get; set; }
+    public double ThesisCourtCountMultiplier { get; set; }
+    public double ThesisCourtCoefficient { get; set; }
+    public double PostgraduateThesisCourtCoefficient { get; set; }
+    public double PostgraduateDoctorateThesisCourtCoefficient { get; set; }
     public SpecificCalculationValue[] SpecificCalculationValues { get; set; }
 
     public double? this[string key] => SpecificCalculationValues?.FirstOrDefault(value => value.Key == key)?.Value;

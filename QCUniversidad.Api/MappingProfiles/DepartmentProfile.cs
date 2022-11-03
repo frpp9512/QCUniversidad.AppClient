@@ -1,24 +1,19 @@
 ﻿using AutoMapper;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Shared.Dtos.Department;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace QCUniversidad.Api.MappingProfiles
+namespace QCUniversidad.Api.MappingProfiles;
+
+public class DepartmentProfile : Profile
 {
-    public class DepartmentProfile : Profile
+    public DepartmentProfile()
     {
-        public DepartmentProfile()
-        {
-            CreateMap<DepartmentModel, DepartmentDto>();
-            CreateMap<DepartmentDto, DepartmentModel>();
-            CreateMap<NewDepartmentDto, DepartmentModel>();
-            CreateMap<DepartmentModel, NewDepartmentDto>();
-            CreateMap<EditDepartmentDto, DepartmentModel>();
-            CreateMap<DepartmentModel, EditDepartmentDto>();
-        }
+        _ = CreateMap<DepartmentModel, DepartmentDto>().ForMember(d => d.Careers, opt => opt.MapFrom(model => model.DepartmentCareers.Select(dc => dc.Career)));
+        _ = CreateMap<DepartmentDto, DepartmentModel>();
+        _ = CreateMap<NewDepartmentDto, DepartmentModel>().ForMember(d => d.DepartmentCareers, opt => opt.MapFrom(dto => dto.SelectedCareers.Select(sc => new DepartmentCareer { CareerId = sc })));
+        _ = CreateMap<DepartmentModel, NewDepartmentDto>();
+        _ = CreateMap<EditDepartmentDto, DepartmentModel>().ForMember(d => d.DepartmentCareers, opt => opt.MapFrom(dto => dto.SelectedCareers.Select(sc => new DepartmentCareer { DepartmentId = dto.Id, CareerId = sc })));
+        _ = CreateMap<DepartmentModel, EditDepartmentDto>();
+        _ = CreateMap<DepartmentModel, SimpleDepartmentDto>();
     }
 }

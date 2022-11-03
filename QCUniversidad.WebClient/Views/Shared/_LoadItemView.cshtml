@@ -1,15 +1,13 @@
 ﻿@model IList<LoadViewItemModel>
 @using QCUniversidad.Api.Shared.Extensions
-
 @{
     var teachingLoad = Model.Where(item => item.Type == QCUniversidad.Api.Shared.Enums.LoadViewItemType.Teaching);
     var nonTeachingLoad = Model.Where(item => item.Type == QCUniversidad.Api.Shared.Enums.LoadViewItemType.NonTeaching).OrderBy(item => item.Name);
 }
 
-
 <div class="load-list">
     <div class="load-list-divider">
-        <div class="list-divider-title">Carga docente (@(teachingLoad.Count()) elementos, @(Math.Round(teachingLoad.Sum(l => l.Value)))h)</div>
+        <div class="list-divider-title">Carga directa (@(teachingLoad.Count()) elementos, @(Math.Round(teachingLoad.Sum(l => l.Value)))h)</div>
         <div class="list-divider-collapser" collapses="teachingload"><button class="list-collapser"><span class="fa fa-chevron-up"></span></button></div>
     </div>
     <div class="load-section" id="teachingload">
@@ -30,14 +28,14 @@
             </div>
         }
         <div class="load-info-total">
-            <div class="load-total-name">Total de carga docente</div>
+            <div class="load-total-name">Total de carga directa</div>
             <div class="load-content">
                 <span>@teachingLoad.Sum(l => l.Value)</span>
             </div>
         </div>
     </div>
     <div class="load-list-divider">
-        <div class="list-divider-title">Carga no docente (@(nonTeachingLoad.Count(l => l.Status == QCUniversidad.Api.Shared.Enums.LoadViewItemStatus.Setted)) elementos, @(Math.Round(nonTeachingLoad.Sum(i => i.Value)))h)</div>
+        <div class="list-divider-title">Carga indirecta (@(nonTeachingLoad.Count(l => l.Status == QCUniversidad.Api.Shared.Enums.LoadViewItemStatus.Setted)) elementos, @(Math.Round(nonTeachingLoad.Sum(i => i.Value)))h)</div>
         <div class="list-divider-collapser" collapses="nonteachingload"><button class="list-collapser"><span class="fa fa-chevron-up"></span></button></div>
     </div>
     <div class="load-section" id="nonteachingload">
@@ -69,7 +67,7 @@
             </div>
         }
         <div class="load-info-total">
-            <div class="load-total-name">Total de carga no docente</div>
+            <div class="load-total-name">Total de carga indirecta</div>
             <div class="load-content">
                 <span>@Math.Round(nonTeachingLoad.Sum(i => i.Value))</span>
             </div>

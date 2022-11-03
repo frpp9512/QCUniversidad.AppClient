@@ -50,5 +50,10 @@ namespace QCUniversidad.Api.Data.Models
         /// The faculty that manages the career.
         /// </summary>
         public FacultyModel Faculty { get; set; }
+
+        /// <summary>
+        /// The relation of departments that attend the career.
+        /// </summary>
+        public IList<DepartmentCareer> CareerDepartments { get; set; }
     }
 }

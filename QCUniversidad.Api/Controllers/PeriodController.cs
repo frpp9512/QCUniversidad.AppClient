@@ -184,7 +184,7 @@ public class PeriodController : ControllerBase
 
     [HttpGet]
     [Route("planitems")]
-    public async Task<IActionResult> GetPlanItemsAsync(Guid periodId, int from = 0, int to = 0)
+    public async Task<IActionResult> GetPlanItemsAsync(Guid periodId, Guid? courseId = null, int from = 0, int to = 0)
     {
         if (periodId == Guid.Empty)
         {
@@ -192,7 +192,7 @@ public class PeriodController : ControllerBase
         }
         try
         {
-            var result = await _dataManager.GetTeachingPlanItemsAsync(periodId, from, to);
+            var result = await _dataManager.GetTeachingPlanItemsAsync(periodId, courseId, from, to);
             var dtos = result.Select(i => _mapper.Map<TeachingPlanItemSimpleDto>(i, opts => opts.AfterMap(async (o, planItem) =>
             {
                 planItem.TotalLoadCovered = await _dataManager.GetPlanItemTotalCoveredAsync(planItem.Id);

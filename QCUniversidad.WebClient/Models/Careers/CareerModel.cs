@@ -1,4 +1,5 @@
-﻿using QCUniversidad.WebClient.Models.Faculties;
+﻿using QCUniversidad.WebClient.Models.Departments;
+using QCUniversidad.WebClient.Models.Faculties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -21,7 +22,7 @@ namespace QCUniversidad.WebClient.Models.Careers
 
         [Display(Name = "Postgrado", Prompt = "Es postgrado", Description = "Define si la carrera es un postgrado.")]
         public bool PostgraduateCourse { get; set; }
-
+        public DepartmentModel[]? Departments { get; set; }
         public Guid FacultyId { get; set; }
         public FacultyModel? Faculty { get; set; }
     }

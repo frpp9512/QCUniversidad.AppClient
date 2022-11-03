@@ -16,7 +16,7 @@
                 <fieldset>
                     <div class="mb-3">
                         <label for="FacultyId" class="form-label">Seleccionar facultad</label>
-                        <select asp-for="FacultyId" class="form-select select-faculty" aria-label="Seleccionar facultad" autofocus>
+                        <select asp-for="FacultyId" class="form-select select-faculty" aria-label="Seleccionar facultad" onchange="LoadCareersSelect()" autofocus>
                             @foreach (var item in Model.Faculties)
                             {
                                 <option value="@item.Id">@item.Name</option>
@@ -38,6 +38,9 @@
                         <input asp-for="InternalId" class="form-control" />
                         <span asp-validation-for="InternalId" />
                     </div>
+                    <div id="career-select" class="mb-3">
+
+                    </div>
                 </fieldset>
                 <div class="form-footer mt-3">
                     <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
@@ -57,6 +60,29 @@
             $('.select-faculty').select2({
                 placeholder: "Seleccione la facultad"
             });
+            LoadCareersSelect();
         });
+
+        function LoadCareersSelect() {
+            const facultySelect = document.getElementById("FacultyId");
+            let facultySelected = facultySelect.options[facultySelect.selectedIndex].value;
+            facultySelect.disabled = true;
+            $.ajax({
+                url: `/departments/GetCareerSelectForFaculty?facultyId=${facultySelected}`,
+                type: "GET",
+                success: function (data) {
+                    const careerSelectDiv = document.getElementById("career-select");
+                    careerSelectDiv.innerHTML = data;
+                    $('.select-career').select2({
+                        placeholder: "Seleccione las carreras que atiende"
+                    });
+                    facultySelect.disabled = false;
+                },
+                error: function (xhr, status, error) {
+                    facultySelect.disabled = false;
+                    console.log(xhr, status, error);
+                }
+            });
+        }
     </script>
 }

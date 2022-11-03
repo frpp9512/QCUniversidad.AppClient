@@ -50,5 +50,10 @@ namespace QCUniversidad.Api.Data.Models
         /// The faculty where the department belongs to.
         /// </summary>
         public FacultyModel Faculty { get; init; }
+
+        /// <summary>
+        /// The relation of the careers attended by the department.
+        /// </summary>
+        public IList<DepartmentCareer> DepartmentCareers { get; set; }
     }
 }

@@ -22,8 +22,15 @@ public enum NonTeachingLoadType
     /// <summary>
     /// Should be auto generated.
     /// </summary>
-    [Display(Name = "Tribunal y revisión de tesis", Description = "Tiempo necesario para participar en tribunales y revisiones de tesis.")]
+    [Recalculate]
+    [Display(Name = "Tribunal y revisión de tesis (Pregrado)", Description = "Tiempo necesario para participar en tribunales y revisiones de tesis.", AutoGenerateField = true)]
     ThesisCourtAndRevision,
+
+    /// <summary>
+    /// Should be provided by base value. JSON => (MastersAndDiplomantsThesisCourts, ThesisDiplomantsThesisCourts)
+    /// </summary>
+    [Display(Name = "Tribunal y revisión de tesis (Posgrado)", Description = "Tiempo necesario para participar en tribunales y revisiones de tesis.")]
+    PostgraduateThesisCourtAndRevision,
 
     /// <summary>
     /// Should be auto generated.

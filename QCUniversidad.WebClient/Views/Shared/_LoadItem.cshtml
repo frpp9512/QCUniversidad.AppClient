@@ -1,4 +1,5 @@
-﻿@model (TeachingPlanItemModel planItem, int index)
+﻿@using QCUniversidad.Api.Shared.Enums
+@model (TeachingPlanItemModel planItem, int index)
 @{
     var itemIndex = Model.index;
 }
@@ -25,7 +26,7 @@
             </div>
         </div>
         <div class="load-item-header-supvalue" style="width: 50px;">
-            <partial name="_CircleIndicator" model="(Model.planItem.LoadCoveredPercent.Value, 30)" />
+            <partial name="_CircleIndicator" model="(Model.planItem.LoadCoveredPercent.Value, 30, string.Empty)" />
         </div>
         <div class="load-item-header-buttons">
             <button onclick="RiseAddLoadModal('@Model.planItem.Id', '@Model.planItem.Subject?.DisciplineId')" @(!Model.planItem.AllowLoad.Value ? "disabled" : "")><span class="fa fa-user-plus"></span></button>
@@ -41,7 +42,7 @@
                     <div class="load-item-row">
                         <div class="load-item-row-key">
                             @loadItem.Teacher?.Fullname <span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Profesor</small></div> <div><b>@loadItem.Teacher.Fullname</b></div> <div>@loadItem.Teacher.PersonalId</div> <div><small>@loadItem.Teacher.Position</small></div>"></span>
-                            <partial name="_CircleIndicator" model="(loadItem.Teacher.Load.LoadPercent, 15)" />
+                            <span class="font-heavy" style="color: @(loadItem.Teacher.Load.Status switch { TeacherLoadStatus.Acceptable => "#a5b800", TeacherLoadStatus.Balanced => "#179b18", _ => "#ff0000" })">@(loadItem.Teacher.Load.LoadPercent)%</span>
                         </div>
                         <div class="load-item-row-valuesection">
                             <div class="load-item-row-btns">

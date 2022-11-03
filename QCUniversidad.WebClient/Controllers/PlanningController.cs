@@ -49,11 +49,11 @@ public class PlanningController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetPlanningViewForPeriodAsync(Guid periodId)
+    public async Task<IActionResult> GetPlanningViewForPeriodAsync(Guid periodId, Guid? courseId = null)
     {
         try
         {
-            var models = await _dataProvider.GetTeachingPlanItemsAsync(periodId);
+            var models = await _dataProvider.GetTeachingPlanItemsAsync(periodId, courseId);
             return PartialView("_PlanningListView", models);
         }
         catch (Exception)

@@ -91,7 +91,7 @@
     <script>
         $(document).ready(function () {
             $('.selected-teachingModality').select2({
-                placeholder: "Seleccione la modalidads"
+                placeholder: "Seleccione la modalidad"
             });
             $('.selected-curriculum').select2({
                 placeholder: "Seleccione el curriculum"
@@ -110,8 +110,6 @@
 
         function BuildDenomination() {
             if (GetAutoGenerateSwitchStatus()) {
-                var startDate = document.getElementById("Starts").value.split('-')[0];
-                var endDate = document.getElementById("Ends").value.split('-')[0];
                 var mod = document.getElementById("TeachingModality");
                 var mods = mod.getElementsByTagName("option");
                 var selectedModality = "";
@@ -122,8 +120,9 @@
                     }
                 }
 
+                var career = document.getElementById("CareerId");
+                var cGroups = career.getElementsByTagName("optgroup");
                 var selectedCareerName = document.getElementById("Career_Name").value;
-                
                 var denomination = document.getElementById("Denomination");
                 var splittedCareerName = selectedCareerName.split(" ");
                 splittedCareerName = splittedCareerName.map(s => s[0].toUpperCase());
@@ -133,7 +132,7 @@
                 var modInitials = splittedMod.join("");
 
                 var careerYear = document.getElementById("CareerYear").value;
-                denomination.value = careerInitials + "-" + modInitials + "-" + careerYear + " " + startDate + "-" + endDate;
+                denomination.value = careerInitials + "-" + modInitials + "-" + careerYear;
             }
         }
 

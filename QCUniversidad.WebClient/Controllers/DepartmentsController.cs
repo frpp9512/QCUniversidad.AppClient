@@ -71,7 +71,6 @@ public class DepartmentsController : Controller
     public async Task<IActionResult> GetDepartmentsLoadViewAsync(Guid periodId)
     {
         var departments = await _dataProvider.GetDepartmentsWithLoadAsync(periodId);
-        //return Ok("<h3>Vista de carga de los departamentos</h3>");
         return PartialView("_DepartmentsLoadView", departments);
     }
 
@@ -94,6 +93,17 @@ public class DepartmentsController : Controller
     {
         var faculties = await _dataProvider.GetFacultiesAsync();
         model.Faculties = faculties;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetCareerSelectForFacultyAsync(Guid facultyId)
+    {
+        if (facultyId == Guid.Empty)
+        {
+            return BadRequest("Debe de proveer un id de facultad válido.");
+        }
+        var careers = await _dataProvider.GetCareersAsync(facultyId);
+        return PartialView("_CareersSelect", careers);
     }
 
     [HttpPost]
@@ -130,11 +140,12 @@ public class DepartmentsController : Controller
         {
             var department = await _dataProvider.GetDepartmentAsync(id);
             var viewmodel = _mapper.Map<EditDepartmentModel>(department);
+            viewmodel.Careers = await _dataProvider.GetCareersAsync(department.FacultyId);
             return View(viewmodel);
         }
         catch (Exception)
         {
-            return RedirectToActionPermanent("Error", "Home");
+            return RedirectToAction("Error", "Home");
         }
     }
 
@@ -157,7 +168,7 @@ public class DepartmentsController : Controller
             }
             catch (Exception)
             {
-                return RedirectToActionPermanent("Error", "Home");
+                return RedirectToAction("Error", "Home");
             }
         }
         return View(model);

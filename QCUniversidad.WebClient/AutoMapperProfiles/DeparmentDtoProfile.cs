@@ -1,26 +1,22 @@
 ﻿using AutoMapper;
 using QCUniversidad.Api.Shared.Dtos.Department;
 using QCUniversidad.WebClient.Models.Departments;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace QCUniversidad.WebClient.AutoMapperProfiles
+namespace QCUniversidad.WebClient.AutoMapperProfiles;
+
+public class DeparmentDtoProfile : Profile
 {
-    public class DeparmentDtoProfile : Profile
+    public DeparmentDtoProfile()
     {
-        public DeparmentDtoProfile()
-        {
-            CreateMap<DepartmentDto, DepartmentModel>();
-            CreateMap<DepartmentModel, DepartmentDto>();
-            CreateMap<NewDepartmentDto, DepartmentModel>();
-            CreateMap<DepartmentModel, NewDepartmentDto>();
-            CreateMap<EditDepartmentModel, DepartmentModel>();
-            CreateMap<DepartmentModel, EditDepartmentModel>().ForMember(d => d.FacultyName, opt => opt.MapFrom(d => d.Faculty.Name));
-            CreateMap<EditDepartmentDto, DepartmentModel>();
-            CreateMap<DepartmentModel, EditDepartmentDto>();
-        }
+        _ = CreateMap<DepartmentDto, DepartmentModel>().ForMember(d => d.SelectedCareers, opt => opt.MapFrom(dto => dto.Careers.Select(c => c.Id)));
+        _ = CreateMap<DepartmentModel, DepartmentDto>();
+        _ = CreateMap<NewDepartmentDto, DepartmentModel>();
+        _ = CreateMap<DepartmentModel, NewDepartmentDto>();
+        _ = CreateMap<EditDepartmentModel, DepartmentModel>();
+        _ = CreateMap<DepartmentModel, EditDepartmentModel>()
+            .ForMember(d => d.FacultyName, opt => opt.MapFrom(d => d.Faculty.Name))
+            .ForMember(d => d.SelectedCareers, opt => opt.MapFrom(model => model.Careers.Select(c => c.Id)));
+        _ = CreateMap<EditDepartmentDto, DepartmentModel>();
+        _ = CreateMap<DepartmentModel, EditDepartmentDto>();
     }
 }

@@ -1,5 +1,9 @@
 ﻿@model PlanningIndexModel
 
+@section PageStyles {
+    <link href="~/lib/datatables/datatables.min.css" rel="stylesheet" />
+}
+
 @{
     ViewData["Title"] = "Planificación";
 
@@ -81,17 +85,14 @@
         </ul>
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade @(Model.Tab == "periodsubjects" ? "show active" : "")" id="periodSubjects" role="tabpanel" aria-labelledby="home-tab">
-                @*<div class="d-flex justify-content-end align-items-end">
-                    <button class="btn btn-info" onclick="LoadPeriodSubjects()"><span class="fa fa-refresh"></span></button>
-                </div>*@
-                <div id="periodSubjects-content" class="d-flex justify-content-center flex-column">
+                <div class="d-flex justify-content-center flex-column pt-3" id="periodSubjects-content">
                     <div class="spinner-grow m-5" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
             </div>
             <div class="tab-pane fade @(Model.Tab == "planning" ? "show active" : "")" id="planning" role="tabpanel" aria-labelledby="profile-tab">
-                <div class="col d-flex justify-content-center" id="planningContent">
+                <div class="d-flex justify-content-center flex-column pt-3" id="planningContent">
                     <div class="spinner-grow m-5" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
@@ -109,6 +110,7 @@
     <script src="~/js/loading-modal.js"></script>
     <script src="~/js/message-modal.js"></script>
     <script src="~/js/options-selector.js"></script>
+    <script src="~/lib/datatables/datatables.min.js"></script>
     <script>
         var periodToSelect = '@(Model.PeriodSelected is null ? "" : Model.PeriodSelected.ToString())';
         var deleteModal = null;
@@ -124,7 +126,7 @@
                 PeriodSelected();
             });
             const coursesSelect = document.getElementById("courseSelector");
-            coursesSelect.addEventListener("option-selector-changed", () => LoadPeriodSubjects());
+            coursesSelect.addEventListener("option-selector-changed", () => PeriodSelected());
         });
 
         function LoadTooltips() {
@@ -142,27 +144,40 @@
         }
 
         function PeriodSelected() {
-            let selected = getSelectorOptionsSelectedValue("#periodSelector");
             LoadPeriodSubjects();
+            LoadPlanning();
+        }
+
+        function LoadPlanning() {
+            let selectedPeriod = getSelectorOptionsSelectedValue("#periodSelector");
+            let selectedCourse = getSelectorOptionsSelectedValue("#courseSelector");
             SetLoadingPlanning();
 
             $.ajax({
-                url: `/planning/GetPlanningViewForPeriod?periodId=${selected}`,
+                url: `/planning/GetPlanningViewForPeriod?periodId=${selectedPeriod}&courseId=${selectedCourse}`,
                 type: "GET",
                 success: function (data) {
                     DisableLoadingPlanning();
                     const planningDetailsDiv = document.getElementById("planningContent");
                     planningDetailsDiv.innerHTML = data;
-                    deleteModal = new bootstrap.Modal(document.getElementById('deletePlanItemModal'), { keyboard: true });
                     LoadTooltips();
+                    $('#planning-table').DataTable({
+                        responsive: true,
+                        language: {
+                            url: '/lib/datatables/lang/datatables.spanish.json'
+                        },
+                        dom: 'Bfrtip',
+                        buttons: [
+                            'copyHtml5', 'excelHtml5', 'pdfHtml5'
+                        ]
+                    });
+                    deleteModal = new bootstrap.Modal(document.getElementById('deletePlanItemModal'), { keyboard: true });
                 },
                 error: function (xhr, status, error) {
                     DisableLoadingPlanning();
                     console.log(xhr, status, error);
                 }
             });
-
-            LoadTooltips();
         }
 
         function GetYearNumber(yearNumber) {
@@ -244,7 +259,6 @@
             let subjectSelected = subjectFilterSelect.options[subjectFilterSelect.selectedIndex].value;
             const typeFilterSelect = document.getElementById("activityFilter");
             let typeSelected = typeFilterSelect.options[typeFilterSelect.selectedIndex].innerText;
-            let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
 
             let itemsRows = document.getElementById("planningItemsTable").getElementsByTagName("tbody")[0].getElementsByTagName("tr");
             let totalShowed = 0;
@@ -254,10 +268,8 @@
                 let allTd = row.getElementsByTagName("td");
                 let subjectTd = allTd[0];
                 let typeTd = allTd[1];
-                let courseTd = allTd[5].getAttribute("data-course-id");
                 if (((subjectSelected == "all") || (subjectTd.id == subjectSelected)) 
-                    && ((typeSelected == "Todos") || (typeTd.innerText.indexOf(typeSelected) >= 0))
-                    && ((courseSelected == "all") || (courseSelected == courseTd))) {
+                    && ((typeSelected == "Todos") || (typeTd.innerText.indexOf(typeSelected) >= 0))) {
                     let totalHours = allTd[4].innerText;
                     totalShowed = totalShowed + parseFloat(totalHours);
                 } else {
@@ -362,6 +374,11 @@
                     DisableLoadingPeriodSubjects();
                     const periodSubjectsContent = document.getElementById("periodSubjects-content");
                     periodSubjectsContent.innerHTML = data;
+                    $('#periodsubjects-table').DataTable({
+                        language: {
+                            url: '/lib/datatables/lang/datatables.spanish.json'
+                        }
+                    });
                     periodSubjectDeleteModal = new bootstrap.Modal(document.getElementById('deletePeriodSubjectModal'), { keyboard: true });
                     LoadTooltips();
                 },

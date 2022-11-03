@@ -1,28 +1,22 @@
 ﻿using AutoMapper;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace QCUniversidad.Api.MappingProfiles
+namespace QCUniversidad.Api.MappingProfiles;
+
+public class TeachingPlanItemProfile : Profile
 {
-    public class TeachingPlanItemProfile : Profile
+    public TeachingPlanItemProfile()
     {
-        public TeachingPlanItemProfile()
+        _ = CreateMap<TeachingPlanItemModel, TeachingPlanItemDto>().AfterMap((o, planItem) =>
         {
-            CreateMap<TeachingPlanItemModel, TeachingPlanItemDto>().AfterMap((o, planItem) =>
-            {
-                planItem.TotalLoadCovered = planItem.LoadItems.Sum(i => i.HoursCovered);
-                planItem.AllowLoad = planItem.TotalHoursPlanned > planItem.TotalLoadCovered;
-            });
-            CreateMap<TeachingPlanItemDto, TeachingPlanItemModel>();
-            CreateMap<TeachingPlanItemModel, TeachingPlanItemSimpleDto>();
-            CreateMap<TeachingPlanItemSimpleDto, TeachingPlanItemModel>();
-            CreateMap<NewTeachingPlanItemDto, TeachingPlanItemModel>();
-            CreateMap<EditTeachingPlanItemDto, TeachingPlanItemModel>();
-        }
+            planItem.TotalLoadCovered = planItem.LoadItems.Sum(i => i.HoursCovered);
+            planItem.AllowLoad = planItem.TotalHoursPlanned > planItem.TotalLoadCovered;
+        });
+        _ = CreateMap<TeachingPlanItemDto, TeachingPlanItemModel>();
+        _ = CreateMap<TeachingPlanItemModel, TeachingPlanItemSimpleDto>();
+        _ = CreateMap<TeachingPlanItemSimpleDto, TeachingPlanItemModel>();
+        _ = CreateMap<NewTeachingPlanItemDto, TeachingPlanItemModel>();
+        _ = CreateMap<EditTeachingPlanItemDto, TeachingPlanItemModel>();
     }
 }

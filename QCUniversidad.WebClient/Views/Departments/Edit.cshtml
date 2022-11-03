@@ -35,6 +35,14 @@
                         <input asp-for="InternalId" class="form-control" />
                         <span asp-validation-for="InternalId" />
                     </div>
+                    <div class="mb-3">
+                        <select asp-for="SelectedCareers" class="form-control selected-careers" multiple aria-label="multiple select">
+                            @foreach (var c in Model.Careers)
+                            {
+                                <option value="@c.Id">@c.Name</option>
+                            }
+                        </select>
+                    </div>
                 </fieldset>
                 <div class="form-footer mt-3">
                     <input asp-for="Id" type="hidden" />
@@ -50,4 +58,9 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        $('.selected-careers').select2({
+            placeholder: "Seleccione las carreras"
+        });
+    </script>
 }

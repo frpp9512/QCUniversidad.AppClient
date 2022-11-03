@@ -51,6 +51,7 @@ public record CourseModel
 
     public CareerModel? Career { get; set; }
 
+    [Display(Name = "Curriculum")]
     public Guid CurriculumId { get; set; }
 
     public CurriculumModel? Curriculum { get; set; }

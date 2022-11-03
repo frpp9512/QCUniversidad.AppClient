@@ -1,0 +1,9 @@
+﻿@model IList<CareerModel>
+
+<label for="SelectedCareers">Carreras que gestiona el departamento</label>
+<select id="SelectedCareers" name="SelectedCareers" class="form-control select-career" multiple aria-label="multiple select example">
+    @foreach (var career in Model)
+    {
+        <option value="@career.Id">@career.Name</option>
+    }
+</select>

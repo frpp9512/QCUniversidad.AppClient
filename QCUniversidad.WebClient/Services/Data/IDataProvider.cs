@@ -173,7 +173,7 @@ public interface IDataProvider
     Task<int> GetTeachingPlanItemsCountAsync();
     Task<int> GetTeachingPlanItemsCountAsync(Guid periodId);
     Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(int from = 0, int to = 0);
-    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, int from = 0, int to = 0);
+    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, Guid? courseId = null, int from = 0, int to = 0);
     Task<TeachingPlanItemModel> GetTeachingPlanItemAsync(Guid id);
     Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItemModel period);
     Task<bool> DeleteTeachingPlanItemAsync(Guid id);

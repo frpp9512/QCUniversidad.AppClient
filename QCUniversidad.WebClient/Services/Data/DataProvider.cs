@@ -1394,10 +1394,10 @@ public class DataProvider : IDataProvider
 
     public Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(int from = 0, int to = 0) => throw new NotImplementedException();
 
-    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, int from = 0, int to = 0)
+    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsAsync(Guid periodId, Guid? courseId = null, int from = 0, int to = 0)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-        var response = await client.GetAsync($"/period/planitems?periodId={periodId}&from={from}&to={to}");
+        var response = await client.GetAsync($"/period/planitems?periodId={periodId}{(courseId is not null ? $"&courseId={courseId}" : "")}&from={from}&to={to}");
         if (response.IsSuccessStatusCode)
         {
             var contentText = await response.Content.ReadAsStringAsync();

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Shared.CommonModels;
 
-public class UndergraduateTutoringModel
+public record UndergraduateTutoringModel
 {
     public int IntegrativeProjectDiplomants { get; set; }
     public int ThesisDiplomants { get; set; }

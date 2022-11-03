@@ -1,4 +1,6 @@
-﻿@model TeachersViewModel
+﻿@using QCUniversidad.Api.Shared.Enums
+@using QCUniversidad.Api.Shared.Extensions
+@model TeachersViewModel
 
 <div class="fadeIn">
     <div class="d-flex justify-content-between mt-2 mb-2">
@@ -11,7 +13,7 @@
     @if (Model.DepartmentsTeacher?.Any() == true)
     {
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover" id="teachersload-table">
                 <thead>
                     <tr>
                         <th>Nombre</th>
@@ -52,10 +54,13 @@
                                 @if (teacher.Load is not null)
                                 {
                                     <div class="d-flex align-items-center justify-content-end">
-                                        <div style='margin-right: 3px;'>
-                                            <b>@(teacher.Load.Load) h</b>
+                                        <div class="font-heavy" style='margin-right: 5px; color: @(teacher.Load.Status switch { TeacherLoadStatus.Acceptable => "#a5b800", TeacherLoadStatus.Balanced => "#179b18", _ => "#ff0000" });'>
+                                            @(teacher.Load.Load) h
                                         </div>
-                                        <partial name="_CircleIndicator" model="(teacher.Load.LoadPercent, 30)" />
+                                        @{
+                                            var indicatorTooltip = $"<div><small><span class='fa fa-chart-pie'></span> Carga del profesor</small></div> <div><b>{teacher.Load.Status.GetEnumDisplayNameValue()}</b></div> <div>{teacher.Load.Status.GetEnumDisplayDescriptionValue()}</div>";
+                                        }
+                                        <partial name="_CircleIndicator" model="(teacher.Load.LoadPercent, 30, indicatorTooltip)" />
                                     </div>
                                 }
                             </td>

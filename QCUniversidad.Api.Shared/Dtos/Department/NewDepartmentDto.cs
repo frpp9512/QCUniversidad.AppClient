@@ -12,5 +12,6 @@ namespace QCUniversidad.Api.Shared.Dtos.Department
         public string? Description { get; set; }
         public string InternalId { get; set; }
         public Guid FacultyId { get; set; }
+        public Guid[]? SelectedCareers { get; set; }
     }
 }

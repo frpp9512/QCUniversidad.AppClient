@@ -1,6 +1,6 @@
-﻿@model (double percent, int width)
+﻿@model (double percent, int width, string? tooltipvalue)
 
-<svg data-value="@Model.percent" style="width: @(Model.width); height: @(Model.width);" class="circle-percentage" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-chart-pie'></span> Gráfico</small></div> <div><b>@(Model.percent)% de carga distribuida</b></div> <div>Representa el porciento de carga distribuida.</div>">
+<svg data-value="@Model.percent" style="width: @(Model.width); height: @(Model.width);" class="circle-percentage" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" data-bs-toggle="tooltip" data-bs-html="true" title="@Model.tooltipvalue">
     <circle r="45" cx="50" cy="50" />
     <path class="meter" style="stroke-width: @(Model.width < 30 ? "20px" : "10px")" d="M5,50a45,45 0 1,0 90,0a45,45 0 1,0 -90,0" stroke-linecap="round" stroke-linejoin="round" stroke-dashoffset="282.78302001953125" stroke-dasharray="282.78302001953125" />
     <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="2.6rem"></text>

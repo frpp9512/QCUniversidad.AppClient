@@ -5,6 +5,10 @@
     ViewData["Title"] = "Fuerza de trabajo";
 }
 
+@section PageStyles {
+    <link href="~/lib/datatables/datatables.min.css" rel="stylesheet" />
+}
+
 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
     <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start">
         <div class="d-flex flex-column">
@@ -63,6 +67,7 @@
     <script src="~/js/options-selector.js"></script>
     <script src="~/lib/chart-js/chart.min.js"></script>
     <script src="~/js/charter.js"></script>
+    <script src="~/lib/datatables/datatables.min.js"></script>
 
     <script>
         const selectedDepartment = '@(Model.Department.Id)';
@@ -130,6 +135,11 @@
                     DisableLoadingTeachers();
                     const planningDetailsDiv = document.getElementById("work-force");
                     planningDetailsDiv.innerHTML = data;
+                    $('#teachersload-table').DataTable({
+                        language: {
+                            url: '/lib/datatables/lang/datatables.spanish.json'
+                        }
+                    });
                     LoadTooltips();
                     LoadMeters();
                 },
@@ -352,6 +362,43 @@
                     });
                 };
                 ppModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "PostgraduateThesisCourtAndRevision") {
+                const ptcModalElement = document.getElementById("PostgraduateThesisCourtAndRevisionModal");
+                let ptcModal = bootstrap.Modal.getOrCreateInstance(ptcModalElement);
+                let ptcModalBtn = document.getElementById("PostgraduateThesisCourtAndRevisionModalButton");
+                ptcModalBtn.onclick = function () {
+                    ptcModal.hide();
+                    let mastersAndDiplomantsThesisCourts = document.getElementById("MastersAndDiplomantsThesisCourts");
+                    let doctorateThesisCourts = document.getElementById("DoctorateThesisCourts");
+                    let loadModel = {
+                        MastersAndDiplomantsThesisCourts: mastersAndDiplomantsThesisCourts.value,
+                        DoctorateThesisCourts: doctorateThesisCourts.value
+                    };
+                    let selected = JSON.stringify(loadModel);
+                    let model = {
+                        Type: "PostgraduateThesisCourtAndRevision",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                            mastersAndDiplomantsThesisCourts.value = 0;
+                            doctorateThesisCourts.value = 0;
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                ptcModal.show();
                 InitializeSelectCards();
                 return;
             }
