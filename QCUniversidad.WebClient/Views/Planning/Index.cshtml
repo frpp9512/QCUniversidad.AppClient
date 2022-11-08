@@ -254,35 +254,6 @@
             periodsSelect.disabled = false;
         }
 
-        function FilterChanged() {
-            const subjectFilterSelect = document.getElementById("filterSubjects");
-            let subjectSelected = subjectFilterSelect.options[subjectFilterSelect.selectedIndex].value;
-            const typeFilterSelect = document.getElementById("activityFilter");
-            let typeSelected = typeFilterSelect.options[typeFilterSelect.selectedIndex].innerText;
-
-            let itemsRows = document.getElementById("planningItemsTable").getElementsByTagName("tbody")[0].getElementsByTagName("tr");
-            let totalShowed = 0;
-            for (let i = 0; i < itemsRows.length; i++) {
-                let row = itemsRows[i];
-                row.style.visibility = "visible";
-                let allTd = row.getElementsByTagName("td");
-                let subjectTd = allTd[0];
-                let typeTd = allTd[1];
-                if (((subjectSelected == "all") || (subjectTd.id == subjectSelected)) 
-                    && ((typeSelected == "Todos") || (typeTd.innerText.indexOf(typeSelected) >= 0))) {
-                    let totalHours = allTd[4].innerText;
-                    totalShowed = totalShowed + parseFloat(totalHours);
-                } else {
-                    row.style.visibility = "collapse";
-                }
-            }
-            let totalCell = document.getElementById("totalCell");
-            totalCell.removeChild(totalCell.children[0]);
-            let resultNode = document.createElement("b");
-            resultNode.innerText = totalShowed;
-            totalCell.appendChild(resultNode);
-        }
-
         function RiseDeleteModal(id) {
             SetDeleteModalTextContent("¿Esta seguro que desea eliminar el elemento?");
             var button = document.getElementById("modal-delete-primarybutton");

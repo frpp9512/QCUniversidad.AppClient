@@ -8,30 +8,10 @@
 
 <div class="d-flex flex-column gap-2 flex-md-row justify-content-between align-items-center">
     <div>
-        <div class="col-12">
-            <button type="button" class="btn btn-success" onclick="CallNewElementPage()"><span class="fa fa-plus"></span> Nuevo elemento</button>
-            <button type="button" class="btn btn-outline-success"><span class="fa fa-file-excel"></span> Exportar</button>
-        </div>
+        <h5>Planificación del período</h5>
     </div>
-    <div>
-        <div class="d-flex flex-row gap-1 align-items-baseline justify-content-end">
-            <div>
-                <label for="filterSubjects" class="form-label">Filtrar asignatura</label>
-                <select id="filterSubjects" class="form-select" onchange="FilterChanged()">
-                    <option value="all">Todas</option>
-                    @foreach (var s in subjects)
-                    {
-                        <option value="@s.Id">@s.Name</option>
-                    }
-                </select>
-            </div>
-            <div>
-                <label for="activityFilter" class="form-label">Filtrar tipo</label>
-                <select asp-items="@Html.GetEnumSelectList<TeachingActivityType>()" id="activityFilter" class="form-select" onchange="FilterChanged()">
-                    <option>Todos</option>
-                </select>
-            </div>
-        </div>
+    <div class="d-flex flex-row gap-2 align-items-center">
+        <button type="button" class="btn btn-success" onclick="CallNewElementPage()"><span class="fa fa-plus"></span> Nuevo elemento</button>
     </div>
 </div>
 
@@ -105,18 +85,6 @@
                     </tr>
                 }
             </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="4" align="right">
-                        <b>Total de horas planificadas</b>
-                    </td>
-                    <td id="totalCell" align="right" style="font-weight: bold">
-                        @Model.Sum(i => i.HoursPlanned * i.GroupsAmount)
-                    </td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </tfoot>
         </table>
     </div>
 

@@ -23,5 +23,6 @@ namespace QCUniversidad.WebClient.Models.Disciplines
         public int? SubjectsCount { get; set; }
         public Guid DepartmentId { get; set; }
         public DepartmentModel? Department { get; set; }
+        public DisciplineImportAction? ImportAction { get; set; }
     }
 }

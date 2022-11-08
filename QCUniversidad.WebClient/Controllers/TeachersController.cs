@@ -7,6 +7,7 @@ using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Models.Teachers;
 using QCUniversidad.WebClient.Services.Data;
+using QCUniversidad.WebClient.Services.Extensions;
 
 namespace QCUniversidad.WebClient.Controllers;
 
@@ -16,13 +17,15 @@ public class TeachersController : Controller
     private readonly IDataProvider _dataProvider;
     private readonly IMapper _mapper;
     private readonly ILogger<TeachersController> _logger;
+    private readonly IExcelParser<TeacherModel> _teachersExcelParser;
     private readonly NavigationSettings _navigationSettings;
 
-    public TeachersController(IDataProvider dataProvider, IMapper mapper, IOptions<NavigationSettings> navOptions, ILogger<TeachersController> logger)
+    public TeachersController(IDataProvider dataProvider, IMapper mapper, IOptions<NavigationSettings> navOptions, ILogger<TeachersController> logger, IExcelParser<TeacherModel> teachersExcelParser)
     {
         _dataProvider = dataProvider;
         _mapper = mapper;
         _logger = logger;
+        _teachersExcelParser = teachersExcelParser;
         _navigationSettings = navOptions.Value;
     }
 
@@ -60,6 +63,101 @@ public class TeachersController : Controller
             _logger.LogWarning(ex, "Exception throwed {0}", ex.Message);
             return RedirectToActionPermanent("Error", "Home");
         }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ImportAsync()
+    {
+        var departments = await _dataProvider.GetDepartmentsAsync();
+        ViewData["departments-list"] = departments;
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ImportAsync(IFormFile formFile, Guid selectedDepartment)
+    {
+        var fileStream = formFile.OpenReadStream();
+        var parsedModels = await GetParsedModelsAsync(fileStream);
+        if (!parsedModels.Any())
+        {
+            TempData["importing-error"] = "No se ha podido importar ningún profesor.";
+        }
+        var created = 0;
+        var updated = 0;
+        var failed = 0;
+        foreach (var newTeacher in parsedModels.Where(t => t.ImportAction == TeacherImportAction.Create))
+        {
+            try
+            {
+                newTeacher.DepartmentId = selectedDepartment;
+                await _dataProvider.CreateTeacherAsync(newTeacher);
+                created++;
+            }
+            catch
+            {
+                failed++;
+            }
+        }
+        foreach (var teacherToUpdate in parsedModels.Where(t => t.ImportAction == TeacherImportAction.Update))
+        {
+            try
+            {
+                var teacher = await _dataProvider.GetTeacherAsync(teacherToUpdate.PersonalId);
+                teacher.DepartmentId = selectedDepartment;
+                teacher.Fullname = teacherToUpdate.Fullname;
+                teacher.Position = teacherToUpdate.Position;
+                teacher.Category = teacherToUpdate.Category;
+                teacher.Email = teacherToUpdate.Email;
+                teacher.ContractType = teacherToUpdate.ContractType;
+                await _dataProvider.UpdateTeacherAsync(teacher);
+            }
+            catch
+            {
+                failed++;
+            }
+        }
+        TempData["importing-result"] = $"Se han importado un total de {(created + updated)} profesores, creando {created} y actualizando {updated}, con {failed} fallos.";
+        return RedirectToAction("Index");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ImportFilePreviewAsync(IFormFile formFile)
+    {
+        var fileStream = formFile.OpenReadStream();
+        var parsedModels = await GetParsedModelsAsync(fileStream);
+        return Json(parsedModels);
+    }
+
+    private async Task<IList<TeacherModel>> GetParsedModelsAsync(Stream fileStream)
+    {
+        var parsedModels = await _teachersExcelParser.ParseExcelAsync(fileStream);
+        foreach (var parsedModel in parsedModels)
+        {
+            TeacherImportAction action;
+            if (!ValidatePersonalId(parsedModel.PersonalId))
+            {
+                action = TeacherImportAction.NoImport;
+            }
+            else
+            {
+                var exists = await _dataProvider.ExistsTeacherAsync(parsedModel.PersonalId);
+                action = exists ? TeacherImportAction.Update : TeacherImportAction.Create;
+            }
+            parsedModel.ImportAction = action;
+        }
+
+        return parsedModels;
+    }
+
+    public async Task<IActionResult> TemplateFileAsync()
+    {
+        if (!System.IO.File.Exists("templates/teachers_import.xlsx"))
+        {
+            return NotFound("The template file is missing!");
+        }
+        var templateBytes = await System.IO.File.ReadAllBytesAsync("templates/teachers_import.xlsx");
+        return File(templateBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "QCU Plantilla para importar profesores.xlsx");
     }
 
     [HttpGet]

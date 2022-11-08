@@ -498,6 +498,12 @@ public class DataManager : IDataManager
         return result;
     }
 
+    public async Task<bool> ExistsDisciplineAsync(string name)
+    {
+        var result = await _context.Disciplines.AnyAsync(d => d.Name == name);
+        return result;
+    }
+
     public async Task<IList<DisciplineModel>> GetDisciplinesAsync(int from, int to)
     {
         var result =
@@ -530,6 +536,18 @@ public class DataManager : IDataManager
             return result ?? throw new DisciplineNotFoundException();
         }
         throw new ArgumentNullException(nameof(disciplineId));
+    }
+
+    public async Task<DisciplineModel> GetDisciplineAsync(string name)
+    {
+        if (!string.IsNullOrEmpty(name))
+        {
+            var result = await _context.Disciplines.Where(d => d.Name == name)
+                                                   .Include(d => d.Department)
+                                                   .FirstOrDefaultAsync();
+            return result ?? throw new DisciplineNotFoundException();
+        }
+        throw new ArgumentNullException(nameof(name));
     }
 
     public async Task<bool> UpdateDisciplineAsync(DisciplineModel discipline)
@@ -583,6 +601,12 @@ public class DataManager : IDataManager
         return result;
     }
 
+    public async Task<bool> ExistsTeacherAsync(string personalId)
+    {
+        var result = await _context.Teachers.AnyAsync(t => t.PersonalId == personalId);
+        return result;
+    }
+
     public async Task<int> GetTeachersCountAsync() => await _context.Teachers.CountAsync();
 
     public async Task<int> GetTeacherDisciplinesCountAsync(Guid id)
@@ -594,7 +618,7 @@ public class DataManager : IDataManager
     public async Task<IList<TeacherModel>> GetTeachersAsync(int from, int to)
     {
         var result =
-            from != 0 && from == to && from >= 0 && to >= from && !(from == 0 && from == to)
+            !(from == 0 && to == from)
             ? await _context.Teachers.Where(t => t.Active).Skip(from).Take(to).Include(d => d.Department).Include(d => d.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync()
             : await _context.Teachers.Where(t => t.Active).Include(d => d.Department).Include(d => d.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync();
         return result;
@@ -611,6 +635,19 @@ public class DataManager : IDataManager
             return result ?? throw new TeacherNotFoundException();
         }
         throw new ArgumentNullException(nameof(id));
+    }
+
+    public async Task<TeacherModel> GetTeacherAsync(string personalId)
+    {
+        if (!string.IsNullOrEmpty(personalId))
+        {
+            var result = await _context.Teachers.Where(t => t.PersonalId == personalId)
+                                                .Include(d => d.Department)
+                                                .Include(d => d.TeacherDisciplines).ThenInclude(td => td.Discipline)
+                                                .FirstOrDefaultAsync();
+            return result ?? throw new TeacherNotFoundException();
+        }
+        throw new ArgumentNullException(nameof(personalId));
     }
 
     public async Task<bool> UpdateTeacherAsync(TeacherModel teacher)
@@ -806,7 +843,7 @@ public class DataManager : IDataManager
                              where loadItem.TeacherId == teacherId
                                    && planItem.PeriodId == periodId
                                    && !planItem.FromPostgraduateCourse
-                             select planItem.SubjectId;
+                             select new { planItem.SubjectId, planItem.CourseId };
                 var cValue = cQuery.Distinct().Count();
                 var cItem = new NonTeachingLoadModel
                 {
@@ -827,8 +864,12 @@ public class DataManager : IDataManager
                               select new { hoursCovered = loadItem.HoursCovered, type = planItem.Type };
                 var calculationModel = new ClassPreparationCalculationModel
                 {
-                    MainClassesValue = await cpQuery.SumAsync(value => value.type == TeachingActivityType.Conference || value.type == TeachingActivityType.PostgraduateClass || value.type == TeachingActivityType.MeetingClass ? value.hoursCovered : 0),
-                    SecondaryClassesValue = await cpQuery.SumAsync(value => value.type != TeachingActivityType.Conference && value.type != TeachingActivityType.PostgraduateClass && value.type != TeachingActivityType.MeetingClass ? value.hoursCovered : 0)
+                    MainClassesValue = await cpQuery.SumAsync(
+                        value => value.type == TeachingActivityType.Conference || value.type == TeachingActivityType.PostgraduateClass ? value.hoursCovered : 0),
+                    SecondaryClassesValue = await cpQuery.SumAsync(
+                        value => value.type == TeachingActivityType.MeetingClass ? value.hoursCovered : 0),
+                    TertiaryClassesValue = await cpQuery.SumAsync(
+                        value => value.type != TeachingActivityType.Conference && value.type != TeachingActivityType.PostgraduateClass && value.type != TeachingActivityType.MeetingClass ? value.hoursCovered : 0)
                 };
                 var cpItem = new NonTeachingLoadModel
                 {
@@ -837,7 +878,11 @@ public class DataManager : IDataManager
                     TeacherId = teacherId,
                     PeriodId = periodId,
                     BaseValue = JsonConvert.SerializeObject(calculationModel),
-                    Load = Math.Round((calculationModel.MainClassesValue * _calculationOptions.ClassPreparationPrimaryCoefficient) + (calculationModel.SecondaryClassesValue * _calculationOptions.ClassPreparationSecondaryCoefficient), 2)
+                    Load = Math.Round(
+                        (calculationModel.MainClassesValue * _calculationOptions.ClassPreparationPrimaryCoefficient)
+                        + (calculationModel.SecondaryClassesValue * _calculationOptions.ClassPreparationSecondaryCoefficient)
+                        + (calculationModel.TertiaryClassesValue * _calculationOptions.ClassPreparationTertiaryCoefficient), 
+                        2)
                 };
                 return cpItem;
             case NonTeachingLoadType.Meetings:
@@ -941,10 +986,10 @@ public class DataManager : IDataManager
                         var teachersCount = await teachersCountQuery.Distinct().CountAsync();
 
                         var midTermExamValue = periodSubjectData.MidtermExamsCount * _calculationOptions.ExamGradeMidTermAverageTime * courseEnrolment;
-                        var finalExamParam = _calculationOptions.ExamGradeFinalAverageTime * courseEnrolment;
-                        var finalExamValue = periodSubjectData.FinalExam * finalExamParam;
-                        var secondFinalExamValue = (periodSubjectData.FinalExam * _calculationOptions.SecondExamGradeFinalCoefficient) * finalExamParam;
-                        var thirdFinalExamValue = (periodSubjectData.FinalExam * _calculationOptions.ThirdExamGradeFinalCoefficient) * finalExamParam;
+                        var finalExamParam = periodSubjectData.FinalExam;
+                        var finalExamValue = (_calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.ExamGradeFinalCoefficient)) * finalExamParam;
+                        var secondFinalExamValue = (_calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.SecondExamGradeFinalCoefficient)) * finalExamParam;
+                        var thirdFinalExamValue = (_calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.ThirdExamGradeFinalCoefficient)) * finalExamParam;
 
                         var examGradeValue = (midTermExamValue + finalExamValue + secondFinalExamValue + thirdFinalExamValue) / teachersCount;
                         subtotal += examGradeValue;

@@ -450,10 +450,35 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
+    public async Task<DisciplineModel> GetDisciplineAsync(string name)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/discipline/byname?name={name}");
+        if (response.IsSuccessStatusCode)
+        {
+            var discipline = JsonConvert.DeserializeObject<DisciplineModel>(await response.Content.ReadAsStringAsync());
+            return _mapper.Map<DisciplineModel>(discipline);
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
     public async Task<bool> ExistsDisciplineAsync(Guid id)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
         var response = await client.GetAsync($"/discipline/exists?id={id}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<bool>(contentText);
+            return result;
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<bool> ExistsDisciplineAsync(string name)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/discipline/existsbyname?name={name}");
         if (response.IsSuccessStatusCode)
         {
             var contentText = await response.Content.ReadAsStringAsync();
@@ -542,6 +567,19 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
+    public async Task<bool> ExistsTeacherAsync(string personalId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/teacher/existsbypersonalid?personalId={personalId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<bool>(contentText);
+            return result;
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
     public async Task<TeacherModel> GetTeacherAsync(Guid teacherId)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
@@ -550,6 +588,18 @@ public class DataProvider : IDataProvider
         {
             var discipline = JsonConvert.DeserializeObject<TeacherModel>(await response.Content.ReadAsStringAsync());
             return _mapper.Map<TeacherModel>(discipline);
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<TeacherModel> GetTeacherAsync(string personalId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/teacher/bypersonalid?personalId={personalId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var teacher = JsonConvert.DeserializeObject<TeacherModel>(await response.Content.ReadAsStringAsync());
+            return _mapper.Map<TeacherModel>(teacher);
         }
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }

@@ -69,6 +69,21 @@ public class DisciplineController : ControllerBase
         }
     }
 
+    [HttpGet]
+    [Route("existsbyname")]
+    public async Task<IActionResult> ExistsAsync(string name)
+    {
+        try
+        {
+            var result = await _dataManager.ExistsDisciplineAsync(name);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
     [HttpPut]
     public async Task<IActionResult> CreateAsync(NewDisciplineDto disciplineDto)
     {
@@ -98,6 +113,28 @@ public class DisciplineController : ControllerBase
         catch (DisciplineNotFoundException)
         {
             return NotFound($"The discipline with id {id} was not found.");
+        }
+    }
+
+    [HttpGet]
+    [Route("byname")]
+    public async Task<IActionResult> GetByIdAsync(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return BadRequest("You must provide an id.");
+        }
+        try
+        {
+            var result = await _dataManager.GetDisciplineAsync(name);
+            var dto = _mapper.Map<PopulatedDisciplineDto>(result);
+            dto.SubjectsCount = await _dataManager.GetDisciplineSubjectsCountAsync(dto.Id);
+            dto.TeachersCount = await _dataManager.GetDisciplineTeachersCountAsync(dto.Id);
+            return Ok(dto);
+        }
+        catch (DisciplineNotFoundException)
+        {
+            return NotFound($"The discipline with name {name} was not found.");
         }
     }
 

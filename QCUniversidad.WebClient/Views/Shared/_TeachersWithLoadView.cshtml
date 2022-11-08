@@ -54,8 +54,9 @@
                                 @if (teacher.Load is not null)
                                 {
                                     <div class="d-flex align-items-center justify-content-end">
-                                        <div class="font-heavy" style='margin-right: 5px; color: @(teacher.Load.Status switch { TeacherLoadStatus.Acceptable => "#a5b800", TeacherLoadStatus.Balanced => "#179b18", _ => "#ff0000" });'>
-                                            @(teacher.Load.Load) h
+                                        <div class="font-heavy" style='margin-right: 5px;'>
+                                            <span>@(teacher.Load.Load) h</span>
+                                            <span class="text-muted">/ @(teacher.Load.TimeFund) h</span>
                                         </div>
                                         @{
                                             var indicatorTooltip = $"<div><small><span class='fa fa-chart-pie'></span> Carga del profesor</small></div> <div><b>{teacher.Load.Status.GetEnumDisplayNameValue()}</b></div> <div>{teacher.Load.Status.GetEnumDisplayDescriptionValue()}</div>";

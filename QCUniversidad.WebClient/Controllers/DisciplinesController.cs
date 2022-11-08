@@ -6,7 +6,9 @@ using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Shared;
+using QCUniversidad.WebClient.Models.Teachers;
 using QCUniversidad.WebClient.Services.Data;
+using QCUniversidad.WebClient.Services.Extensions;
 using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
@@ -17,16 +19,19 @@ public class DisciplinesController : Controller
     private readonly IDataProvider _dataProvider;
     private readonly IMapper _mapper;
     private readonly ILogger<DisciplinesController> _logger;
+    private readonly IExcelParser<DisciplineModel> _excelParser;
     private readonly NavigationSettings _navigationSettings;
 
     public DisciplinesController(IDataProvider dataProvider,
                                  IOptions<NavigationSettings> navSettings,
                                  IMapper mapper,
-                                 ILogger<DisciplinesController> logger)
+                                 ILogger<DisciplinesController> logger,
+                                 IExcelParser<DisciplineModel> excelParser)
     {
         _dataProvider = dataProvider;
         _mapper = mapper;
         _logger = logger;
+        _excelParser = excelParser;
         _navigationSettings = navSettings.Value;
     }
 
@@ -63,6 +68,87 @@ public class DisciplinesController : Controller
             _logger.LogWarning(ex, "Exception throwed {0}", ex.Message);
             return RedirectToActionPermanent("Error", "Home");
         }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ImportAsync()
+    {
+        var departments = await _dataProvider.GetDepartmentsAsync();
+        ViewData["departments-list"] = departments;
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ImportAsync(IFormFile formFile, Guid selectedDepartment)
+    {
+        var fileStream = formFile.OpenReadStream();
+        var parsedModels = await GetParsedModelsAsync(fileStream);
+        if (!parsedModels.Any())
+        {
+            TempData["importing-error"] = "No se ha podido importar ninguna disciplina.";
+        }
+        var created = 0;
+        var updated = 0;
+        var failed = 0;
+        foreach (var newDiscipline in parsedModels.Where(t => t.ImportAction == DisciplineImportAction.Create))
+        {
+            try
+            {
+                newDiscipline.DepartmentId = selectedDepartment;
+                await _dataProvider.CreateDisciplineAsync(newDiscipline);
+                created++;
+            }
+            catch
+            {
+                failed++;
+            }
+        }
+        foreach (var disciplineToUpdate in parsedModels.Where(t => t.ImportAction == DisciplineImportAction.Update))
+        {
+            try
+            {
+                var discipline = await _dataProvider.GetDisciplineAsync(disciplineToUpdate.Name);
+                discipline.Description = disciplineToUpdate.Description;
+                await _dataProvider.UpdateDisciplineAsync(discipline);
+            }
+            catch
+            {
+                failed++;
+            }
+        }
+        TempData["importing-result"] = $"Se han importado un total de {(created + updated)} disciplinas, creando {created} y actualizando {updated}, con {failed} fallos.";
+        return RedirectToAction("Index");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ImportFilePreviewAsync(IFormFile formFile)
+    {
+        var fileStream = formFile.OpenReadStream();
+        var parsedModels = await GetParsedModelsAsync(fileStream);
+        return Json(parsedModels);
+    }
+
+    private async Task<IList<DisciplineModel>> GetParsedModelsAsync(Stream fileStream)
+    {
+        var parsedModels = await _excelParser.ParseExcelAsync(fileStream);
+        foreach (var parsedModel in parsedModels)
+        {
+            var exists = await _dataProvider.ExistsTeacherAsync(parsedModel.Name);
+            var action = exists ? DisciplineImportAction.Update : DisciplineImportAction.Create;
+            parsedModel.ImportAction = action;
+        }
+        return parsedModels;
+    }
+
+    public async Task<IActionResult> TemplateFileAsync()
+    {
+        if (!System.IO.File.Exists("templates/disciplines_import.xlsx"))
+        {
+            return NotFound("The template file is missing!");
+        }
+        var templateBytes = await System.IO.File.ReadAllBytesAsync("templates/disciplines_import.xlsx");
+        return File(templateBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "QCU Plantilla para importar disciplinas.xlsx");
     }
 
     [HttpGet]

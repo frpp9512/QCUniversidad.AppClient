@@ -58,11 +58,13 @@ public interface IDataManager
 
     Task<bool> CreateDisciplineAsync(DisciplineModel discipline);
     Task<bool> ExistsDisciplineAsync(Guid id);
+    Task<bool> ExistsDisciplineAsync(string name);
     Task<int> GetDisciplinesCountAsync();
     Task<int> GetDisciplineSubjectsCountAsync(Guid disciplineId);
     Task<int> GetDisciplineTeachersCountAsync(Guid disciplineId);
     Task<IList<DisciplineModel>> GetDisciplinesAsync(int from, int to);
     Task<DisciplineModel> GetDisciplineAsync(Guid disciplineId);
+    Task<DisciplineModel> GetDisciplineAsync(string name);
     Task<bool> UpdateDisciplineAsync(DisciplineModel discipline);
     Task<bool> DeleteDisciplineAsync(Guid disciplineId);
 
@@ -72,10 +74,12 @@ public interface IDataManager
 
     Task<bool> CreateTeacherAsync(TeacherModel teacher);
     Task<bool> ExistsTeacherAsync(Guid id);
+    Task<bool> ExistsTeacherAsync(string personalId);
     Task<int> GetTeachersCountAsync();
     Task<int> GetTeacherDisciplinesCountAsync(Guid id);
     Task<IList<TeacherModel>> GetTeachersAsync(int from, int to);
     Task<TeacherModel> GetTeacherAsync(Guid id);
+    Task<TeacherModel> GetTeacherAsync(string personalId);
     Task<bool> UpdateTeacherAsync(TeacherModel teacher);
     Task<bool> DeleteTeacherAsync(Guid id);
     Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId, bool loadInactives = false);

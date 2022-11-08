@@ -74,6 +74,21 @@ public class TeacherController : ControllerBase
         }
     }
 
+    [HttpGet]
+    [Route("existsbypersonalid")]
+    public async Task<IActionResult> ExistsAsync(string personalId)
+    {
+        try
+        {
+            var result = await _dataManager.ExistsTeacherAsync(personalId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
     [HttpPut]
     public async Task<IActionResult> CreateAsync(NewTeacherDto teacherDto)
     {
@@ -115,6 +130,30 @@ public class TeacherController : ControllerBase
         catch (TeacherNotFoundException)
         {
             return NotFound($"The teacher with id {id} was not found.");
+        }
+    }
+
+    [HttpGet]
+    [Route("bypersonalid")]
+    public async Task<IActionResult> GetByPersonalIdAsync(string personalId)
+    {
+        if (!string.IsNullOrEmpty(personalId))
+        {
+            return BadRequest("You must provide an id.");
+        }
+        try
+        {
+            var result = await _dataManager.GetTeacherAsync(personalId);
+            var dto = _mapper.Map<TeacherDto>(result);
+            dto.Disciplines ??= new List<PopulatedDisciplineDto>();
+            dto.Disciplines = result.TeacherDisciplines
+                                           .Select(td => _mapper.Map<PopulatedDisciplineDto>(td.Discipline))
+                                           .ToList();
+            return Ok(dto);
+        }
+        catch (TeacherNotFoundException)
+        {
+            return NotFound($"The teacher with id {personalId} was not found.");
         }
     }
 

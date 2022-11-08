@@ -1,0 +1,293 @@
+﻿@using Newtonsoft.Json
+@using QCUniversidad.Api.Shared.Enums
+@using QCUniversidad.Api.Shared.Extensions
+@{
+    ViewData["Title"] = "Importar profesores";
+    var departments = ViewData["departments-list"] is IList<DepartmentModel> ? ViewData["departments-list"] as IList<DepartmentModel> : null;
+}
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start justify-content-between">
+        <div class="d-flex flex-column">
+            <div class="banner-title">Importar profesores</div>
+            <div class="banner-subtitle">al departamento desde archivo</div>
+        </div>
+    </div>
+    <div>
+        <a asp-action="TemplateFile" class="btn btn-outline-info"><span class="fa fa-file-excel"></span> Descargar plantilla</a>
+    </div>
+</div>
+
+<form asp-action="Import" method="post" enctype="multipart/form-data" class="mb-3">
+    <div>
+        <div class="mb-3">
+            <label for="selectedDepartment" class="form-label">Departamento</label>
+            <select name="selectedDepartment" id="selectedDepartment" class="form-select">
+                @if (departments?.Any() == true)
+                {
+                    var depGroups = departments.GroupBy(d => d.FacultyId);
+                    foreach (var depGroup in depGroups)
+                    {
+                        <optgroup label="@depGroup.First().Faculty?.Name">
+                            @foreach (var dep in depGroup)
+                            {
+                                <option value="@dep.Id">@dep.Name</option>
+                            }
+                        </optgroup>
+                    }
+                }
+            </select>
+        </div>
+        <div class="mb-4">
+            <label for="formFile" class="form-label">Fichero con datos</label>
+            <input class="form-control" name="formFile" type="file" id="formFile" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+        </div>
+        <div id="import-result" class="mb-4">
+        </div>
+        <div class="mb-4 d-flex flex-row justify-content-end">
+            <button type="submit" class="btn btn-success" id="importbtn"><span class="fa fa-file-upload"></span> Importar</button>
+        </div>
+    </div>
+</form>
+
+<h5>¿Cómo trabajar con la plantilla?</h5>
+
+<ol class="guide">
+    <li class="font-heavy font-main-color">
+        Descargar plantilla
+
+        <ol type="I" class="font-light font-text-color">
+            <li>
+                Haga click en el botón descargar plantilla
+                <div class="m-2">
+                    <figure class="figure">
+                        <img src="~/img/guides/download_template_button.png" class="figure-img img-fluid rounded" alt="...">
+                        <figcaption class="figure-caption">Botón de descargar plantilla</figcaption>
+                    </figure>
+                </div>
+            </li>
+            <li>
+                Haga click en guardar archivo y seleccione la ruta donde se va almacenar para comenzar la descarga
+                <div class="m-2">
+                    <figure class="figure">
+                        <img src="~/img/guides/save_as_template_file.png" class="figure-img img-fluid rounded" alt="...">
+                        <figcaption class="figure-caption">Solicitud de descarga de archivo</figcaption>
+                    </figure>
+                </div>
+                <div class="m-2">
+                    <figure class="figure">
+                        <img src="~/img/guides/teachers_import/save_as_prompt.png" class="figure-img img-fluid rounded" alt="...">
+                        <figcaption class="figure-caption">Cuadro de diálogo para guardar el archivo plantilla</figcaption>
+                    </figure>
+                </div>
+            </li>
+            <li>
+                Una vez finalizada la descarga puede abrir el archivo para empezar a agregar los datos
+                <div class="m-2">
+                    <figure class="figure">
+                        <img src="~/img/guides/teachers_import/open_saved_file.png" class="figure-img img-fluid rounded" alt="...">
+                        <figcaption class="figure-caption">Cuadro de diálogo para guardar el archivo plantilla</figcaption>
+                    </figure>
+                </div>
+            </li>
+        </ol>
+    </li>
+    <li class="font-heavy font-main-color">
+        Agregar los datos a la plantilla
+
+        <ol type="I" class="font-light font-text-color">
+            <div class="mb-2 font-light font-text-color">La plantilla es un archivo de <b>Micrososft Excel</b> que contiene una tabla cuya estructura de columnas representan los datos necesesarios para importar los profesores al sistema. Por defecto la plantilla trae 3 profesores de muestra los cuáles deben de ser eliminados para comenzar a agregar los datos.</div>
+            <div class="m-2">
+                <figure class="figure">
+                    <img src="~/img/guides/teachers_import/excel_template_file.png" class="figure-img img-fluid rounded" alt="...">
+                    <figcaption class="figure-caption">Contenido del archivo de plantilla</figcaption>
+                </figure>
+            </div>
+            <div class="font-light font-text-color">
+                Los campos necesarios a rellenear son los siguientes:
+                <ul>
+                    <li><b>Nombre completo</b>: Representa el nombre, segundo nombre y apellidos del profesor a importar.</li>
+                    <li><b>Carné de identidad</b>: Reperesenta el valor del número de carné de identidad.</li>
+                    <li>
+                        <b>Tipo de contrato</b>: Reperesenta el tipo de contrato con el cuál el profesor esta asociado al departamento, cuyos valores pueden ser:
+                        <ul>
+                            <li><b>Tiempo completo</b>: Profesor que se dedica a las actvidades docentes exclusivamente.</li>
+                            <li><b>Tiempo parcial</b>: Profesor que se imparte docencia como actividad secundaria ocupando otras funciones dentro o fuera de la institución.</li>
+                            <li><b>Auxiliar</b>: Profesor cuya función fundamental no es impartir docencia realizando esta actividad como apoyo.</li>
+                        </ul>
+                    </li>
+                    <li><b>Cargo</b>: Representa el cargo que el profesor ocupa en el departamento.</li>
+                    <li>
+                        <b>Categoría docente</b>: Representa la categoría docente con la que cuenta el profesor, los valores que puede tomar son los siguientes:
+                        <ul>
+                            <li>Asistente</li>
+                            <li>Asistente a tiempo parcial</li>
+                            <li>Asistente técnico de la docencia</li>
+                            <li>Asistente técnico de la docencia a tiempo parcial</li>
+                            <li>Instructor</li>
+                            <li>Instructor a tiempo parcial</li>
+                            <li>Profesor auxiliar</li>
+                            <li>Profesor auxiliar a tiempo parcial</li>
+                            <li>Profesor consultante auxiliar</li>
+                            <li>Profesor consultante titular</li>
+                            <li>Profesor emérito titular</li>
+                            <li>Profesor titular</li>
+                            <li>Profesor titular a tiempo parcial</li>
+                        </ul>
+                    </li>
+                    <li><b>Correo electrónico</b>: Representa la dirección de correo electrónico del profesor.</li>
+                </ul>
+            </div>
+            <div class="m-2">
+                <figure class="figure">
+                    <img src="~/img/guides/teachers_import/excel_template_filewithcontent.png" class="figure-img img-fluid rounded" alt="...">
+                    <figcaption class="figure-caption">Plantilla llena con datos de profesores a importar al sistema.</figcaption>
+                </figure>
+            </div>
+        </ol>
+    </li>
+</ol>
+
+@{
+    var contractTypes = Enum.GetValues<TeacherContractType>().Select(type => new { numValue = (int)type, stringValue = type.GetEnumDisplayNameValue() });
+    var categories = Enum.GetValues<TeacherCategory>().Select(type => new { numValue = (int)type, stringValue = type.GetEnumDisplayNameValue() });
+    var importActions = Enum.GetValues<TeacherImportAction>().Select(type => new { numValue = (int)type, stringValue = type.GetEnumDisplayNameValue() });
+}
+
+@section Scripts {
+    <script src="~/lib/ajax-file-upload/jquery.ajaxfileupload.js"></script>
+    <script src="~/lib/datatables/datatables.min.js"></script>
+    <script>
+        const importbtn = document.getElementById("importbtn");
+        const contractTypes = Array.from(JSON.parse('@Html.Raw(JsonConvert.SerializeObject(contractTypes))'));
+        const categories = Array.from(JSON.parse('@Html.Raw(JsonConvert.SerializeObject(categories))'));
+        const importActions = Array.from(JSON.parse('@Html.Raw(JsonConvert.SerializeObject(importActions))'));
+
+        $("#formFile").ajaxfileupload({
+            'action': '/teachers/ImportFilePreview',
+            'onStart': function () {
+                importbtn.disabled = true;
+                const resultDiv = document.getElementById("import-result");
+                resultDiv.querySelectorAll('*').forEach(n => n.remove());
+                resultDiv.style.display = "flex";
+                resultDiv.style.alignItems = "center";
+                resultDiv.style.flexDirection = "column";
+                let spinner = document.createElement("div");
+                spinner.classList.add("spinner-grow");
+                spinner.classList.add("text-success");
+                spinner.setAttribute("role", "status");
+                spinner.style.margin = "35px";
+                let spinnerContent = document.createElement("span");
+                spinnerContent.classList.add("visually-hidden");
+                spinnerContent.innerText = "Cargando...";
+                spinner.appendChild(spinnerContent);
+
+                let label = document.createElement("p");
+                label.innerText = "Analizando archivo y cargando vista previa..."
+
+                resultDiv.appendChild(spinner);
+                resultDiv.appendChild(label);
+            },
+            'onComplete': function (response) {
+                const resultDiv = document.getElementById("import-result");
+                resultDiv.querySelectorAll('*').forEach(n => n.remove());
+                
+                let tableTitle = document.createElement("h5");
+                tableTitle.innerText = "Previsualización de profesores a importar";
+                resultDiv.appendChild(tableTitle);
+
+                let tableDiv = document.createElement("div");
+                tableDiv.classList.add("table-responsive");
+                
+                let table = document.createElement("table");
+                table.id = "teachers-preview";
+                table.classList.add("table");
+                table.classList.add("table-hover");
+
+                tableDiv.appendChild(table);
+
+                let tableHeader = document.createElement("thead");
+
+                let headerRow = document.createElement("tr");
+
+                ['Nombre completo', 'Carné de identidad', 'Tipo de contrato', 'Cargo', 'Categoría docente', 'Correo electrónico', 'Acción'].forEach(headerValue => {
+                    let headerTh = document.createElement("th");
+                    headerTh.innerText = headerValue;
+                    headerRow.appendChild(headerTh);
+                });
+
+                tableHeader.appendChild(headerRow);
+                table.appendChild(tableHeader);
+
+                let tableBody = document.createElement("tbody");
+
+                Array.from(response).forEach(item => {
+                    let itemRow = document.createElement("tr");
+
+                    let fullnameTd = document.createElement("td");
+                    fullnameTd.innerText = item.fullname;
+                    itemRow.appendChild(fullnameTd);
+
+                    let personalIdTd = document.createElement("td");
+                    personalIdTd.innerText = item.personalId;
+                    itemRow.appendChild(personalIdTd);
+
+                    let contractTypeTd = document.createElement("td");
+                    contractTypeTd.innerText = contractTypes.find(ct => ct.numValue == item.contractType).stringValue;
+                    itemRow.appendChild(contractTypeTd);
+
+                    let positionTd = document.createElement("td");
+                    positionTd.innerText = item.position;
+                    itemRow.appendChild(positionTd);
+
+                    let categoryTd = document.createElement("td");
+                    categoryTd.innerText = categories.find(c => c.numValue == item.category).stringValue;
+                    itemRow.appendChild(categoryTd);
+
+                    let emailTd = document.createElement("td");
+                    emailTd.innerText = item.email;
+                    itemRow.appendChild(emailTd);
+
+                    let actionTd = document.createElement("td");
+                    let value = importActions.find(c => c.numValue == item.importAction).stringValue;
+                    switch (value)
+                    {
+                        case "Crear":
+                            actionTd.innerHTML = `<span class='text-success'><span class='fa fa-circle-plus'></span> ${value}</span>`;
+                            break;
+                        case "Actualizar":
+                            actionTd.innerHTML = `<span class='text-warning'><span class='fa fa-sync'></span> ${value}</span>`;
+                            break;
+                        case "No importar":
+                            actionTd.innerHTML = `<span class='text-danger'><span class='fa fa-cancel'></span> ${value}</span>`;
+                            break;
+                        default:
+                            actionTd.innerText = value;
+                            break;
+                    }
+                    itemRow.appendChild(actionTd);
+
+                    tableBody.appendChild(itemRow);
+                });
+
+                table.appendChild(tableBody);
+
+                resultDiv.appendChild(tableDiv);
+
+                $('#teachers-preview').DataTable({
+                    responsive: true,
+                    language: {
+                        url: '/lib/datatables/lang/datatables.spanish.json'
+                    },
+                    dom: 'Bfrtip',
+                    buttons: []
+                });
+
+                importbtn.disabled = false;
+            },
+            'onError': function (response) {
+                importbtn.disabled = false;
+            }
+        });
+    </script>
+}

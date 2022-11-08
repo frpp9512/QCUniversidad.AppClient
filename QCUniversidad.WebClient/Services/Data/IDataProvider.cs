@@ -63,7 +63,9 @@ public interface IDataProvider
     Task<IList<DisciplineModel>> GetDisciplinesAsync(int from = 0, int to = 0);
     Task<int> GetDisciplinesCountAsync();
     Task<bool> ExistsDisciplineAsync(Guid id);
+    Task<bool> ExistsDisciplineAsync(string name);
     Task<DisciplineModel> GetDisciplineAsync(Guid disciplineId);
+    Task<DisciplineModel> GetDisciplineAsync(string name);
     Task<bool> CreateDisciplineAsync(DisciplineModel newDiscipline);
     Task<bool> UpdateDisciplineAsync(DisciplineModel discipline);
     Task<bool> DeleteDisciplineAsync(Guid disciplineId);
@@ -75,7 +77,9 @@ public interface IDataProvider
     Task<IList<TeacherModel>> GetTeachersAsync(int from = 0, int to = 0);
     Task<int> GetTeachersCountAsync();
     Task<bool> ExistsTeacherAsync(Guid id);
+    Task<bool> ExistsTeacherAsync(string personalId);
     Task<TeacherModel> GetTeacherAsync(Guid teacherId);
+    Task<TeacherModel> GetTeacherAsync(string personalId);
     Task<TeacherModel> GetTeacherAsync(Guid teacherId, Guid periodId);
     Task<bool> CreateTeacherAsync(TeacherModel newTeacher);
     Task<bool> UpdateTeacherAsync(TeacherModel teacher);
