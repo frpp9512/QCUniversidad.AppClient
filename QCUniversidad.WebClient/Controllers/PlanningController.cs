@@ -29,7 +29,7 @@ public class PlanningController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(Guid? periodSelected = null, Guid? schoolYearId = null, Guid? courseSelected = null, string? tab = "periodsubjects")
+    public async Task<IActionResult> Index(Guid? periodSelected = null, Guid? schoolYearId = null, Guid? courseSelected = null, string? tab = "planning")
     {
         var workingSchoolYear = (!User.IsAdmin() && schoolYearId is not null) || schoolYearId is null
             ? await _dataProvider.GetCurrentSchoolYear()
@@ -43,7 +43,7 @@ public class PlanningController : Controller
             PeriodSelected = periodSelected,
             Courses = courses,
             CourseSelected = courseSelected,
-            Tab = tab
+            Tab = tab ?? "planning"
         };
         return View(model);
     }

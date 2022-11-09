@@ -40,10 +40,13 @@
     }
 </div>
 
-<div id="work-force">
+<div id="work-force" class="mb-5">
 </div>
 
-<div id="work-force-chart">
+<div id="work-force-chart" class="mb-5">
+</div>
+
+<div id="work-force-load-chart" class="mb-5">
 </div>
 
 <div class="row justify-content-between">
@@ -110,7 +113,7 @@
             planningDetailsDiv.classList.add("justify-content-center");
             planningDetailsDiv.appendChild(CreateSpinnerNode());
             const periodsSelect = document.getElementById("periodSelector");
-            periodsSelect.disabled = true;
+            periodsSelect.setAttribute("disabled", "disabled");
         }
 
         function DisableLoadingTeachers() {
@@ -119,7 +122,7 @@
             planningDetailsDiv.classList.remove("d-flex");
             planningDetailsDiv.classList.remove("justify-content-center");
             const periodsSelect = document.getElementById("periodSelector");
-            periodsSelect.disabled = false;
+            periodsSelect.removeAttribute("disabled");
         }
 
         let loadingTeachers = false;
@@ -144,6 +147,7 @@
                         LoadTooltips();
                         LoadMeters();
                         LoadChart(`/loaddistribution/GetWorkForceChartData?periodId=${selectedPeriod}&departmentId=${selectedDepartment}`, "#work-force-chart");
+                        LoadChart(`/loaddistribution/GetWorkForceWithMostDirectLoadChartData?periodId=${selectedPeriod}&departmentId=${selectedDepartment}`, "#work-force-load-chart", (chart, evt) => { let elements = chart.getActiveElements();});
                         LoadChart(`/loaddistribution/GetTeachersChart?departmentId=${selectedDepartment}`, "#chart-1");
                         LoadChart(`/loaddistribution/GetTeachersChartByContractType?departmentId=${selectedDepartment}`, "#chart-2");
                     },

@@ -1,6 +1,7 @@
 ﻿using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Disciplines;
+using QCUniversidad.WebClient.Models.LoadItem;
 using System.ComponentModel.DataAnnotations;
 
 namespace QCUniversidad.WebClient.Models.Teachers;
@@ -47,6 +48,8 @@ public class TeacherModel
     public IList<DisciplineModel>? Disciplines { get; set; }
 
     public TeacherLoadModel? Load { get; set; }
+
+    public IList<LoadViewItemModel>? LoadItems { get; set; }
 
     public TeacherImportAction? ImportAction { get; set; }
 }

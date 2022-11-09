@@ -271,8 +271,76 @@ public class LoadDistributionController : Controller
         try
         {
             var depTeachers = await _dataProvider.GetTeachersOfDepartmentForPeriodAsync(workingDepartment, periodId);
-            var chartData = ModelListCharter.GetChartModel(ChartType.Bar, depTeachers, t => t.Load.LoadPercent, t => t.FirstName, title: "Distribución de carga", subtitle: "Comparación de la distribución de cargas entre los profesores del departamento.", showXGrid: false);
+            var chartData = ModelListCharter.GetChartModel(ChartType.Bar, depTeachers, t => t.Load.LoadPercent, t => t.FirstName, title: "Distribución de carga", subtitle: "Comparación de la distribución de cargas entre los profesores del departamento.", showXGrid: false, xScaleTitle: "Profesores del departamento", yScaleTitle: "Carga (%)");
             return Ok(chartData.GetJson());
+        }
+        catch (Exception)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetWorkForceWithMostDirectLoadChartDataAsync(Guid periodId, Guid? departmentId = null)
+    {
+        if (User.IsAdmin() && departmentId is null)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+        var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
+        try
+        {
+            var depTeachers = await _dataProvider.GetTeachersOfDepartmentForPeriodWithLoadItemsAsync(workingDepartment, periodId);
+            var data = new List<(TeacherModel teacher, double directLoad, double indirectLoad)>();
+            foreach (var teacher in depTeachers)
+            {
+                var loadItems = teacher.LoadItems;
+                var dataValue = (teacher, loadItems.Where(item => item.Type == LoadViewItemType.Teaching).Sum(item => item.Value), loadItems.Where(item => item.Type == LoadViewItemType.NonTeaching).Sum(item => item.Value));
+                data.Add(dataValue);
+            }
+
+            var dataSet1Values = data.Select(dataItem => new ChartDataValue
+            {
+                BackgroundColor = ModelListCharter.BackColors[3],
+                BorderColor = ModelListCharter.BorderColors[3],
+                Value = dataItem.directLoad
+            });
+
+            var dataSet2Values = data.Select(dataItem => new ChartDataValue
+            {
+                BackgroundColor = ModelListCharter.BackColors[4],
+                BorderColor = ModelListCharter.BorderColors[4],
+                Value = dataItem.indirectLoad
+            });
+
+            var dataSet1 = new ChartDataEntry { Label = "Carga directa", DataValues = dataSet1Values.ToArray() };
+            var dataSet2 = new ChartDataEntry { Label = "Carga indirecta", DataValues = dataSet2Values.ToArray() };
+
+            var chartData = new ChartData
+            {
+                Labels = data.Select(dataItem => dataItem.teacher.FirstName).ToArray(),
+                DataSets = new ChartDataEntry[] { dataSet2, dataSet1 }
+            };
+
+            var chartModel = new ChartModel
+            {
+                Title = "Distribución de cargas",
+                ShowTitle = true,
+                Subtitle = "Vista comparativa de las cargas de los profesores del departamento",
+                ShowSubtitle = true,
+                ElementId = "load-distribution-chart",
+                LegendPosition = ChartLegendPosition.Bottom,
+                Responsive = true,
+                ShowXGrid = false,
+                ShowYGrid = true,
+                Type = ChartType.Bar,
+                Stacked = true,
+                XScaleTitle = "Profesores del departamento",
+                YScaleTitle = "Carga (h/período)",
+                Data = chartData
+            };
+
+            return Ok(chartModel.GetJson());
         }
         catch (Exception)
         {

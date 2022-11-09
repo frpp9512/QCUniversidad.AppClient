@@ -4,16 +4,18 @@
         const options = s.querySelectorAll(".option-selector");
         options.forEach(opt => {
             opt.onclick = () => {
-                options.forEach(o => {
-                    if (o.hasAttribute("selected") && o != opt) {
-                        o.removeAttribute("selected");
-                    }
-                });
-                opt.setAttribute("selected", "selected");
+                if (!opt.parentElement.hasAttribute("disabled")) {
+                    options.forEach(o => {
+                        if (o.hasAttribute("selected") && o != opt) {
+                            o.removeAttribute("selected");
+                        }
+                    });
+                    opt.setAttribute("selected", "selected");
 
-                // Creating and calling selection changed event.
-                let selectionChangedEvent = new CustomEvent("option-selector-changed");
-                s.dispatchEvent(selectionChangedEvent);
+                    // Creating and calling selection changed event.
+                    let selectionChangedEvent = new CustomEvent("option-selector-changed");
+                    s.dispatchEvent(selectionChangedEvent);
+                }
             };
         });
     });

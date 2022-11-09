@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using QCUniversidad.Api.Shared.Dtos.Department;
 using QCUniversidad.Api.Shared.Dtos.Discipline;
+using QCUniversidad.Api.Shared.Dtos.LoadItem;
 
 namespace QCUniversidad.Api.Shared.Dtos.Teacher
 {
@@ -16,5 +17,6 @@ namespace QCUniversidad.Api.Shared.Dtos.Teacher
         public DepartmentDto Department { get; set; }
         public IList<PopulatedDisciplineDto>? Disciplines { get; set; }
         public TeacherLoadDto? Load { get; set; }
+        public IList<LoadViewItemDto>? LoadItems { get; set; }
     }
 }

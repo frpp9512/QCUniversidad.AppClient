@@ -64,9 +64,9 @@ main {
     font-weight: 600;
 }
 
-.nav-link.active {
-    color: var(--text-color);
-}
+    .nav-link.active {
+        color: var(--text-color);
+    }
 
 .font-light {
     font-weight: 400;
@@ -105,9 +105,9 @@ main {
     font-size: 2rem;
 }
 
-.index-department-name::before {
-    content: 'Departamento de ';
-}
+    .index-department-name::before {
+        content: 'Departamento de ';
+    }
 
 .index-department-desc {
     color: var(--text-color);
@@ -1049,6 +1049,10 @@ dd {
     align-items: center;
 }
 
+    .options-selector[disabled] * {
+        filter: grayscale(100%);
+    }
+
 @media (max-width: 480px) {
     .options-selector {
         flex-direction: column;
@@ -1056,7 +1060,7 @@ dd {
     }
 }
 
-.option-selector {
+.options-selector .option-selector {
     padding: 5px 10px;
     border-radius: 5px;
     cursor: pointer;
@@ -1065,37 +1069,37 @@ dd {
     color: rgba(92, 92, 184, 1);
 }
 
-    .option-selector:hover {
-        background-color: rgba(92, 92, 184, 0.8);
-        color: white;
-        box-shadow: 0px 0px 10px rgba(92, 92, 184, 0.5);
-        ;
-        transition: 0.2s;
-    }
+.options-selector:not(.options-selector[disabled]) .option-selector:hover {
+    background-color: rgba(92, 92, 184, 0.8);
+    color: white;
+    box-shadow: 0px 0px 10px rgba(92, 92, 184, 0.5);
+    ;
+    transition: 0.2s;
+}
 
-    .option-selector:active {
-        background-color: rgba(92, 92, 184, 1);
-        color: white;
-        box-shadow: inset 0px 0px 10px rgba(92, 92, 184, 0.5);
-        transition: 0.2s;
-    }
+.options-selector .option-selector:active {
+    background-color: rgba(92, 92, 184, 1);
+    color: white;
+    box-shadow: inset 0px 0px 10px rgba(92, 92, 184, 0.5);
+    transition: 0.2s;
+}
 
-    .option-selector[selected] {
-        background-color: rgba(92, 92, 184, 0.9);
-        box-shadow: inset 0px 0px 3px #555;
-        color: white;
-    }
+.options-selector .option-selector[selected] {
+    background-color: rgba(92, 92, 184, 0.9);
+    box-shadow: inset 0px 0px 3px #555;
+    color: white;
+}
 
-        .option-selector[selected]:hover {
-            background-color: rgba(92, 92, 184, 0.8);
-        }
+.options-selector:not(.options-selector[disabled]) .option-selector[selected]:hover {
+    background-color: rgba(92, 92, 184, 0.8);
+}
 
-        .option-selector[selected]:active {
-            background-color: rgba(92, 92, 184, 1);
-            box-shadow: inset 0px 0px 3px #555;
-        }
+.options-selector .option-selector[selected]:active {
+    background-color: rgba(92, 92, 184, 1);
+    box-shadow: inset 0px 0px 3px #555;
+}
 
-.options-selector-label {
+.options-selector .options-selector-label {
     color: rgba(92, 92, 184, 1);
     margin-right: 10px;
 }
@@ -1108,15 +1112,15 @@ ol.guide {
     font-size: 1.2rem;
 }
 
-ol.guide li {
-    font-size: 90%;
-}
+    ol.guide li {
+        font-size: 90%;
+    }
 
-ol.guide ::marker {
-    font-size: 100%;
-    color: var(--main-color);
-    font-weight: bolder;
-    text-decoration: none;
-}
+    ol.guide ::marker {
+        font-size: 100%;
+        color: var(--main-color);
+        font-weight: bolder;
+        text-decoration: none;
+    }
 
 /* end of ol guide */

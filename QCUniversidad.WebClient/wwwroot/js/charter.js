@@ -1,4 +1,4 @@
-﻿function LoadChart(dataEndpoint, containerSelector) {
+﻿function LoadChart(dataEndpoint, containerSelector, onclickcallback) {
     const container = document.querySelector(containerSelector);
     container.querySelectorAll('*').forEach(n => n.remove());
     container.style.display = "flex";
@@ -17,6 +17,11 @@
             container.appendChild(canva);
             const ctx = canva.getContext("2d");
             const chart = new Chart(ctx, chartModel.config);
+            canva.onclick = (evt) => {
+                if (onclickcallback != null) {
+                    onclickcallback(chart, evt);
+                }
+            };
         },
         error: function (xhr, status, error) {
             console.log(xhr, status, error);

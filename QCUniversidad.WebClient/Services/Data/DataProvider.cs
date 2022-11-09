@@ -714,6 +714,19 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
+    public async Task<IList<TeacherModel>> GetTeachersOfDepartmentForPeriodWithLoadItemsAsync(Guid departmentId, Guid periodId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/teacher/listofdepartmentforperiodwithloaditems?departmentId={departmentId}&periodId={periodId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var teachers = JsonConvert.DeserializeObject<IList<TeacherDto>>(contentText);
+            return teachers?.Select(f => _mapper.Map<TeacherModel>(f)).ToList() ?? new List<TeacherModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
     public async Task<bool> DeleteLoadItemAsync(Guid loadItemId)
     {
         if (loadItemId != Guid.Empty)

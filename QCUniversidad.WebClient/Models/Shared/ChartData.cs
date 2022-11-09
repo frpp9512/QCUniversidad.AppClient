@@ -45,7 +45,7 @@ public static class ModelListCharter
         return null;
     }
 
-    private readonly static Color[] backColors = new[]
+    public readonly static Color[] BackColors = new[]
         {
             Color.FromArgb(180, 81, 43, 212),
             Color.FromArgb(180, Color.FromKnownColor(KnownColor.MediumVioletRed)),
@@ -58,7 +58,7 @@ public static class ModelListCharter
             Color.FromArgb(180, Color.FromKnownColor(KnownColor.Thistle)),
         };
 
-    private readonly static Color[] borderColors = new[]
+    public readonly static Color[] BorderColors = new[]
         {
             Color.FromArgb(255, 81, 43, 212),
             Color.FromArgb(255, Color.FromKnownColor(KnownColor.MediumVioletRed)),
@@ -102,11 +102,11 @@ public static class ModelListCharter
         var nextColor = () =>
         {
             currentColor++;
-            if (currentColor >= backColors.Length)
+            if (currentColor >= BackColors.Length)
             {
                 currentColor = 0;
             }
-            return (backColors[currentColor], borderColors[currentColor]);
+            return (BackColors[currentColor], BorderColors[currentColor]);
         };
 
         var data = new ChartData
@@ -129,8 +129,8 @@ public static class ModelListCharter
                         return new ChartDataValue
                         {
                             Value = valueSelector.Compile().Invoke(m),
-                            BackgroundColor = backgroundColor ?? (alternateColors ? backcolor : backColors.First()),
-                            BorderColor =  borderColor ?? (alternateColors ? bordercolor : borderColors.First())
+                            BackgroundColor = backgroundColor ?? (alternateColors ? backcolor : BackColors.First()),
+                            BorderColor =  borderColor ?? (alternateColors ? bordercolor : BorderColors.First())
                         };
                     })
                     .ToArray()
@@ -191,11 +191,11 @@ public static class ModelListCharter
         var nextColor = () =>
         {
             currentColor++;
-            if (currentColor >= backColors.Length)
+            if (currentColor >= BackColors.Length)
             {
                 currentColor = 0;
             }
-            return (backColors[currentColor], borderColors[currentColor]);
+            return (BackColors[currentColor], BorderColors[currentColor]);
         };
 
         var data = new ChartData
@@ -218,8 +218,8 @@ public static class ModelListCharter
                         return new ChartDataValue
                         {
                             Value = valueSelector1.Compile().Invoke(m),
-                            BackgroundColor = alternateColors ? backcolor : backColors.First(),
-                            BorderColor = alternateColors ? borderColor : borderColors.First()
+                            BackgroundColor = alternateColors ? backcolor : BackColors.First(),
+                            BorderColor = alternateColors ? borderColor : BorderColors.First()
                         };
                     })
                     .ToArray()
@@ -239,8 +239,8 @@ public static class ModelListCharter
                         return new ChartDataValue
                         {
                             Value = valueSelector2.Compile().Invoke(m),
-                            BackgroundColor = alternateColors ? backcolor : backColors.Skip(1).First(),
-                            BorderColor = alternateColors ? borderColor : borderColors.Skip(1).First()
+                            BackgroundColor = alternateColors ? backcolor : BackColors.Skip(1).First(),
+                            BorderColor = alternateColors ? borderColor : BorderColors.Skip(1).First()
                         };
                     })
                     .ToArray()
@@ -285,6 +285,7 @@ public record ChartModel
     public string? YScaleTitle { get; set; } = null;
     public bool ShowXGrid { get; set; } = true;
     public bool ShowYGrid { get; set; } = true;
+    public bool Stacked { get; set; } = false;
 
     public string ElementId { get; set; }
 
@@ -373,6 +374,7 @@ public record ChartModel
                 {
                     x = new
                     {
+                        stacked = Stacked,
                         display = ShowXScale,
                         title = new
                         {
@@ -386,6 +388,7 @@ public record ChartModel
                     },
                     y = new
                     {
+                        stacked = Stacked,
                         display = ShowYScale,
                         title = new
                         {
@@ -397,7 +400,8 @@ public record ChartModel
                             display = ShowYGrid
                         }
                     }
-                }
+                },
+                onclick = "handleClick",
             }
         };
         return configObject;

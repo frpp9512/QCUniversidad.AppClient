@@ -106,25 +106,32 @@
             LoadPlanningItems();
         }
 
+        let loadingPlanning = false;
+
         function LoadPlanningItems() {
             SetLoadingPlanning();
-            $.ajax({
-                url: `/loaddistribution/GetPlanningItemsView?periodId=${selectedPeriod}&departmentId=${selectedDepartment}&courseId=${selectedCourse}`,
-                type: "GET",
-                success: function (data) {
-                    DisableLoadingPlanning();
-                    const planningDetailsDiv = document.getElementById("load");
-                    planningDetailsDiv.innerHTML = data;
-                    LoadTooltips();
-                    RefreshView();
-                    LoadMeters();
-                    SetToggleButtons();
-                },
-                error: function (xhr, status, error) {
-                    DisableLoadingPlanning();
-                    console.log(xhr, status, error);
-                }
-            });
+            if (!loadingPlanning) {
+                loadingPlanning = true;
+                $.ajax({
+                    url: `/loaddistribution/GetPlanningItemsView?periodId=${selectedPeriod}&departmentId=${selectedDepartment}&courseId=${selectedCourse}`,
+                    type: "GET",
+                    success: function (data) {
+                        DisableLoadingPlanning();
+                        loadingPlanning = false;
+                        const planningDetailsDiv = document.getElementById("load");
+                        planningDetailsDiv.innerHTML = data;
+                        LoadTooltips();
+                        RefreshView();
+                        LoadMeters();
+                        SetToggleButtons();
+                    },
+                    error: function (xhr, status, error) {
+                        DisableLoadingPlanning();
+                        loadingPlanning = false;
+                        console.log(xhr, status, error);
+                    }
+                });
+            }
         }
 
         function CreateSpinnerNode() {
@@ -146,9 +153,9 @@
             planningDetailsDiv.classList.add("justify-content-center");
             planningDetailsDiv.appendChild(CreateSpinnerNode());
             const periodsSelect = document.getElementById("periodSelector");
-            periodsSelect.disabled = true;
+            periodsSelect.setAttribute("disabled", "disabled");
             const coursesSelect = document.getElementById("courseSelector");
-            coursesSelect.disabled = true;
+            coursesSelect.setAttribute("disabled", "disabled");
         }
 
         function DisableLoadingPlanning() {
@@ -157,9 +164,9 @@
             planningDetailsDiv.classList.remove("d-flex");
             planningDetailsDiv.classList.remove("justify-content-center");
             const periodsSelect = document.getElementById("periodSelector");
-            periodsSelect.disabled = false;
+            periodsSelect.removeAttribute("disabled");
             const coursesSelect = document.getElementById("courseSelector");
-            coursesSelect.disabled = false;
+            coursesSelect.removeAttribute("disabled");
         }
 
         var loadingAddLoadModal = false;

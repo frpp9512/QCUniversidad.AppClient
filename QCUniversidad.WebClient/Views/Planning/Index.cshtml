@@ -4,7 +4,7 @@
     <link href="~/lib/datatables/datatables.min.css" rel="stylesheet" />
 }
 
-@{
+    @{
     ViewData["Title"] = "Planificación";
 
     bool planningItemCreated = (bool?)TempData["planItem-created"] ?? false;
@@ -77,22 +77,22 @@
     <div class="container">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link @(Model.Tab == "periodsubjects" ? "active" : "")" id="periodSubjects-tab" data-bs-toggle="tab" data-bs-target="#periodSubjects" type="button" role="tab" aria-controls="periodSubjects" aria-selected="true">Asignaturas</button>
+                <button class="nav-link @(Model.Tab == "planning" ? "active" : "")" id="planning-tab" data-bs-toggle="tab" data-bs-target="#planning" type="button" role="tab" aria-controls="profile" aria-selected="false">Planificación</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link @(Model.Tab == "planning" ? "active" : "")" id="planning-tab" data-bs-toggle="tab" data-bs-target="#planning" type="button" role="tab" aria-controls="profile" aria-selected="false">Planificación</button>
+                <button class="nav-link @(Model.Tab == "periodsubjects" ? "active" : "")" id="periodSubjects-tab" data-bs-toggle="tab" data-bs-target="#periodSubjects" type="button" role="tab" aria-controls="periodSubjects" aria-selected="true">Asignaturas</button>
             </li>
         </ul>
         <div class="tab-content" id="myTabContent">
-            <div class="tab-pane fade @(Model.Tab == "periodsubjects" ? "show active" : "")" id="periodSubjects" role="tabpanel" aria-labelledby="home-tab">
-                <div class="d-flex justify-content-center flex-column pt-3" id="periodSubjects-content">
+            <div class="tab-pane fade @(Model.Tab == "planning" ? "show active" : "")" id="planning" role="tabpanel" aria-labelledby="profile-tab">
+                <div class="d-flex justify-content-center flex-column pt-3" id="planningContent">
                     <div class="spinner-grow m-5" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade @(Model.Tab == "planning" ? "show active" : "")" id="planning" role="tabpanel" aria-labelledby="profile-tab">
-                <div class="d-flex justify-content-center flex-column pt-3" id="planningContent">
+            <div class="tab-pane fade @(Model.Tab == "periodsubjects" ? "show active" : "")" id="periodSubjects" role="tabpanel" aria-labelledby="home-tab">
+                <div class="d-flex justify-content-center flex-column pt-3" id="periodSubjects-content">
                     <div class="spinner-grow m-5" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
@@ -148,36 +148,43 @@
             LoadPlanning();
         }
 
+        let loadingPlanning = false;
+
         function LoadPlanning() {
             let selectedPeriod = getSelectorOptionsSelectedValue("#periodSelector");
             let selectedCourse = getSelectorOptionsSelectedValue("#courseSelector");
             SetLoadingPlanning();
 
-            $.ajax({
-                url: `/planning/GetPlanningViewForPeriod?periodId=${selectedPeriod}&courseId=${selectedCourse}`,
-                type: "GET",
-                success: function (data) {
-                    DisableLoadingPlanning();
-                    const planningDetailsDiv = document.getElementById("planningContent");
-                    planningDetailsDiv.innerHTML = data;
-                    LoadTooltips();
-                    $('#planning-table').DataTable({
-                        responsive: true,
-                        language: {
-                            url: '/lib/datatables/lang/datatables.spanish.json'
-                        },
-                        dom: 'Bfrtip',
-                        buttons: [
-                            'copyHtml5', 'excelHtml5', 'pdfHtml5'
-                        ]
-                    });
-                    deleteModal = new bootstrap.Modal(document.getElementById('deletePlanItemModal'), { keyboard: true });
-                },
-                error: function (xhr, status, error) {
-                    DisableLoadingPlanning();
-                    console.log(xhr, status, error);
-                }
-            });
+            if (!loadingPlanning) {
+                loadingPlanning = true;
+                $.ajax({
+                    url: `/planning/GetPlanningViewForPeriod?periodId=${selectedPeriod}&courseId=${selectedCourse}`,
+                    type: "GET",
+                    success: function (data) {
+                        DisableLoadingPlanning();
+                        loadingPlanning = false;
+                        const planningDetailsDiv = document.getElementById("planningContent");
+                        planningDetailsDiv.innerHTML = data;
+                        LoadTooltips();
+                        $('#planning-table').DataTable({
+                            responsive: true,
+                            language: {
+                                url: '/lib/datatables/lang/datatables.spanish.json'
+                            },
+                            dom: 'Bfrtip',
+                            buttons: [
+                                'copyHtml5', 'excelHtml5', 'pdfHtml5'
+                            ]
+                        });
+                        deleteModal = new bootstrap.Modal(document.getElementById('deletePlanItemModal'), { keyboard: true });
+                    },
+                    error: function (xhr, status, error) {
+                        DisableLoadingPlanning();
+                        loadingPlanning = false;
+                        console.log(xhr, status, error);
+                    }
+                });
+            }
         }
 
         function GetYearNumber(yearNumber) {
@@ -243,15 +250,23 @@
             const planningDetailsDiv = document.getElementById("planningContent");
             planningDetailsDiv.innerHTML = "";
             planningDetailsDiv.appendChild(CreateSpinnerNode());
-            const periodsSelect = document.getElementById("periodSelector");
-            periodsSelect.disabled = true;
+            if (!loadingPeriodSubjects) {
+                const periodsSelect = document.getElementById("periodSelector");
+                periodsSelect.setAttribute("disabled", "disabled");
+                const courseSelect = document.getElementById("courseSelector");
+                courseSelect.setAttribute("disabled", "disabled");
+            }
         }
 
         function DisableLoadingPlanning() {
             const planningDetailsDiv = document.getElementById("planningContent");
             planningDetailsDiv.innerHTML = "";
-            const periodsSelect = document.getElementById("periodSelector");
-            periodsSelect.disabled = false;
+            if (!loadingPeriodSubjects) {
+                const periodsSelect = document.getElementById("periodSelector");
+                periodsSelect.removeAttribute("disabled");
+                const courseSelect = document.getElementById("courseSelector");
+                courseSelect.removeAttribute("disabled");
+            }
         }
 
         function RiseDeleteModal(id) {
@@ -322,42 +337,57 @@
             const planningDetailsDiv = document.getElementById("periodSubjects-content");
             planningDetailsDiv.innerHTML = "";
             planningDetailsDiv.appendChild(CreateSpinnerNode());
-            const periodsSelect = document.getElementById("courseSelector");
-            periodsSelect.disabled = true;
+            if (!loadingPlanning) {
+                const periodsSelect = document.getElementById("periodSelector");
+                periodsSelect.setAttribute("disabled", "disabled");
+                const courseSelect = document.getElementById("courseSelector");
+                courseSelect.setAttribute("disabled", "disabled");
+            }
         }
 
         function DisableLoadingPeriodSubjects() {
             const planningDetailsDiv = document.getElementById("periodSubjects-content");
             planningDetailsDiv.innerHTML = "";
-            const periodsSelect = document.getElementById("courseSelector");
-            periodsSelect.disabled = false;
+            if (!loadingPlanning) {
+                const periodsSelect = document.getElementById("periodSelector");
+                periodsSelect.removeAttribute("disabled");
+                const courseSelect = document.getElementById("courseSelector");
+                courseSelect.removeAttribute("disabled");
+            }
         }
+
+        let loadingPeriodSubjects = false;
 
         function LoadPeriodSubjects() {
             let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
             let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
             SetLoadingPeriodSubjects();
 
-            $.ajax({
-                url: `/planning/GetPeriodSubjectsView?periodId=${periodSelected}&courseId=${courseSelected}`,
-                type: "GET",
-                success: function (data) {
-                    DisableLoadingPeriodSubjects();
-                    const periodSubjectsContent = document.getElementById("periodSubjects-content");
-                    periodSubjectsContent.innerHTML = data;
-                    $('#periodsubjects-table').DataTable({
-                        language: {
-                            url: '/lib/datatables/lang/datatables.spanish.json'
-                        }
-                    });
-                    periodSubjectDeleteModal = new bootstrap.Modal(document.getElementById('deletePeriodSubjectModal'), { keyboard: true });
-                    LoadTooltips();
-                },
-                error: function (xhr, status, error) {
-                    DisableLoadingPeriodSubjects();
-                    console.log(xhr, status, error);
-                }
-            });
+            if (!loadingPeriodSubjects) {
+                loadingPeriodSubjects = true;
+                $.ajax({
+                    url: `/planning/GetPeriodSubjectsView?periodId=${periodSelected}&courseId=${courseSelected}`,
+                    type: "GET",
+                    success: function (data) {
+                        DisableLoadingPeriodSubjects();
+                        loadingPeriodSubjects = false;
+                        const periodSubjectsContent = document.getElementById("periodSubjects-content");
+                        periodSubjectsContent.innerHTML = data;
+                        $('#periodsubjects-table').DataTable({
+                            language: {
+                                url: '/lib/datatables/lang/datatables.spanish.json'
+                            }
+                        });
+                        periodSubjectDeleteModal = new bootstrap.Modal(document.getElementById('deletePeriodSubjectModal'), { keyboard: true });
+                        LoadTooltips();
+                    },
+                    error: function (xhr, status, error) {
+                        DisableLoadingPeriodSubjects();
+                        loadingPeriodSubjects = false;
+                        console.log(xhr, status, error);
+                    }
+                });
+            }
         }
 
         function CourseSelected() {
