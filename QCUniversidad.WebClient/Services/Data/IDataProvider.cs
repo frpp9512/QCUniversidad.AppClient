@@ -103,7 +103,9 @@ public interface IDataProvider
     Task<IList<SubjectModel>> GetSubjectsForCourseNotAssignedInPeriodAsync(Guid courseId, Guid periodId);
     Task<int> GetSubjectsCountAsync();
     Task<bool> ExistsSubjectAsync(Guid id);
+    Task<bool> ExistsSubjectAsync(string name);
     Task<SubjectModel> GetSubjectAsync(Guid subjectId);
+    Task<SubjectModel> GetSubjectAsync(string name);
     Task<bool> CreateSubjectAsync(SubjectModel newSubject);
     Task<bool> UpdateSubjectAsync(SubjectModel subject);
     Task<bool> DeleteSubjectAsync(Guid subjectId);

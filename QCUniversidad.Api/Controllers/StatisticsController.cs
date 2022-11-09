@@ -151,7 +151,7 @@ public class StatisticsController : ControllerBase
             };
             items.Add(rap);
 
-            var currentSchoolYear = await _dataManager.GetCurrentSchoolYear();
+            var currentSchoolYear = await _dataManager.GetCurrentSchoolYearAsync();
             var periods = currentSchoolYear.Periods;
             foreach (var period in periods.OrderBy(p => p.Starts))
             {

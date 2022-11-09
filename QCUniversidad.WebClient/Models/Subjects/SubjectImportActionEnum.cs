@@ -1,7 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml.Linq;
 
-namespace QCUniversidad.WebClient.Models.Disciplines;
-public enum DisciplineImportAction
+namespace QCUniversidad.WebClient.Models.Subjects;
+
+public enum SubjectImportAction
 {
     [Display(Name = "Crear", Description = "Se va a crear un nuevo elemento con los datos extraídos del fichero.")]
     Create,

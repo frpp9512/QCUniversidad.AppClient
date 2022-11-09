@@ -87,6 +87,7 @@ public interface IDataManager
     Task<IList<NonTeachingLoadModel>> GetTeacherNonTeachingLoadItemsInPeriodAsync(Guid teacherId, Guid periodId);
     Task<NonTeachingLoadModel> GetTeacherNonTeachingLoadItemInPeriodAsync(NonTeachingLoadType type, Guid teacherId, Guid periodId);
     Task<NonTeachingLoadModel> RecalculateTeacherNonTeachingLoadItemInPeriodAsync(NonTeachingLoadType type, Guid teacherId, Guid periodId);
+    Task RecalculateAllTeachersInPeriodAsync(Guid periodId);
     Task<double> GetTeacherLoadInPeriodAsync(Guid teacherId, Guid periodId);
     Task<IList<TeacherModel>> GetTeachersOfDepartmentNotAssignedToPlanItemAsync(Guid departmentId, Guid planItemId, Guid? disciplineId = null);
     Task<bool> SetLoadToTeacher(Guid teacherId, Guid planItemId, double hours);
@@ -100,12 +101,14 @@ public interface IDataManager
 
     Task<bool> CreateSubjectAsync(SubjectModel subject);
     Task<bool> ExistsSubjectAsync(Guid id);
+    Task<bool> ExistsSubjectAsync(string name);
     Task<IList<SubjectModel>> GetSubjectsForCourseAsync(Guid courseId);
     Task<IList<SubjectModel>> GetSubjectsForCourseInPeriodAsync(Guid courseId, Guid periodId);
     Task<IList<SubjectModel>> GetSubjectsForCourseNotAssignedInPeriodAsync(Guid courseId, Guid periodId);
     Task<int> GetSubjectsCountAsync();
     Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to);
     Task<SubjectModel> GetSubjectAsync(Guid id);
+    Task<SubjectModel> GetSubjectAsync(string name);
     Task<bool> UpdateSubjectAsync(SubjectModel subject);
     Task<bool> DeleteSubjectAsync(Guid id);
     Task<IList<PeriodSubjectModel>> GetPeriodSubjectsForCourseAsync(Guid periodId, Guid courseId);
@@ -133,7 +136,7 @@ public interface IDataManager
 
     #region SchoolYears
 
-    Task<SchoolYearModel> GetCurrentSchoolYear();
+    Task<SchoolYearModel> GetCurrentSchoolYearAsync();
     Task<SchoolYearModel> GetSchoolYearAsync(Guid id);
     Task<IList<SchoolYearModel>> GetSchoolYearsAsync(int from = 0, int to = 0);
     Task<int> GetSchoolYearTotalAsync();

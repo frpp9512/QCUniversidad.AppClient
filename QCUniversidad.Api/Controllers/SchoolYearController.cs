@@ -93,7 +93,7 @@ public class SchoolYearController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.GetCurrentSchoolYear();
+            var result = await _dataManager.GetCurrentSchoolYearAsync();
             var dto = _mapper.Map<SchoolYearDto>(result, opt => opt.AfterMap(async (o, sy)
                 => sy.CoursesCount = await _dataManager.GetSchoolYearCoursesCountAsync(sy.Id)));
             return Ok(dto);

@@ -5,6 +5,7 @@ using QCUniversidad.WebClient.Data.Contexts;
 using QCUniversidad.WebClient.Data.Helpers;
 using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Disciplines;
+using QCUniversidad.WebClient.Models.Subjects;
 using QCUniversidad.WebClient.Models.Teachers;
 using QCUniversidad.WebClient.Services.Data;
 using QCUniversidad.WebClient.Services.Extensions;
@@ -71,6 +72,14 @@ builder.Services.AddExcelParser<DisciplineModel>(config =>
     config.TableName = "Disciplinas";
     config.ConfigureColumn("Nombre", d => d.Name);
     config.ConfigureColumn("Descripción", d => d.Description);
+});
+
+builder.Services.AddExcelParser<SubjectModel>(config =>
+{
+    config.Worksheet = "Asignaturas";
+    config.TableName = "Asignaturas";
+    config.ConfigureColumn("Nombre", s => s.Name);
+    config.ConfigureColumn("Descripción", s => s.Description);
 });
 
 builder.Services.AddHttpClient();

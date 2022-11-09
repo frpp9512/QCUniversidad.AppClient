@@ -5,6 +5,10 @@
     bool subjectCreated = (bool?)TempData["subject-created"] ?? false;
     bool subjectEdited = (bool?)TempData["subject-edited"] ?? false;
     bool subjectDeleted = (bool?)TempData["subject-deleted"] ?? false;
+    var importingError = TempData["importing-error"]?.ToString();
+    bool showImportingError = !string.IsNullOrEmpty(importingError);
+    var importingResult = TempData["importing-result"]?.ToString();
+    bool showImportingResult = !string.IsNullOrEmpty(importingResult);
 }
 
 <h1>Asignaturas</h1>
@@ -30,9 +34,24 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
+@if (showImportingResult)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-info-circle"></span> Importar profesores</strong> @importingResult
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (showImportingError)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-error"></span> Importar profesores</strong> @importingError
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
 <p>
     <a asp-action="Create" class="btn btn-success"><span class="fa fa-plus-circle"></span> Crear nueva</a>
+    <a asp-action="Import" class="btn btn-outline-success"><span class="fa fa-file-import"></span> Importar desde archivo</a>
 </p>
 
 @if (Model.ItemsCount > 0)

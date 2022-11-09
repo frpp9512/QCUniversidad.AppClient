@@ -590,7 +590,16 @@ public class DataManager : IDataManager
         {
             _ = await _context.Teachers.AddAsync(teacher);
             var result = await _context.SaveChangesAsync();
-            return result > 0;
+            if (result > 0)
+            {
+                var schoolYear = await GetCurrentSchoolYearAsync();
+                await _context.Periods.Where(p => p.SchoolYearId == schoolYear.Id).ForEachAsync(async p =>
+                {
+                    await RecalculateAllTeachersInPeriodAsync(p.Id);
+                });
+                return true;
+            }
+            return false;
         }
         throw new ArgumentNullException(nameof(teacher));
     }
@@ -681,6 +690,15 @@ public class DataManager : IDataManager
                     _ = _context.Teachers.Update(teacher);
                 }
                 var result = await _context.SaveChangesAsync();
+                if (result > 0)
+                {
+                    var schoolYear = await GetCurrentSchoolYearAsync();
+                    await _context.Periods.Where(p => p.SchoolYearId == schoolYear.Id).ForEachAsync(async p =>
+                    {
+                        await RecalculateAllTeachersInPeriodAsync(p.Id);
+                    });
+                    return true;
+                }
                 return result > 0;
             }
             catch (TeacherNotFoundException)
@@ -1033,7 +1051,7 @@ public class DataManager : IDataManager
                     var thesisCourtLoad = new NonTeachingLoadModel
                     {
                         Type = NonTeachingLoadType.ThesisCourtAndRevision,
-                        Description = $"{Math.Round(finalCoursesEnrolment / 3, 2)} tribunales de pregrado",
+                        Description = $"{Math.Round(thesisCourtTotal, 2)} tribunales de pregrado de un total de {finalCoursesEnrolment}.",
                         TeacherId = teacherId,
                         PeriodId = periodId,
                         BaseValue = JsonConvert.SerializeObject(finalCoursesEnrolmentQuery),
@@ -1591,6 +1609,12 @@ public class DataManager : IDataManager
         return result;
     }
 
+    public async Task<bool> ExistsSubjectAsync(string name)
+    {
+        var result = await _context.Subjects.AnyAsync(s => s.Name == name);
+        return result;
+    }
+
     public async Task<int> GetSubjectsCountAsync() => await _context.Subjects.CountAsync();
 
     public async Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to)
@@ -1677,6 +1701,18 @@ public class DataManager : IDataManager
             return result ?? throw new SubjectNotFoundException();
         }
         throw new ArgumentNullException(nameof(id));
+    }
+
+    public async Task<SubjectModel> GetSubjectAsync(string name)
+    {
+        if (!string.IsNullOrEmpty(name))
+        {
+            var result = await _context.Subjects.Where(t => t.Name == name)
+                                                .Include(s => s.Discipline)
+                                                .FirstOrDefaultAsync();
+            return result ?? throw new SubjectNotFoundException();
+        }
+        throw new ArgumentNullException(nameof(name));
     }
 
     public async Task<bool> UpdateSubjectAsync(SubjectModel subject)
@@ -1960,7 +1996,7 @@ public class DataManager : IDataManager
 
     #region SchoolYears
 
-    public async Task<SchoolYearModel> GetCurrentSchoolYear()
+    public async Task<SchoolYearModel> GetCurrentSchoolYearAsync()
     {
         try
         {
@@ -2099,7 +2135,7 @@ public class DataManager : IDataManager
 
             if (recalculate)
             {
-                var currentYear = await GetCurrentSchoolYear();
+                var currentYear = await GetCurrentSchoolYearAsync();
                 foreach (var period in currentYear.Periods)
                 {
                     await RecalculateAllTeachersInPeriodAsync(period.Id);
@@ -2164,7 +2200,7 @@ public class DataManager : IDataManager
 
             if (updateTeachers)
             {
-                var currentYear = await GetCurrentSchoolYear();
+                var currentYear = await GetCurrentSchoolYearAsync();
                 foreach (var period in currentYear.Periods)
                 {
                     await RecalculateAllTeachersInPeriodAsync(period.Id);

@@ -124,6 +124,21 @@ public class SubjectController : ControllerBase
         }
     }
 
+    [HttpGet]
+    [Route("existsbyname")]
+    public async Task<IActionResult> ExistsByNameAsync(string name)
+    {
+        try
+        {
+            var result = await _dataManager.ExistsSubjectAsync(name);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
     [HttpPut]
     public async Task<IActionResult> CreateAsync(NewSubjectDto subjectDto)
     {
@@ -151,6 +166,26 @@ public class SubjectController : ControllerBase
         catch (SubjectNotFoundException)
         {
             return NotFound($"The subject with id {id} was not found.");
+        }
+    }
+
+    [HttpGet]
+    [Route("byname")]
+    public async Task<IActionResult> GetByIdAsync(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return BadRequest("You must provide an id.");
+        }
+        try
+        {
+            var result = await _dataManager.GetSubjectAsync(name);
+            var dto = _mapper.Map<SubjectDto>(result);
+            return Ok(dto);
+        }
+        catch (SubjectNotFoundException)
+        {
+            return NotFound($"The subject with name {name} was not found.");
         }
     }
 

@@ -134,7 +134,7 @@ public class DisciplinesController : Controller
         var parsedModels = await _excelParser.ParseExcelAsync(fileStream);
         foreach (var parsedModel in parsedModels)
         {
-            var exists = await _dataProvider.ExistsTeacherAsync(parsedModel.Name);
+            var exists = await _dataProvider.ExistsDisciplineAsync(parsedModel.Name);
             var action = exists ? DisciplineImportAction.Update : DisciplineImportAction.Create;
             parsedModel.ImportAction = action;
         }

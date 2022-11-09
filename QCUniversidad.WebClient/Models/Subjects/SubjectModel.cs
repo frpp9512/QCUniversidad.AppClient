@@ -23,4 +23,6 @@ public record SubjectModel
     public Guid DisciplineId { get; set; }
 
     public DisciplineModel? Discipline { get; set; }
+
+    public SubjectImportAction? ImportAction { get; set; }
 }

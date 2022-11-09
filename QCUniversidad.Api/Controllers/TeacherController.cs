@@ -229,17 +229,19 @@ public class TeacherController : ControllerBase
         {
             var result = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
             var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
-            var dtos = result.Select(i => _mapper.Map<TeacherDto>(i, opts => opts.AfterMap(async (o, teacher) =>
+            var dtos = new List<TeacherDto>();
+            foreach (var teacher in result)
             {
+                var dto = _mapper.Map<TeacherDto>(teacher);
                 var load = await _dataManager.GetTeacherLoadInPeriodAsync(teacher.Id, periodId);
                 var loadPercent = Math.Round(load / periodTimeFund * 100, 2);
-                teacher.Load = new TeacherLoadDto
+                var loadDto = new TeacherLoadDto
                 {
                     TeacherId = teacher.Id,
                     TimeFund = periodTimeFund,
                     Load = load,
                     LoadPercent = Math.Round(load / periodTimeFund * 100, 2),
-                    Status = loadPercent switch 
+                    Status = loadPercent switch
                     {
                         double p when p < 80 => TeacherLoadStatus.Underutilized,
                         double p when p < 100 && p >= 80 => TeacherLoadStatus.Acceptable,
@@ -248,15 +250,17 @@ public class TeacherController : ControllerBase
                     },
                     PeriodId = periodId
                 };
-                if (i.TeacherDisciplines?.Any() == true)
+                dto.Load = loadDto;
+                if (teacher.TeacherDisciplines?.Any() == true)
                 {
-                    teacher.Disciplines ??= new List<PopulatedDisciplineDto>();
-                    foreach (var td in i.TeacherDisciplines)
+                    dto.Disciplines ??= new List<PopulatedDisciplineDto>();
+                    foreach (var td in teacher.TeacherDisciplines)
                     {
-                        teacher.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
+                        dto.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
                     }
                 }
-            })));
+                dtos.Add(dto);
+            }
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -540,5 +544,20 @@ public class TeacherController : ControllerBase
             }
         }
         return BadRequest("The provided type is invalid.");
+    }
+
+    [HttpPost]
+    [Route("recalculateall")]
+    public async Task<IActionResult> RecalculateAllTeachersInPeriod(Guid periodId)
+    {
+        try
+        {
+            await _dataManager.RecalculateAllTeachersInPeriodAsync(periodId);
+            return Ok();
+        }
+        catch
+        {
+            return Problem();
+        }
     }
 }
