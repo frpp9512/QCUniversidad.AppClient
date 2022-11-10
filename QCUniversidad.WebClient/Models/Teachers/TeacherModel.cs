@@ -49,7 +49,7 @@ public class TeacherModel
 
     public TeacherLoadModel? Load { get; set; }
 
-    public IList<LoadViewItemModel>? LoadItems { get; set; }
+    public IList<LoadViewItemModel>? LoadViewItems { get; set; }
 
     public TeacherImportAction? ImportAction { get; set; }
 }

@@ -312,7 +312,7 @@ public class TeacherController : ControllerBase
                         dto.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
                     }
                 }
-                dto.LoadItems = await GetTeacherLoadItemsAsync(teacher.Id, periodId);
+                dto.LoadViewItems = await GetTeacherLoadItemsAsync(teacher.Id, periodId);
                 dtos.Add(dto);
             }
             return Ok(dtos);

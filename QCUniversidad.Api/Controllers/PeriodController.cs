@@ -193,11 +193,14 @@ public class PeriodController : ControllerBase
         try
         {
             var result = await _dataManager.GetTeachingPlanItemsAsync(periodId, courseId, from, to);
-            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemSimpleDto>(i, opts => opts.AfterMap(async (o, planItem) =>
+            var dtos = new List<TeachingPlanItemSimpleDto>();
+            foreach (var item in result)
             {
-                planItem.TotalLoadCovered = await _dataManager.GetPlanItemTotalCoveredAsync(planItem.Id);
-                planItem.AllowLoad = planItem.TotalHoursPlanned > planItem.TotalLoadCovered;
-            })));
+                var dto = _mapper.Map<TeachingPlanItemSimpleDto>(item);
+                dto.TotalLoadCovered = await _dataManager.GetPlanItemTotalCoveredAsync(item.Id);
+                dto.AllowLoad = dto.TotalHoursPlanned > dto.TotalLoadCovered;
+                dtos.Add(dto);
+            }
             return Ok(dtos);
         }
         catch (Exception ex)

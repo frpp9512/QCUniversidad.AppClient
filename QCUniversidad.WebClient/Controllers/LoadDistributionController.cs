@@ -294,7 +294,7 @@ public class LoadDistributionController : Controller
             var data = new List<(TeacherModel teacher, double directLoad, double indirectLoad)>();
             foreach (var teacher in depTeachers)
             {
-                var loadItems = teacher.LoadItems;
+                var loadItems = teacher.LoadViewItems;
                 var dataValue = (teacher, loadItems.Where(item => item.Type == LoadViewItemType.Teaching).Sum(item => item.Value), loadItems.Where(item => item.Type == LoadViewItemType.NonTeaching).Sum(item => item.Value));
                 data.Add(dataValue);
             }
