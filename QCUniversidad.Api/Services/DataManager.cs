@@ -1656,7 +1656,7 @@ public class DataManager : IDataManager
     public async Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to)
     {
         var result =
-            (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
+            !(from == 0 && to == from)
             ? await _context.Subjects.Where(s => s.Active).Skip(from).Take(to).Include(d => d.Discipline).ToListAsync()
             : await _context.Subjects.Where(s => s.Active).Include(d => d.Discipline).ToListAsync();
         return result;

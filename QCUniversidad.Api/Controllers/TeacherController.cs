@@ -31,17 +31,19 @@ public class TeacherController : ControllerBase
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
         var teachers = await _dataManager.GetTeachersAsync(from, to);
-        var dtos = teachers.Select(d => _mapper.Map<TeacherDto>(d, opt => opt.AfterMap((o, t) =>
+        var dtos = teachers.Select(teacher => _mapper.Map<TeacherDto>(teacher));
+        foreach (var dto in dtos)
         {
-            if (d.TeacherDisciplines?.Any() == true)
+            var teacher = teachers.First(t => t.Id == dto.Id);
+            if (teacher.TeacherDisciplines?.Any() == true)
             {
-                t.Disciplines ??= new List<PopulatedDisciplineDto>();
-                foreach (var td in d.TeacherDisciplines)
+                dto.Disciplines ??= new List<PopulatedDisciplineDto>();
+                foreach (var td in teacher.TeacherDisciplines)
                 {
-                    t.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
+                    dto.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
                 }
             }
-        })));
+        }
         return Ok(dtos);
     }
 
@@ -401,26 +403,28 @@ public class TeacherController : ControllerBase
         {
             var result = await _dataManager.GetSupportTeachersAsync(departmentId, periodId);
             var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
-            var dtos = result.Select(i => _mapper.Map<TeacherDto>(i, opts => opts.AfterMap(async (o, teacher) =>
+            var dtos = result.Select(t => _mapper.Map<TeacherDto>(t));
+            foreach (var dto in dtos)
             {
-                var load = await _dataManager.GetTeacherLoadInPeriodAsync(teacher.Id, periodId);
-                teacher.Load = new TeacherLoadDto
+                var t = result.First(teacher => teacher.Id == dto.Id);
+                var load = await _dataManager.GetTeacherLoadInPeriodAsync(dto.Id, periodId);
+                dto.Load = new TeacherLoadDto
                 {
-                    TeacherId = teacher.Id,
+                    TeacherId = dto.Id,
                     TimeFund = periodTimeFund,
                     Load = load,
                     LoadPercent = Math.Round(load / periodTimeFund * 100, 2),
                     PeriodId = periodId
                 };
-                if (i.TeacherDisciplines?.Any() == true)
+                if (t.TeacherDisciplines?.Any() == true)
                 {
-                    teacher.Disciplines ??= new List<PopulatedDisciplineDto>();
-                    foreach (var td in i.TeacherDisciplines)
+                    dto.Disciplines ??= new List<PopulatedDisciplineDto>();
+                    foreach (var td in t.TeacherDisciplines)
                     {
-                        teacher.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
+                        dto.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
                     }
                 }
-            })));
+            }
             return Ok(dtos);
         }
         catch (Exception ex)

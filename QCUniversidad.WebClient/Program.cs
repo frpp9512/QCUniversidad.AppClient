@@ -31,7 +31,8 @@ builder.Services.AddAuthentication(Constants.AUTH_SCHEME)
                     options.ReturnUrlParameter = "returnUrl";
                 });
 
-builder.Services.AddDbContext<WebDataContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
+//builder.Services.AddDbContext<WebDataContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
+builder.Services.AddDbContext<WebDataContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSql")));
 builder.Services.AddScoped<IAccountSecurityRepository, AccountSecurityRepository>();
 
 builder.Services.AddExcelParser<TeacherModel>(config => 

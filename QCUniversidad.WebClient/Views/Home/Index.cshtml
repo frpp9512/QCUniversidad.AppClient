@@ -11,20 +11,23 @@
             <div class="banner-subtitle">Plataforma para la planificación y distribución de carga docente</div>
         </div>
     </div>
-    <div class="d-flex flex-column align-items-center">
-        <div class="index-schoolyearheader">
-            Año escolar actual
-        </div>
-        <div class="index-schoolyearname">
-            @Model.SchoolYear.Name
-        </div>
-        @if (!string.IsNullOrEmpty(Model.SchoolYear.Description))
-        {
-            <div class="index-schoolyeardesc">
-                @Model.SchoolYear.Description
+    @if (Model.SchoolYear is not null)
+    {
+        <div class="d-flex flex-column align-items-center">
+            <div class="index-schoolyearheader">
+                Año escolar actual
             </div>
-        }
-    </div>
+            <div class="index-schoolyearname">
+                @Model.SchoolYear.Name
+            </div>
+            @if (!string.IsNullOrEmpty(Model.SchoolYear.Description))
+            {
+                <div class="index-schoolyeardesc">
+                    @Model.SchoolYear.Description
+                </div>
+            }
+        </div>
+    }
     <div class="d-flex flex-column align-items-center">
         <div class="index-date-dayofweek">
             @DateTime.Now.ToString("dddd")

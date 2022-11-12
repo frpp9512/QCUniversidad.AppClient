@@ -30,17 +30,24 @@ public class HomeController : Controller
     public async Task<IActionResult> IndexAsync()
     {
         IndexViewModel model;
-        var schoolYear = await _dataProvider.GetCurrentSchoolYear();
-        model = User.IsAdmin()
-            ? new IndexViewModel
-            {
-                SchoolYear = schoolYear
-            }
-            : new IndexViewModel
-            {
-                Department = await _dataProvider.GetDepartmentAsync(User.GetDepartmentId()),
-                SchoolYear = schoolYear
-            };
+        try
+        {
+            var schoolYear = await _dataProvider.GetCurrentSchoolYear();
+            model = User.IsAdmin()
+                ? new IndexViewModel
+                {
+                    SchoolYear = schoolYear
+                }
+                : new IndexViewModel
+                {
+                    Department = await _dataProvider.GetDepartmentAsync(User.GetDepartmentId()),
+                    SchoolYear = schoolYear
+                };
+        }
+        catch (Exception)
+        {
+            model = new IndexViewModel();
+        }
         return View(model);
     }
 

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QCUniversidad.Api.Data.Context;
 
 #nullable disable
@@ -11,32 +12,36 @@ using QCUniversidad.Api.Data.Context;
 namespace QCUniversidad.Api.Migrations
 {
     [DbContext(typeof(QCUniversidadContext))]
-    [Migration("20221020010505_MovedPeriodToSchoolYear")]
-    partial class MovedPeriodToSchoolYear
+    [Migration("20221112154920_init-npgsql")]
+    partial class initnpgsql
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.8");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "6.0.8")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.CareerModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Description")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<Guid>("FacultyId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<bool>("PostgraduateCourse")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
@@ -49,32 +54,31 @@ namespace QCUniversidad.Api.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("CareerId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("CareerYear")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("CurriculumId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Denomination")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
-                    b.Property<DateTimeOffset>("Ends")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Enrolment")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("LastCourse")
+                        .HasColumnType("boolean");
 
                     b.Property<Guid>("SchoolYearId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset>("Starts")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("TeachingModality")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -90,10 +94,10 @@ namespace QCUniversidad.Api.Migrations
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.CurriculumDiscipline", b =>
                 {
                     b.Property<Guid>("CurriculumId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("DisciplineId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.HasKey("CurriculumId", "DisciplineId");
 
@@ -106,17 +110,17 @@ namespace QCUniversidad.Api.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("CareerId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Denomination")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Description")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -125,25 +129,46 @@ namespace QCUniversidad.Api.Migrations
                     b.ToTable("Curriculums");
                 });
 
+            modelBuilder.Entity("QCUniversidad.Api.Data.Models.DepartmentCareer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CareerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("DepartmentId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CareerId");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.ToTable("DepartmentsCareers");
+                });
+
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.DepartmentModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Description")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<Guid>("FacultyId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("InternalId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -156,17 +181,17 @@ namespace QCUniversidad.Api.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("DepartmentId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Description")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -179,18 +204,18 @@ namespace QCUniversidad.Api.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Campus")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("InternalId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -201,16 +226,16 @@ namespace QCUniversidad.Api.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<double>("HoursCovered")
-                        .HasColumnType("REAL");
+                        .HasColumnType("double precision");
 
                     b.Property<Guid>("PlanningItemId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("TeacherId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -221,32 +246,62 @@ namespace QCUniversidad.Api.Migrations
                     b.ToTable("LoadItems");
                 });
 
+            modelBuilder.Entity("QCUniversidad.Api.Data.Models.NonTeachingLoadModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BaseValue")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<double>("Load")
+                        .HasColumnType("double precision");
+
+                    b.Property<Guid>("PeriodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PeriodId");
+
+                    b.HasIndex("TeacherId");
+
+                    b.ToTable("NonTeachingLoad");
+                });
+
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.PeriodModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Description")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("Ends")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<uint>("Enrolment")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("OrderNumber")
-                        .HasColumnType("INTEGER");
+                    b.Property<double>("MonthsCount")
+                        .HasColumnType("double precision");
 
                     b.Property<Guid>("SchoolYearId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("Starts")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<double>("TimeFund")
-                        .HasColumnType("REAL");
+                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
@@ -255,21 +310,53 @@ namespace QCUniversidad.Api.Migrations
                     b.ToTable("Periods");
                 });
 
+            modelBuilder.Entity("QCUniversidad.Api.Data.Models.PeriodSubjectModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("HaveFinalExam")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MidtermExamsCount")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("PeriodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("PeriodId");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("PeriodSubjects");
+                });
+
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.SchoolYearModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("Current")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Description")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -280,20 +367,20 @@ namespace QCUniversidad.Api.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("Active")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Description")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<Guid>("DisciplineId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -305,10 +392,10 @@ namespace QCUniversidad.Api.Migrations
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.TeacherDiscipline", b =>
                 {
                     b.Property<Guid>("TeacherId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("DisciplineId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.HasKey("TeacherId", "DisciplineId");
 
@@ -321,27 +408,35 @@ namespace QCUniversidad.Api.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("Active")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<int>("Category")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ContractType")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("DepartmentId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
 
                     b.Property<string>("Fullname")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("PersonalId")
                         .HasMaxLength(11)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(11)");
 
                     b.Property<string>("Position")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
+
+                    b.Property<bool>("ServiceProvider")
+                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
@@ -354,28 +449,28 @@ namespace QCUniversidad.Api.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("CourseId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("FromPostgraduateCourse")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
-                    b.Property<uint>("GroupsAmount")
-                        .HasColumnType("INTEGER");
+                    b.Property<long>("GroupsAmount")
+                        .HasColumnType("bigint");
 
                     b.Property<double>("HoursPlanned")
-                        .HasColumnType("REAL");
+                        .HasColumnType("double precision");
 
                     b.Property<Guid>("PeriodId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("SubjectId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Type")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -456,6 +551,25 @@ namespace QCUniversidad.Api.Migrations
                     b.Navigation("Career");
                 });
 
+            modelBuilder.Entity("QCUniversidad.Api.Data.Models.DepartmentCareer", b =>
+                {
+                    b.HasOne("QCUniversidad.Api.Data.Models.CareerModel", "Career")
+                        .WithMany("CareerDepartments")
+                        .HasForeignKey("CareerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QCUniversidad.Api.Data.Models.DepartmentModel", "Department")
+                        .WithMany("DepartmentCareers")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Career");
+
+                    b.Navigation("Department");
+                });
+
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.DepartmentModel", b =>
                 {
                     b.HasOne("QCUniversidad.Api.Data.Models.FacultyModel", "Faculty")
@@ -497,6 +611,25 @@ namespace QCUniversidad.Api.Migrations
                     b.Navigation("Teacher");
                 });
 
+            modelBuilder.Entity("QCUniversidad.Api.Data.Models.NonTeachingLoadModel", b =>
+                {
+                    b.HasOne("QCUniversidad.Api.Data.Models.PeriodModel", "Period")
+                        .WithMany("NonTeachingLoad")
+                        .HasForeignKey("PeriodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QCUniversidad.Api.Data.Models.TeacherModel", "Teacher")
+                        .WithMany("NonTeachingLoadItems")
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Period");
+
+                    b.Navigation("Teacher");
+                });
+
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.PeriodModel", b =>
                 {
                     b.HasOne("QCUniversidad.Api.Data.Models.SchoolYearModel", "SchoolYear")
@@ -506,6 +639,33 @@ namespace QCUniversidad.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("SchoolYear");
+                });
+
+            modelBuilder.Entity("QCUniversidad.Api.Data.Models.PeriodSubjectModel", b =>
+                {
+                    b.HasOne("QCUniversidad.Api.Data.Models.CourseModel", "Course")
+                        .WithMany("PeriodSubjects")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QCUniversidad.Api.Data.Models.PeriodModel", "Period")
+                        .WithMany("PeriodSubjects")
+                        .HasForeignKey("PeriodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QCUniversidad.Api.Data.Models.SubjectModel", "Subject")
+                        .WithMany("PeriodsSubject")
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Period");
+
+                    b.Navigation("Subject");
                 });
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.SubjectModel", b =>
@@ -578,6 +738,8 @@ namespace QCUniversidad.Api.Migrations
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.CareerModel", b =>
                 {
+                    b.Navigation("CareerDepartments");
+
                     b.Navigation("Courses");
 
                     b.Navigation("Curricula");
@@ -585,6 +747,8 @@ namespace QCUniversidad.Api.Migrations
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.CourseModel", b =>
                 {
+                    b.Navigation("PeriodSubjects");
+
                     b.Navigation("PlanItems");
                 });
 
@@ -595,6 +759,8 @@ namespace QCUniversidad.Api.Migrations
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.DepartmentModel", b =>
                 {
+                    b.Navigation("DepartmentCareers");
+
                     b.Navigation("Disciplines");
 
                     b.Navigation("Teachers");
@@ -618,6 +784,10 @@ namespace QCUniversidad.Api.Migrations
 
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.PeriodModel", b =>
                 {
+                    b.Navigation("NonTeachingLoad");
+
+                    b.Navigation("PeriodSubjects");
+
                     b.Navigation("TeachingPlan");
                 });
 
@@ -628,9 +798,16 @@ namespace QCUniversidad.Api.Migrations
                     b.Navigation("Periods");
                 });
 
+            modelBuilder.Entity("QCUniversidad.Api.Data.Models.SubjectModel", b =>
+                {
+                    b.Navigation("PeriodsSubject");
+                });
+
             modelBuilder.Entity("QCUniversidad.Api.Data.Models.TeacherModel", b =>
                 {
                     b.Navigation("LoadItems");
+
+                    b.Navigation("NonTeachingLoadItems");
 
                     b.Navigation("TeacherDisciplines");
                 });

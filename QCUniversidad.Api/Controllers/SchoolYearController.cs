@@ -23,8 +23,11 @@ public class SchoolYearController : ControllerBase
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
         var schoolYears = await _dataManager.GetSchoolYearsAsync(from, to);
-        var dtos = schoolYears.Select(sy => _mapper.Map<SchoolYearDto>(sy, opt => opt.AfterMap(async (o, sydto)
-                => sydto.CoursesCount = await _dataManager.GetSchoolYearCoursesCountAsync(sydto.Id))));
+        var dtos = schoolYears.Select(sy => _mapper.Map<SchoolYearDto>(sy));
+        foreach (var dto in dtos)
+        {
+            dto.CoursesCount = await _dataManager.GetSchoolYearCoursesCountAsync(dto.Id);
+        }
         return Ok(dtos);
     }
 
@@ -78,8 +81,8 @@ public class SchoolYearController : ControllerBase
         try
         {
             var result = await _dataManager.GetSchoolYearAsync(id);
-            var dto = _mapper.Map<SchoolYearDto>(result, opt => opt.AfterMap(async (o, sy) 
-                => sy.CoursesCount = await _dataManager.GetSchoolYearCoursesCountAsync(sy.Id)));
+            var dto = _mapper.Map<SchoolYearDto>(result);
+            dto.CoursesCount = await _dataManager.GetSchoolYearCoursesCountAsync(dto.Id);
             return Ok(dto);
         }
         catch (SchoolYearNotFoundException)
@@ -94,8 +97,8 @@ public class SchoolYearController : ControllerBase
         try
         {
             var result = await _dataManager.GetCurrentSchoolYearAsync();
-            var dto = _mapper.Map<SchoolYearDto>(result, opt => opt.AfterMap(async (o, sy)
-                => sy.CoursesCount = await _dataManager.GetSchoolYearCoursesCountAsync(sy.Id)));
+            var dto = _mapper.Map<SchoolYearDto>(result);
+            dto.CoursesCount = await _dataManager.GetSchoolYearCoursesCountAsync(dto.Id);
             return Ok(dto);
         }
         catch (NotCurrentSchoolYearDefined)

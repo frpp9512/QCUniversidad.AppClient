@@ -15,10 +15,12 @@ builder.Logging.AddConsole();
 builder.Logging.AddEventSourceLogger();
 builder.Logging.AddEventLog();
 
-var connectionString = builder.Configuration.GetConnectionString("Sqlite");
+var connectionString = builder.Configuration.GetConnectionString("PostgreSql");
+//var connectionString = builder.Configuration.GetConnectionString("Sqlite");
 
-builder.Services.AddDbContext<QCUniversidadContext>(options => options.UseSqlite(connectionString));
-builder.Services.AddScoped<IDataManager, DataManager>();
+builder.Services.AddDbContext<QCUniversidadContext>(options => options.UseNpgsql(connectionString));
+//builder.Services.AddDbContext<QCUniversidadContext>(options => options.UseSqlite(connectionString));
+builder.Services.AddTransient<IDataManager, DataManager>();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.Configure<CalculationOptions>(builder.Configuration.GetSection("CalculationOptions"));
 builder.Services.AddAuthentication(options => 

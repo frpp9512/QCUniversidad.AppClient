@@ -28,7 +28,11 @@ public class DepartmentController : ControllerBase
     public async Task<IActionResult> GetList(int from = 0, int to = 0)
     {
         var deparments = await _dataManager.GetDepartmentsAsync(from, to);
-        var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d, opts => opts.AfterMap(async (o, d) => d.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(d.Id))));
+        var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d));
+        foreach (var dto in dtos)
+        {
+            dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
+        }
         return Ok(dtos);
     }
 
@@ -39,7 +43,11 @@ public class DepartmentController : ControllerBase
         if (facultyId != Guid.Empty)
         {
             var deparments = await _dataManager.GetDepartmentsAsync(facultyId);
-            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d, opts => opts.AfterMap(async (o, d) => d.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(d.Id))));
+            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d));
+            foreach (var dto in dtos)
+            {
+                dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
+            }
             return Ok(dtos);
         }
         return BadRequest("You should provide a faculty id to load the departments from.");
@@ -52,18 +60,19 @@ public class DepartmentController : ControllerBase
         try
         {
             var deparments = await _dataManager.GetDepartmentsAsync();
-            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d, opts => opts.AfterMap(async (o, d) =>
+            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d));
+            foreach (var dto in dtos)
             {
-                d.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(d.Id);
-                var load = await _dataManager.GetDepartmentTotalLoadInPeriodAsync(periodId, d.Id);
-                d.Load = load;
-                var loadCovered = await _dataManager.GetDepartmentTotalLoadCoveredInPeriodAsync(periodId, d.Id);
-                d.LoadCovered = loadCovered;
-                d.LoadCoveredPercent = load == 0 ? 0 : Math.Round(loadCovered / load * 100, 1);
-                var totalFund = await _dataManager.GetDepartmentTotalTimeFund(d.Id, periodId);
-                d.TotalTimeFund = totalFund;
-                d.LoadPercent = totalFund == 0 ? 0 : Math.Round(load / totalFund * 100, 1);
-            })));
+                dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
+                var load = await _dataManager.GetDepartmentTotalLoadInPeriodAsync(periodId, dto.Id);
+                dto.Load = load;
+                var loadCovered = await _dataManager.GetDepartmentTotalLoadCoveredInPeriodAsync(periodId, dto.Id);
+                dto.LoadCovered = loadCovered;
+                dto.LoadCoveredPercent = load == 0 ? 0 : Math.Round(loadCovered / load * 100, 1);
+                var totalFund = await _dataManager.GetDepartmentTotalTimeFund(dto.Id, periodId);
+                dto.TotalTimeFund = totalFund;
+                dto.LoadPercent = totalFund == 0 ? 0 : Math.Round(load / totalFund * 100, 1);
+            }
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -205,11 +214,12 @@ public class DepartmentController : ControllerBase
         {
             var result = await _dataManager.GetTeachingPlanItemsOfDepartmentOnPeriod(id, periodId, courseId);
             var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
-            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemDto>(i, opts => opts.AfterMap(async (o, planItem) =>
+            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemDto>(i));
+            foreach (var dto in dtos)
             {
-                if (planItem.LoadItems is not null)
+                if (dto.LoadItems is not null)
                 {
-                    foreach (var loadItem in planItem.LoadItems)
+                    foreach (var loadItem in dto.LoadItems)
                     {
                         if (loadItem.Teacher is not null)
                         {
@@ -225,7 +235,7 @@ public class DepartmentController : ControllerBase
                         }
                     }
                 }
-            })));
+            }
             return Ok(dtos);
         }
         catch (Exception ex)
