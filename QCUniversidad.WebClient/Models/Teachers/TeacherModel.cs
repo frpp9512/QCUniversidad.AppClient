@@ -37,6 +37,9 @@ public class TeacherModel
     [DataType(DataType.EmailAddress, ErrorMessage = "Escriba correctamente la dirección electrónica.")]
     public string? Email { get; set; }
 
+    [Display(Name = "Prestador de servicios", Prompt = "Prestador de servicios", Description = "Define si el profesor presta servicio a otros departamentos.")]
+    public bool ServiceProvider { get; set; }
+
     public DateTime? Birthday { get; set; }
 
     public int Age { get; set; }

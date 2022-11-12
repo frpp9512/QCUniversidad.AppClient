@@ -697,7 +697,10 @@ public class DataManager : IDataManager
         {
             await _context.TeachersDisciplines.Where(td => td.TeacherId == teacher.Id)
                                               .ForEachAsync(td => _context.Remove(td));
-            await _context.TeachersDisciplines.AddRangeAsync(teacher.TeacherDisciplines);
+            if (teacher.TeacherDisciplines is not null)
+            {
+                await _context.TeachersDisciplines.AddRangeAsync(teacher.TeacherDisciplines);
+            }
             _ = _context.Teachers.Update(teacher);
             var result = await _context.SaveChangesAsync();
             return result > 0;
@@ -1226,7 +1229,7 @@ public class DataManager : IDataManager
         var depTeachersQuery = from teacher in _context.Teachers
                                join teacherDiscipline in _context.TeachersDisciplines
                                on teacher.Id equals teacherDiscipline.TeacherId
-                               where (teacher.Active && teacher.DepartmentId == departmentId)
+                               where teacher.Active && ((teacher.DepartmentId == departmentId) || (teacher.ServiceProvider))
                                      && teacherDiscipline.DisciplineId == disciplineId
                                //|| !disciplineId.HasValue
                                //|| teacherDiscipline.DisciplineId == disciplineId

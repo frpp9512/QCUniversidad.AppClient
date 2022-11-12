@@ -74,6 +74,10 @@
                     <tr id="@item.Id">
                         <td>
                             @item.Fullname
+                            @if (item.ServiceProvider)
+                            {
+                                <span class="fa fa-hand-sparkles font-main-color" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Prestador de servicios</small></div> <div>Este profesor es prestador de servicios, permitiendo esto que se le puede ser asignada carga desde otros departamentos.</div>"></span>
+                            }
                         </td>
                         <td>
                             @item.PersonalId

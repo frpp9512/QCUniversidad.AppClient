@@ -17,6 +17,7 @@ namespace QCUniversidad.Api.Shared.Dtos.Teacher
         public TeacherCategory Category { get; set; }
         public TeacherContractType ContractType { get; set; }
         public string? Email { get; set; }
+        public bool ServiceProvider { get; set; }
         public Guid DepartmentId { get; set; }
         public Guid[]? SelectedDisciplines { get; set; }
     }

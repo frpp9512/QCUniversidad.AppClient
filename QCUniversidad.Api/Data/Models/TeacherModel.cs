@@ -89,6 +89,11 @@ public record TeacherModel
     public string? Email { get; set; }
 
     /// <summary>
+    /// Defines if the teacher can be assigned in other departments.
+    /// </summary>
+    public bool ServiceProvider { get; set; }
+
+    /// <summary>
     /// The id department which the teacher belongs to.
     /// </summary>
     public Guid DepartmentId { get; set; }
