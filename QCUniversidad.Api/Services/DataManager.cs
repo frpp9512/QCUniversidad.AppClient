@@ -8,7 +8,7 @@ using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.Api.Shared.Extensions;
 using QCUniversidad.Api.Shared.CommonModels;
-using System.Net.WebSockets;
+using QCUniversidad.Api.Extensions;
 
 namespace QCUniversidad.Api.Services;
 
@@ -2314,6 +2314,8 @@ public class DataManager : IDataManager
         if (period is not null)
         {
             period.TimeFund = _periodCalculator.CalculateValue(period);
+            period.Starts = period.Starts.SetKindUtc();
+            period.Ends = period.Ends.SetKindUtc();
             _ = await _context.Periods.AddAsync(period);
             var result = await _context.SaveChangesAsync();
             return result > 0;
@@ -2362,7 +2364,8 @@ public class DataManager : IDataManager
                 var newMonthsCount = period.MonthsCount;
                 recalculateTeachers = (currentMonthsCount != newMonthsCount) && await IsPeriodInCurrentYear(period.Id);
             }
-
+            period.Starts = period.Starts.SetKindUtc();
+            period.Ends = period.Ends.SetKindUtc();
             _ = _context.Periods.Update(period);
             var result = await _context.SaveChangesAsync();
 
