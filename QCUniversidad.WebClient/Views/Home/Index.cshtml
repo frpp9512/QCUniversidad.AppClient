@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "Inicio";
 }
-<div class="d-flex flex-column flex-sm-row justify-content-between align-items-center">
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-3">
     <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start">
         <img src="/img/site/logo.svg" width="50" />
         <div class="d-flex flex-column">
@@ -35,7 +35,7 @@
     </div>
 </div>
 
-<hr />
+
 
 @if (Model.Department is not null)
 {
@@ -59,6 +59,15 @@ else
     <p>Cargando estadísticas globales</p>
 </div>
 
+<div id="cards" class="cards">
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p>Cargando tarjetas</p>
+    </div>
+</div>
+
 @section Scripts {
     <script src="~/js/charter.js"></script>
     <script src="~/lib/chart-js/chart.js"></script>
@@ -66,6 +75,7 @@ else
     <script>
         $(document).ready(function () {
             LoadGlobalStatistics();
+            LoadBirthdays();
         });
 
         function LoadGlobalStatistics() {
@@ -79,6 +89,21 @@ else
                 error: function (xhr, status, error) {
                     console.log(xhr, status, error);
                     statisticsDiv.innerHTML = 'Error reciviendo estadísticas';
+                }
+            });
+        }
+
+        function LoadBirthdays() {
+            const cards = document.getElementById("cards");
+            $.ajax({
+                url: `/home/GetWeekBirthdays`,
+                type: "GET",
+                success: function (data) {
+                    cards.innerHTML = data;
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr, status, error);
+                    cards.innerHTML = 'Error reciviendo estadísticas';
                 }
             });
         }

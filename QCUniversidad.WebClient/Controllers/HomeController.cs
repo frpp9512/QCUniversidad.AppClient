@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.Api.Shared.Extensions;
 using QCUniversidad.WebClient.Data.Contexts;
@@ -76,6 +77,15 @@ public class HomeController : Controller
                 return Problem(ex.Message);
             }
         }
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "Jefe de departamento")]
+    public async Task<IActionResult> GetWeekBirthdaysAsync()
+    {
+        var departmentId = User.GetDepartmentId();
+        var birthdays = await _dataProvider.GetBirthdayTeachersForCurrentMonthAsync(departmentId);
+        return PartialView("_BirthdayCard", birthdays);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

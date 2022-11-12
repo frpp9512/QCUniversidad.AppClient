@@ -1,15 +1,14 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ActionConstraints;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Options;
+using Microsoft.VisualBasic;
 using QCUniversidad.Api.ConfigurationModels;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Statistics;
+using QCUniversidad.Api.Shared.Dtos.Teacher;
 using QCUniversidad.Api.Shared.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Controllers;
 
@@ -18,11 +17,13 @@ namespace QCUniversidad.Api.Controllers;
 public class StatisticsController : ControllerBase
 {
     private readonly IDataManager _dataManager;
+    private readonly IMapper _mapper;
     private readonly CalculationOptions _calculationOptions;
 
-    public StatisticsController(IDataManager dataManager, IOptions<CalculationOptions> options)
+    public StatisticsController(IDataManager dataManager, IOptions<CalculationOptions> options, IMapper mapper)
     {
         _dataManager = dataManager;
+        _mapper = mapper;
         _calculationOptions = options.Value;
     }
 
@@ -141,9 +142,9 @@ public class StatisticsController : ControllerBase
                 State = referencePercent switch
                 {
                     double i when i < 0.8 => StatisticState.TooLow,
-                    double i when i > 0.8 && i < 1 => StatisticState.Low,
+                    double i when i is > 0.8 and < 1 => StatisticState.Low,
                     double i when i == 1 => StatisticState.Ok,
-                    double i when i > 1 && i < 1.5 => StatisticState.High,
+                    double i when i is > 1 and < 1.5 => StatisticState.High,
                     double i when i > 1.5 => StatisticState.TooHigh,
                     _ => StatisticState.Ok,
                 },
@@ -156,13 +157,52 @@ public class StatisticsController : ControllerBase
             foreach (var period in periods.OrderBy(p => p.Starts))
             {
                 var periodLoad = await _dataManager.GetDepartmentTotalLoadCoveredInPeriodAsync(period.Id, departmentId);
+                var periodTotalTimeFund = teachersCount.Value * period.TimeFund;
+                var totalPercent = periodLoad / periodTotalTimeFund;
+                var totalState = totalPercent switch
+                {
+                    double i when i < 0.6 => StatisticState.TooLow,
+                    double i when i is < 0.8 and >= 0.6 => StatisticState.Low,
+                    double i when i is <= 1 and >= 0.8 => StatisticState.Ok,
+                    _ => StatisticState.TooHigh
+                };
+                var totalDescription = totalState switch
+                {
+                    StatisticState.TooLow => "La fuerza de trabajo esta altamente desaprovechada",
+                    StatisticState.Low => "La fuerza de trabajo esta desaprovechada",
+                    StatisticState.Ok => "Existe un aprovechamiento adecuado de la fuerza de trabajo",
+                    StatisticState.High => "Existe sobrecarga de la fuerza de trabajo",
+                    StatisticState.TooHigh => "Existe sobrecarga de la fuerza de trabajo",
+                    _ => "Carga del departamento referente al período."
+                };
+                var periodTotalLoadStat = new StatisticItemDto
+                {
+                    Name = $"Carga total del período {period}",
+                    Value = periodLoad,
+                    RefValue = periodTotalTimeFund,
+                    State = totalState,
+                    Description = totalDescription
+                };
+                items.Add(periodTotalLoadStat);
+
+                var workForceUtilization = new StatisticItemDto
+                {
+                    Name = $"Aprovechamiento de la FT {period}",
+                    Value = Math.Round(totalPercent * 100, 2),
+                    State = totalState,
+                    Description = totalDescription,
+                    Mu = "%"
+                };
+                items.Add(workForceUtilization);
+
+                var averagePeriodLoad = await _dataManager.GetDepartmentAverageTotalLoadCoveredInPeriodAsync(period.Id, departmentId);
                 var periodTimeFund = period.TimeFund;
-                var percent = periodLoad / periodTimeFund;
+                var percent = averagePeriodLoad / periodTimeFund;
                 var state = percent switch
                 {
                     double i when i < 0.6 => StatisticState.TooLow,
-                    double i when i < 0.8 && i >= 0.6 => StatisticState.Low,
-                    double i when i <= 1 && i >= 0.8 => StatisticState.Ok,
+                    double i when i is < 0.8 and >= 0.6 => StatisticState.Low,
+                    double i when i is <= 1 and >= 0.8 => StatisticState.Ok,
                     _ => StatisticState.TooHigh
                 };
                 var description = state switch
@@ -176,8 +216,8 @@ public class StatisticsController : ControllerBase
                 };
                 var periodLoadStat = new StatisticItemDto
                 {
-                    Name = $"Carga del período {period.ToString()}",
-                    Value = periodLoad,
+                    Name = $"Carga promedio del período {period}",
+                    Value = averagePeriodLoad,
                     RefValue = periodTimeFund,
                     State = state,
                     Description = description
@@ -191,5 +231,31 @@ public class StatisticsController : ControllerBase
         {
             return Problem(ex.Message);
         }
+    }
+
+    [HttpGet]
+    [Route("weekbirthdaysfordepartment")]
+    public async Task<IActionResult> GetBirthdayTeachersForCurrentWeekAsync(Guid departmentId)
+    {
+        var today = DateTime.Now;
+        var firstDayOfWeek = today.AddDays(((int)today.DayOfWeek - 1) * -1);
+        var lastDayOfWeek = today.AddDays(7 - (int)today.DayOfWeek);
+        var departmentTeachers = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
+        var birthdays = departmentTeachers.Where(teacher => (teacher.Birthday?.Month >= firstDayOfWeek.Month && teacher.Birthday?.Month <= lastDayOfWeek.Month) && (teacher.Birthday?.Day >= firstDayOfWeek.Day && teacher.Birthday?.Day <= lastDayOfWeek.Day));
+        var dtos = birthdays.Select(bt => _mapper.Map<BirthdayTeacherDto>(bt));
+        return Ok(dtos);
+    }
+
+    [HttpGet]
+    [Route("monthbirthdaysfordepartment")]
+    public async Task<IActionResult> GetBirthdayTeachersForCurrentMonthAsync(Guid departmentId)
+    {
+        var today = DateTime.Now;
+        var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
+        var lastDayOfMonth = new DateTime(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month));
+        var departmentTeachers = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
+        var birthdays = departmentTeachers.Where(teacher => (teacher.Birthday?.Month >= firstDayOfMonth.Month && teacher.Birthday?.Month <= lastDayOfMonth.Month) && (teacher.Birthday?.Day >= firstDayOfMonth.Day && teacher.Birthday?.Day <= lastDayOfMonth.Day));
+        var dtos = birthdays.Select(bt => _mapper.Map<BirthdayTeacherDto>(bt)).OrderBy(dtos => dtos.Birthday.Month).ThenBy(dto => dto.Birthday.Day);
+        return Ok(dtos);
     }
 }

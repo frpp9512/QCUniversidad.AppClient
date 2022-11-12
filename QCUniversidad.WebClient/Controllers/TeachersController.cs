@@ -66,6 +66,25 @@ public class TeachersController : Controller
     }
 
     [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> DetailsAsync(Guid id, string returnTo = "/")
+    {
+        try
+        {
+            var teacher = await _dataProvider.GetTeacherAsync(id);
+            var currentSchoolYear = await _dataProvider.GetCurrentSchoolYear();
+            var periods = currentSchoolYear.Periods;
+            ViewData["schoolYear"] = currentSchoolYear;
+            ViewData["returnTo"] = returnTo;
+            return View(teacher);
+        }
+        catch
+        {
+            return RedirectToAction("Error", "Home");
+        }
+    }
+
+    [HttpGet]
     public async Task<IActionResult> ImportAsync()
     {
         var departments = await _dataProvider.GetDepartmentsAsync();

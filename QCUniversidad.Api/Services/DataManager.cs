@@ -313,6 +313,38 @@ public class DataManager : IDataManager
                                    select ntl.Load;
 
         var isPeriodFromCurrentYear = !await IsPeriodInCurrentYear(periodId);
+
+        var result = (await loadItemsQuery.SumAsync() + await nonTeachingLoadQuery.SumAsync());
+
+        return Math.Round(result, 2);
+    }
+
+    public async Task<double> GetDepartmentAverageTotalLoadCoveredInPeriodAsync(Guid periodId, Guid departmentId)
+    {
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        var loadItemsQuery = from loadItem in _context.LoadItems
+                             join planItem in _context.TeachingPlanItems
+                             on loadItem.PlanningItemId equals planItem.Id
+                             where planItem.PeriodId == periodId
+                             join subject in _context.Subjects
+                             on planItem.SubjectId equals subject.Id
+                             join discipline in _context.Disciplines
+                             on subject.DisciplineId equals discipline.Id
+                             join department in _context.Departments
+                             on discipline.DepartmentId equals department.Id
+                             where discipline.DepartmentId == departmentId
+                             select loadItem.HoursCovered;
+
+        var nonTeachingLoadQuery = from ntl in _context.NonTeachingLoad
+                                   join teacher in _context.Teachers
+                                   on ntl.TeacherId equals teacher.Id
+                                   where ntl.PeriodId == periodId && teacher.DepartmentId == departmentId
+                                   select ntl.Load;
+
+        var isPeriodFromCurrentYear = !await IsPeriodInCurrentYear(periodId);
         var teachersCount = await _context.Teachers.CountAsync(t => t.DepartmentId == departmentId && (isPeriodFromCurrentYear ? t.Active : true));
 
         var result = (await loadItemsQuery.SumAsync() + await nonTeachingLoadQuery.SumAsync()) / teachersCount;
@@ -1191,16 +1223,17 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(planItemId));
         }
-        //var depTeachersQuery = from teacher in _context.Teachers
-        //                       join teacherDiscipline in _context.TeachersDisciplines
-        //                       on teacher.Id equals teacherDiscipline.TeacherId
-        //                       where (teacher.Active || teacher.DepartmentId == departmentId)
-        //                             //|| !disciplineId.HasValue
-        //                             //|| teacherDiscipline.DisciplineId == disciplineId
-        //                       select teacher;
         var depTeachersQuery = from teacher in _context.Teachers
-                               where teacher.DepartmentId == departmentId
+                               join teacherDiscipline in _context.TeachersDisciplines
+                               on teacher.Id equals teacherDiscipline.TeacherId
+                               where (teacher.Active && teacher.DepartmentId == departmentId)
+                                     && teacherDiscipline.DisciplineId == disciplineId
+                               //|| !disciplineId.HasValue
+                               //|| teacherDiscipline.DisciplineId == disciplineId
                                select teacher;
+        //var depTeachersQuery = from teacher in _context.Teachers
+        //                       where teacher.DepartmentId == departmentId
+        //                       select teacher;
         depTeachersQuery = depTeachersQuery.Distinct();
 
         var planItemLoads = from planItem in _context.TeachingPlanItems

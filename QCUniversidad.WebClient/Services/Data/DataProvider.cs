@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using QCUniversidad.Api.Shared.Dtos.Career;
 using QCUniversidad.Api.Shared.Dtos.Course;
@@ -758,6 +759,32 @@ public class DataProvider : IDataProvider
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
         var response = await client.PostAsync("/teacher/setnonteachingload", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
         return response.IsSuccessStatusCode;
+    }
+
+    public async Task<IList<BirthdayTeacherModel>> GetBirthdayTeachersForCurrentWeekAsync(Guid departmentId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/statistics/weekbirthdaysfordepartment?departmentId={departmentId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var teachers = JsonConvert.DeserializeObject<IList<BirthdayTeacherDto>>(contentText);
+            return teachers?.Select(f => _mapper.Map<BirthdayTeacherModel>(f)).ToList() ?? new List<BirthdayTeacherModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<IList<BirthdayTeacherModel>> GetBirthdayTeachersForCurrentMonthAsync(Guid departmentId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/statistics/monthbirthdaysfordepartment?departmentId={departmentId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var teachers = JsonConvert.DeserializeObject<IList<BirthdayTeacherDto>>(contentText);
+            return teachers?.Select(f => _mapper.Map<BirthdayTeacherModel>(f)).ToList() ?? new List<BirthdayTeacherModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
     #endregion

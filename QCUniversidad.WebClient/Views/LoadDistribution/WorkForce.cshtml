@@ -9,7 +9,7 @@
     <link href="~/lib/datatables/datatables.min.css" rel="stylesheet" />
 }
 
-    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
         <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start">
             <div class="d-flex flex-column">
                 <div class="banner-title">Fuerza de trabajo</div>
@@ -50,12 +50,16 @@
 </div>
 
 <div class="row justify-content-between">
-    <div class="col-12 col-sm-6">
+    <div class="col-12 col-sm-4">
         <div id="chart-1">
         </div>
     </div>
-    <div class="col-12 col-sm-6">
+    <div class="col-12 col-sm-4">
         <div id="chart-2">
+        </div>
+    </div>
+    <div class="col-12 col-sm-4">
+        <div id="chart-3">
         </div>
     </div>
 </div>
@@ -147,9 +151,10 @@
                         LoadTooltips();
                         LoadMeters();
                         LoadChart(`/loaddistribution/GetWorkForceChartData?periodId=${selectedPeriod}&departmentId=${selectedDepartment}`, "#work-force-chart");
-                        LoadChart(`/loaddistribution/GetWorkForceWithMostDirectLoadChartData?periodId=${selectedPeriod}&departmentId=${selectedDepartment}`, "#work-force-load-chart", (chart, evt) => { let elements = chart.getActiveElements();});
+                        LoadChart(`/loaddistribution/GetWorkForceWithMostDirectLoadChartData?periodId=${selectedPeriod}&departmentId=${selectedDepartment}`, "#work-force-load-chart", (chart, evt) => { let elements = chart.getActiveElements(); });
                         LoadChart(`/loaddistribution/GetTeachersChart?departmentId=${selectedDepartment}`, "#chart-1");
                         LoadChart(`/loaddistribution/GetTeachersChartByContractType?departmentId=${selectedDepartment}`, "#chart-2");
+                        LoadChart(`/loaddistribution/GetTeachersChartByAge?departmentId=${selectedDepartment}`, "#chart-3");
                     },
                     error: function (xhr, status, error) {
                         DisableLoadingTeachers();

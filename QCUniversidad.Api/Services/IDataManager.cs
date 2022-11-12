@@ -36,6 +36,7 @@ public interface IDataManager
     Task<double> GetDepartmentTotalLoadInPeriodAsync(Guid periodId, Guid departmentId);
     Task<double> GetTotalLoadCoveredInPeriodAsync(Guid periodId);
     Task<double> GetDepartmentTotalLoadCoveredInPeriodAsync(Guid periodId, Guid departmentId);
+    Task<double> GetDepartmentAverageTotalLoadCoveredInPeriodAsync(Guid periodId, Guid departmentId);
     Task<double> CalculateRAPAsync(Guid departmentId);
     Task<double> GetDepartmentTotalTimeFund(Guid departmentId, Guid periodId);
 

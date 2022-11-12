@@ -70,7 +70,7 @@ public class LoadDistributionController : Controller
         var schoolYear = schoolYearId is null ? await _dataProvider.GetCurrentSchoolYear() : await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
         var department = await _dataProvider.GetDepartmentAsync(workingDepartment);
         var periods = await _dataProvider.GetPeriodsAsync(schoolYear.Id);
-        var model = new WorkForceViewModel 
+        var model = new WorkForceViewModel
         {
             Department = department,
             Periods = periods,
@@ -101,7 +101,8 @@ public class LoadDistributionController : Controller
         {
             return RedirectToAction("Error", "Home");
         }
-        var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
+
+        _ = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
             var result = await _dataProvider.GetPeriodsAsync(schoolYearId);
@@ -251,7 +252,7 @@ public class LoadDistributionController : Controller
     {
         if (model is not null)
         {
-            if (Enum.TryParse(typeof(NonTeachingLoadType), model.Type, out var type))
+            if (Enum.TryParse(typeof(NonTeachingLoadType), model.Type, out _))
             {
                 var result = await _dataProvider.SetNonTeachingLoadAsync(model);
                 return result ? Ok(result) : BadRequest();
@@ -358,14 +359,9 @@ public class LoadDistributionController : Controller
         }
         else
         {
-            if (User.IsAdmin())
-            {
-                teachers = await _dataProvider.GetTeachersOfDepartmentAsync(departmentId.Value);
-            }
-            else
-            {
-                teachers = await _dataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
-            }
+            teachers = User.IsAdmin()
+                ? await _dataProvider.GetTeachersOfDepartmentAsync(departmentId.Value)
+                : await _dataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
         }
         var chartModel = ModelListCharter.GetChartModel(ChartType.Doughnut,
                                                         new List<TeacherCategory>((TeacherCategory[])Enum.GetValues(typeof(TeacherCategory))),
@@ -388,20 +384,73 @@ public class LoadDistributionController : Controller
         }
         else
         {
-            if (User.IsAdmin())
-            {
-                teachers = await _dataProvider.GetTeachersOfDepartmentAsync(departmentId.Value);
-            }
-            else
-            {
-                teachers = await _dataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
-            }
+            teachers = User.IsAdmin()
+                ? await _dataProvider.GetTeachersOfDepartmentAsync(departmentId.Value)
+                : await _dataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
         }
         var chartModel = ModelListCharter.GetChartModel(ChartType.Doughnut,
                                                         new List<TeacherContractType>((TeacherContractType[])Enum.GetValues(typeof(TeacherContractType))),
                                                         e => teachers.Count(t => t.ContractType == e),
                                                         e => e.GetEnumDisplayNameValue(),
                                                         title: "Profesores por tipo de contrato",
+                                                        showXScale: false,
+                                                        showYScale: false,
+                                                        legendPosition: ChartLegendPosition.Left);
+        return Ok(chartModel.GetJson());
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetTeachersChartByAgeAsync(Guid? departmentId = null)
+    {
+        IList<TeacherModel> teachers;
+        if (User.IsAdmin() && departmentId == null)
+        {
+            return BadRequest();
+        }
+        else
+        {
+            teachers = User.IsAdmin()
+                ? await _dataProvider.GetTeachersOfDepartmentAsync(departmentId.Value)
+                : await _dataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
+        }
+        var ageGroups = new[]
+        {
+            new
+            {
+                groupName = "Hasta 30 años",
+                value = teachers.Count(t => t.Age <= 30)
+            },
+            new
+            {
+                groupName = "De 31 a 40 años",
+                value = teachers.Count(t => t.Age is > 30 and <= 40)
+            },
+            new
+            {
+                groupName = "De 41 a 50 años",
+                value = teachers.Count(t => t.Age is > 40 and <= 50)
+            },
+            new
+            {
+                groupName = "De 51 a 60 años",
+                value = teachers.Count(t => t.Age is > 50 and <= 60)
+            },
+            new
+            {
+                groupName = "De 61 a 65 años",
+                value = teachers.Count(t => t.Age is > 60 and <= 65)
+            },
+            new
+            {
+                groupName = "Mayores de 65 años",
+                value = teachers.Count(t => t.Age > 65)
+            }
+        };
+        var chartModel = ModelListCharter.GetChartModel(ChartType.Doughnut,
+                                                        ageGroups,
+                                                        ag => ag.value,
+                                                        ag => $"{ag.groupName} ({Math.Round(ag.value / (double)teachers.Count, 2) * 100}%)",
+                                                        title: "Profesores rango de edad",
                                                         showXScale: false,
                                                         showYScale: false,
                                                         legendPosition: ChartLegendPosition.Left);

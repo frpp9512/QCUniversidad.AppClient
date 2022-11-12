@@ -1,4 +1,5 @@
-﻿using QCUniversidad.WebClient.Models.Careers;
+﻿using Microsoft.AspNetCore.Mvc;
+using QCUniversidad.WebClient.Models.Careers;
 using QCUniversidad.WebClient.Models.Courses;
 using QCUniversidad.WebClient.Models.Curriculums;
 using QCUniversidad.WebClient.Models.Departments;
@@ -93,6 +94,9 @@ public interface IDataProvider
     Task<bool> DeleteLoadItemAsync(Guid loadItemId);
     Task<IList<TeacherModel>> GetSupportTeachersAsync(Guid departmentId, Guid periodId);
     Task<bool> SetNonTeachingLoadAsync(SetNonTeachingLoadModel model);
+    Task<IList<BirthdayTeacherModel>> GetBirthdayTeachersForCurrentWeekAsync(Guid departmentId);
+
+    Task<IList<BirthdayTeacherModel>> GetBirthdayTeachersForCurrentMonthAsync(Guid departmentId);
 
     #endregion
 

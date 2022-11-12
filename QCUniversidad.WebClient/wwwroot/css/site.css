@@ -421,6 +421,8 @@ dd {
     animation-delay: 0.8s;
 }
 
+/* iCard set */
+
 .icard-set {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -442,6 +444,7 @@ dd {
     min-width: 300px;
     animation-duration: 1s;
     animation-name: fadeInUp;
+    justify-content: space-between;
     cursor: pointer;
 }
 
@@ -474,7 +477,7 @@ dd {
         }
 
             .icard .icard-content .icard-value span.icard-value-mu {
-                font-size: 3rem;
+                font-size: 80%;
             }
 
         .icard .icard-content .icard-value-ref {
@@ -501,6 +504,8 @@ dd {
         padding-top: 15px;
         text-align: center;
     }
+
+/* iCard end */
 
 .load-items-set {
     display: grid;
@@ -1124,3 +1129,266 @@ ol.guide {
     }
 
 /* end of ol guide */
+
+/* course card */
+
+.course-set {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-rows: repeat(minmax(150px, 1fr));
+    row-gap: 10px;
+    column-gap: 10px;
+    padding-top: 5px;
+    margin-bottom: 10px;
+}
+
+.course-info {
+    display: grid;
+    grid-template-areas: "title count indicator"
+        "career count indicator"
+        "enrolment count indicator";
+    padding: 10px;
+    border: none;
+    box-shadow: 0px 0px 3px #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+    .course-info:hover {
+        background-color: rgba(92, 92, 184, 0.2);
+        border: none;
+        transition: 0.5s;
+    }
+
+    .course-info:active {
+        background-color: rgba(92, 92, 184, 0.5);
+        transition: 0.1s;
+    }
+
+        .course-info:active .course-indicator {
+            animation: ease short-bounce-right 1s;
+        }
+
+.course-denomination {
+    grid-area: title;
+    color: rgba(92, 92, 184, 1);
+    font-weight: bold;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    text-transform: uppercase;
+}
+
+.course-career {
+    grid-area: career;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    color: #555;
+    font-weight: bold;
+}
+
+    .course-career::before {
+        content: 'Carrera:';
+        margin-right: 3px;
+        font-weight: normal;
+    }
+
+.course-careeryear {
+    grid-area: careeryear;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    color: #555;
+}
+
+.course-enrolment {
+    grid-area: enrolment;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    color: #555;
+    font-weight: bold;
+}
+
+    .course-enrolment::before {
+        content: 'Matrícula:';
+        margin-right: 3px;
+        font-weight: normal;
+    }
+
+.course-lastcourseindicator {
+    grid-area: lastcourseindicator;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    color: #555;
+}
+
+.course-itemscount {
+    grid-area: count;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 1rem;
+    font-weight: bolder;
+    font-size: 1.5rem;
+    color: #555;
+}
+
+.course-indicator {
+    grid-area: indicator;
+    display: flex;
+    align-items: center;
+    margin: 1rem;
+    color: rgba(92, 92, 184, 1);
+    justify-content: end;
+}
+
+/* end of course card */
+
+/* subject card */
+
+.subject-set {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-rows: repeat(minmax(150px, 1fr));
+    row-gap: 10px;
+    column-gap: 10px;
+    padding-top: 5px;
+}
+
+.subject-info {
+    display: grid;
+    grid-template-areas: "title       count indicator"
+        "description count indicator";
+    padding: 10px;
+    border: none;
+    box-shadow: 0px 0px 5px #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+    .subject-info:hover {
+        background-color: rgba(92, 92, 184, 0.2);
+        border: none;
+        transition: 0.5s;
+    }
+
+    .subject-info:active {
+        background-color: rgba(92, 92, 184, 0.5);
+        transition: 0.1s;
+    }
+
+        .subject-info:active .subject-indicator {
+            animation: ease short-bounce-right 1s;
+        }
+
+.subject-name {
+    grid-area: title;
+    color: rgba(92, 92, 184, 1);
+    font-weight: bold;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    text-transform: uppercase;
+}
+
+.subject-name-full {
+    grid-row: 1 / 3;
+}
+
+.subject-description {
+    grid-area: description;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    color: #555;
+}
+
+.subject-itemscount {
+    grid-area: count;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 1rem;
+    font-weight: bolder;
+    font-size: 1.5rem;
+    color: #555;
+}
+
+.subject-indicator {
+    grid-area: indicator;
+    display: flex;
+    align-items: center;
+    margin: 1rem;
+    color: rgba(92, 92, 184, 1);
+    justify-content: end;
+}
+
+/* enf of subject card */
+
+/* qcbt */
+
+.qccard {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.qccard-title {
+    font-weight: bold;
+    color: var(--main-color);
+}
+
+.qccard-body {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.qcbt {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-content: center;
+    border: solid 1px solid #ccc;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+    .qcbt:hover {
+        background-color: var(--main-color-10);
+        transition: 0.3s;
+        box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .qcbt:active {
+        background-color: var(--main-color-20);
+        transition: 0.3s;
+        box-shadow: 0 0 4px rgba(0, 0, 0, 0.2) inset;
+    }
+
+.qcbt-today span {
+    color: rebeccapurple !important;
+}
+
+.qcbt-name {
+    font-weight: 500;
+    color: var(--main-color-80);
+}
+
+.qcbt-name span {
+    color: #ccc;
+    margin: 3px;
+}
+
+.qcbt-date {
+    font-weight: 700;
+    color: var(--main-color-80);
+}
+
+/* end of qcbt */

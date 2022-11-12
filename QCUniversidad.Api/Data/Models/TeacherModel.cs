@@ -31,7 +31,7 @@ public record TeacherModel
     [NotMapped]
     public DateTime? Birthday
     {
-        get 
+        get
         {
             if (!string.IsNullOrEmpty(PersonalId))
             {
@@ -47,6 +47,24 @@ public record TeacherModel
                 return new DateTime(birthDayYear, monthSectionValue, daySectionValue);
             }
             return null;
+        }
+    }
+
+    /// <summary>
+    /// The current age of the teacher.
+    /// </summary>
+    [NotMapped]
+    public int Age
+    {
+        get 
+        {
+            if (Birthday is not null)
+            {
+                var diff = DateTime.Now - Birthday.Value;
+                var years = diff.TotalDays / 365;
+                return (int)years;
+            }
+            return -1;
         }
     }
 

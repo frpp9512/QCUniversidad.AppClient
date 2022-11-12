@@ -39,6 +39,8 @@ public class TeacherModel
 
     public DateTime? Birthday { get; set; }
 
+    public int Age { get; set; }
+
     public Guid DepartmentId { get; set; }
 
     public DepartmentModel? Department { get; set; }
