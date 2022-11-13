@@ -6,33 +6,23 @@
 <h4>Seleccionar departamento</h4>
 <p>Primero seleccione el departamento para continuar</p>
 <div class="container">
-    <div class="col-9 mb-3">
-        @{
-            <label for="SchoolYearId">Año escolar a gestionar</label>
-            <select id="SchoolYearId" class="form-control selected-department" aria-label="select">
-                @foreach (var schoolYear in Model.SchoolYears)
-                {
-                    <option value="@schoolYear.Id">@schoolYear.Name @(schoolYear.Current ? "(actual)" : "")</option>
-                }
-            </select>
-        }
+    <div class="options-selector mb-4" id="schoolYearSelector">
+        <div class="options-selector-label">Año escolar</div>
+        <div class="options-selector-options">
+            @foreach (var schoolYear in Model.SchoolYears)
+            {
+                <div class="option-selector" value="@schoolYear.Id" @(Model.SchoolYears.First().Id == schoolYear.Id ? "selected" : "")>@schoolYear.Name</div>
+            }
+        </div>
     </div>
-    <div class="col-9 mb-3">
-        @{
-            var departmentGroups = Model.Departments.GroupBy(d => d.FacultyId);
-            <label for="DepartmentId">Departamento al que pertenece</label>
-            <select id="DepartmentId" class="form-control selected-department" aria-label="select">
-                @foreach (var group in departmentGroups)
-                {
-                    <optgroup label="@group.FirstOrDefault()?.Faculty?.Name">
-                        @foreach (var d in group)
-                        {
-                            <option value="@d.Id">@d.Name</option>
-                        }
-                    </optgroup>
-                }
-            </select>
-        }
+    <div class="options-selector mb-4" id="departmentSelector">
+        <div class="options-selector-label">Departamento</div>
+        <div class="options-selector-options">
+            @foreach (var department in Model.Departments)
+            {
+                <div class="option-selector" value="@department.Id" @(Model.Departments.First().Id == department.Id ? "selected" : "")>@department.Name</div>
+            }
+        </div>
     </div>
     <div class="col-3 mb-3 d-flex align-baseline">
         <button class="btn btn-success" onclick="SelectDepartment()">Continuar <span class="fa fa-arrow-right"></span></button>
@@ -40,18 +30,18 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/options-selector.js"></script>
     <script>
         $(document).ready(function () {
+            InitializeSelectors();
             $('.selected-department').select2({
                 placeholder: "Seleccione el departamento"
             });
         });
 
         function SelectDepartment() {
-            const depSelect = document.getElementById("DepartmentId");
-            let selected = depSelect.options[depSelect.selectedIndex].value;
-            const sySelect = document.getElementById("SchoolYearId");
-            let sySelected = sySelect.options[sySelect.selectedIndex].value;
+            let selected = getSelectorOptionsSelectedValue("#departmentSelector");
+            let sySelected = getSelectorOptionsSelectedValue("#schoolYearSelector");
             location.href = `/loaddistribution/@Model.RedirectTo?departmentId=${selected}&schoolYearId=${sySelected}`;
         }
     </script>

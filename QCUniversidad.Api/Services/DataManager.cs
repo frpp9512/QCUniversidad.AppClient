@@ -2267,7 +2267,7 @@ public class DataManager : IDataManager
         throw new ArgumentNullException(nameof(id));
     }
 
-    public async Task<IList<CourseModel>> GetCoursesForDepartment(Guid departmentId, Guid? schoolYearId = null)
+    public async Task<IList<CourseModel>> GetCoursesForDepartmentAsync(Guid departmentId, Guid? schoolYearId = null)
     {
         if (departmentId != Guid.Empty)
         {
@@ -2284,10 +2284,14 @@ public class DataManager : IDataManager
                           join curriculum in curriculums
                           on course.CurriculumId equals curriculum.Id
                           select course;
+
+            courses = courses.Where(c => _context.TeachingPlanItems.Any(planItem => planItem.CourseId == c.Id));
+
             if (schoolYearId.HasValue)
             {
                 courses = courses.Where(c => c.SchoolYearId == schoolYearId);
             }
+
             courses = courses.Distinct();
             courses = courses.Include(y => y.SchoolYear)
                              .Include(sy => sy.Career)

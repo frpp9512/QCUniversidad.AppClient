@@ -161,7 +161,7 @@ public interface IDataManager
     Task<bool> UpdateCourseAsync(CourseModel course);
     Task<bool> DeleteCourseAsync(Guid id);
 
-    Task<IList<CourseModel>> GetCoursesForDepartment(Guid departmentId, Guid? schoolYearId = null);
+    Task<IList<CourseModel>> GetCoursesForDepartmentAsync(Guid departmentId, Guid? schoolYearId = null);
 
     #endregion
 

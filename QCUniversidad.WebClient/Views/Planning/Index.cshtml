@@ -4,7 +4,7 @@
     <link href="~/lib/datatables/datatables.min.css" rel="stylesheet" />
 }
 
-    @{
+@{
     ViewData["Title"] = "Planificación";
 
     bool planningItemCreated = (bool?)TempData["planItem-created"] ?? false;
@@ -41,9 +41,9 @@
             <div class="banner-subtitle">de las cargas docentes</div>
         </div>
     </div>
-    <div class="d-flex flex-column align-items-center">
+    <div class="d-flex flex-column align-items-center schoolyear-header">
         <div class="index-schoolyearheader">
-            Año escolar actual
+            Año escolar
         </div>
         <div class="index-schoolyearname">
             @Model.SchoolYear.Name
@@ -58,29 +58,33 @@
 </div>
 
 <div class="options-selector mb-4" id="periodSelector">
-    <div class="options-selector-label">Período</div>
-    @foreach (var period in Model.Periods)
-    {
-        <div class="option-selector" value="@period.Id" @(Model.Periods.First().Id == period.Id ? "selected" : "")>@period.ToString()</div>
-    }
+    <div class="options-selector-label"><span class="fa fa-calendar-days"></span> Período</div>
+    <div class="options-selector-options">
+        @foreach (var period in Model.Periods)
+        {
+            <div class="option-selector" value="@period.Id" @(Model.Periods.First().Id == period.Id ? "selected" : "")>@period.ToString()</div>
+        }
+    </div>
 </div>
 
 <div class="options-selector mb-4" id="courseSelector">
-    <div class="options-selector-label">Curso</div>
-    @foreach (var course in Model.Courses)
-    {
-        <div class="option-selector" value="@course.Id" @(course.Id == Model.Courses.First().Id ? "selected" : "")>@course.Denomination</div>
-    }
+    <div class="options-selector-label"><span class="fa fa-people-roof"></span></span> Curso</div>
+    <div class="options-selector-options">
+        @foreach (var course in Model.Courses)
+        {
+            <div class="option-selector" value="@course.Id" @(course.Id == Model.Courses.First().Id ? "selected" : "")>@course.Denomination</div>
+        }
+    </div>
 </div>
 
 <div class="row">
     <div class="container">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link @(Model.Tab == "planning" ? "active" : "")" id="planning-tab" data-bs-toggle="tab" data-bs-target="#planning" type="button" role="tab" aria-controls="profile" aria-selected="false">Planificación</button>
+                <button class="nav-link @(Model.Tab == "planning" ? "active" : "")" id="planning-tab" data-bs-toggle="tab" data-bs-target="#planning" type="button" role="tab" aria-controls="profile" aria-selected="false"><span class="fa fa-calendar-check"></span> Planificación</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link @(Model.Tab == "periodsubjects" ? "active" : "")" id="periodSubjects-tab" data-bs-toggle="tab" data-bs-target="#periodSubjects" type="button" role="tab" aria-controls="periodSubjects" aria-selected="true">Asignaturas</button>
+                <button class="nav-link @(Model.Tab == "periodsubjects" ? "active" : "")" id="periodSubjects-tab" data-bs-toggle="tab" data-bs-target="#periodSubjects" type="button" role="tab" aria-controls="periodSubjects" aria-selected="true"><span class="fa fa-book"></span> Asignaturas</button>
             </li>
         </ul>
         <div class="tab-content" id="myTabContent">

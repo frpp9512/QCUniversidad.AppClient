@@ -25,7 +25,7 @@
         },
         error: function (xhr, status, error) {
             console.log(xhr, status, error);
-            chartDiv.innerHTML = 'Error reciviendo gráfico';
+            chartDiv.innerHTML = 'Error recibiendo gráfico';
         }
     });
 }

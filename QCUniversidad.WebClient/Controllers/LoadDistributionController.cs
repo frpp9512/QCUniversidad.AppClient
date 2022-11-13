@@ -85,6 +85,10 @@ public class LoadDistributionController : Controller
     {
         var schoolYears = await _dataProvider.GetSchoolYearsAsync();
         var departments = await _dataProvider.GetDepartmentsAsync();
+        if (schoolYears.Count == departments.Count && departments.Count == 1)
+        {
+            return RedirectToAction(redirectTo, new { departmentId = departments.First().Id, schoolYearId = schoolYears.First().Id });
+        }
         var model = new SelectDepartmentViewModel
         {
             Departments = departments,

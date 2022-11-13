@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace QCUniversidad.Api.Controllers;
 
@@ -48,7 +49,7 @@ public class CourseController : ControllerBase
                 return NotFound();
             }
             var result = await _dataManager.GetCoursesAsync(schoolYearId);
-            var dtos = result.Select(c => _mapper.Map<CourseDto>(c));
+            var dtos = result.Select(c => _mapper.Map<CourseDto>(c)).OrderBy(dto => dto.CareerId).ThenBy(dto => dto.CareerYear);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -191,7 +192,7 @@ public class CourseController : ControllerBase
         }
         try
         {
-            var result = await _dataManager.GetCoursesForDepartment(departmentId, schoolYearId);
+            var result = await _dataManager.GetCoursesForDepartmentAsync(departmentId, schoolYearId);
             var dtos = result.Select(i => _mapper.Map<CourseDto>(i));
             return Ok(dtos);
         }

@@ -12,9 +12,9 @@
             <div class="banner-subtitle">para el departamento de @Model.Department.Name</div>
         </div>
     </div>
-    <div class="d-flex flex-column align-items-center">
+    <div class="d-flex flex-column align-items-center schoolyear-header">
         <div class="index-schoolyearheader">
-            Año escolar actual
+            Año escolar
         </div>
         <div class="index-schoolyearname">
             @Model.SchoolYear.Name
@@ -28,21 +28,25 @@
     </div>
 </div>
 
-<div class="options-selector mb-3" id="courseSelector">
-    <div class="options-selector-label">Curso</div>
-    <div class="option-selector" value="all" selected>Todos</div>
-    @foreach (var course in Model.Courses)
-    {
-        <div class="option-selector" value="@course.Id">@course.Denomination</div>
-    }
+<div class="options-selector mb-3" id="periodSelector">
+    <div class="options-selector-label"><span class="fa fa-calendar-days"></span> Período</div>
+    <div class="options-selector-options">
+        @foreach (var period in Model.Periods)
+        {
+            <div class="option-selector" value="@period.Id" @(Model.Periods.First().Id == period.Id ? "selected" : "")>@period.ToString()</div>
+        }
+    </div>
 </div>
 
-<div class="options-selector mb-4" id="periodSelector">
-    <div class="options-selector-label">Período</div>
-    @foreach (var period in Model.Periods)
-    {
-        <div class="option-selector" value="@period.Id" @(Model.Periods.First().Id == period.Id ? "selected" : "")>@period.ToString()</div>
-    }
+<div class="options-selector mb-4" id="courseSelector">
+    <div class="options-selector-label"><span class="fa fa-people-roof"></span></span> Curso</div>
+    <div class="options-selector-options">
+        <div class="option-selector" value="all" selected>Todos</div>
+        @foreach (var course in Model.Courses)
+        {
+            <div class="option-selector" value="@course.Id">@course.Denomination</div>
+        }
+    </div>
 </div>
 
 <div id="load">

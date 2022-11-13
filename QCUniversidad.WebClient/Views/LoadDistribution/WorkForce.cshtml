@@ -9,16 +9,16 @@
     <link href="~/lib/datatables/datatables.min.css" rel="stylesheet" />
 }
 
-<div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
         <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start">
             <div class="d-flex flex-column">
                 <div class="banner-title">Fuerza de trabajo</div>
                 <div class="banner-subtitle">del departamento de @Model.Department.Name</div>
             </div>
         </div>
-        <div class="d-flex flex-column align-items-center">
-            <div class="index-schoolyearheader">
-                Año escolar actual
+        <div class="d-flex flex-column align-items-center schoolyear-header">
+            <div class="index-schoolyearheader font-text-color">
+                Año escolar
             </div>
             <div class="index-schoolyearname">
                 @Model.SchoolYear.Name
@@ -33,11 +33,13 @@
 </div>
 
 <div class="options-selector mb-4" id="periodSelector">
-    <div class="options-selector-label">Período</div>
-    @foreach (var period in Model.Periods)
-    {
-        <div class="option-selector" value="@period.Id" @(Model.Periods.First().Id == period.Id ? "selected" : "")>@period.ToString()</div>
-    }
+    <div class="options-selector-label"><span class="fa fa-calendar-days"></span> Período</div>
+    <div class="options-selector-options">
+        @foreach (var period in Model.Periods)
+        {
+            <div class="option-selector" value="@period.Id" @(Model.Periods.First().Id == period.Id ? "selected" : "")>@period.ToString()</div>
+        }
+    </div>
 </div>
 
 <div id="work-force" class="mb-5">
