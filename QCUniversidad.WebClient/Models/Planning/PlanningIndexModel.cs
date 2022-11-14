@@ -1,22 +1,19 @@
-﻿using QCUniversidad.WebClient.Models.Courses;
+﻿using QCUniversidad.WebClient.Models.Careers;
+using QCUniversidad.WebClient.Models.Courses;
+using QCUniversidad.WebClient.Models.Faculties;
 using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.SchoolYears;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace QCUniversidad.WebClient.Models.Planning
+namespace QCUniversidad.WebClient.Models.Planning;
+
+public class PlanningIndexModel
 {
-    public class PlanningIndexModel
-    {
-        public Guid SchoolYearId { get; set; }
-        public SchoolYearModel SchoolYear { get; set; }
-        public IList<PeriodModel> Periods { get; set; }
-        public Guid? PeriodSelected { get; set; }
-        public Guid? CourseSelected { get; set; }
-        public IList<CourseModel> Courses { get; set; }
-        public string Tab { get; set; } = "periodsubjects";
-    }
+    public Guid SchoolYearId { get; set; }
+    public FacultyModel? Faculty { get; set; }
+    public SchoolYearModel? SchoolYear { get; set; }
+    public IList<CareerModel> Careers { get; set; }
+    public IList<PeriodModel>? Periods { get; set; }
+    public Guid? PeriodSelected { get; set; }
+    public Guid? CourseSelected { get; set; }
+    public string Tab { get; set; } = "periodsubjects";
 }

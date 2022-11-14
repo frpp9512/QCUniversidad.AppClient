@@ -82,9 +82,13 @@ namespace QCUniversidad.WebClient.Services.Data
         public async Task<IEnumerable<Role>> GetRolesAsync()
             => await _dataContext.Roles.Where(r => r.Active).ToListAsync();
 
-        public async Task<User> GetUserAsync(Guid id, bool loadUserRoles = false)
+        public async Task<User> GetUserAsync(Guid id, bool loadUserRoles = false, bool includePermanentDeactivated = false)
         {
             var userQuery = _dataContext.Users.Where(u => u.Id == id);
+            if (!includePermanentDeactivated)
+            {
+                userQuery.Where(u => !u.PermanentDeactivation);
+            }
             userQuery = userQuery.Include(u => u.ExtraClaims);
             if (loadUserRoles)
             {
@@ -93,9 +97,13 @@ namespace QCUniversidad.WebClient.Services.Data
             return await userQuery.FirstOrDefaultAsync() ?? throw new UserNotFoundException();
         }
 
-        public async Task<User> GetUserAsync(string email, bool loadUserRoles = false)
+        public async Task<User> GetUserAsync(string email, bool loadUserRoles = false, bool includePermanentDeactivated = false)
         {
             var userQuery = _dataContext.Users.Where(u => u.Email == email);
+            if (!includePermanentDeactivated)
+            {
+                userQuery.Where(u => !u.PermanentDeactivation);
+            }
             userQuery = userQuery.Include(u => u.ExtraClaims);
             if (loadUserRoles)
             {

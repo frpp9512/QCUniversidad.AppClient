@@ -1,4 +1,5 @@
 ﻿using QCUniversidad.WebClient.Models.Departments;
+using QCUniversidad.WebClient.Models.Faculties;
 using SmartB1t.Security.WebSecurity.Local;
 using System;
 using System.Collections.Generic;
@@ -11,5 +12,6 @@ namespace QCUniversidad.WebClient.Models.Accounts
     public class UserViewModel : User
     {
         public DepartmentModel DepartmentModel { get; set; }
+        public FacultyModel FacultyModel { get; set; }
     }
 }

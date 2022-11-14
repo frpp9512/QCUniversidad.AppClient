@@ -95,8 +95,9 @@ public interface IDataProvider
     Task<IList<TeacherModel>> GetSupportTeachersAsync(Guid departmentId, Guid periodId);
     Task<bool> SetNonTeachingLoadAsync(SetNonTeachingLoadModel model);
     Task<IList<BirthdayTeacherModel>> GetBirthdayTeachersForCurrentWeekAsync(Guid departmentId);
-
     Task<IList<BirthdayTeacherModel>> GetBirthdayTeachersForCurrentMonthAsync(Guid departmentId);
+    Task<IList<BirthdayTeacherModel>> GetBirthdayTeachersForCurrentWeekAsync(Guid scopeId, string scope);
+    Task<IList<BirthdayTeacherModel>> GetBirthdayTeachersForCurrentMonthAsync(Guid scopeId, string scope);
 
     #endregion
 
@@ -156,6 +157,8 @@ public interface IDataProvider
     Task<int> GetCoursesCountAsync();
     Task<IList<CourseModel>> GetCoursesAsync(int from = 0, int to = 0);
     Task<IList<CourseModel>> GetCoursesAsync(Guid schoolYearId);
+    Task<IList<CourseModel>> GetCoursesAsync(Guid schoolYearId, Guid facultyId);
+    Task<IList<CourseModel>> GetCoursesAsync(Guid careerId, Guid schoolYearId, Guid facultyId);
     Task<CourseModel> GetCourseAsync(Guid id);
     Task<bool> UpdateCourseAsync(CourseModel course);
     Task<bool> DeleteCourseAsync(Guid id);

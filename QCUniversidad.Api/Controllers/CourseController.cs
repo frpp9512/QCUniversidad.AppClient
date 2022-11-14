@@ -59,6 +59,58 @@ public class CourseController : ControllerBase
     }
 
     [HttpGet]
+    [Route("listbyschoolyearandfaculty")]
+    public async Task<IActionResult> GetListBySchoolYearAndFacultyAsync(Guid schoolYearId, Guid facultyId)
+    {
+        try
+        {
+            if (!await _dataManager.ExistSchoolYearAsync(schoolYearId))
+            {
+                return NotFound();
+            }
+            if (!await _dataManager.ExistFacultyAsync(facultyId))
+            {
+                return NotFound();
+            }
+            var result = await _dataManager.GetCoursesAsync(schoolYearId, facultyId);
+            var dtos = result.Select(c => _mapper.Map<CourseDto>(c)).OrderBy(dto => dto.CareerId).ThenBy(dto => dto.CareerYear);
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("listbycareerschoolyearandfaculty")]
+    public async Task<IActionResult> GetListByCareerSchoolYearAndFacultyAsync(Guid careerId, Guid schoolYearId, Guid facultyId)
+    {
+        try
+        {
+            if (!await _dataManager.ExistsCareerAsync(careerId))
+            {
+                return NotFound();
+            }
+            if (!await _dataManager.ExistSchoolYearAsync(schoolYearId))
+            {
+                return NotFound();
+            }
+            if (!await _dataManager.ExistFacultyAsync(facultyId))
+            {
+                return NotFound();
+            }
+            var result = await _dataManager.GetCoursesAsync(careerId, schoolYearId, facultyId);
+            var dtos = result.Select(c => _mapper.Map<CourseDto>(c)).OrderBy(dto => dto.CareerId).ThenBy(dto => dto.CareerYear);
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
     [Route("count")]
     public async Task<IActionResult> GetCount()
     {

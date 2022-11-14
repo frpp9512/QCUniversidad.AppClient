@@ -9,7 +9,9 @@
     <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start">
         <div class="d-flex flex-column">
             <div class="banner-title">Distribución de carga</div>
-            <div class="banner-subtitle">para el departamento de @Model.Department.Name</div>
+            <div class="banner-subtitle">
+                para el departamento de <a asp-action="Details" asp-controller="Departments" asp-route-id="@Model.Department.Id" class="link-muted">@Model.Department.Name <small><span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Derpartamento</small></div> <div><b>@Model.Department.Name</b></div> <div>@Model.Department.Description</div>"></span></small></a>
+            </div>
         </div>
     </div>
     <div class="d-flex flex-column align-items-center schoolyear-header">

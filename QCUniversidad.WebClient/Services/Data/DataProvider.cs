@@ -787,6 +787,32 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
+    public async Task<IList<BirthdayTeacherModel>> GetBirthdayTeachersForCurrentWeekAsync(Guid scopeId, string scope)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/statistics/weekbirthdaysforscope?scope={scope}&scopeId={scopeId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var teachers = JsonConvert.DeserializeObject<IList<BirthdayTeacherDto>>(contentText);
+            return teachers?.Select(f => _mapper.Map<BirthdayTeacherModel>(f)).ToList() ?? new List<BirthdayTeacherModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<IList<BirthdayTeacherModel>> GetBirthdayTeachersForCurrentMonthAsync(Guid scopeId, string scope)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/statistics/monthbirthdaysforscope?scope={scope}&scopeId={scopeId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var teachers = JsonConvert.DeserializeObject<IList<BirthdayTeacherDto>>(contentText);
+            return teachers?.Select(f => _mapper.Map<BirthdayTeacherModel>(f)).ToList() ?? new List<BirthdayTeacherModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
     #endregion
 
     #region Subjects
@@ -1289,6 +1315,34 @@ public class DataProvider : IDataProvider
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
         var response = await client.GetAsync($"/course/listbyschoolyear?schoolYearId={schoolYearId}");
+        var responseText = await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var courses = JsonConvert.DeserializeObject<IList<CourseDto>>(contentText);
+            return courses?.Select(f => _mapper.Map<CourseModel>(f)).ToList() ?? new List<CourseModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<IList<CourseModel>> GetCoursesAsync(Guid schoolYearId, Guid facultyId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/course/listbyschoolyearandfaculty?schoolYearId={schoolYearId}&facultyId={facultyId}");
+        var responseText = await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var courses = JsonConvert.DeserializeObject<IList<CourseDto>>(contentText);
+            return courses?.Select(f => _mapper.Map<CourseModel>(f)).ToList() ?? new List<CourseModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<IList<CourseModel>> GetCoursesAsync(Guid careerId, Guid schoolYearId, Guid facultyId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/course/listbycareerschoolyearandfaculty?careerId={careerId}&schoolYearId={schoolYearId}&facultyId={facultyId}");
         var responseText = await response.Content.ReadAsStringAsync();
         if (response.IsSuccessStatusCode)
         {

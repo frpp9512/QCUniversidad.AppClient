@@ -1,0 +1,13 @@
+﻿@model IList<CourseModel>
+
+@if (Model.Any())
+{
+    foreach (var course in Model)
+    {
+        <div class="option-selector" value="@course.Id" @(course.Id == Model.First().Id ? "selected" : "")>@course.Denomination</div>
+    }
+}
+else
+{
+    <span class="text-muted">La carrera no tiene cursos abiertos en el año escolar actual.</span>
+}

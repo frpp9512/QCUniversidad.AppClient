@@ -1,11 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Microsoft.Extensions.Options;
 using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Planning;
-using QCUniversidad.WebClient.Models.SchoolYears;
 using QCUniversidad.WebClient.Models.Subjects;
 using QCUniversidad.WebClient.Services.Data;
 using QCUniversidad.WebClient.Services.Platform;
@@ -29,23 +27,57 @@ public class PlanningController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(Guid? periodSelected = null, Guid? schoolYearId = null, Guid? courseSelected = null, string? tab = "planning")
+    public async Task<IActionResult> Index(Guid? facultyId = null, Guid? periodSelected = null, Guid? schoolYearId = null, Guid? courseSelected = null, string? tab = "planning")
     {
-        var workingSchoolYear = (!User.IsAdmin() && schoolYearId is not null) || schoolYearId is null
-            ? await _dataProvider.GetCurrentSchoolYear()
-            : await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
-        var courses = await _dataProvider.GetCoursesAsync(workingSchoolYear.Id);
-        var model = new PlanningIndexModel
+        if (facultyId is null && User.IsAdmin())
         {
-            SchoolYearId = workingSchoolYear.Id,
-            SchoolYear = workingSchoolYear,
-            Periods = await _dataProvider.GetPeriodsAsync(workingSchoolYear.Id),
-            PeriodSelected = periodSelected,
-            Courses = courses,
-            CourseSelected = courseSelected,
-            Tab = tab ?? "planning"
-        };
-        return View(model);
+            return RedirectToAction("SelectFaculty");
+        }
+        try
+        {
+            var faculty = await _dataProvider.GetFacultyAsync((User.IsAdmin() && facultyId is not null) ? facultyId.Value : User.GetFacultyId());
+            var workingSchoolYear = (!User.IsAdmin() && schoolYearId is not null) || schoolYearId is null
+                                        ? await _dataProvider.GetCurrentSchoolYear()
+                                        : await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
+            var careers = await _dataProvider.GetCareersAsync(faculty.Id);
+            var model = new PlanningIndexModel
+            {
+                Faculty = faculty,
+                SchoolYearId = workingSchoolYear.Id,
+                SchoolYear = workingSchoolYear,
+                Careers = careers,
+                Periods = await _dataProvider.GetPeriodsAsync(workingSchoolYear.Id),
+                PeriodSelected = periodSelected,
+                CourseSelected = courseSelected,
+                Tab = tab ?? "planning"
+            };
+            return View(model);
+        }
+        catch
+        {
+            return RedirectToAction("Error", "Home");
+        }
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "Administrador")]
+    public async Task<IActionResult> SelectFacultyAsync(string returnUrl = "Index")
+    {
+        var faculties = await _dataProvider.GetFacultiesAsync();
+        if (faculties.Count == 1)
+        {
+            return RedirectToAction("Index", new { facultyId = faculties.First().Id });
+        }
+        ViewData["returnUrl"] = returnUrl ?? "Index";
+        return View(faculties);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetCoursesOptionSelectorsAsync(Guid careerId, Guid? facultyId = null)
+    {
+        var schoolYear = await _dataProvider.GetCurrentSchoolYear();
+        var courses = await _dataProvider.GetCoursesAsync(careerId, schoolYear.Id, (User.IsAdmin() && facultyId is not null) ? facultyId.Value : User.GetFacultyId());
+        return PartialView("_CoursesOptionSelectors", courses);
     }
 
     [HttpGet]
@@ -119,7 +151,6 @@ public class PlanningController : Controller
             return Problem(ex.Message);
         }
     }
-
 
     [HttpPost]
     [ValidateAntiForgeryToken]

@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ActionConstraints;
-using QCUniversidad.Api.Shared.Enums;
-using QCUniversidad.Api.Shared.Extensions;
 using QCUniversidad.WebClient.Data.Contexts;
 using QCUniversidad.WebClient.Models.Index;
 using QCUniversidad.WebClient.Models.Shared;
+using QCUniversidad.WebClient.Models.Statistics;
 using QCUniversidad.WebClient.Models.Teachers;
 using QCUniversidad.WebClient.Services.Data;
 using QCUniversidad.WebClient.Services.Platform;
@@ -33,22 +31,39 @@ public class HomeController : Controller
         try
         {
             var schoolYear = await _dataProvider.GetCurrentSchoolYear();
-            model = User.IsAdmin()
-                ? new IndexViewModel
+            if (User.IsAdmin())
+            {
+                model = new IndexViewModel
                 {
                     SchoolYear = schoolYear
-                }
-                : new IndexViewModel
+                };
+                return View(model);
+            }
+            if (User.IsDepartmentManager())
+            {
+                model = new IndexViewModel
                 {
                     Department = await _dataProvider.GetDepartmentAsync(User.GetDepartmentId()),
                     SchoolYear = schoolYear
                 };
+                return View(model);
+            }
+            if (User.IsPlanner())
+            {
+                model = new IndexViewModel
+                {
+                    Faculty = await _dataProvider.GetFacultyAsync(User.GetFacultyId()),
+                    SchoolYear = schoolYear
+                };
+                return View(model);
+            }
+
+            return RedirectToAction("Error");
         }
-        catch (Exception)
+        catch
         {
-            model = new IndexViewModel();
+            return RedirectToAction("Error");
         }
-        return View(model);
     }
 
     public IActionResult Fa()
@@ -75,9 +90,18 @@ public class HomeController : Controller
         {
             try
             {
-                var departmentId = User.GetDepartmentId();
-                var statistics = await _dataProvider.GetGlobalStatisticsForDepartmentAsync(departmentId);
-                return PartialView("_ICardSet", statistics);
+                if (User.IsDepartmentManager())
+                {
+                    var departmentId = User.GetDepartmentId();
+                    var statistics = await _dataProvider.GetGlobalStatisticsForDepartmentAsync(departmentId);
+                    return PartialView("_ICardSet", statistics);
+                }
+                else
+                {
+                    var facultyId = User.GetFacultyId();
+                    var statistics = new List<StatisticItemModel>();
+                    return PartialView("_ICardSet", statistics);
+                }
             }
             catch (Exception ex)
             {
@@ -87,11 +111,23 @@ public class HomeController : Controller
     }
 
     [HttpGet]
-    [Authorize(Roles = "Jefe de departamento")]
     public async Task<IActionResult> GetWeekBirthdaysAsync()
     {
-        var departmentId = User.GetDepartmentId();
-        var birthdays = await _dataProvider.GetBirthdayTeachersForCurrentMonthAsync(departmentId);
+        IList<BirthdayTeacherModel> birthdays;
+        if (User.IsDepartmentManager())
+        {
+            var departmentId = User.GetDepartmentId();
+            birthdays = await _dataProvider.GetBirthdayTeachersForCurrentMonthAsync(departmentId, "department");
+        }
+        if (User.IsPlanner())
+        {
+            var facultyId = User.GetFacultyId();
+            birthdays = await _dataProvider.GetBirthdayTeachersForCurrentMonthAsync(facultyId, "faculty");
+        }
+        else
+        {
+            birthdays = await _dataProvider.GetBirthdayTeachersForCurrentMonthAsync(new Guid(), "global");
+        }
         return PartialView("_BirthdayCard", birthdays);
     }
 

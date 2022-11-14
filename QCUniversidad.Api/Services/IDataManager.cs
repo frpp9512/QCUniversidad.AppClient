@@ -78,12 +78,13 @@ public interface IDataManager
     Task<bool> ExistsTeacherAsync(string personalId);
     Task<int> GetTeachersCountAsync();
     Task<int> GetTeacherDisciplinesCountAsync(Guid id);
-    Task<IList<TeacherModel>> GetTeachersAsync(int from, int to);
+    Task<IList<TeacherModel>> GetTeachersAsync(int from = 0, int to = 0);
     Task<TeacherModel> GetTeacherAsync(Guid id);
     Task<TeacherModel> GetTeacherAsync(string personalId);
     Task<bool> UpdateTeacherAsync(TeacherModel teacher);
     Task<bool> DeleteTeacherAsync(Guid id);
     Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId, bool loadInactives = false);
+    Task<IList<TeacherModel>> GetTeachersOfFacultyAsync(Guid facultyId, bool loadInactives = false);
     Task<IList<LoadItemModel>> GetTeacherLoadItemsInPeriodAsync(Guid teacherId, Guid periodId);
     Task<IList<NonTeachingLoadModel>> GetTeacherNonTeachingLoadItemsInPeriodAsync(Guid teacherId, Guid periodId);
     Task<NonTeachingLoadModel> GetTeacherNonTeachingLoadItemInPeriodAsync(NonTeachingLoadType type, Guid teacherId, Guid periodId);
@@ -157,6 +158,8 @@ public interface IDataManager
     Task<int> GetCoursesCountAsync();
     Task<IList<CourseModel>> GetCoursesAsync(int from, int to);
     Task<IList<CourseModel>> GetCoursesAsync(Guid schoolYearId);
+    Task<IList<CourseModel>> GetCoursesAsync(Guid schoolYearId, Guid facultyId);
+    Task<IList<CourseModel>> GetCoursesAsync(Guid careerId, Guid schoolYearId, Guid facultyId);
     Task<CourseModel> GetCourseAsync(Guid id);
     Task<bool> UpdateCourseAsync(CourseModel course);
     Task<bool> DeleteCourseAsync(Guid id);

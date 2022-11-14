@@ -101,23 +101,42 @@
                         else
                         {
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span>
-                                        @User.Claims.First(c => c.Type == ClaimTypes.Name).Value
-                                        <br>
-                                        <small>@User.Claims.First(c => c.Type == ClaimTypes.Email).Value</small>
-                                    </span>
+                                <a class="nav-link" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <div class="nav-profile-picture">
+                                        <img src="/accounts/profilepicture" class="nav-profile-pic mr-2" />
+                                        <div>
+                                            @User.Claims.First(c => c.Type == ClaimTypes.Name).Value
+                                        </div>
+                                        <div>
+                                            @if (User.IsAdmin())
+                                            {
+                                                <span>Administrador</span>
+                                            }
+                                            else if (User.IsPlanner())
+                                            {
+                                                <span>Planificador</span>
+                                            }
+                                            else if (User.IsDepartmentManager())
+                                            {
+                                                <span>Jefe de departamento</span>
+                                            }
+                                        </div>
+                                    </div>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-lg-end dropdown-menu-xl-end dropdown-xxl-end" aria-labelledby="navbarDropdownMenuLink">
                                     @if (User.IsInRole("Administrador"))
                                     {
                                         <a class="dropdown-item" asp-action="Index" asp-controller="Accounts"><span class="fa fa-users"></span> Usuarios</a>
                                     }
-                                    else
+                                    else if (User.IsDepartmentManager())
                                     {
                                         <a class="dropdown-item" asp-action="Details" asp-controller="Departments" asp-route-id="@User.GetDepartmentId()">
                                             <span class="fa fa-info-circle"></span> <partial name="_LoggedUserDepartmentName" />
                                         </a>
+                                    }
+                                    else
+                                    {
+
                                     }
                                     <li><a class="dropdown-item" href="/accounts/logout"><span class="fa fa-door-open"></span> Cerrar sesión</a></li>
                                 </ul>

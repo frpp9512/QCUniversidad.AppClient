@@ -25,7 +25,7 @@
         </div>
     </div>
     <div class="col-3 mb-3 d-flex align-baseline">
-        <button class="btn btn-success" onclick="SelectDepartment()">Continuar <span class="fa fa-arrow-right"></span></button>
+        <button class="btn btn-success" onclick="SelectFaculty()">Continuar <span class="fa fa-arrow-right"></span></button>
     </div>
 </div>
 
@@ -39,7 +39,7 @@
             });
         });
 
-        function SelectDepartment() {
+        function SelectFaculty() {
             let selected = getSelectorOptionsSelectedValue("#departmentSelector");
             let sySelected = getSelectorOptionsSelectedValue("#schoolYearSelector");
             location.href = `/loaddistribution/@Model.RedirectTo?departmentId=${selected}&schoolYearId=${sySelected}`;

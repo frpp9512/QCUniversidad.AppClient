@@ -22,6 +22,7 @@
                         <th>Disciplinas</th>
                         <th>Carga</th>
                         <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -58,12 +59,14 @@
                                             <span>@(teacher.Load.Load) h</span>
                                             <span class="text-muted d-none d-lg-inline">/ @(teacher.Load.TimeFund) h</span>
                                         </div>
-                                        @{
-                                            var indicatorTooltip = $"<div><small><span class='fa fa-chart-pie'></span> Carga del profesor</small></div> <div><b>{teacher.Load.Status.GetEnumDisplayNameValue()}</b></div> <div>{teacher.Load.Status.GetEnumDisplayDescriptionValue()}</div>";
-                                        }
-                                        <partial name="_CircleIndicator" model="(teacher.Load.LoadPercent, 30, indicatorTooltip)" />
                                     </div>
                                 }
+                            </td>
+                            <td>
+                                @{
+                                    var indicatorTooltip = $"<div><small><span class='fa fa-chart-pie'></span> Carga del profesor</small></div> <div><b>{teacher.Load.Status.GetEnumDisplayNameValue()}</b></div> <div>{teacher.Load.Status.GetEnumDisplayDescriptionValue()}</div>";
+                                }
+                                <partial name="_CircleIndicator" model="(teacher.Load.LoadPercent, 30, indicatorTooltip)" />
                             </td>
                             <td>
                                 <button type="button" class="btn btn-sm btn-info" onclick="OpenTeacherLoadDeatils('@teacher.Id')"><span class="fa fa-truck-loading"></span></button>

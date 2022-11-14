@@ -38,7 +38,7 @@
     <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start">
         <div class="d-flex flex-column">
             <div class="banner-title">Planificación</div>
-            <div class="banner-subtitle">de las cargas docentes</div>
+            <div class="banner-subtitle">de las cargas docentes de la facultad de <a asp-action="Details" asp-controller="Faculties" asp-route-id="@Model.Faculty.Id" class="link-muted">@Model.Faculty.Name <small><span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Facultad</small></div> <div><b>@Model.Faculty.Name</b></div> <div>@Model.Faculty.Campus</div>"></span></small></a></div>
         </div>
     </div>
     <div class="d-flex flex-column align-items-center schoolyear-header">
@@ -67,13 +67,19 @@
     </div>
 </div>
 
-<div class="options-selector mb-4" id="courseSelector">
-    <div class="options-selector-label"><span class="fa fa-people-roof"></span></span> Curso</div>
+<div class="options-selector mb-4" id="careerSelector">
+    <div class="options-selector-label"><span class="fa fa-graduation-cap"></span> Carrera</div>
     <div class="options-selector-options">
-        @foreach (var course in Model.Courses)
+        @foreach (var career in Model.Careers)
         {
-            <div class="option-selector" value="@course.Id" @(course.Id == Model.Courses.First().Id ? "selected" : "")>@course.Denomination</div>
+            <div class="option-selector" value="@career.Id" @(Model.Careers.First().Id == career.Id ? "selected" : "")>@career.Name</div>
         }
+    </div>
+</div>
+
+<div class="options-selector mb-4" id="courseSelector">
+    <div class="options-selector-label"><span class="fa fa-people-roof"></span> Curso</div>
+    <div class="options-selector-options" id="course-option-selectors">
     </div>
 </div>
 
@@ -117,20 +123,21 @@
     <script src="~/lib/datatables/datatables.min.js"></script>
     <script>
         var periodToSelect = '@(Model.PeriodSelected is null ? "" : Model.PeriodSelected.ToString())';
+        var facultyId = '@(Model.Faculty.Id)';
         var deleteModal = null;
         var periodSubjectDeleteModal = null;
         var requestingDelete = false;
 
         $(document).ready(function () {
-            PeriodSelected();
-            LoadPeriodSubjects();
             InitializeSelectors();
             const periodSelect = document.getElementById("periodSelector");
-            periodSelect.addEventListener("option-selector-changed", () => {
-                PeriodSelected();
-            });
+            periodSelect.addEventListener("option-selector-changed", () => PeriodSelected());
+            const careerSelect = document.getElementById("careerSelector");
+            careerSelect.addEventListener("option-selector-changed", () => CareerSelected());
             const coursesSelect = document.getElementById("courseSelector");
             coursesSelect.addEventListener("option-selector-changed", () => PeriodSelected());
+            CareerSelected();
+            LoadTooltips();
         });
 
         function LoadTooltips() {
@@ -144,6 +151,36 @@
             let selected = getSelectorOptionsSelectedValue("#periodSelector");
             if (selected != null && selected != '') {
                 location.href = "/planning/createplanningitem?periodId=" + selected;
+            }
+        }
+
+        let loadingCourses = false;
+
+        function CareerSelected() {
+            let selectedCareer = getSelectorOptionsSelectedValue("#careerSelector");
+            if (!loadingCourses) {
+                loadingCourses = true;
+                const optionsDiv = document.getElementById("course-option-selectors");
+                optionsDiv.innerHTML = "<span class='fa fa-spinner rotate'></span> Cargando cursos...";
+                SetLoadingPlanning();
+                $.ajax({
+                    url: `/planning/GetCoursesOptionSelectors?careerId=${selectedCareer}&facultyId=${facultyId}`,
+                    type: "GET",
+                    success: function (data) {
+                        loadingCourses = false;
+                        optionsDiv.innerHTML = data;
+                        InitializeSelectors();
+                        DisableLoadingPlanning();
+                        PeriodSelected();
+                        LoadPeriodSubjects();
+                    },
+                    error: function (xhr, status, error) {
+                        DisableLoadingPlanning();
+                        loadingCourses = false;
+                        optionsDiv.innerHTML = "<span class='fa fa-times'></span> Error cargando los cursos";
+                        console.log(xhr, status, error);
+                    }
+                });
             }
         }
 
@@ -257,6 +294,8 @@
             if (!loadingPeriodSubjects) {
                 const periodsSelect = document.getElementById("periodSelector");
                 periodsSelect.setAttribute("disabled", "disabled");
+                const careerSelect = document.getElementById("careerSelector");
+                careerSelect.setAttribute("disabled", "disabled");
                 const courseSelect = document.getElementById("courseSelector");
                 courseSelect.setAttribute("disabled", "disabled");
             }
@@ -268,6 +307,8 @@
             if (!loadingPeriodSubjects) {
                 const periodsSelect = document.getElementById("periodSelector");
                 periodsSelect.removeAttribute("disabled");
+                const careerSelect = document.getElementById("careerSelector");
+                careerSelect.removeAttribute("disabled");
                 const courseSelect = document.getElementById("courseSelector");
                 courseSelect.removeAttribute("disabled");
             }
@@ -344,6 +385,8 @@
             if (!loadingPlanning) {
                 const periodsSelect = document.getElementById("periodSelector");
                 periodsSelect.setAttribute("disabled", "disabled");
+                const careerSelect = document.getElementById("careerSelector");
+                careerSelect.setAttribute("disabled", "disabled");
                 const courseSelect = document.getElementById("courseSelector");
                 courseSelect.setAttribute("disabled", "disabled");
             }
@@ -355,6 +398,8 @@
             if (!loadingPlanning) {
                 const periodsSelect = document.getElementById("periodSelector");
                 periodsSelect.removeAttribute("disabled");
+                const careerSelect = document.getElementById("careerSelector");
+                careerSelect.removeAttribute("disabled");
                 const courseSelect = document.getElementById("courseSelector");
                 courseSelect.removeAttribute("disabled");
             }

@@ -1,4 +1,5 @@
-﻿@model IndexViewModel
+﻿@using QCUniversidad.WebClient.Services.Platform
+@model IndexViewModel
 
 @{
     ViewData["Title"] = "Inicio";
@@ -31,21 +32,28 @@
 </div>
 
 
-
-@if (Model.Department is not null)
-{
-    <div class="d-flex flex-column text-center text-sm-start mb-5">
-        <div class="index-department-name">@Model.Department.Name</div>
-        <div class="index-department-desc">@Model.Department.Description</div>
-    </div>
-}
-else
+@if  (User.IsAdmin())
 {
     <div class="d-flex flex-column text-center text-sm-start mb-5">
         <div class="index-name">Administración del sistema</div>
         <div class="index-desc">Gestión de todos los elementos y generación de informes globales</div>
     </div>
 }
+else if (User.IsDepartmentManager())
+{
+    <div class="d-flex flex-column text-center text-sm-start mb-5">
+        <div class="index-department-name">@Model.Department.Name</div>
+        <div class="index-department-desc">@Model.Department.Description</div>
+    </div>
+} 
+else
+{
+    <div class="d-flex flex-column text-center text-sm-start mb-5">
+        <div class="index-name">Planificador de facultad</div>
+        <div class="index-desc">@Model.Faculty.Name</div>
+    </div>
+}
+
 
 <div id="global-statistics" class="text-center mb-3">
     <div class="spinner-border text-primary" role="status">

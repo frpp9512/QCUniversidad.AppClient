@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualBasic;
 using QCUniversidad.Api.ConfigurationModels;
+using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Statistics;
 using QCUniversidad.Api.Shared.Dtos.Teacher;
@@ -255,6 +256,60 @@ public class StatisticsController : ControllerBase
         var lastDayOfMonth = new DateTime(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month));
         var departmentTeachers = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
         var birthdays = departmentTeachers.Where(teacher => (teacher.Birthday?.Month >= firstDayOfMonth.Month && teacher.Birthday?.Month <= lastDayOfMonth.Month) && (teacher.Birthday?.Day >= firstDayOfMonth.Day && teacher.Birthday?.Day <= lastDayOfMonth.Day));
+        var dtos = birthdays.Select(bt => _mapper.Map<BirthdayTeacherDto>(bt)).OrderBy(dtos => dtos.Birthday.Month).ThenBy(dto => dto.Birthday.Day);
+        return Ok(dtos);
+    }
+
+    [HttpGet]
+    [Route("weekbirthdaysforscope")]
+    public async Task<IActionResult> GetWeekBirthdayTeachersForScopeAsync(string scope, Guid scopeId)
+    {
+        var today = DateTime.Now;
+        var firstDayOfWeek = today.AddDays(((int)today.DayOfWeek - 1) * -1);
+        var lastDayOfWeek = today.AddDays(7 - (int)today.DayOfWeek);
+        IList<TeacherModel> teachers;
+        switch (scope)
+        {
+            case "department":
+                teachers = await _dataManager.GetTeachersOfDepartmentAsync(scopeId);
+                break;
+            case "faculty":
+                teachers = await _dataManager.GetTeachersOfFacultyAsync(scopeId);
+                break;
+            case "global":
+                teachers = await _dataManager.GetTeachersAsync();
+                break;
+            default:
+                return BadRequest();
+        }
+        var birthdays = teachers.Where(teacher => (teacher.Birthday?.Month >= firstDayOfWeek.Month && teacher.Birthday?.Month <= lastDayOfWeek.Month) && (teacher.Birthday?.Day >= firstDayOfWeek.Day && teacher.Birthday?.Day <= lastDayOfWeek.Day));
+        var dtos = birthdays.Select(bt => _mapper.Map<BirthdayTeacherDto>(bt));
+        return Ok(dtos);
+    }
+
+    [HttpGet]
+    [Route("monthbirthdaysforscope")]
+    public async Task<IActionResult> GetMonthBirthdayTeachersForScopeAsync(string scope, Guid scopeId)
+    {
+        var today = DateTime.Now;
+        var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
+        var lastDayOfMonth = new DateTime(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month));
+        IList<TeacherModel> teachers;
+        switch (scope)
+        {
+            case "department":
+                teachers = await _dataManager.GetTeachersOfDepartmentAsync(scopeId);
+                break;
+            case "faculty":
+                teachers = await _dataManager.GetTeachersOfFacultyAsync(scopeId);
+                break;
+            case "global":
+                teachers = await _dataManager.GetTeachersAsync();
+                break;
+            default:
+                return BadRequest();
+        }
+        var birthdays = teachers.Where(teacher => (teacher.Birthday?.Month >= firstDayOfMonth.Month && teacher.Birthday?.Month <= lastDayOfMonth.Month) && (teacher.Birthday?.Day >= firstDayOfMonth.Day && teacher.Birthday?.Day <= lastDayOfMonth.Day));
         var dtos = birthdays.Select(bt => _mapper.Map<BirthdayTeacherDto>(bt)).OrderBy(dtos => dtos.Birthday.Month).ThenBy(dto => dto.Birthday.Day);
         return Ok(dtos);
     }

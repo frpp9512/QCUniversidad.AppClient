@@ -44,6 +44,8 @@ namespace QCUniversidad.WebClient.Models.Accounts
 
         public Guid? SelectedDepartment { get; set; }
 
+        public Guid? SelectedFaculty { get; set; }
+
         public IList<DepartmentModel>? Departments { get; set; }
 
         public string[]? RolesSelected { get; set; }

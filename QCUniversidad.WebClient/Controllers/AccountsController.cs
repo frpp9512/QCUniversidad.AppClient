@@ -6,6 +6,7 @@ using Microsoft.Net.Http.Headers;
 using QCUniversidad.WebClient.Data.Helpers;
 using QCUniversidad.WebClient.Models.Accounts;
 using QCUniversidad.WebClient.Models.Departments;
+using QCUniversidad.WebClient.Models.Faculties;
 using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Services.Data;
 using SmartB1t.Security.Extensions.AspNetCore;
@@ -66,8 +67,12 @@ public class AccountsController : Controller
                     if (await _repository.AuthenticateUser(user, viewModel.Password))
                     {
                         await user.SignInAsync(HttpContext, Constants.AUTH_SCHEME, viewModel.RememberSession);
-                        using FileStream fileStream = new(_profilePictureFileName, FileMode.Create);
-                        await fileStream.WriteAsync(user.ProfilePicture);
+                        RemoveProfilePictureFile();
+                        if (user.ProfilePicture is not null)
+                        {
+                            using FileStream fileStream = new(_profilePictureFileName, FileMode.Create);
+                            await fileStream.WriteAsync(user.ProfilePicture);
+                        }
                         return !string.IsNullOrEmpty(viewModel.ReturnUrl) ? Redirect(viewModel.ReturnUrl) : Redirect("/");
                     }
                     else
@@ -92,11 +97,16 @@ public class AccountsController : Controller
     public async Task<IActionResult> LogoutAsync(string returnUrl = "/")
     {
         await HttpContext.SignOutAsync();
+        RemoveProfilePictureFile();
+        return RedirectPermanent(returnUrl);
+    }
+
+    private void RemoveProfilePictureFile()
+    {
         if (System.IO.File.Exists(_profilePictureFileName))
         {
             System.IO.File.Delete(_profilePictureFileName);
         }
-        return RedirectPermanent(returnUrl);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -139,6 +149,13 @@ public class AccountsController : Controller
                     user.DepartmentModel = await _dataProvider.GetDepartmentAsync(new Guid(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value));
                 }
             }
+            if (user.ExtraClaims?.Any(c => c.Type == "FacultyId") == true)
+            {
+                if (await _dataProvider.ExistFacultyAsync(new Guid(user.ExtraClaims.First(c => c.Type == "FacultyId").Value)))
+                {
+                    user.FacultyModel = await _dataProvider.GetFacultyAsync(new Guid(user.ExtraClaims.First(c => c.Type == "FacultyId").Value));
+                }
+            }
         }
 
         var totalPages = (int)Math.Ceiling((decimal)usersCount / usersPerPage);
@@ -160,8 +177,7 @@ public class AccountsController : Controller
         RemoveTempDirectory();
         CreateUserViewModel vm = new()
         {
-            RoleList = await GetRoleViewModelsAsync(),
-            Departments = await GetDeparmentsModels()
+            RoleList = await GetRoleViewModelsAsync()
         };
         return View(vm);
     }
@@ -177,6 +193,26 @@ public class AccountsController : Controller
     {
         var departments = await _dataProvider.GetDepartmentsAsync();
         return departments;
+    }
+
+    private async Task<IList<FacultyModel>> GetFacultiesModels()
+    {
+        var faculties = await _dataProvider.GetFacultiesAsync();
+        return faculties;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetDepartmentSelect()
+    {
+        var departments = await GetDeparmentsModels();
+        return PartialView("_DepartmentSelect", departments);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetFacultySelect()
+    {
+        var faculties = await GetFacultiesModels();
+        return PartialView("_FacultySelect", faculties);
     }
 
     [HttpPost]
@@ -217,22 +253,26 @@ public class AccountsController : Controller
                 }
                 else
                 {
-                    user.Roles = userRoles;
-                    if (viewModel.SelectedDepartment is not null && viewModel.SelectedDepartment != Guid.Empty)
+                    if (userRoles.Any(r => r.Role.Name == "Planificador") && (viewModel.SelectedFaculty is null || viewModel.SelectedFaculty == Guid.Empty))
+                    {
+                        ModelState.AddModelError("Planficador sin facultad.", "Un usuario Planificador debe de gestionar una facultad.");
+                    }
+                    else
                     {
                         user.ExtraClaims = new List<ExtraClaim>
                         {
                             new ExtraClaim
                             {
-                                Type = "DepartmentId",
-                                Value = viewModel.SelectedDepartment.ToString()
+                                Type = "FacultyId",
+                                Value = viewModel.SelectedFaculty.ToString()
                             }
                         };
                     }
-                    await _repository.CreateUserAsync(user, viewModel.Password);
-                    TempData.SetModelCreated<User, Guid>(user.Id);
-                    return RedirectToActionPermanent("Index");
                 }
+                user.Roles = userRoles;
+                await _repository.CreateUserAsync(user, viewModel.Password);
+                TempData.SetModelCreated<User, Guid>(user.Id);
+                return RedirectToActionPermanent("Index");
             }
             else
             {
@@ -301,7 +341,14 @@ public class AccountsController : Controller
         {
             if (User.Identity.IsAuthenticated)
             {
-                pictureBytes = System.IO.File.ReadAllBytes(_profilePictureFileName);
+                if (System.IO.File.Exists(_profilePictureFileName))
+                {
+                    pictureBytes = System.IO.File.ReadAllBytes(_profilePictureFileName);
+                }
+                else
+                {
+                    pictureBytes = System.IO.File.ReadAllBytes(_profileDefaultPath);
+                }
             }
             else
             {

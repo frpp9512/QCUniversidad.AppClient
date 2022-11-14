@@ -71,28 +71,6 @@
         </div>
     </div>
     <div class="row justify-content-center mt-3">
-        <div class="col col-lg-5 col-md-7 col-12">
-            <div class="mb-3">
-                <label for="SelectedDepartment" class="form-label">Seleccionar departamento</label>
-                <select asp-for="SelectedDepartment" class="form-select select-department" aria-label="Seleccionar departamento" autofocus>
-                    <option value="@Guid.Empty">Seleccione un departamento</option>
-                    @{
-                        var groups = Model.Departments?.GroupBy(d => d.FacultyId);
-                        foreach (var group in groups)
-                        {
-                            <optgroup label="@group.First().Faculty.Name">
-                                @foreach (var department in group)
-                                {
-                                    <option value="@department.Id">@department.Name</option>
-                                }
-                            </optgroup>
-                        }
-                    }
-                </select>
-            </div>
-        </div>
-    </div>
-    <div class="row justify-content-center mt-3">
         <div class="col-md-8 mb-3">
             @if (Model.RoleList?.Count() > 0)
             {
@@ -111,7 +89,7 @@
                                 <td>
                                     <div class="form-check">
                                         <div class="form-check">
-                                            <input class="form-check-input" name="RolesSelected" value="@role.Id" type="checkbox" id="roleCheckBox-@role.Id" @(Model.RolesSelected?.Any(r => r == role.Id.ToString()) == true ? "checked" : "") />
+                                            <input class="form-check-input" onchange="RolesSelectionChanged()" name="RolesSelected" value="@role.Id" type="radio" id="roleCheckBox-@role.Id" @(Model.RolesSelected?.Any(r => r == role.Id.ToString()) == true ? "checked" : "") />
                                             <label class="form-check-label" for="roleCheckBox-@role.Id">
                                                 @role.Name
                                             </label>
@@ -126,6 +104,11 @@
                     </tbody>
                 </table>
             }
+        </div>
+    </div>
+
+    <div class="row justify-content-center mt-3">
+        <div class="col col-lg-5 col-md-7 col-12" id="select">
         </div>
     </div>
 
@@ -153,5 +136,66 @@
         $(document).ready(function () {
             $('.select-department').select2();
         });
+
+        let loading = false;
+
+        function RolesSelectionChanged() {
+            const rolesCheckBoxes = document.querySelectorAll("input[type='radio']");
+            let selectedLabel = null;
+            rolesCheckBoxes.forEach(rcb => {
+                let id = rcb.id;
+                if (rcb.checked) {
+                    const label = document.querySelector(`label[for='${id}']`);
+                    selectedLabel = label.innerText;
+                }
+            });
+
+            const selectDiv = document.getElementById("select");
+
+            if (selectedLabel == "Planificador") {
+                rolesCheckBoxes.forEach(rcb => rcb.disabled = true);
+                loading = true;
+                $.ajax({
+                    url: `/accounts/GetFacultySelect`,
+                    type: "GET",
+                    success: function (data) {
+                        loading = false;
+                        rolesCheckBoxes.forEach(rcb => rcb.disabled = false);
+                        selectDiv.innerHTML = data;
+                    },
+                    error: function (xhr, status, error) {
+                        rolesCheckBoxes.forEach(rcb => rcb.disabled = false);
+                        loading = false;
+                        console.log(xhr, status, error);
+                    }
+                });
+
+                return;
+            }
+
+            if (selectedLabel == "Jefe de departamento") {
+                rolesCheckBoxes.forEach(rcb => rcb.disabled = true);
+                loading = true;
+                $.ajax({
+                    url: `/accounts/GetDepartmentSelect`,
+                    type: "GET",
+                    success: function (data) {
+                        loading = true;
+                        rolesCheckBoxes.forEach(rcb => rcb.disabled = false);
+                        selectDiv.innerHTML = data;
+                    },
+                    error: function (xhr, status, error) {
+                        loading = true;
+                        rolesCheckBoxes.forEach(rcb => rcb.disabled = false);
+                        loading = false;
+                        console.log(xhr, status, error);
+                    }
+                });
+
+                return;
+            }
+
+            selectDiv.innerHTML = "";
+        }
     </script>
 }

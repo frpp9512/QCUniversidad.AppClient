@@ -656,7 +656,7 @@ public class DataManager : IDataManager
         return result;
     }
 
-    public async Task<IList<TeacherModel>> GetTeachersAsync(int from, int to)
+    public async Task<IList<TeacherModel>> GetTeachersAsync(int from = 0, int to = 0)
     {
         var result =
             !(from == 0 && to == from)
@@ -754,6 +754,27 @@ public class DataManager : IDataManager
             }
             var query = from t in _context.Teachers
                         where (loadInactives ? true : t.Active) && t.DepartmentId == departmentId
+                        select t;
+            return await query.Include(t => t.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync();
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
+    public async Task<IList<TeacherModel>> GetTeachersOfFacultyAsync(Guid facultyId, bool loadInactives = false)
+    {
+        try
+        {
+            if (!await ExistDepartmentAsync(facultyId))
+            {
+                throw new ArgumentNullException();
+            }
+            var query = from t in _context.Teachers
+                        join d in _context.Departments
+                        on t.DepartmentId equals d.Id
+                        where (loadInactives ? true : t.Active) && d.FacultyId == facultyId
                         select t;
             return await query.Include(t => t.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync();
         }
@@ -2059,15 +2080,6 @@ public class DataManager : IDataManager
         return schoolYears.OrderByDescending(sy => sy.Current).ThenByDescending(sy => sy.Name).ToList();
     }
 
-    public async Task<IList<CourseModel>> GetCoursesAsync(Guid schoolYearId)
-    {
-        var courses = await _context.Courses.Include(c => c.SchoolYear)
-                                            .Include(c => c.Curriculum)
-                                            .Where(c => c.SchoolYearId == schoolYearId)
-                                            .ToListAsync();
-        return courses;
-    }
-
     public async Task<int> GetSchoolYearTotalAsync()
     {
         var total = await _context.SchoolYears.CountAsync();
@@ -2202,6 +2214,50 @@ public class DataManager : IDataManager
             ? await _context.Courses.Skip(from).Take(to).Include(y => y.SchoolYear).Include(y => y.Career).Include(y => y.Curriculum).ToListAsync()
             : await _context.Courses.Include(y => y.SchoolYear).Include(y => y.Career).Include(y => y.Curriculum).ToListAsync();
         return result;
+    }
+
+    public async Task<IList<CourseModel>> GetCoursesAsync(Guid schoolYearId)
+    {
+        var courses = await _context.Courses.Include(c => c.SchoolYear)
+                                            .Include(c => c.Curriculum)
+                                            .Where(c => c.SchoolYearId == schoolYearId)
+                                            .ToListAsync();
+        return courses;
+    }
+
+    public async Task<IList<CourseModel>> GetCoursesAsync(Guid schoolYearId, Guid facultyId)
+    {
+        var coursesQuery = from course in _context.Courses
+                           join career in _context.Careers
+                           on course.CareerId equals career.Id
+                           join faculty in _context.Faculties
+                           on career.FacultyId equals faculty.Id
+                           where faculty.Id == facultyId && course.SchoolYearId == schoolYearId
+                           select course;
+        var courses = await coursesQuery.Include(c => c.SchoolYear)
+                                        .Include(c => c.Curriculum)
+                                        .Where(c => c.SchoolYearId == schoolYearId)
+                                        .ToListAsync();
+        return courses;
+    }
+
+    public async Task<IList<CourseModel>> GetCoursesAsync(Guid careerId, Guid schoolYearId, Guid facultyId)
+    {
+        var coursesQuery = from course in _context.Courses
+                           join career in _context.Careers
+                           on course.CareerId equals career.Id
+                           join faculty in _context.Faculties
+                           on career.FacultyId equals faculty.Id
+                           where faculty.Id == facultyId
+                                 && course.SchoolYearId == schoolYearId
+                                 && course.CareerId == careerId
+                           select course;
+
+        var courses = await coursesQuery.Include(c => c.SchoolYear)
+                                        .Include(c => c.Curriculum)
+                                        .Where(c => c.SchoolYearId == schoolYearId)
+                                        .ToListAsync();
+        return courses;
     }
 
     public async Task<int> GetCoursesCountAsync() => await _context.Courses.CountAsync();

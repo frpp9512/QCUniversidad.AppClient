@@ -47,8 +47,8 @@ namespace SmartB1t.Security.WebSecurity.Local.Interfaces
         /// </summary>
         /// <param name="id">The id of the <see cref="User"/> to retrieve.</param>
         /// <param name="loadUserRoles">Defines if will be loaded the User roles.</param>
-        /// <returns>The <see cref="User"/> with the specified id.</returns>
-        Task<User> GetUserAsync(Guid id, bool loadUserRoles = false);
+        /// <returns>The <see cref="User"/> with the specified email.</returns>
+        Task<User> GetUserAsync(Guid id, bool loadUserRoles = false, bool includePemanentDeactivated = false);
 
         /// <summary>
         /// Get the <see cref="User"/> with the specified email address.
@@ -56,7 +56,7 @@ namespace SmartB1t.Security.WebSecurity.Local.Interfaces
         /// <param name="email">The email of the <see cref="User"/> to retrieve.</param>
         /// <param name="loadUserRoles">Defines if will be loaded the User roles.</param>
         /// <returns>The <see cref="User"/> with the specified email.</returns>
-        Task<User> GetUserAsync(string email, bool loadUserRoles = false);
+        Task<User> GetUserAsync(string email, bool loadUserRoles = false, bool includePemanentDeactivated = false);
         
         /// <summary>
         /// Updates the data of the specified <see cref="User"/>.

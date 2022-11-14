@@ -1,9 +1,7 @@
-namespace QCUniversidad.WebClient.Models.Shared
-{
-    public class ErrorViewModel
-    {
-        public string? RequestId { get; set; }
+namespace QCUniversidad.WebClient.Models.Shared;
 
-        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
-    }
+public class ErrorViewModel
+{
+    public string? RequestId { get; set; }
+    public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
 }
