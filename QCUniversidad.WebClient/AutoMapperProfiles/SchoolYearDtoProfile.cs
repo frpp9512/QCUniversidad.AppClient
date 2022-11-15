@@ -1,22 +1,16 @@
 ﻿using AutoMapper;
 using QCUniversidad.Api.Shared.Dtos.SchoolYear;
 using QCUniversidad.WebClient.Models.SchoolYears;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace QCUniversidad.WebClient.AutoMapperProfiles
+namespace QCUniversidad.WebClient.AutoMapperProfiles;
+
+public class SchoolYearDtoProfile : Profile
 {
-    public class SchoolYearDtoProfile : Profile
+    public SchoolYearDtoProfile()
     {
-        public SchoolYearDtoProfile()
-        {
-            CreateMap<SchoolYearDto, SchoolYearModel>();
-            CreateMap<SimpleSchoolYearDto, SchoolYearModel>();
-            CreateMap<SchoolYearModel, NewSchoolYearDto>();
-            CreateMap<SchoolYearModel, EditSchoolYearDto>();
-        }
+        _ = CreateMap<SchoolYearDto, SchoolYearModel>();
+        _ = CreateMap<SimpleSchoolYearDto, SchoolYearModel>();
+        _ = CreateMap<SchoolYearModel, NewSchoolYearDto>();
+        _ = CreateMap<SchoolYearModel, EditSchoolYearDto>();
     }
 }

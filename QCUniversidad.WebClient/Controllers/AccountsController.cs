@@ -33,7 +33,10 @@ public class AccountsController : Controller
 
     #region Constructor
 
-    public AccountsController(IAccountSecurityRepository repository, IWebHostEnvironment hostEnvironment, IDataProvider dataProvider, IMapper mapper)
+    public AccountsController(IAccountSecurityRepository repository,
+                              IWebHostEnvironment hostEnvironment,
+                              IDataProvider dataProvider,
+                              IMapper mapper)
     {
         _repository = repository;
         _hostEnvironment = hostEnvironment;
@@ -50,7 +53,8 @@ public class AccountsController : Controller
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult Login(string returnUrl = "/") => View(model: new LoginViewModel { ReturnUrl = returnUrl });
+    public IActionResult Login(string returnUrl = "/")
+        => View(model: new LoginViewModel { ReturnUrl = returnUrl });
 
     [HttpPost]
     [AllowAnonymous]
