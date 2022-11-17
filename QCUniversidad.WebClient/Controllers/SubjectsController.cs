@@ -153,11 +153,13 @@ public class SubjectsController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> CreateAsync()
+    [Authorize(Roles = "Administrador,Planificador")]
+    public async Task<IActionResult> CreateAsync(string returnTo = "Index")
     {
         _logger.LogRequest(HttpContext);
         var viewmodel = new CreateSubjectModel();
         await LoadCreateViewModel(viewmodel);
+        viewmodel.ReturnTo = returnTo;
         return View(viewmodel);
     }
 
@@ -169,6 +171,7 @@ public class SubjectsController : Controller
         model.Disciplines = disciplines;
     }
 
+    [Authorize(Roles = "Administrador,Planificador")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateAsync(CreateSubjectModel createModel)
@@ -186,7 +189,7 @@ public class SubjectsController : Controller
                 {
                     _logger.LogModelCreated<SubjectsController, SubjectModel>(HttpContext);
                     TempData["subject-created"] = true;
-                    return RedirectToActionPermanent("Index");
+                    return Redirect(createModel.ReturnTo ?? "Index");
                 }
                 _logger.LogErrorCreatingModel<SubjectsController, SubjectModel>(HttpContext, result);
                 ModelState.AddModelError("Error creating subject", "Ha ocurrido un error mientras se creaba la asignatura.");

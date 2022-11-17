@@ -83,6 +83,7 @@ main {
 
     .nav-profile-picture div:last-child {
         grid-area: email;
+        justify-content: end;
         font-size: 0.75rem;
         text-align: right;
     }
@@ -527,11 +528,11 @@ dd {
     border: 1px solid #eee;
     border-radius: 5px;
     box-shadow: #ccc 0px 0px 5px;
-    min-width: 300px;
     animation-duration: 1s;
     animation-name: fadeInUp;
     justify-content: space-between;
     cursor: default;
+    min-width: 300px;
 }
 
     .icard:hover {
@@ -1538,3 +1539,32 @@ ol.guide {
 }
 
 /* end of rotate animation */
+
+/* no items placeholder */
+
+.noitems-placeholder {
+    max-width: 300px;
+    margin: auto;
+    text-align: center;
+    padding: 15px;
+}
+
+.noitems-placeholder img {
+    max-width: 150px;
+    margin: 15px;
+}
+
+.noitems-placeholder-text div:first-child {
+    font-weight: 700;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+.noitems-placeholder-text div:last-child {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+/* end of no items placeholder */

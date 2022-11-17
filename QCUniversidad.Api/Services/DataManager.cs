@@ -9,6 +9,8 @@ using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.Api.Shared.Extensions;
 using QCUniversidad.Api.Shared.CommonModels;
 using QCUniversidad.Api.Extensions;
+using QCUniversidad.Api.MappingProfiles;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace QCUniversidad.Api.Services;
 
@@ -134,7 +136,7 @@ public class DataManager : IDataManager
 
     public async Task<IList<DepartmentModel>> GetDepartmentsAsync(int from, int to)
     {
-        var deparments = (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
+        var deparments = !(from == 0 && to == from)
                          ? await _context.Departments.Skip(from).Take(to).Include(d => d.Faculty).ToListAsync()
                          : await _context.Departments.Include(d => d.Faculty).ToListAsync();
         return deparments;
@@ -425,7 +427,7 @@ public class DataManager : IDataManager
 
     public async Task<IList<CareerModel>> GetCareersAsync(int from = 0, int to = 0)
     {
-        var result = (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
+        var result = !(from == 0 && to == from)
                      ? await _context.Careers.Skip(from).Take(to).Include(c => c.Faculty).ToListAsync()
                      : await _context.Careers.Include(c => c.Faculty).ToListAsync();
         return result;
@@ -1247,11 +1249,15 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(planItemId));
         }
+
         var depTeachersQuery = from teacher in _context.Teachers
+                               where teacher.Active
                                join teacherDiscipline in _context.TeachersDisciplines
                                on teacher.Id equals teacherDiscipline.TeacherId
-                               where teacher.Active && ((teacher.DepartmentId == departmentId) || (teacher.ServiceProvider))
-                                     && teacherDiscipline.DisciplineId == disciplineId
+                               where teacherDiscipline.DisciplineId == disciplineId
+                                  && (teacher.DepartmentId == departmentId || teacher.ServiceProvider)
+                               //where teacher.Active && (teacher.DepartmentId == departmentId) || (teacher.ServiceProvider)
+                                     //&& teacherDiscipline.DisciplineId == disciplineId
                                //|| !disciplineId.HasValue
                                //|| teacherDiscipline.DisciplineId == disciplineId
                                select teacher;
@@ -1724,6 +1730,7 @@ public class DataManager : IDataManager
         }
     }
 
+    // Update name so now it filters in career level no only for period.
     public async Task<IList<SubjectModel>> GetSubjectsForCourseNotAssignedInPeriodAsync(Guid courseId, Guid periodId)
     {
         var courseSubjectsQuery = from s in _context.Subjects
@@ -1736,10 +1743,21 @@ public class DataManager : IDataManager
                                   where sy.Id == courseId && s.Active
                                   select s;
 
+        var courseInfo = await _context.Courses.Where(c => c.Id == courseId).Select(c => new { c.CareerId, c.TeachingModality, c.SchoolYearId, c.CurriculumId }).FirstAsync();
+        var relatedCoursesQuery = from course in _context.Courses
+                                  where course.CareerId == courseInfo.CareerId
+                                     && course.TeachingModality == courseInfo.TeachingModality
+                                     && course.SchoolYearId == courseInfo.SchoolYearId
+                                     && course.CurriculumId == courseInfo.CurriculumId
+                                  select course.Id;
+
+        var relatedCourses = await relatedCoursesQuery.ToListAsync();
+
         var assignedSubjectsQuery = from periodSubject in _context.PeriodSubjects
                                     join subject in _context.Subjects
                                     on periodSubject.SubjectId equals subject.Id
-                                    where periodSubject.CourseId == courseId && periodSubject.PeriodId == periodId
+                                    //where periodSubject.CourseId == courseId && periodSubject.PeriodId == periodId
+                                    where relatedCourses.Contains(periodSubject.CourseId)
                                     select subject;
 
         var subjects = courseSubjectsQuery.Except(assignedSubjectsQuery);

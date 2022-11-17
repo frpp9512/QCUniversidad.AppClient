@@ -41,4 +41,9 @@ public class CreateTeachingPlanItemModel
     public PeriodModel? Period { get; set; }
 
     public IList<CourseModel>? Courses { get; set; }
+
+    public CourseModel? Course { get; set; }
+    public Guid? CareerId { get; set; }
+
+    public string? ReturnTo { get; set; }
 }

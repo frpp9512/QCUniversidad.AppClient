@@ -61,7 +61,7 @@ public class StatisticsController : ControllerBase
         var disciplines = new StatisticItemDto
         {
             Name = "Disciplinas",
-            Description = "Cantidad de facultades en el sistema",
+            Description = "Cantidad de disiplinas en el sistema",
             Value = await _dataManager.GetDisciplinesCountAsync(),
         };
         items.Add(disciplines);

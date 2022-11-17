@@ -48,7 +48,7 @@ public class ExcelParser<T> : IExcelParser<T> where T : class, new()
                         _ => (MemberExpression)expressionBody
                     };
                     var memberName = memberExpression.Member.Name;
-                    typeof(T).GetProperty(memberName).SetValue(obj, value is not string ? value : IsFullUppercase(value.ToString()) ? MakeCamelCase(value.ToString()) : value.ToString());
+                    typeof(T).GetProperty(memberName)?.SetValue(obj, value is not string ? value : IsFullUppercase(value.ToString()) ? MakeCamelCase(value.ToString()) : value.ToString());
                 }
             }
 

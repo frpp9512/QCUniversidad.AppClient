@@ -57,22 +57,12 @@
     </div>
 </div>
 
-<div class="options-selector mb-4" id="periodSelector">
-    <div class="options-selector-label"><span class="fa fa-calendar-days"></span> Período</div>
-    <div class="options-selector-options">
-        @foreach (var period in Model.Periods)
-        {
-            <div class="option-selector" value="@period.Id" @(Model.Periods.First().Id == period.Id ? "selected" : "")>@period.ToString()</div>
-        }
-    </div>
-</div>
-
 <div class="options-selector mb-4" id="careerSelector">
     <div class="options-selector-label"><span class="fa fa-graduation-cap"></span> Carrera</div>
     <div class="options-selector-options">
         @foreach (var career in Model.Careers)
         {
-            <div class="option-selector" value="@career.Id" @(Model.Careers.First().Id == career.Id ? "selected" : "")>@career.Name</div>
+            <div class="option-selector" value="@career.Id" @(Model.CareerSelected is null ? (Model.Careers.First().Id == career.Id ? "selected" : "") : Model.CareerSelected == career.Id ? "selected" : "")>@career.Name</div>
         }
     </div>
 </div>
@@ -80,6 +70,16 @@
 <div class="options-selector mb-4" id="courseSelector">
     <div class="options-selector-label"><span class="fa fa-people-roof"></span> Curso</div>
     <div class="options-selector-options" id="course-option-selectors">
+    </div>
+</div>
+
+<div class="options-selector mb-4" id="periodSelector">
+    <div class="options-selector-label"><span class="fa fa-calendar-days"></span> Período</div>
+    <div class="options-selector-options">
+        @foreach (var period in Model.Periods)
+        {
+            <div class="option-selector" value="@period.Id" @(Model.PeriodSelected is null ? (Model.Periods.First().Id == period.Id ? "selected" : "") : ((Model.PeriodSelected is not null && period.Id == Model.PeriodSelected.Value) ? "selected" : ""))>@period.ToString()</div>
+        }
     </div>
 </div>
 
@@ -124,6 +124,8 @@
     <script>
         var periodToSelect = '@(Model.PeriodSelected is null ? "" : Model.PeriodSelected.ToString())';
         var facultyId = '@(Model.Faculty.Id)';
+        var selectedCourse = @Html.Raw(Model.CourseSelected is not null ? $"'{Model.CourseSelected}'" : "null");
+        var selectedSchoolYear = '@(Html.Raw(Model.SchoolYearId))';
         var deleteModal = null;
         var periodSubjectDeleteModal = null;
         var requestingDelete = false;
@@ -148,9 +150,14 @@
         }
 
         function CallNewElementPage() {
-            let selected = getSelectorOptionsSelectedValue("#periodSelector");
-            if (selected != null && selected != '') {
-                location.href = "/planning/createplanningitem?periodId=" + selected;
+            let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
+            let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
+            let careerSelected = getSelectorOptionsSelectedValue("#careerSelector");
+            let returnUrl = `/planning?facultyId=${facultyId}&periodSelected=${periodSelected}&schoolYearId=${selectedSchoolYear}&courseSelected=${courseSelected}&careerSelected=${careerSelected}&tab=planning`;
+            let encodedUrl = encodeURIComponent(returnUrl);
+
+            if (periodSelected != null && periodSelected != '' && courseSelected != null && courseSelected != '') {
+                location.href = `/planning/createplanningitem?periodId=${periodSelected}&courseId=${courseSelected}&returnTo=${encodedUrl}`;
             }
         }
 
@@ -171,6 +178,11 @@
                         optionsDiv.innerHTML = data;
                         InitializeSelectors();
                         DisableLoadingPlanning();
+                        console.log(selectedCareer, selectedCareer == null);
+                        if (selectedCourse != null) {
+                            SelectOption("#course-option-selectors", selectedCourse);
+                            selectedCourse = null;
+                        }
                         PeriodSelected();
                         LoadPeriodSubjects();
                     },
@@ -192,11 +204,11 @@
         let loadingPlanning = false;
 
         function LoadPlanning() {
-            let selectedPeriod = getSelectorOptionsSelectedValue("#periodSelector");
-            let selectedCourse = getSelectorOptionsSelectedValue("#courseSelector");
             SetLoadingPlanning();
 
-            if (!loadingPlanning) {
+            if (!loadingPlanning && !loadingCourses) {
+                let selectedPeriod = getSelectorOptionsSelectedValue("#periodSelector");
+                let selectedCourse = getSelectorOptionsSelectedValue("#courseSelector");
                 loadingPlanning = true;
                 $.ajax({
                     url: `/planning/GetPlanningViewForPeriod?periodId=${selectedPeriod}&courseId=${selectedCourse}`,
@@ -408,11 +420,11 @@
         let loadingPeriodSubjects = false;
 
         function LoadPeriodSubjects() {
-            let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
-            let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
             SetLoadingPeriodSubjects();
 
-            if (!loadingPeriodSubjects) {
+            if (!loadingPeriodSubjects && !loadingCourses) {
+                let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
+                let courseSelected = getSelectorOptionsSelectedValue("#course-option-selectors");
                 loadingPeriodSubjects = true;
                 $.ajax({
                     url: `/planning/GetPeriodSubjectsView?periodId=${periodSelected}&courseId=${courseSelected}`,
@@ -443,6 +455,15 @@
             LoadPeriodSubjects();
         }
 
+        function CreateSubject() {
+            let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
+            let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
+            let careerSelected = getSelectorOptionsSelectedValue("#careerSelector");
+            let returnUrl = `/planning?facultyId=${facultyId}&periodSelected=${periodSelected}&schoolYearId=${selectedSchoolYear}&courseSelected=${courseSelected}&careerSelected=${careerSelected}&tab=periodsubjects`;
+            let encodedUrl = encodeURIComponent(returnUrl);
+            location.href = `/subjects/create?returnTo=${encodedUrl}`;
+        }
+
         function CreatePeriodSubject() {
             let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
             let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
@@ -459,6 +480,11 @@
                         ShowMessage("Asignaturas ya asignadas", "Todas las asignaturas corresponientes a este curso ya han sido asignadas.");
                     } else {
                         DisableCreateLoading();
+                        $('#subjectSelected').select2({
+                            placeholder: "Seleccione la asignatura",
+                            dropdownParent: $("#addPeriodSubjectModal"),
+                            width: '100%'
+                        });
                         const addModal = new bootstrap.Modal(document.getElementById('addPeriodSubjectModal'));
                         addModal.show();
                     }
@@ -477,7 +503,7 @@
             const subjectSelect = document.getElementById("subjectSelected");
             let subjectSelected = subjectSelect.options[subjectSelect.selectedIndex].value;
             let midTermExams = document.getElementById("midTermExamsCount").value;
-            if (midTermExams <= 0 || midTermExams > 5) {
+            if (midTermExams < 0 || midTermExams > 5) {
                 alert("Debe de especificar un valor válido para la cantidad de exámenes parciales.");
                 return;
             }
@@ -656,7 +682,7 @@
             if (!requestingDelete) {
                 requestingDelete = true;
                 HideCreatePeriodSubjectModalButtons();
-                ShowCreatePeriodSubjectModalSpinner();
+                //ShowCreatePeriodSubjectModalSpinner();
                 var xhttp = new XMLHttpRequest();
                 xhttp.open("DELETE", "/planning/DeletePeriodSubject?id=" + id, true);
                 xhttp.setRequestHeader("Content-Type", "application/json");
@@ -669,8 +695,8 @@
                         LoadPeriodSubjects();
                     }
                     requestingDelete = false;
-                    ShowCreateModalButtons();
-                    HideCreateModalSpinner();
+                    HideCreatePeriodSubjectModalButtons();
+                   // HideCreateModalSpinner();
                 };
                 xhttp.send();
             }

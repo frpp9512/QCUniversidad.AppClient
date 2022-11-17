@@ -102,7 +102,7 @@
     }
     else
     {
-        <h5>No existen profesores en el departamento.</h5>
+        <partial name="_NoItems" model="@("No existen profesores en el departamento.")" />
     }
 
     @if (Model.SupportTeachers?.Any() == true)

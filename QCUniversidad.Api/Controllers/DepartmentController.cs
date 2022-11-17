@@ -28,7 +28,7 @@ public class DepartmentController : ControllerBase
     public async Task<IActionResult> GetList(int from = 0, int to = 0)
     {
         var deparments = await _dataManager.GetDepartmentsAsync(from, to);
-        var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d));
+        var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d)).ToList();
         foreach (var dto in dtos)
         {
             dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
@@ -43,7 +43,7 @@ public class DepartmentController : ControllerBase
         if (facultyId != Guid.Empty)
         {
             var deparments = await _dataManager.GetDepartmentsAsync(facultyId);
-            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d));
+            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d)).ToList();
             foreach (var dto in dtos)
             {
                 dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
@@ -60,7 +60,7 @@ public class DepartmentController : ControllerBase
         try
         {
             var deparments = await _dataManager.GetDepartmentsAsync();
-            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d));
+            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d)).ToList();
             foreach (var dto in dtos)
             {
                 dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
@@ -214,7 +214,7 @@ public class DepartmentController : ControllerBase
         {
             var result = await _dataManager.GetTeachingPlanItemsOfDepartmentOnPeriod(id, periodId, courseId);
             var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
-            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemDto>(i));
+            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemDto>(i)).ToList();
             foreach (var dto in dtos)
             {
                 if (dto.LoadItems is not null)

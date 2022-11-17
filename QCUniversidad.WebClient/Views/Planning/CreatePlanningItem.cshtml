@@ -16,6 +16,11 @@
                     <dd class="col-sm-9">@Model.Period?.SchoolYear?.Name</dd>
                     <dt class="col-sm-3">Período</dt>
                     <dd class="col-sm-9">@Model.Period?.Starts.ToString("dd-MM-yyyy") - @Model.Period?.Starts.ToString("dd-MM-yyyy")</dd>
+                    @if (Model.Course is not null)
+                    {
+                        <dt class="col-sm-3">Curso</dt>
+                        <dd class="col-sm-9">@Model.Course.Denomination</dd>
+                    }
                 </dl>
             </div>
             <form asp-action="CreatePlanningItem" method="post">
@@ -23,23 +28,26 @@
                     <div asp-validation-summary="All" class="text-danger"></div>
                 </div>
                 <fieldset>
-                    <div class="mb-3">
-                        <label asp-for="CourseId" class="form-label">Seleccionar curso</label>
-                        <select asp-for="CourseId" class="form-select select-course" aria-label="Seleccionar asignatura" onchange="LoadSubjectsForCourse()" autofocus>
-                            @if (Model.Courses is not null && Model.Courses.Any())
-                            {
-                                foreach (var course in Model.Courses)
+                    @if (Model.Course is null)
+                    {
+                        <div class="mb-3">
+                            <label asp-for="CourseId" class="form-label">Seleccionar curso</label>
+                            <select asp-for="CourseId" class="form-select select-course" aria-label="Seleccionar asignatura" onchange="LoadSubjectsForCourse()" autofocus>
+                                @if (Model.Courses is not null && Model.Courses.Any())
                                 {
-                                    <option value="@course.Id">@course.Denomination</option>
+                                    foreach (var course in Model.Courses)
+                                    {
+                                        <option value="@course.Id">@course.Denomination</option>
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                <option value="none">No existen cursos</option>
-                            }
-                        </select>
-                        <span asp-validation-for="CourseId" />
-                    </div>
+                                else
+                                {
+                                    <option value="none">No existen cursos</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CourseId" />
+                        </div>
+                    }
                     <div class="mb-3">
                         <label asp-for="SubjectId" class="form-label">Seleccionar asignatura</label>
                         <select asp-for="SubjectId" class="form-select select-subject" aria-label="Seleccionar asignatura" autofocus>
@@ -64,7 +72,20 @@
                 </fieldset>
                 <div class="form-footer mt-3">
                     <input asp-for="PeriodId" type="hidden" />
-                    <a asp-action="Index" asp-route-periodSelected="@Model.PeriodId" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    <input asp-for="CareerId" type="hidden" />
+                    <input asp-for="ReturnTo" type="hidden" />
+                    @if (Model.Course is not null)
+                    {
+                        <input asp-for="CourseId" type="hidden" />
+                    }
+                    @if (Model.ReturnTo is not null)
+                    {
+                        <a href="@Model.ReturnTo" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    }
+                    else
+                    {
+                        <a asp-action="Index" asp-route-periodSelected="@Model.PeriodId" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    }
                     <button type="submit" class="btn btn-primary"><span class="fa fa-plus"></span> Crear</button>
                 </div>
             </form>
@@ -91,8 +112,14 @@
         });
 
         function LoadSubjectsForCourse() {
-            const courseSelect = document.getElementById("CourseId");
-            let selectedCourse = courseSelect.options[courseSelect.selectedIndex].value;
+            let selectedCourse = 'none';
+            if (document.querySelectorAll("input#CourseId").length > 0) {
+                const courseInput = document.querySelector("input#CourseId");
+                selectedCourse = courseInput.value;
+            } else {
+                const courseSelect = document.getElementById("CourseId");
+                selectedCourse = courseSelect.options[courseSelect.selectedIndex].value;
+            }
             let period = document.getElementById("PeriodId").value;
             if (selectedCourse != "none") {
                 OpenLoadingModal("Cargando asignaturas del curso seleccionado...");
@@ -102,6 +129,10 @@
                     success: function (data) {
                         const subjectSelect = document.getElementById("SubjectId");
                         subjectSelect.innerHTML = data;
+                        console.log(data);
+                        $('.select-subject').select2({
+                            placeholder: "Seleccione la asignatura"
+                        });
                         CloseLoadingModal();
                     },
                     error: function (xhr, status, error) {

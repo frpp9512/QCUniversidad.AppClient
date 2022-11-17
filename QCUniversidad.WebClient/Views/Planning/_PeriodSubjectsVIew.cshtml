@@ -1,8 +1,11 @@
 ﻿@model IList<PeriodSubjectModel>
 
-<div class="d-flex justify-content-between mb-3">
+<div class="d-flex flex-md-row flex-column justify-content-between mb-3 align-items-center">
     <h5>Asignaturas del período</h5>
-    <button type="button" class="btn btn-success" onclick="CreatePeriodSubject()"><span class="fa fa-plus"></span> Agregar asignatura</button>
+    <div class="d-flex flex-md-row flex-column gap-1">
+        <button type="button" class="btn btn-success" onclick="CreatePeriodSubject()"><span class="fa fa-plus"></span> Planificar asignatura</button>
+        <button type="button" class="btn btn-outline-success" onclick="CreateSubject()" onclick="CreatePeriodSubject()"><span class="fa fa-plus-square"></span> Nueva asignatura</button>
+    </div>
 </div>
 
 @if (Model.Any())
@@ -68,7 +71,7 @@
 }
 else
 {
-    <h4>No se han agregado asignaturas al período.</h4>
+    <partial name="_NoItems" model="@("No existen asignaturas planificadas para este curso en el semestre.")" />
 }
 
 <!-- Add periodsubject modal -->

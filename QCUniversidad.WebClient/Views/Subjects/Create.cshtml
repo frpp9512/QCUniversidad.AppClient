@@ -35,7 +35,8 @@
                     </div>
                 </fieldset>
                 <div class="form-footer mt-3">
-                    <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    <input asp-for="ReturnTo" type="hidden" />
+                    <a href="@Model.ReturnTo" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar</a>
                     <button type="submit" class="btn btn-primary"><span class="fa fa-plus"></span> Crear</button>
                 </div>
             </form>

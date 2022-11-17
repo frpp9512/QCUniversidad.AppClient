@@ -15,5 +15,6 @@ public class PlanningIndexModel
     public IList<PeriodModel>? Periods { get; set; }
     public Guid? PeriodSelected { get; set; }
     public Guid? CourseSelected { get; set; }
+    public Guid? CareerSelected { get; set; }
     public string Tab { get; set; } = "periodsubjects";
 }

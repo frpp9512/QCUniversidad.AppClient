@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using QCUniversidad.WebClient.Models.Configuration;
+using QCUniversidad.WebClient.Models.Courses;
 using QCUniversidad.WebClient.Models.Planning;
 using QCUniversidad.WebClient.Models.Subjects;
 using QCUniversidad.WebClient.Services.Data;
@@ -27,7 +28,7 @@ public class PlanningController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(Guid? facultyId = null, Guid? periodSelected = null, Guid? schoolYearId = null, Guid? courseSelected = null, string? tab = "planning")
+    public async Task<IActionResult> Index(Guid? facultyId = null, Guid? periodSelected = null, Guid? schoolYearId = null, Guid? courseSelected = null, Guid? careerSelected = null, string? tab = "planning")
     {
         if (facultyId is null && User.IsAdmin())
         {
@@ -49,6 +50,7 @@ public class PlanningController : Controller
                 Periods = await _dataProvider.GetPeriodsAsync(workingSchoolYear.Id),
                 PeriodSelected = periodSelected,
                 CourseSelected = courseSelected,
+                CareerSelected = careerSelected,
                 Tab = tab ?? "planning"
             };
             return View(model);
@@ -95,7 +97,7 @@ public class PlanningController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> CreatePlanningItemAsync(Guid periodId)
+    public async Task<IActionResult> CreatePlanningItemAsync(Guid periodId, Guid? courseId, string returnTo = "Index")
     {
         try
         {
@@ -107,8 +109,8 @@ public class PlanningController : Controller
             {
                 return RedirectToAction("Error", "Home");
             }
-            var viewModel = await GetCreateViewModel(periodId);
-
+            var viewModel = await GetCreateViewModel(periodId, courseId);
+            viewModel.ReturnTo = returnTo;
             return View(viewModel);
         }
         catch (Exception)
@@ -117,15 +119,24 @@ public class PlanningController : Controller
         }
     }
 
-    private async Task<CreateTeachingPlanItemModel> GetCreateViewModel(Guid periodId)
+    private async Task<CreateTeachingPlanItemModel> GetCreateViewModel(Guid periodId, Guid? courseId)
     {
         var periodModel = await _dataProvider.GetPeriodAsync(periodId);
         var courses = await _dataProvider.GetCoursesAsync(periodModel.SchoolYearId);
+        var careerId = courses.FirstOrDefault(c => c.Id == courseId)?.CareerId;
+        CourseModel course = null;
+        if (courseId is not null)
+        {
+            course = await _dataProvider.GetCourseAsync(courseId.Value);
+        }
         var viewModel = new CreateTeachingPlanItemModel
         {
             PeriodId = periodId,
+            CourseId = courseId ?? Guid.Empty,
             Period = periodModel,
-            Courses = courses
+            Courses = courses,
+            CareerId = careerId,
+            Course = course
         };
         return viewModel;
     }
@@ -144,7 +155,7 @@ public class PlanningController : Controller
         try
         {
             var result = await _dataProvider.GetSubjectsForCourseInPeriodAsync(courseId, periodId);
-            return PartialView("_SubjectsOptions", result);
+            return PartialView("_SubjectsOptions", result.OrderBy(s => s.Name).ToList());
         }
         catch (Exception ex)
         {
@@ -165,7 +176,15 @@ public class PlanningController : Controller
                 if (result)
                 {
                     TempData["planItem-created"] = true;
-                    return RedirectToAction("Index", new { periodSelected = model.PeriodId, tab = "planning" });
+                    return model.ReturnTo is not null
+                        ? Redirect(model.ReturnTo)
+                        : RedirectToAction("Index", new
+                          {
+                              periodSelected = model.PeriodId,
+                              courseSelected = model.CourseId,
+                              careerSelected = model.CareerId,
+                              tab = "planning"
+                          });
                 }
             }
             else
