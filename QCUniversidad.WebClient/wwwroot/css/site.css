@@ -783,9 +783,10 @@ dd {
 .load-info {
     display: grid;
     grid-template-areas: "type content"
-        "name content"
-        "description content";
+                         "name content"
+                         "description content";
     row-gap: 5px;
+    column-gap: 15px;
     border-bottom: solid 1px #ccc;
     padding-bottom: 5px;
     margin-bottom: 5px;

@@ -11,6 +11,7 @@ using QCUniversidad.Api.Shared.CommonModels;
 using QCUniversidad.Api.Extensions;
 using QCUniversidad.Api.MappingProfiles;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Text;
 
 namespace QCUniversidad.Api.Services;
 
@@ -131,7 +132,7 @@ public class DataManager : IDataManager
     }
 
     #endregion
-    
+
     #region Departments
 
     public async Task<IList<DepartmentModel>> GetDepartmentsAsync(int from, int to)
@@ -554,6 +555,7 @@ public class DataManager : IDataManager
         var result = await _context.Subjects.CountAsync(s => s.DisciplineId == disciplineId);
         return result;
     }
+
     public async Task<int> GetDisciplineTeachersCountAsync(Guid disciplineId)
     {
         var result = await _context.TeachersDisciplines.CountAsync(td => td.DisciplineId == disciplineId);
@@ -921,10 +923,15 @@ public class DataManager : IDataManager
                                    && !planItem.FromPostgraduateCourse
                              select new { planItem.SubjectId, planItem.CourseId };
                 var cValue = cQuery.Distinct().Count();
+                string description = NonTeachingLoadType.Consultation.GetEnumDisplayDescriptionValue();
+                if (cValue > 0)
+                {
+                    description = $"{cValue} asignaturas x {_calculationOptions.ConsultationCoefficient} horas de consultas a cada una.";
+                }
                 var cItem = new NonTeachingLoadModel
                 {
                     Type = NonTeachingLoadType.Consultation,
-                    Description = NonTeachingLoadType.Consultation.GetEnumDisplayDescriptionValue(),
+                    Description = description,
                     TeacherId = teacherId,
                     PeriodId = periodId,
                     BaseValue = JsonConvert.SerializeObject(cValue),
@@ -947,17 +954,36 @@ public class DataManager : IDataManager
                     TertiaryClassesValue = await cpQuery.SumAsync(
                         value => value.type != TeachingActivityType.Conference && value.type != TeachingActivityType.PostgraduateClass && value.type != TeachingActivityType.MeetingClass ? value.hoursCovered : 0)
                 };
+
+                var descriptionBuilder = new StringBuilder();
+                if (calculationModel.MainClassesValue > 0)
+                {
+                    descriptionBuilder.AppendLine($"{calculationModel.MainClassesValue} conferencias o clases a postgrado x {_calculationOptions.ClassPreparationPrimaryCoefficient} horas de preparación cada una.");
+                }
+                if (calculationModel.SecondaryClassesValue > 0)
+                {
+                    descriptionBuilder.AppendLine($"{calculationModel.SecondaryClassesValue} clases encuentro x {_calculationOptions.ClassPreparationSecondaryCoefficient} horas de preparación cada una.");
+                }
+                if (calculationModel.TertiaryClassesValue > 0)
+                {
+                    descriptionBuilder.AppendLine($"{calculationModel.SecondaryClassesValue} de otras actividades docentes x {_calculationOptions.ClassPreparationTertiaryCoefficient} horas de preparación cada una.");
+                }
+                if (calculationModel.MainClassesValue == 0 && calculationModel.SecondaryClassesValue == 0 && calculationModel.TertiaryClassesValue == 0)
+                {
+                    descriptionBuilder.AppendLine(NonTeachingLoadType.ClassPreparation.GetEnumDisplayDescriptionValue());
+                }
+
                 var cpItem = new NonTeachingLoadModel
                 {
                     Type = NonTeachingLoadType.ClassPreparation,
-                    Description = NonTeachingLoadType.ClassPreparation.GetEnumDisplayDescriptionValue(),
+                    Description = descriptionBuilder.ToString(),
                     TeacherId = teacherId,
                     PeriodId = periodId,
                     BaseValue = JsonConvert.SerializeObject(calculationModel),
                     Load = Math.Round(
                         (calculationModel.MainClassesValue * _calculationOptions.ClassPreparationPrimaryCoefficient)
                         + (calculationModel.SecondaryClassesValue * _calculationOptions.ClassPreparationSecondaryCoefficient)
-                        + (calculationModel.TertiaryClassesValue * _calculationOptions.ClassPreparationTertiaryCoefficient), 
+                        + (calculationModel.TertiaryClassesValue * _calculationOptions.ClassPreparationTertiaryCoefficient),
                         2)
                 };
                 return cpItem;
@@ -970,7 +996,7 @@ public class DataManager : IDataManager
                 var mItem = new NonTeachingLoadModel
                 {
                     Type = NonTeachingLoadType.Meetings,
-                    Description = NonTeachingLoadType.Meetings.GetEnumDisplayDescriptionValue(),
+                    Description = $"{_calculationOptions.MeetingsCoefficient} horas al mes x {mValue} meses en el período - {NonTeachingLoadType.Meetings.GetEnumDisplayDescriptionValue()}",
                     TeacherId = teacherId,
                     PeriodId = periodId,
                     BaseValue = JsonConvert.SerializeObject(mValue),
@@ -986,7 +1012,7 @@ public class DataManager : IDataManager
                 var mtItem = new NonTeachingLoadModel
                 {
                     Type = NonTeachingLoadType.MethodologicalActions,
-                    Description = NonTeachingLoadType.MethodologicalActions.GetEnumDisplayDescriptionValue(),
+                    Description = $"{_calculationOptions.MethodologicalActionsCoefficient} horas al mes x {mtValue} meses en el período - {NonTeachingLoadType.MethodologicalActions.GetEnumDisplayDescriptionValue()}",
                     TeacherId = teacherId,
                     PeriodId = periodId,
                     BaseValue = JsonConvert.SerializeObject(mtValue),
@@ -1002,7 +1028,7 @@ public class DataManager : IDataManager
                 var eItem = new NonTeachingLoadModel
                 {
                     Type = NonTeachingLoadType.EventsAndPublications,
-                    Description = NonTeachingLoadType.EventsAndPublications.GetEnumDisplayDescriptionValue(),
+                    Description = $"{_calculationOptions.EventsAndPublicationsCoefficient} horas al mes x {eValue} meses en el período - {NonTeachingLoadType.EventsAndPublications.GetEnumDisplayDescriptionValue()}",
                     TeacherId = teacherId,
                     PeriodId = periodId,
                     BaseValue = JsonConvert.SerializeObject(eValue),
@@ -1018,7 +1044,7 @@ public class DataManager : IDataManager
                 var oaItem = new NonTeachingLoadModel
                 {
                     Type = NonTeachingLoadType.OtherActivities,
-                    Description = NonTeachingLoadType.OtherActivities.GetEnumDisplayDescriptionValue(),
+                    Description = $"{_calculationOptions.OtherActivitiesCoefficient} horas al mes x {oaValue} meses en el período - {NonTeachingLoadType.OtherActivities.GetEnumDisplayDescriptionValue()}",
                     TeacherId = teacherId,
                     PeriodId = periodId,
                     BaseValue = JsonConvert.SerializeObject(oaValue),
@@ -1033,6 +1059,14 @@ public class DataManager : IDataManager
                                    select new { planItem.SubjectId, planItem.CourseId };
 
                 double examGradeTotal = 0;
+
+                double midTermExamGradeTotal = 0;
+                double finalExamGradeTotal = 0;
+                double secondFinalExamGradeTotal = 0;
+                double thirdFinalExamGradeTotal = 0;
+                double courseWorkTotal = 0;
+                double secondCourseWorkTotal = 0;
+                double thirdCourseWorkTotal = 0;
 
                 var loadSubjectsInfo = await loadSubjects.ToListAsync();
                 var loadSubjectsGroup = loadSubjectsInfo.GroupBy(ls => ls.CourseId);
@@ -1063,22 +1097,33 @@ public class DataManager : IDataManager
                         var teachersCount = await teachersCountQuery.Distinct().CountAsync();
 
                         var midTermExamValue = (periodSubjectData.MidtermExamsCount * _calculationOptions.ExamGradeMidTermAverageTime * courseEnrolment) / teachersCount;
+                        midTermExamGradeTotal += periodSubjectData.MidtermExamsCount;
 
                         double terminationValue = 0;
 
                         switch (periodSubjectData.TerminationMode)
                         {
                             case SubjectTerminationMode.FinalExam:
-                                var finalExamValue = (_calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.ExamGradeFinalCoefficient));
-                                var secondFinalExamValue = (_calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.SecondExamGradeFinalCoefficient));
-                                var thirdFinalExamValue = (_calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.ThirdExamGradeFinalCoefficient));
+                                var finalExamValue = _calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.ExamGradeFinalCoefficient);
+                                finalExamGradeTotal += (courseEnrolment * _calculationOptions.ExamGradeFinalCoefficient);
+
+                                var secondFinalExamValue = _calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.SecondExamGradeFinalCoefficient);
+                                secondFinalExamGradeTotal += (courseEnrolment * _calculationOptions.SecondExamGradeFinalCoefficient);
+
+                                var thirdFinalExamValue = _calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.ThirdExamGradeFinalCoefficient);
+                                thirdFinalExamGradeTotal += (courseEnrolment * _calculationOptions.ThirdExamGradeFinalCoefficient);
 
                                 terminationValue = finalExamValue + secondFinalExamValue + thirdFinalExamValue;
                                 break;
                             case SubjectTerminationMode.CourseWork:
                                 var courseWorkValue = _calculationOptions.CourseWorkAverageTime * ((courseEnrolment * _calculationOptions.CourseWorkEnrolmentCoefficient) / _calculationOptions.CourseWorkEnrolmentDivider);
+                                courseWorkTotal += courseEnrolment * _calculationOptions.CourseWorkEnrolmentCoefficient / _calculationOptions.CourseWorkEnrolmentDivider;
+
                                 var secondCourseWorkValue = _calculationOptions.CourseWorkAverageTime * ((courseEnrolment * _calculationOptions.SecondCourseWorkEnrolmentCoefficient) / _calculationOptions.CourseWorkEnrolmentDivider);
+                                secondCourseWorkTotal += courseEnrolment * _calculationOptions.SecondCourseWorkEnrolmentCoefficient / _calculationOptions.CourseWorkEnrolmentDivider;
+
                                 var thirdCourseWorkValue = _calculationOptions.CourseWorkAverageTime * ((courseEnrolment * _calculationOptions.ThirdCourseWorkEnrolmentCoefficient) / _calculationOptions.CourseWorkEnrolmentDivider);
+                                thirdCourseWorkTotal += courseEnrolment * _calculationOptions.ThirdCourseWorkEnrolmentCoefficient / _calculationOptions.CourseWorkEnrolmentDivider;
 
                                 terminationValue = courseWorkValue + secondCourseWorkValue + thirdCourseWorkValue;
                                 break;
@@ -1094,10 +1139,36 @@ public class DataManager : IDataManager
                     examGradeTotal += subtotal;
                 }
 
+                var examGradeDescriptionBuilder = new StringBuilder();
+
+                if (midTermExamGradeTotal > 0)
+                {
+                    examGradeDescriptionBuilder.AppendLine($"{Math.Round(midTermExamGradeTotal, 2)} exámenes parciales x {_calculationOptions.ExamGradeMidTermAverageTime} horas cada uno.");
+                }
+
+                if (finalExamGradeTotal > 0)
+                {
+                    examGradeDescriptionBuilder.AppendLine($"{Math.Round(finalExamGradeTotal, 2)} exámenes finales x {_calculationOptions.ExamGradeFinalAverageTime} horas cada uno.");
+                    examGradeDescriptionBuilder.AppendLine($"{Math.Round(secondFinalExamGradeTotal, 2)} exámenes extraordinarios x {_calculationOptions.ExamGradeFinalAverageTime} horas cada uno.");
+                    examGradeDescriptionBuilder.AppendLine($"{Math.Round(thirdFinalExamGradeTotal, 2)} exámenes mundiales x {_calculationOptions.ExamGradeFinalAverageTime} horas cada uno.");
+                }
+
+                if (courseWorkTotal > 0)
+                {
+                    examGradeDescriptionBuilder.AppendLine($"{Math.Round(courseWorkTotal)} trabajos de curso en ordinario x {_calculationOptions.CourseWorkAverageTime} horas cada uno.");
+                    examGradeDescriptionBuilder.AppendLine($"{Math.Round(secondCourseWorkTotal)} trabajos de curso en ordinario x {_calculationOptions.CourseWorkAverageTime} horas cada uno.");
+                    examGradeDescriptionBuilder.AppendLine($"{Math.Round(thirdCourseWorkTotal)} trabajos de curso en ordinario x {_calculationOptions.CourseWorkAverageTime} horas cada uno.");
+                }
+
+                if (midTermExamGradeTotal == 0 && finalExamGradeTotal == 0 && courseWorkTotal == 0)
+                {
+                    examGradeDescriptionBuilder.AppendLine(NonTeachingLoadType.ExamGrade.GetEnumDisplayNameValue());
+                }
+
                 var examGradeLoad = new NonTeachingLoadModel
                 {
                     Type = NonTeachingLoadType.ExamGrade,
-                    Description = NonTeachingLoadType.ExamGrade.GetEnumDisplayDescriptionValue(),
+                    Description = examGradeDescriptionBuilder.ToString(),
                     TeacherId = teacherId,
                     PeriodId = periodId,
                     BaseValue = JsonConvert.SerializeObject(examGradeTotal),
@@ -1278,7 +1349,7 @@ public class DataManager : IDataManager
                                where teacherDiscipline.DisciplineId == disciplineId
                                   && (teacher.DepartmentId == departmentId || teacher.ServiceProvider)
                                //where teacher.Active && (teacher.DepartmentId == departmentId) || (teacher.ServiceProvider)
-                                     //&& teacherDiscipline.DisciplineId == disciplineId
+                               //&& teacherDiscipline.DisciplineId == disciplineId
                                //|| !disciplineId.HasValue
                                //|| teacherDiscipline.DisciplineId == disciplineId
                                select teacher;
@@ -1655,6 +1726,39 @@ public class DataManager : IDataManager
                     }
 
                     return await _context.SaveChangesAsync() > 0;
+                }
+                throw new ArgumentException($"The base value supplied for {type} load type is invalid.", nameof(baseValue));
+            case NonTeachingLoadType.EducationalWork:
+                if (Enum.TryParse(baseValue, out EducationalWorkType ewtype))
+                {
+                    var calculationValue = _calculationOptions[$"{nameof(EducationalWorkType)}.{ewtype}"];
+                    if (calculationValue is not null)
+                    {
+                        var loadValue = calculationValue.Value * await GetPeriodMonthsCountAsync(periodId);
+                        var existingLoad = await GetTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
+                        if (existingLoad is not null)
+                        {
+                            existingLoad.BaseValue = JsonConvert.SerializeObject(ewtype);
+                            existingLoad.Load = loadValue;
+                            existingLoad.Description = $"{ewtype.GetEnumDisplayNameValue()} - {ewtype.GetEnumDisplayDescriptionValue()}";
+                            _context.NonTeachingLoad.Update(existingLoad);
+                        }
+                        else
+                        {
+                            var newEWLoad = new NonTeachingLoadModel
+                            {
+                                BaseValue = JsonConvert.SerializeObject(ewtype),
+                                Load = loadValue,
+                                Description = $"{ewtype.GetEnumDisplayNameValue()} - {ewtype.GetEnumDisplayDescriptionValue()}",
+                                Type = type,
+                                TeacherId = teacherId,
+                                PeriodId = periodId
+                            };
+                            _context.NonTeachingLoad.Add(newEWLoad);
+                        }
+                        return await _context.SaveChangesAsync() > 0;
+                    }
+                    throw new ConfigurationException();
                 }
                 throw new ArgumentException($"The base value supplied for {type} load type is invalid.", nameof(baseValue));
             default:
@@ -2319,23 +2423,13 @@ public class DataManager : IDataManager
     {
         if (course is not null)
         {
-            var updateTeachers = false;
-            if (course.Id != Guid.Empty)
-            {
-                var currentEnrolment = await GetCourseEnrolmentAsync(course.Id);
-                var newEnrolment = course.Enrolment;
-                updateTeachers = currentEnrolment != newEnrolment;
-            }
             _ = _context.Courses.Update(course);
             var result = await _context.SaveChangesAsync();
 
-            if (updateTeachers)
+            var currentYear = await GetCurrentSchoolYearAsync();
+            foreach (var period in currentYear.Periods)
             {
-                var currentYear = await GetCurrentSchoolYearAsync();
-                foreach (var period in currentYear.Periods)
-                {
-                    await RecalculateAllTeachersInPeriodAsync(period.Id);
-                }
+                await RecalculateAllTeachersInPeriodAsync(period.Id);
             }
 
             return result > 0;

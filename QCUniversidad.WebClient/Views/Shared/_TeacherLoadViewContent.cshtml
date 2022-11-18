@@ -30,6 +30,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <p>@NonTeachingLoadType.UniversityExtensionActions.GetEnumDisplayDescriptionValue()</p>
                 @{
                     var uacards = new List<SelectCardModel>();
                     var uavalues = Enum.GetValues(typeof(UniversityExtensionActionsOptions));
@@ -64,6 +65,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <p>@NonTeachingLoadType.CoursesReceivedAndImprovement.GetEnumDisplayDescriptionValue()</p>
                 @{
                     var cards = new List<SelectCardModel>();
                     var values = Enum.GetValues(typeof(CoursesReceivedAndImprovementOptions));
@@ -99,6 +101,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <p>@NonTeachingLoadType.UndergraduateTutoring.GetEnumDisplayDescriptionValue()</p>
                 <div class="mb-3">
                     <label for="IntegrativeProjectDiplomants" class="form-label">Proyecto Integrador</label>
                     <input type="number" min="0" class="form-control" id="IntegrativeProjectDiplomants" placeholder="Cantidad de diplomantes">
@@ -125,6 +128,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <p>@NonTeachingLoadType.GraduateTutoring.GetEnumDisplayDescriptionValue()</p>
                 <div class="mb-3">
                     <label for="DiplomaOrMastersDegreeDiplomants" class="form-label">Diplomado o mestría</label>
                     <input type="number" min="0" class="form-control" id="DiplomaOrMastersDegreeDiplomants" placeholder="Cantidad de diplomantes">
@@ -151,6 +155,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <p>@NonTeachingLoadType.ParticipationInProjects.GetEnumDisplayDescriptionValue()</p>
                 @{
                     var ppcards = new List<SelectCardModel>();
                     var ppvalues = Enum.GetValues(typeof(ParticipationInProjectsOptions));
@@ -185,6 +190,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <p>@NonTeachingLoadType.OtherFunctions.GetEnumDisplayDescriptionValue()</p>
                 <div class="mb-3">
                     <label for="OtherFunctionsValue" class="form-label">Cantidad de tiempo destinado a otras funciones (h/mes)</label>
                     <input type="number" min="0" class="form-control" id="OtherFunctionsValue" placeholder="Tiempo de otras funciones">
@@ -208,6 +214,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <p>@NonTeachingLoadType.PostgraduateThesisCourtAndRevision.GetEnumDisplayDescriptionValue()</p>
                 <div class="mb-3">
                     <label for="MastersAndDiplomantsThesisCourts" class="form-label">Diplomado o mestría</label>
                     <input type="number" min="0" class="form-control" id="MastersAndDiplomantsThesisCourts" placeholder="Cantidad de tribunales estimados">
@@ -220,6 +227,41 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" class="btn btn-primary" id="PostgraduateThesisCourtAndRevisionModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add EducationalWork load -->
+<div class="modal fade" id="EducationalWorkModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="EducationalWorkModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="EducationalWorkModalLabel">Definir carga de @NonTeachingLoadType.EducationalWork.GetEnumDisplayNameValue()</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>@NonTeachingLoadType.EducationalWork.GetEnumDisplayDescriptionValue()</p>
+                @{
+                    var ewcards = new List<SelectCardModel>();
+                    var ewvalues = Enum.GetValues(typeof(EducationalWorkType));
+                    foreach (EducationalWorkType value in ewvalues)
+                    {
+                        ewcards.Add(new SelectCardModel
+                        {
+                            Id = $"card-{value.ToString()}",
+                            GroupName = "EducationalWorkOptions",
+                            Title = value.GetEnumDisplayNameValue(),
+                            Description = value.GetEnumDisplayDescriptionValue(),
+                            Value = value.ToString()
+                        });
+                    }
+                }
+                <partial name="_SelectCardSet" model="ewcards" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="EducationalWorkModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
             </div>
         </div>
     </div>

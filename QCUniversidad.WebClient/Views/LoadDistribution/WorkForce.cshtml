@@ -448,6 +448,35 @@
                 InitializeSelectCards();
                 return;
             }
+            if (type == "EducationalWork") {
+                const ewModalElement = document.getElementById("EducationalWorkModal");
+                let ewModal = bootstrap.Modal.getOrCreateInstance(ewModalElement);
+                let ewModalBtn = document.getElementById("EducationalWorkModalButton");
+                ewModalBtn.onclick = function () {
+                    ewModal.hide();
+                    let selected = GetSelectCardGroupSelectedValue("EducationalWorkOptions");
+                    let model = {
+                        Type: "EducationalWork",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                ewModal.show();
+                InitializeSelectCards();
+                return;
+            }
         }
     </script>
 }

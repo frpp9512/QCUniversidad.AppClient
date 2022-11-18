@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace QCUniversidad.Api.Shared.Enums;
 
 public enum UniversityExtensionActionsOptions
 {
-    [Display(Name ="Alta", Description = "Alta participación en actividades de extensión universitaria.")]
+    [Display(Name = "Alta", Description = "Liderazgo, organización, participación y promoción de actividades comunitarias y extracurriculares.")]
     High,
 
-    [Display(Name = "Medio", Description = "Media participación en actividades de extensión universitaria.")]
+    [Display(Name = "Medio", Description = " Participación, apoyo y promoción de actividades comunitarias y extracurriculares.")]
     Medium,
 
-    [Display(Name = "Baja", Description = "Baja participación en actividades de extensión universitaria.")]
+    [Display(Name = "Baja", Description = "Promoción y apoyo de actividades comunitarias y extracurriculares.")]
     Low
 }

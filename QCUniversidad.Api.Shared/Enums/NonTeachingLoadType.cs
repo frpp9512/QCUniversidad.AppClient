@@ -60,13 +60,13 @@ public enum NonTeachingLoadType
     /// <summary>
     /// Should be provided by base value. JSON => (IntegrativeProjectDiplomants, ThesisDiplomants)
     /// </summary>
-    [Display(Name = "Tutoría de pregrado", Description = "Tiempo invertido en realizar tutorías a estudiantes de pregrado.")]
+    [Display(Name = "Tutoría de pregrado", Description = "Tiempo invertido en realizar tutorías a estudiantes de pregrado, tanto de Proyectos Integradores y Tesis de grado.")]
     UndergraduateTutoring,
 
     /// <summary>
     /// Should be provided by base value. JSON => (DiplomaOrMastersDegreeDiplomants, DoctorateDiplomants)
     /// </summary>
-    [Display(Name = "Tutoría de posgrado", Description = "Tiempo invertido en realizar tutorías a estudiantes de posgrado.")]
+    [Display(Name = "Tutoría de posgrado", Description = "Tiempo invertido en realizar tutorías a estudiantes de posgrado, tanto de dipomados, maestrías y doctorados.")]
     GraduateTutoring,
 
     /// <summary>
@@ -84,7 +84,7 @@ public enum NonTeachingLoadType
     /// <summary>
     /// Should be provided by base value. (Level of participation: (Low, Medium, High))
     /// </summary>
-    [Display(Name = "Acciones de extensión universitaria", Description = "Tiempo necesario para realizar actividades de extensión universitaria en función del nivel de participación.")]
+    [Display(Name = "Acciones de extensión universitaria", Description = "Liderazgo, participación, apoyo, contribución y promoción en la realización de proyectos extensionistas dirigidos al desarrollo sociocultural comunitario y actividades extracurriculares para el desarrollo cultural integral de los estudiantes.")]
     UniversityExtensionActions,
 
     /// <summary>
@@ -92,6 +92,12 @@ public enum NonTeachingLoadType
     /// </summary>
     [Display(Name = "Otras actividades", Description = "Tiempo para la realización de otras actividades varias.", AutoGenerateField = true)]
     OtherActivities,
+
+    /// <summary>
+    /// Should be provided by base value. (Type: HeadTeacherOfTheYear, YearCoordinator, Teacher)
+    /// </summary>
+    [Display(Name = "Trabajo educativo", Description = "Tiempo necesario para realizar actividades de trabajo educativo con los estudiantes bajo su radio de acción.")]
+    EducationalWork,
 
     /// <summary>
     /// Should be provided by base value. (Load)

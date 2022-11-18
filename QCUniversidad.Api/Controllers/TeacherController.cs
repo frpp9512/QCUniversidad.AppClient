@@ -8,8 +8,6 @@ using QCUniversidad.Api.Shared.Dtos.LoadItem;
 using QCUniversidad.Api.Shared.Dtos.Teacher;
 using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.Api.Shared.Extensions;
-using System.Runtime.CompilerServices;
-using System.Xml;
 
 namespace QCUniversidad.Api.Controllers;
 
@@ -31,7 +29,7 @@ public class TeacherController : ControllerBase
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
         var teachers = await _dataManager.GetTeachersAsync(from, to);
-        var dtos = teachers.Select(teacher => _mapper.Map<TeacherDto>(teacher));
+        var dtos = teachers.Select(_mapper.Map<TeacherDto>);
         foreach (var dto in dtos)
         {
             var teacher = teachers.First(t => t.Id == dto.Id);
@@ -211,7 +209,7 @@ public class TeacherController : ControllerBase
         try
         {
             var result = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
-            var dtos = result.Select(i => _mapper.Map<TeacherDto>(i));
+            var dtos = result.Select(_mapper.Map<TeacherDto>);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -247,7 +245,7 @@ public class TeacherController : ControllerBase
                     Status = loadPercent switch
                     {
                         double p when p < 80 => TeacherLoadStatus.Underutilized,
-                        double p when p < 100 && p >= 80 => TeacherLoadStatus.Acceptable,
+                        double p when p is < 100 and >= 80 => TeacherLoadStatus.Acceptable,
                         double p when p == 100 => TeacherLoadStatus.Balanced,
                         _ => TeacherLoadStatus.Overloaded
                     },
@@ -299,7 +297,7 @@ public class TeacherController : ControllerBase
                     Status = loadPercent switch
                     {
                         double p when p < 80 => TeacherLoadStatus.Underutilized,
-                        double p when p < 100 && p >= 80 => TeacherLoadStatus.Acceptable,
+                        double p when p is < 100 and >= 80 => TeacherLoadStatus.Acceptable,
                         double p when p == 100 => TeacherLoadStatus.Balanced,
                         _ => TeacherLoadStatus.Overloaded
                     },
@@ -345,7 +343,7 @@ public class TeacherController : ControllerBase
                 Status = loadPercent switch
                 {
                     double p when p < 80 => TeacherLoadStatus.Underutilized,
-                    double p when p < 100 && p >= 80 => TeacherLoadStatus.Acceptable,
+                    double p when p is < 100 and >= 80 => TeacherLoadStatus.Acceptable,
                     double p when p == 100 => TeacherLoadStatus.Balanced,
                     _ => TeacherLoadStatus.Overloaded
                 },
@@ -378,7 +376,7 @@ public class TeacherController : ControllerBase
         try
         {
             var result = await _dataManager.GetTeachersOfDepartmentNotAssignedToPlanItemAsync(departmentId, planItemId, disciplineId);
-            var dtos = result.Select(i => _mapper.Map<TeacherDto>(i));
+            var dtos = result.Select(_mapper.Map<TeacherDto>);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -403,7 +401,7 @@ public class TeacherController : ControllerBase
         {
             var result = await _dataManager.GetSupportTeachersAsync(departmentId, periodId);
             var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
-            var dtos = result.Select(t => _mapper.Map<TeacherDto>(t));
+            var dtos = result.Select(_mapper.Map<TeacherDto>);
             foreach (var dto in dtos)
             {
                 var t = result.First(teacher => teacher.Id == dto.Id);
