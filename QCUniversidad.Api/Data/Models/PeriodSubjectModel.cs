@@ -1,4 +1,6 @@
-﻿namespace QCUniversidad.Api.Data.Models;
+﻿using QCUniversidad.Api.Shared.Enums;
+
+namespace QCUniversidad.Api.Data.Models;
 
 public record PeriodSubjectModel
 {
@@ -43,7 +45,7 @@ public record PeriodSubjectModel
     public int MidtermExamsCount { get; set; }
 
     /// <summary>
-    /// Defines if the subject have final exam in the period.
+    /// Defines how the subject will be terminated.
     /// </summary>
-    public bool HaveFinalExam { get; set; }
+    public SubjectTerminationMode TerminationMode { get; set; }
 }

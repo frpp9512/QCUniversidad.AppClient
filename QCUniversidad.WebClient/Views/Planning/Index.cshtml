@@ -485,6 +485,7 @@
                             dropdownParent: $("#addPeriodSubjectModal"),
                             width: '100%'
                         });
+                        InitializeSelector("#terminationModeSelector");
                         const addModal = new bootstrap.Modal(document.getElementById('addPeriodSubjectModal'));
                         addModal.show();
                     }
@@ -507,13 +508,13 @@
                 alert("Debe de especificar un valor válido para la cantidad de exámenes parciales.");
                 return;
             }
-            let finalExam = document.getElementById("finalExam").checked;
+            let terminationMode = Number.parseInt(getSelectorOptionsSelectedValue("#terminationModeSelector"));
             let createModel = {
                 PeriodId: periodSelected,
                 CourseId: courseSelected,
                 SubjectId: subjectSelected,
                 MidtermExamsCount: midTermExams,
-                HaveFinalExam: finalExam
+                TerminationMode: terminationMode
             };
 
             console.log(createModel);
@@ -554,9 +555,9 @@
                         subjectId.value = subjectModel.id;
                         const midTermExams = document.getElementById("editedMidTermExamsCount");
                         midTermExams.value = periodSubjectModel.midtermExamsCount;
-                        const finalExam = document.getElementById("editedFinalExam");
-                        finalExam.checked = periodSubjectModel.haveFinalExam;
                         const editModal = new bootstrap.Modal(document.getElementById('editPeriodSubjectModal'));
+                        InitializeSelector("#terminationModeEditSelector");
+                        SelectOption("#terminationModeEditSelector", periodSubjectModel.terminationMode);
                         editModal.show();
                     },
                     error: function (xhr, status, error) {
@@ -578,16 +579,16 @@
                 alert("Debe de especificar un valor válido para la cantidad de exámenes parciales.");
                 return;
             }
-            let finalExam = document.getElementById("editedFinalExam").checked;
             const periodSubjectSelected = document.getElementById("periodSubjectEdited");
             let periodSubjectId = periodSubjectSelected.value;
+            let terminationMode = Number.parseInt(getSelectorOptionsSelectedValue("#terminationModeEditSelector"));
             let createModel = {
                 Id: periodSubjectId,
                 PeriodId: periodSelected,
                 CourseId: courseSelected,
                 SubjectId: subjectSelected,
                 MidtermExamsCount: midTermExams,
-                HaveFinalExam: finalExam
+                TerminationMode: terminationMode
             };
             SetEditLoading();
             $.ajax({

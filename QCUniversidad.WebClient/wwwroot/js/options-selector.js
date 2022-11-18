@@ -21,9 +21,33 @@
     });
 }
 
+function InitializeSelector(selectorQuery) {
+    const selector = document.querySelector(selectorQuery);
+    if (selector != null) {
+        const options = selector.querySelectorAll(".option-selector");
+        options.forEach(opt => {
+            opt.onclick = () => {
+                if (!opt.parentElement.hasAttribute("disabled")) {
+                    options.forEach(o => {
+                        if (o.hasAttribute("selected") && o != opt) {
+                            o.removeAttribute("selected");
+                        }
+                    });
+                    opt.setAttribute("selected", "selected");
+
+                    // Creating and calling selection changed event.
+                    let selectionChangedEvent = new CustomEvent("option-selector-changed");
+                    selector.dispatchEvent(selectionChangedEvent);
+                }
+            };
+        });
+    }
+}
+
 function SelectOption(selectorQuery, value) {
     const selector = document.querySelector(selectorQuery);
     const options = selector.querySelectorAll("div.option-selector");
+
     let selected = false;
 
     options.forEach(opt => {

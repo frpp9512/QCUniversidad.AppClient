@@ -17,6 +17,11 @@ public class CalculationOptions
     public double OtherActivitiesCoefficient { get; set; } = 3;
     public double ExamGradeMidTermAverageTime { get; set; }
     public double ExamGradeFinalAverageTime { get; set; }
+    public double CourseWorkAverageTime { get; set; }
+    public double CourseWorkEnrolmentDivider { get; set; }
+    public double CourseWorkEnrolmentCoefficient { get; set; }
+    public double SecondCourseWorkEnrolmentCoefficient { get; set; }
+    public double ThirdCourseWorkEnrolmentCoefficient { get; set; }
     public double ExamGradeFinalCoefficient { get; set; }
     public double SecondExamGradeFinalCoefficient { get; set; }
     public double ThirdExamGradeFinalCoefficient { get; set; }

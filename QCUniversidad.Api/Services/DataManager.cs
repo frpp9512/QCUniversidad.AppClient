@@ -1051,7 +1051,8 @@ public class DataManager : IDataManager
                     {
                         var periodSubjectDataQuery = from periodSubject in _context.PeriodSubjects
                                                      where periodSubject.PeriodId == periodId && periodSubject.CourseId == ls.CourseId && periodSubject.SubjectId == ls.SubjectId
-                                                     select new { periodSubject.MidtermExamsCount, FinalExam = periodSubject.HaveFinalExam ? 1 : 0 };
+                                                     select new { periodSubject.MidtermExamsCount, periodSubject.TerminationMode };
+
                         var periodSubjectData = await periodSubjectDataQuery.FirstAsync();
 
                         var teachersCountQuery = from loadItem in _context.LoadItems
@@ -1061,13 +1062,33 @@ public class DataManager : IDataManager
                                                  select loadItem.TeacherId;
                         var teachersCount = await teachersCountQuery.Distinct().CountAsync();
 
-                        var midTermExamValue = periodSubjectData.MidtermExamsCount * _calculationOptions.ExamGradeMidTermAverageTime * courseEnrolment;
-                        var finalExamParam = periodSubjectData.FinalExam;
-                        var finalExamValue = (_calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.ExamGradeFinalCoefficient)) * finalExamParam;
-                        var secondFinalExamValue = (_calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.SecondExamGradeFinalCoefficient)) * finalExamParam;
-                        var thirdFinalExamValue = (_calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.ThirdExamGradeFinalCoefficient)) * finalExamParam;
+                        var midTermExamValue = (periodSubjectData.MidtermExamsCount * _calculationOptions.ExamGradeMidTermAverageTime * courseEnrolment) / teachersCount;
 
-                        var examGradeValue = (midTermExamValue + finalExamValue + secondFinalExamValue + thirdFinalExamValue) / teachersCount;
+                        double terminationValue = 0;
+
+                        switch (periodSubjectData.TerminationMode)
+                        {
+                            case SubjectTerminationMode.FinalExam:
+                                var finalExamValue = (_calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.ExamGradeFinalCoefficient));
+                                var secondFinalExamValue = (_calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.SecondExamGradeFinalCoefficient));
+                                var thirdFinalExamValue = (_calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.ThirdExamGradeFinalCoefficient));
+
+                                terminationValue = finalExamValue + secondFinalExamValue + thirdFinalExamValue;
+                                break;
+                            case SubjectTerminationMode.CourseWork:
+                                var courseWorkValue = _calculationOptions.CourseWorkAverageTime * ((courseEnrolment * _calculationOptions.CourseWorkEnrolmentCoefficient) / _calculationOptions.CourseWorkEnrolmentDivider);
+                                var secondCourseWorkValue = _calculationOptions.CourseWorkAverageTime * ((courseEnrolment * _calculationOptions.SecondCourseWorkEnrolmentCoefficient) / _calculationOptions.CourseWorkEnrolmentDivider);
+                                var thirdCourseWorkValue = _calculationOptions.CourseWorkAverageTime * ((courseEnrolment * _calculationOptions.ThirdCourseWorkEnrolmentCoefficient) / _calculationOptions.CourseWorkEnrolmentDivider);
+
+                                terminationValue = courseWorkValue + secondCourseWorkValue + thirdCourseWorkValue;
+                                break;
+                            case SubjectTerminationMode.AcademicHistory:
+                                break;
+                            default:
+                                break;
+                        }
+
+                        var examGradeValue = (midTermExamValue + terminationValue) / teachersCount;
                         subtotal += examGradeValue;
                     }
                     examGradeTotal += subtotal;

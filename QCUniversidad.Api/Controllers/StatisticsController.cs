@@ -78,7 +78,7 @@ public class StatisticsController : ControllerBase
         {
             Name = "Curriculums",
             Description = "Cantidad de curriculums en el sistema",
-            Value = await _dataManager.GetFacultiesTotalAsync(),
+            Value = await _dataManager.GetCurriculumsCountAsync(),
         };
         items.Add(curriculums);
 
@@ -86,7 +86,7 @@ public class StatisticsController : ControllerBase
         {
             Name = "Años escolares",
             Description = "Cantidad de años escolares en el sistema",
-            Value = await _dataManager.GetFacultiesTotalAsync(),
+            Value = await _dataManager.GetSchoolYearTotalAsync(),
         };
         items.Add(schoolYears);
 
@@ -94,7 +94,7 @@ public class StatisticsController : ControllerBase
         {
             Name = "Cursos",
             Description = "Cantidad de cursos en el sistema",
-            Value = await _dataManager.GetFacultiesTotalAsync(),
+            Value = await _dataManager.GetCoursesCountAsync(),
         };
         items.Add(courses);
 

@@ -1,10 +1,6 @@
-﻿using QCUniversidad.WebClient.Models.Courses;
+﻿using QCUniversidad.Api.Shared.Enums;
+using QCUniversidad.WebClient.Models.Courses;
 using QCUniversidad.WebClient.Models.Periods;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.WebClient.Models.Subjects;
 
@@ -18,5 +14,5 @@ public class PeriodSubjectModel
     public Guid CourseId { get; set; }
     public CourseModel? Course { get; set; }
     public int MidtermExamsCount { get; set; }
-    public bool HaveFinalExam { get; set; }
+    public SubjectTerminationMode TerminationMode { get; set; }
 }
