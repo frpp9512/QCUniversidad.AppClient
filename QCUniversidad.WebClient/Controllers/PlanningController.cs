@@ -11,7 +11,7 @@ using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
 
-[Authorize(Roles = "Administrador,Planificador")]
+[Authorize("Planner")]
 public class PlanningController : Controller
 {
     private readonly IDataProvider _dataProvider;
@@ -62,7 +62,7 @@ public class PlanningController : Controller
     }
 
     [HttpGet]
-    [Authorize(Roles = "Administrador")]
+    [Authorize("Admin")]
     public async Task<IActionResult> SelectFacultyAsync(string returnUrl = "Index")
     {
         var faculties = await _dataProvider.GetFacultiesAsync();

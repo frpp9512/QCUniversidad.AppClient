@@ -14,7 +14,7 @@ using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
 
-[Authorize(Roles = "Administrador,Jefe de departamento")]
+[Authorize("Distributor")]
 public class LoadDistributionController : Controller
 {
     private readonly IDataProvider _dataProvider;

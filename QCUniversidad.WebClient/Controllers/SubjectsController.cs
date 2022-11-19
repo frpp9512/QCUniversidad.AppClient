@@ -13,7 +13,7 @@ using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
 
-[Authorize(Roles = "Administrador")]
+[Authorize("Auth")]
 public class SubjectsController : Controller
 {
     private readonly IDataProvider _dataProvider;
@@ -35,6 +35,7 @@ public class SubjectsController : Controller
         _navigationSettings = navOptions.Value;
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> IndexAsync(int page = 0)
     {
@@ -71,6 +72,7 @@ public class SubjectsController : Controller
         }
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> ImportAsync()
     {
@@ -79,6 +81,7 @@ public class SubjectsController : Controller
         return View();
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ImportAsync(IFormFile formFile, Guid selectedDiscipline)
@@ -122,6 +125,7 @@ public class SubjectsController : Controller
         return RedirectToAction("Index");
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     public async Task<IActionResult> ImportFilePreviewAsync(IFormFile formFile)
     {
@@ -152,8 +156,8 @@ public class SubjectsController : Controller
         return File(templateBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "QCU Plantilla para importar asignaturas.xlsx");
     }
 
+    [Authorize("Planner")]
     [HttpGet]
-    [Authorize(Roles = "Administrador,Planificador")]
     public async Task<IActionResult> CreateAsync(string returnTo = "Index")
     {
         _logger.LogRequest(HttpContext);
@@ -171,7 +175,7 @@ public class SubjectsController : Controller
         model.Disciplines = disciplines;
     }
 
-    [Authorize(Roles = "Administrador,Planificador")]
+    [Authorize("Planner")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateAsync(CreateSubjectModel createModel)
@@ -204,6 +208,7 @@ public class SubjectsController : Controller
         return View(createModel);
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> EditAsync(Guid id)
     {
@@ -219,6 +224,7 @@ public class SubjectsController : Controller
         return RedirectToAction("Error", "Home");
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditAsync(EditSubjectModel editModel)
@@ -251,6 +257,7 @@ public class SubjectsController : Controller
         return View(editModel);
     }
 
+    [Authorize("Admin")]
     [HttpDelete]
     public async Task<IActionResult> Delete(Guid id)
     {

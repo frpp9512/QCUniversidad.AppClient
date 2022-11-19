@@ -48,6 +48,7 @@ public interface IDataManager
     Task<bool> CreateCareerAsync(CareerModel career);
     Task<IList<CareerModel>> GetCareersAsync(int from = 0, int to = 0);
     Task<IList<CareerModel>> GetCareersAsync(Guid facultyId);
+    Task<IList<CareerModel>> GetCareersForDepartmentAsync(Guid departmentId);
     Task<CareerModel> GetCareerAsync(Guid careerId);
     Task<int> GetCareersCountAsync();
     Task<bool> UpdateCareerAsync(CareerModel career);
@@ -64,6 +65,7 @@ public interface IDataManager
     Task<int> GetDisciplineSubjectsCountAsync(Guid disciplineId);
     Task<int> GetDisciplineTeachersCountAsync(Guid disciplineId);
     Task<IList<DisciplineModel>> GetDisciplinesAsync(int from, int to);
+    Task<IList<DisciplineModel>> GetDisciplinesAsync(Guid departmentId);
     Task<DisciplineModel> GetDisciplineAsync(Guid disciplineId);
     Task<DisciplineModel> GetDisciplineAsync(string name);
     Task<bool> UpdateDisciplineAsync(DisciplineModel discipline);

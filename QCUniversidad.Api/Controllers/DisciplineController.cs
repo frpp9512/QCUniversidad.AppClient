@@ -40,6 +40,31 @@ public class DisciplineController : ControllerBase
     }
 
     [HttpGet]
+    [Route("listofdepartment")]
+    public async Task<IActionResult> GetListOfDepartmentAsync(Guid departmentId)
+    {
+        if (departmentId != Guid.Empty)
+        {
+            try
+            {
+                var disciplines = await _dataManager.GetDisciplinesAsync(departmentId);
+                var dtos = disciplines.Select(_mapper.Map<PopulatedDisciplineDto>).ToList();
+                foreach (var dto in dtos)
+                {
+                    dto.TeachersCount = await _dataManager.GetDisciplineTeachersCountAsync(dto.Id);
+                    dto.SubjectsCount = await _dataManager.GetDisciplineSubjectsCountAsync(dto.Id);
+                }
+                return Ok(dtos);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
+        return BadRequest();
+    }
+
+    [HttpGet]
     [Route("count")]
     public async Task<IActionResult> GetCount()
     {

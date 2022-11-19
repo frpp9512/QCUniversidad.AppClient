@@ -11,7 +11,7 @@ using QCUniversidad.WebClient.Services.Extensions;
 
 namespace QCUniversidad.WebClient.Controllers;
 
-[Authorize(Roles = "Administrador")]
+[Authorize("Auth")]
 public class TeachersController : Controller
 {
     private readonly IDataProvider _dataProvider;
@@ -29,6 +29,7 @@ public class TeachersController : Controller
         _navigationSettings = navOptions.Value;
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> IndexAsync(int page = 0)
     {
@@ -65,6 +66,7 @@ public class TeachersController : Controller
         }
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> DetailsAsync(Guid id, string returnTo = "/")
@@ -84,6 +86,7 @@ public class TeachersController : Controller
         }
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> ImportAsync()
     {
@@ -92,6 +95,7 @@ public class TeachersController : Controller
         return View();
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ImportAsync(IFormFile formFile, Guid selectedDepartment)
@@ -110,7 +114,7 @@ public class TeachersController : Controller
             try
             {
                 newTeacher.DepartmentId = selectedDepartment;
-                await _dataProvider.CreateTeacherAsync(newTeacher);
+                _ = await _dataProvider.CreateTeacherAsync(newTeacher);
                 created++;
             }
             catch
@@ -129,7 +133,7 @@ public class TeachersController : Controller
                 teacher.Category = teacherToUpdate.Category;
                 teacher.Email = teacherToUpdate.Email;
                 teacher.ContractType = teacherToUpdate.ContractType;
-                await _dataProvider.UpdateTeacherAsync(teacher);
+                _ = await _dataProvider.UpdateTeacherAsync(teacher);
             }
             catch
             {
@@ -140,6 +144,7 @@ public class TeachersController : Controller
         return RedirectToAction("Index");
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     public async Task<IActionResult> ImportFilePreviewAsync(IFormFile formFile)
     {
@@ -179,6 +184,7 @@ public class TeachersController : Controller
         return File(templateBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "QCU Plantilla para importar profesores.xlsx");
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> CreateAsync()
     {
@@ -201,6 +207,7 @@ public class TeachersController : Controller
         model.Disciplines = disciplines;
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateAsync(CreateTeacherModel model)
@@ -264,10 +271,11 @@ public class TeachersController : Controller
     }
 
     private bool ValidatePersonalId(string personalId) => (personalId.Length == 11)
-            && personalId.Any(c => char.IsNumber(c))
+            && personalId.Any(char.IsNumber)
             && (int.Parse(personalId.Substring(2, 2)) <= 12)
             && (int.Parse(personalId.Substring(4, 2)) <= 31);
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> EditAsync(Guid id)
     {
@@ -285,6 +293,7 @@ public class TeachersController : Controller
         return RedirectToAction("Error", "Home");
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditAsync(TeacherModel model)
@@ -339,6 +348,7 @@ public class TeachersController : Controller
         model.Disciplines = disciplines;
     }
 
+    [Authorize("Admin")]
     [HttpDelete]
     public async Task<IActionResult> Delete(Guid id)
     {

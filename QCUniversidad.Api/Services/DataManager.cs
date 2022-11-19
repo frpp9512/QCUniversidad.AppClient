@@ -65,8 +65,8 @@ public class DataManager : IDataManager
     {
         var faculties =
             (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
-            ? await _context.Faculties.Skip(from).Take(to).ToListAsync()
-            : await _context.Faculties.ToListAsync();
+            ? await _context.Faculties.OrderBy(f => f.Name).Skip(from).Take(to).ToListAsync()
+            : await _context.Faculties.OrderBy(f => f.Name).ToListAsync();
         return faculties;
     }
 
@@ -138,8 +138,8 @@ public class DataManager : IDataManager
     public async Task<IList<DepartmentModel>> GetDepartmentsAsync(int from, int to)
     {
         var deparments = !(from == 0 && to == from)
-                         ? await _context.Departments.Skip(from).Take(to).Include(d => d.Faculty).ToListAsync()
-                         : await _context.Departments.Include(d => d.Faculty).ToListAsync();
+                         ? await _context.Departments.OrderBy(d => d.Name).Skip(from).Take(to).Include(d => d.Faculty).ToListAsync()
+                         : await _context.Departments.OrderBy(d => d.Name).Include(d => d.Faculty).ToListAsync();
         return deparments;
     }
 
@@ -157,8 +157,19 @@ public class DataManager : IDataManager
 
     public async Task<IList<DepartmentModel>> GetDepartmentsAsync(Guid facultyId)
     {
-        var deparments = await _context.Departments.Where(d => d.FacultyId == facultyId).ToListAsync();
-        return deparments;
+        try
+        {
+            if (await ExistFacultyAsync(facultyId))
+            {
+                var deparments = await _context.Departments.Where(d => d.FacultyId == facultyId).OrderBy(d => d.Name).ToListAsync();
+                return deparments;
+            }
+            throw new FacultyNotFoundException();
+        }
+        catch
+        {
+            throw;
+        }
     }
 
     public async Task<int> GetDepartmentsCountAsync()
@@ -444,6 +455,21 @@ public class DataManager : IDataManager
         throw new ArgumentNullException(nameof(facultyId));
     }
 
+    public async Task<IList<CareerModel>> GetCareersForDepartmentAsync(Guid departmentId)
+    {
+        if (departmentId != Guid.Empty)
+        {
+            var query = from career in _context.Careers
+                        join departmentCareer in _context.DepartmentsCareers
+                        on career.Id equals departmentCareer.CareerId
+                        where departmentCareer.DepartmentId == departmentId
+                        select career;
+            var result = await query.Include(c => c.Faculty).ToListAsync();
+            return result;
+        }
+        throw new ArgumentNullException(nameof(departmentId));
+    }
+
     public async Task<CareerModel> GetCareerAsync(Guid careerId)
     {
         if (careerId != Guid.Empty)
@@ -545,6 +571,17 @@ public class DataManager : IDataManager
             (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
             ? await _context.Disciplines.Skip(from).Take(to).Include(d => d.Department).ToListAsync()
             : await _context.Disciplines.Include(d => d.Department).ToListAsync();
+        return result;
+    }
+
+    public async Task<IList<DisciplineModel>> GetDisciplinesAsync(Guid departmentId)
+    {
+        if (!await ExistDepartmentAsync(departmentId))
+        {
+            throw new DepartmentNotFoundException();
+        }
+
+        var result = await _context.Disciplines.Where(d => d.DepartmentId == departmentId).ToListAsync();
         return result;
     }
 

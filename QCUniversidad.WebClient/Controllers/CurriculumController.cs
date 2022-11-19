@@ -11,7 +11,7 @@ using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
 
-[Authorize(Roles = "Administrador")]
+[Authorize("Auth")]
 public class CurriculumsController : Controller
 {
     private readonly IDataProvider _dataProvider;
@@ -27,6 +27,7 @@ public class CurriculumsController : Controller
         _navigationSettings = navOptions.Value;
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> IndexAsync(int page = 0)
     {
@@ -66,6 +67,7 @@ public class CurriculumsController : Controller
     [HttpGet]
     public async Task<IActionResult> DetailsAsync(Guid id) => await Task.FromResult(View());
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> CreateAsync()
     {
@@ -93,6 +95,7 @@ public class CurriculumsController : Controller
         model.Disciplines = disciplines;
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateAsync(CreateCurriculumModel model)
@@ -137,6 +140,7 @@ public class CurriculumsController : Controller
         return true;
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> EditAsync(Guid id)
     {
@@ -154,6 +158,7 @@ public class CurriculumsController : Controller
         return RedirectToAction("Error", "Home");
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditAsync(CurriculumModel model)
@@ -200,6 +205,7 @@ public class CurriculumsController : Controller
         model.CurriculumDisciplines = disciplines;
     }
 
+    [Authorize("Admin")]
     [HttpDelete]
     public async Task<IActionResult> Delete(Guid id)
     {

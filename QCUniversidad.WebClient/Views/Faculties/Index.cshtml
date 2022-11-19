@@ -88,7 +88,10 @@
                             @Html.DisplayFor(modelItem => item.CareersCount)
                         </td>
                         <td>
-                            <a asp-action="Edit" asp-controller="Faculties" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">
+                                <span class="fa fa-info-circle"></span>
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
                                 <span class="fa fa-edit" />
                             </a>
                             <button class="btn btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">

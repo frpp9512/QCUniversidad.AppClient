@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.Api.Shared.Extensions;
@@ -30,6 +31,25 @@ builder.Services.AddAuthentication(Constants.AUTH_SCHEME)
                     options.AccessDeniedPath = "/accounts/accessdenied";
                     options.ReturnUrlParameter = "returnUrl";
                 });
+
+builder.Services.AddAuthorization(config => 
+{
+    var authPolicyBuilder = new AuthorizationPolicyBuilder();
+    authPolicyBuilder.RequireAuthenticatedUser();
+    config.AddPolicy("Auth", authPolicyBuilder.Build());
+
+    var adminPolicyBuilder = new AuthorizationPolicyBuilder();
+    adminPolicyBuilder.RequireAuthenticatedUser().RequireRole("Administrador");
+    config.AddPolicy("Admin", adminPolicyBuilder.Build());
+
+    var plannerPolicyBuilder = new AuthorizationPolicyBuilder();
+    plannerPolicyBuilder.RequireAuthenticatedUser().RequireRole("Administrador", "Planificador");
+    config.AddPolicy("Planner", plannerPolicyBuilder.Build());
+
+    var distributorPolicyBuilder = new AuthorizationPolicyBuilder();
+    distributorPolicyBuilder.RequireAuthenticatedUser().RequireRole("Administrador", "Jefe de departamento");
+    config.AddPolicy("Distributor", distributorPolicyBuilder.Build());
+});
 
 //builder.Services.AddDbContext<WebDataContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddDbContext<WebDataContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSql")));

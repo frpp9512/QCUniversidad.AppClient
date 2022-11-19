@@ -11,7 +11,7 @@ using System.Diagnostics;
 
 namespace QCUniversidad.WebClient.Controllers;
 
-[Authorize]
+[Authorize("Auth")]
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;

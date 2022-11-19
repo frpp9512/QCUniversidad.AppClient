@@ -6,11 +6,10 @@ using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Services.Data;
-using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
 
-[Authorize(Roles = "Administrador")]
+[Authorize("Auth")]
 public class DepartmentsController : Controller
 {
     private readonly IDataProvider _dataProvider;
@@ -24,6 +23,7 @@ public class DepartmentsController : Controller
         _navigationSettings = navSettingsOptions.Value;
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> IndexAsync(int page = 1)
     {
@@ -54,12 +54,86 @@ public class DepartmentsController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> DetailsAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+        try
+        {
+            var department = await _dataProvider.GetDepartmentAsync(id);
+            var schoolYear = await _dataProvider.GetCurrentSchoolYear();
+            ViewData["schoolYear"] = schoolYear;
+            return View(department);
+        }
+        catch (Exception)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> DepartmentDisciplinesAsync(Guid departmentId)
+    {
+        if (departmentId == Guid.Empty)
+        {
+            return BadRequest();
+        }
+        try
+        {
+            var disciplines = await _dataProvider.GetDisciplinesAsync(departmentId);
+            return PartialView("_DepartmentDisciplines", disciplines);
+        }
+        catch (Exception ex)
+        {
+            return Problem(detail: ex.Message);
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> DepartmentTeachersAsync(Guid departmentId)
+    {
+        if (departmentId == Guid.Empty)
+        {
+            return BadRequest();
+        }
+        try
+        {
+            var teachers = await _dataProvider.GetTeachersOfDepartmentAsync(departmentId);
+            return PartialView("_DepartmentTeachers", teachers);
+        }
+        catch (Exception ex)
+        {
+            return Problem(detail: ex.Message);
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> DepartmentCareersAsync(Guid departmentId)
+    {
+        if (departmentId == Guid.Empty)
+        {
+            return BadRequest();
+        }
+
+        try
+        {
+            var careers = await _dataProvider.GetCareersForDepartmentAsync(departmentId);
+            return PartialView("_DepartmentCareers", careers);
+        }
+        catch (Exception ex) { return Problem(detail: ex.Message); }
+    }
+
+    [Authorize("Admin")]
+    [HttpGet]
     public async Task<IActionResult> LoadViewAsync()
     {
         var schoolYears = await _dataProvider.GetSchoolYearsAsync();
         return View(schoolYears);
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> GetPeriodOptionsAsync(Guid schoolYearId)
     {
@@ -67,6 +141,7 @@ public class DepartmentsController : Controller
         return PartialView("_PeriodOptions", result);
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> GetDepartmentsLoadViewAsync(Guid periodId)
     {
@@ -74,6 +149,7 @@ public class DepartmentsController : Controller
         return PartialView("_DepartmentsLoadView", departments);
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> CreateAsync()
     {
@@ -95,6 +171,7 @@ public class DepartmentsController : Controller
         model.Faculties = faculties;
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> GetCareerSelectForFacultyAsync(Guid facultyId)
     {
@@ -106,6 +183,7 @@ public class DepartmentsController : Controller
         return PartialView("_CareersSelect", careers);
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     public async Task<IActionResult> CreateAsync(CreateDepartmentModel model)
     {
@@ -133,6 +211,7 @@ public class DepartmentsController : Controller
         return View(model);
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> EditAsync(Guid id)
     {
@@ -149,6 +228,7 @@ public class DepartmentsController : Controller
         }
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditAsync(EditDepartmentModel model)
@@ -174,6 +254,7 @@ public class DepartmentsController : Controller
         return View(model);
     }
 
+    [Authorize("Admin")]
     [HttpDelete]
     public async Task<IActionResult> DeleteAsync(Guid id)
     {

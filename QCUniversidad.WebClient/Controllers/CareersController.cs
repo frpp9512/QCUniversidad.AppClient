@@ -11,7 +11,7 @@ using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
 
-[Authorize(Roles = "Administrador")]
+[Authorize("Auth")]
 public class CareersController : Controller
 {
     private readonly IDataProvider _dataProvider;
@@ -27,6 +27,7 @@ public class CareersController : Controller
         _navigationSettings = settings.Value;
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> IndexAsync(int page = 0)
     {
@@ -60,6 +61,7 @@ public class CareersController : Controller
     [HttpGet]
     public async Task<IActionResult> DetailsAsync(Guid id) => await Task.FromResult(View());
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> CreateAsync()
     {
@@ -83,6 +85,7 @@ public class CareersController : Controller
         model.Faculties = faculties;
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     public async Task<IActionResult> CreateAsync(CreateCareerModel model)
     {
@@ -116,6 +119,7 @@ public class CareersController : Controller
         return View(model);
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> EditAsync(Guid id)
     {
@@ -133,6 +137,7 @@ public class CareersController : Controller
         }
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditAsync(EditCareerModel model)
@@ -164,6 +169,7 @@ public class CareersController : Controller
         return View(model);
     }
 
+    [Authorize("Admin")]
     [HttpDelete]
     public async Task<IActionResult> DeleteAsync(Guid id)
     {

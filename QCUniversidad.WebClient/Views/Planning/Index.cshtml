@@ -37,6 +37,7 @@
 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
     <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start">
         <div class="d-flex flex-column">
+
             <div class="banner-title">Planificación</div>
             <div class="banner-subtitle">de las cargas docentes de la facultad de <a asp-action="Details" asp-controller="Faculties" asp-route-id="@Model.Faculty.Id" class="link-muted">@Model.Faculty.Name <small><span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Facultad</small></div> <div><b>@Model.Faculty.Name</b></div> <div>@Model.Faculty.Campus</div>"></span></small></a></div>
         </div>
@@ -46,7 +47,7 @@
             Año escolar
         </div>
         <div class="index-schoolyearname">
-            @Model.SchoolYear.Name
+            @Model.SchoolYear?.Name
         </div>
         @if (!string.IsNullOrEmpty(Model.SchoolYear.Description))
         {
@@ -60,9 +61,16 @@
 <div class="options-selector mb-4" id="careerSelector">
     <div class="options-selector-label"><span class="fa fa-graduation-cap"></span> Carrera</div>
     <div class="options-selector-options">
-        @foreach (var career in Model.Careers)
+        @if (Model.Careers.Any() == true)
         {
-            <div class="option-selector" value="@career.Id" @(Model.CareerSelected is null ? (Model.Careers.First().Id == career.Id ? "selected" : "") : Model.CareerSelected == career.Id ? "selected" : "")>@career.Name</div>
+            foreach (var career in Model.Careers)
+            {
+                <div class="option-selector" value="@career.Id" @(Model.CareerSelected is null ? (Model.Careers.First().Id == career.Id ? "selected" : "") : Model.CareerSelected == career.Id ? "selected" : "")>@career.Name</div>
+            }
+        }
+        else
+        {
+            <span class="text-muted"><i>No existen carreras en la facultad.</i></span>
         }
     </div>
 </div>
@@ -697,7 +705,7 @@
                     }
                     requestingDelete = false;
                     HideCreatePeriodSubjectModalButtons();
-                   // HideCreateModalSpinner();
+                    // HideCreateModalSpinner();
                 };
                 xhttp.send();
             }

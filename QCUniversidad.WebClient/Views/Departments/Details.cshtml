@@ -1,0 +1,169 @@
+﻿@model DepartmentModel
+
+@{
+    ViewData["Title"] = $"Detalles de {Model.Name}";
+    var schoolYear = ViewData["schoolYear"] as SchoolYearModel;
+}
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start">
+        <div class="d-flex flex-column">
+            <div class="banner-title">Detalles</div>
+            <div class="banner-subtitle">del departamento de la facultad de <a asp-action="Details" asp-controller="Faculties" asp-route-id="@Model.FacultyId">@Model.Faculty?.Name</a></div>
+        </div>
+    </div>
+    <div class="d-flex flex-column align-items-center schoolyear-header">
+        <div class="index-schoolyearheader">
+            Año escolar
+        </div>
+        <div class="index-schoolyearname">
+            @schoolYear?.Name
+        </div>
+        @if (!string.IsNullOrEmpty(schoolYear?.Description))
+        {
+            <div class="index-schoolyeardesc">
+                @schoolYear.Description
+            </div>
+        }
+    </div>
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Nombre</dt>
+    <dd class="col-sm-9">@Model.Name</dd>
+
+    <dt class="col-sm-3">Descripción</dt>
+    <dd class="col-sm-9">
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            @Model.Description
+        }
+        else
+        {
+            <span class="text-muted"><i>No tiene descripción</i></span>
+        }
+    </dd>
+    <dt class="col-sm-3">Identificador interno</dt>
+    <dd class="col-sm-9">@Model.InternalId</dd>
+</dl>
+
+<ul class="nav nav-tabs" id="teacherDetails" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#careers" type="button" role="tab" aria-controls="careers" aria-selected="true"><span class="fa fa-graduation-cap"></span> Carreras</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#teachers" type="button" role="tab" aria-controls="teachers" aria-selected="false"><span class="fa fa-person-chalkboard"></span> Profesores</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#disciplines" type="button" role="tab" aria-controls="disciplines" aria-selected="false"><span class="fa fa-cubes-stacked"></span> Disciplinas</button>
+    </li>
+</ul>
+<div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade show active" id="careers" role="tabpanel" aria-labelledby="home-tab">
+        <div class="text-center m-5">
+            <div class="spinner-grow text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Cargando carreras...</p>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="teachers" role="tabpanel" aria-labelledby="profile-tab">
+        <div class="text-center m-5">
+            <div class="spinner-grow text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Cargando profesores...</p>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="disciplines" role="tabpanel" aria-labelledby="contact-tab">
+        <div class="text-center m-5">
+            <div class="spinner-grow text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Cargando disciplinas...</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/datatables/datatables.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            LoadCareers();
+            LoadTeachers();
+            LoadDisciplines();
+        });
+
+        function LoadCareers() {
+            $.ajax({
+                url: `/departments/DepartmentCareers?departmentId=@Html.Raw($"{Model.Id}")`,
+                type: "GET",
+                success: function (data) {
+                    const careersDiv = document.getElementById("careers");
+                    careersDiv.innerHTML = data;
+                    $('#careers-table').DataTable({
+                        responsive: true,
+                        language: {
+                            url: '/lib/datatables/lang/datatables.spanish.json'
+                        },
+                        dom: 'Bfrtip',
+                        buttons: [
+                            'copyHtml5', 'excelHtml5', 'pdfHtml5'
+                        ]
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function LoadTeachers() {
+            $.ajax({
+                url: `/departments/DepartmentTeachers?departmentId=@Html.Raw($"{Model.Id}")`,
+                type: "GET",
+                success: function (data) {
+                    const teachersDiv = document.getElementById("teachers");
+                    teachersDiv.innerHTML = data;
+                    $('#teachers-table').DataTable({
+                        responsive: true,
+                        language: {
+                            url: '/lib/datatables/lang/datatables.spanish.json'
+                        },
+                        dom: 'Bfrtip',
+                        buttons: [
+                            'copyHtml5', 'excelHtml5', 'pdfHtml5'
+                        ]
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function LoadDisciplines() {
+            $.ajax({
+                url: `/departments/DepartmentDisciplines?departmentId=@Html.Raw($"{Model.Id}")`,
+                type: "GET",
+                success: function (data) {
+                    const disciplinesDiv = document.getElementById("disciplines");
+                    disciplinesDiv.innerHTML = data;
+                    $('#disciplines-table').DataTable({
+                        responsive: true,
+                        language: {
+                            url: '/lib/datatables/lang/datatables.spanish.json'
+                        },
+                        dom: 'Bfrtip',
+                        buttons: [
+                            'copyHtml5', 'excelHtml5', 'pdfHtml5'
+                        ]
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+    </script>
+}

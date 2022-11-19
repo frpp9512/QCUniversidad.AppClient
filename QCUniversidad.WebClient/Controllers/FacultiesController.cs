@@ -8,7 +8,7 @@ using QCUniversidad.WebClient.Services.Data;
 
 namespace QCUniversidad.WebClient.Controllers;
 
-[Authorize(Roles = "Administrador")]
+[Authorize("Auth")]
 public class FacultiesController : Controller
 {
     private readonly IDataProvider _dataProvider;
@@ -20,6 +20,7 @@ public class FacultiesController : Controller
         _navigationSettings = navSettingsOptions.Value;
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> IndexAsync(int page = 1)
     {
@@ -43,8 +44,61 @@ public class FacultiesController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> DetailsAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+
+        var faculty = await _dataProvider.GetFacultyAsync(id);
+        var schoolYear = await _dataProvider.GetCurrentSchoolYear();
+        ViewData["schoolYear"] = schoolYear;
+
+        return View(faculty);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> FacultyCareersAsync(Guid facultyId)
+    {
+        if (facultyId == Guid.Empty)
+        {
+            return BadRequest();
+        }
+        try
+        {
+            var careers = await _dataProvider.GetCareersAsync(facultyId);
+            return PartialView("_FacultyCareers", careers);
+        }
+        catch (Exception ex)
+        {
+            return Problem(detail: ex.Message);
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> FacultyDepartmentsAsync(Guid facultyId)
+    {
+        if (facultyId == Guid.Empty)
+        {
+            return BadRequest();
+        }
+        try
+        {
+            var departments = await _dataProvider.GetDepartmentsAsync(facultyId);
+            return PartialView("_FacultyDepartments", departments);
+        }
+        catch (Exception ex)
+        {
+            return Problem(detail: ex.Message);
+        }
+    }
+
+    [Authorize("Admin")]
+    [HttpGet]
     public IActionResult Create() => View();
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateAsync(FacultyModel model)
@@ -65,6 +119,7 @@ public class FacultiesController : Controller
         return View(model);
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> EditAsync(Guid id)
     {
@@ -79,6 +134,7 @@ public class FacultiesController : Controller
         }
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditAsync(FacultyModel model)
@@ -103,6 +159,7 @@ public class FacultiesController : Controller
         return View(model);
     }
 
+    [Authorize("Admin")]
     [HttpDelete]
     public async Task<IActionResult> Delete(Guid id)
     {

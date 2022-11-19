@@ -14,7 +14,7 @@ using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
 
-[Authorize(Roles = "Administrador")]
+[Authorize("Auth")]
 public class CoursesController : Controller
 {
     private readonly IDataProvider _dataProvider;
@@ -30,6 +30,7 @@ public class CoursesController : Controller
         _navigationSettings = navOptions.Value;
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> IndexAsync(int page = 0)
     {
@@ -80,6 +81,7 @@ public class CoursesController : Controller
         return RedirectToAction("Error", "Home");
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> CreateAsync()
     {
@@ -99,6 +101,7 @@ public class CoursesController : Controller
         viewmodel.Careers = careers;
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateAsync(CreateCourseModel model)
@@ -130,6 +133,7 @@ public class CoursesController : Controller
         return View(model);
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> EditAsync(Guid id)
     {
@@ -152,6 +156,7 @@ public class CoursesController : Controller
         viewmodel.Curricula = curriculums;
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> GetCurriculumOptionsForCareerAsync(Guid careerId)
     {
@@ -166,6 +171,7 @@ public class CoursesController : Controller
         }
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditAsync(EditCourseModel model)
@@ -211,6 +217,7 @@ public class CoursesController : Controller
         return View(model);
     }
 
+    [Authorize("Admin")]
     [HttpDelete]
     public async Task<IActionResult> DeleteAsync(Guid id)
     {
@@ -230,6 +237,7 @@ public class CoursesController : Controller
         return NotFound(id);
     }
 
+    [Authorize("Admin")]
     [HttpPut]
     public async Task<IActionResult> CreatePeriodAsync([FromBody] CreatePeriodModel model)
     {
@@ -258,6 +266,7 @@ public class CoursesController : Controller
         }
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> GetPeriodAsync(Guid id)
     {
@@ -265,6 +274,7 @@ public class CoursesController : Controller
         return Ok(JsonConvert.SerializeObject(result));
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     public async Task<IActionResult> UpdatePeriodAsync(PeriodModel model)
     {
@@ -297,6 +307,7 @@ public class CoursesController : Controller
         }
     }
 
+    [Authorize("Admin")]
     [HttpDelete]
     public async Task<IActionResult> DeletePeriodAsync(Guid id)
     {

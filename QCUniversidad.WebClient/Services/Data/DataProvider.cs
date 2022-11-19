@@ -327,6 +327,24 @@ public class DataProvider : IDataProvider
         throw new ArgumentNullException(nameof(facultyId));
     }
 
+    public async Task<IList<CareerModel>> GetCareersForDepartmentAsync(Guid departmentId)
+    {
+        if (departmentId != Guid.Empty)
+        {
+            var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+            var response = await client.GetAsync($"/career/listfordepartment?departmentId={departmentId}");
+            if (response.IsSuccessStatusCode)
+            {
+                var contentText = await response.Content.ReadAsStringAsync();
+                var dtos = JsonConvert.DeserializeObject<List<CareerDto>>(contentText);
+                var models = dtos.Select(dto => _mapper.Map<CareerModel>(dto)).ToList();
+                return models;
+            }
+            throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+        }
+        throw new ArgumentNullException(nameof(departmentId));
+    }
+
     public async Task<int> GetCareersCountAsync()
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
@@ -418,6 +436,19 @@ public class DataProvider : IDataProvider
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
         var response = await client.GetAsync($"/discipline/list?from={from}&to={to}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var disciplines = JsonConvert.DeserializeObject<IList<PopulatedDisciplineDto>>(contentText);
+            return disciplines?.Select(f => _mapper.Map<DisciplineModel>(f)).ToList() ?? new List<DisciplineModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    public async Task<IList<DisciplineModel>> GetDisciplinesAsync(Guid departmentId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/discipline/listofdepartment?departmentId={departmentId}");
         if (response.IsSuccessStatusCode)
         {
             var contentText = await response.Content.ReadAsStringAsync();

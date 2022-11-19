@@ -121,8 +121,8 @@ public class AccountsController : Controller
 
     #region Management
 
+    [Authorize("Admin")]
     [HttpGet]
-    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> IndexAsync(int page = 1, int usersPerPage = 5, bool includeInactive = true)
     {
         RemoveTempDirectory();
@@ -138,7 +138,7 @@ public class AccountsController : Controller
         }
 
         var users = await _repository.GetUsersAsync(indexes.Item1, indexes.Item2, true);
-        var vmUsers = users.Select(u => _mapper.Map<UserViewModel>(u)).ToList();
+        var vmUsers = users.Select(_mapper.Map<UserViewModel>).ToList();
         foreach (var user in vmUsers)
         {
             if (user.ProfilePicture is not null)
@@ -174,8 +174,8 @@ public class AccountsController : Controller
         return View(vm);
     }
 
+    [Authorize("Admin")]
     [HttpGet]
-    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> CreateAsync()
     {
         RemoveTempDirectory();
@@ -205,6 +205,7 @@ public class AccountsController : Controller
         return faculties;
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> GetDepartmentSelect()
     {
@@ -212,6 +213,7 @@ public class AccountsController : Controller
         return PartialView("_DepartmentSelect", departments);
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> GetFacultySelect()
     {
@@ -219,9 +221,9 @@ public class AccountsController : Controller
         return PartialView("_FacultySelect", faculties);
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> CreateAsync(CreateUserViewModel viewModel)
     {
         if (ModelState.IsValid)
@@ -345,14 +347,9 @@ public class AccountsController : Controller
         {
             if (User.Identity.IsAuthenticated)
             {
-                if (System.IO.File.Exists(_profilePictureFileName))
-                {
-                    pictureBytes = System.IO.File.ReadAllBytes(_profilePictureFileName);
-                }
-                else
-                {
-                    pictureBytes = System.IO.File.ReadAllBytes(_profileDefaultPath);
-                }
+                pictureBytes = System.IO.File.Exists(_profilePictureFileName)
+                    ? System.IO.File.ReadAllBytes(_profilePictureFileName)
+                    : System.IO.File.ReadAllBytes(_profileDefaultPath);
             }
             else
             {
@@ -375,8 +372,8 @@ public class AccountsController : Controller
         };
     }
 
+    [Authorize("Admin")]
     [HttpGet]
-    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> EditAsync(string id)
     {
         RemoveTempDirectory();
@@ -396,9 +393,9 @@ public class AccountsController : Controller
         return View(vm);
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> EditAsync(EditUserViewModel viewModel)
     {
         if (ModelState.IsValid)
@@ -485,8 +482,8 @@ public class AccountsController : Controller
         return View();
     }
 
+    [Authorize("Admin")]
     [HttpPost]
-    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Activate(string id)
     {
         var user = await _repository.GetUserAsync(new Guid(id));
@@ -512,8 +509,8 @@ public class AccountsController : Controller
         return Ok($"El usuario {user.Fullname} ha sido desactivado satisfactoriamente.");
     }
 
+    [Authorize("Admin")]
     [HttpDelete]
-    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Delete(string id)
     {
         var user = await _repository.GetUserAsync(new Guid(id));

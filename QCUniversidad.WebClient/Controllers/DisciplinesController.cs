@@ -13,7 +13,7 @@ using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
 
-[Authorize(Roles = "Administrador")]
+[Authorize("Auth")]
 public class DisciplinesController : Controller
 {
     private readonly IDataProvider _dataProvider;
@@ -34,7 +34,8 @@ public class DisciplinesController : Controller
         _excelParser = excelParser;
         _navigationSettings = navSettings.Value;
     }
-
+    [Authorize("Admin")]
+    [HttpGet]
     public async Task<IActionResult> IndexAsync(int page = 1)
     {
         _logger.LogRequest(HttpContext);
@@ -70,6 +71,7 @@ public class DisciplinesController : Controller
         }
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> ImportAsync()
     {
@@ -78,6 +80,7 @@ public class DisciplinesController : Controller
         return View();
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ImportAsync(IFormFile formFile, Guid selectedDepartment)
@@ -121,6 +124,7 @@ public class DisciplinesController : Controller
         return RedirectToAction("Index");
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     public async Task<IActionResult> ImportFilePreviewAsync(IFormFile formFile)
     {
@@ -151,6 +155,7 @@ public class DisciplinesController : Controller
         return File(templateBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "QCU Plantilla para importar disciplinas.xlsx");
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> CreateAsync()
     {
@@ -169,6 +174,7 @@ public class DisciplinesController : Controller
         }
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateAsync(CreateDisciplineModel model)
@@ -208,6 +214,7 @@ public class DisciplinesController : Controller
         viewModel.Departments = departments;
     }
 
+    [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> EditAsync(Guid id)
     {
@@ -228,6 +235,7 @@ public class DisciplinesController : Controller
         }
     }
 
+    [Authorize("Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditAsync(EditDisciplineModel model)
@@ -259,6 +267,7 @@ public class DisciplinesController : Controller
         return View(model);
     }
 
+    [Authorize("Admin")]
     [HttpDelete]
     public async Task<IActionResult> DeleteAsync(Guid id)
     {

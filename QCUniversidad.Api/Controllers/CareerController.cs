@@ -95,6 +95,30 @@ public class CareerController : ControllerBase
     }
 
     [HttpGet]
+    [Route("listfordepartment")]
+    public async Task<IActionResult> GetCareersForDepartmentAsync(Guid departmentId)
+    {
+        if (departmentId != Guid.Empty)
+        {
+            try
+            {
+                var careers = await _dataManager.GetCareersForDepartmentAsync(departmentId);
+                var dtos = careers.Select(_mapper.Map<CareerDto>).ToList();
+                return Ok(dtos);
+            }
+            catch (DepartmentNotFoundException)
+            {
+                return NotFound($"The department with the id {departmentId} was not found.");
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
+        return BadRequest("You must provide a department id.");
+    }
+
+    [HttpGet]
     [Route("exists")]
     public async Task<IActionResult> ExistsAsync(Guid id)
     {
