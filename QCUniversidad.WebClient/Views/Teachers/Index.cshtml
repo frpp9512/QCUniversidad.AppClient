@@ -93,6 +93,10 @@
                         </td>
                         <td>
                             @Html.DisplayFor(m => item.ContractType)
+                            @if (item.ContractType != QCUniversidad.Api.Shared.Enums.TeacherContractType.FullTime)
+                            {
+                                <span>(@(item.SpecificTimeFund)h)</span>
+                            }
                         </td>
                         <td>
                             <a asp-action="Details" asp-controller="Departments" asp-route-id="@item.DepartmentId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Departamento</div></small><div><b>@item.Department?.Name</b></div><div><i>@item.Department?.Description</i></div><div><b>@item.Department?.InternalId</b></div>">

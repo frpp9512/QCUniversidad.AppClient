@@ -24,6 +24,6 @@ public enum TeacherContractType
     /// <summary>
     /// An assistant teacher
     /// </summary>
-    [Display(Name = "Asistente", Description = "Profesor asistente", Prompt = "Profesor asistente")]
-    Assistant
+    [Display(Name = "Colaborador", Description = "Profesor colaborador", Prompt = "Profesor colaborador")]
+    Collaborator
 }

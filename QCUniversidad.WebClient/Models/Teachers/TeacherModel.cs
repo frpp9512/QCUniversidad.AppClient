@@ -33,6 +33,9 @@ public class TeacherModel
     [Display(Name = "Tipo de contrato", Prompt = "Tipo de contrato", Description = "Tipo de contrato por el cual esta vinculado el profesor al departamento.")]
     public TeacherContractType ContractType { get; set; }
 
+    [Display(Name = "Fondo de tiempo específico (h/mes)", Prompt = "Fondo de tiempo de específico (h/mes)", Description = "Fondo de tiempo por el cuál será determinada la capacidad del profesor en cambio a la del período.")]
+    public double SpecificTimeFund { get; set; }
+
     [Display(Name = "Correo electrónico", Prompt = "Correo electrónico", Description = "Dirección de correo electrónico del profesor.")]
     [DataType(DataType.EmailAddress, ErrorMessage = "Escriba correctamente la dirección electrónica.")]
     public string? Email { get; set; }

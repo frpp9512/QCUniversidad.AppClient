@@ -296,6 +296,7 @@ public class LoadDistributionController : Controller
         try
         {
             var depTeachers = await _dataProvider.GetTeachersOfDepartmentForPeriodWithLoadItemsAsync(workingDepartment, periodId);
+            depTeachers = depTeachers.OrderBy(t => t.ContractType).ThenByDescending(t => t.SpecificTimeFund).ToList();
             var data = new List<(TeacherModel teacher, double directLoad, double indirectLoad)>();
             foreach (var teacher in depTeachers)
             {
@@ -323,15 +324,15 @@ public class LoadDistributionController : Controller
 
             var chartData = new ChartData
             {
-                Labels = data.Select(dataItem => dataItem.teacher.FirstName).ToArray(),
+                Labels = data.Select(dataItem => $"{dataItem.teacher.FirstName} {(dataItem.teacher.ContractType != TeacherContractType.FullTime ? $"({dataItem.teacher.ContractType.GetEnumDisplayNameValue()} [{dataItem.teacher.SpecificTimeFund}h/mes])" : "")}").ToArray(),
                 DataSets = new ChartDataEntry[] { dataSet2, dataSet1 }
             };
 
             var chartModel = new ChartModel
             {
-                Title = "Distribución de cargas",
+                Title = "Distribución de tiempo",
                 ShowTitle = true,
-                Subtitle = "Vista comparativa de las cargas de los profesores del departamento",
+                Subtitle = "Vista comparativa de los tiempos de carga de los profesores del departamento",
                 ShowSubtitle = true,
                 ElementId = "load-distribution-chart",
                 LegendPosition = ChartLegendPosition.Bottom,

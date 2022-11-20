@@ -229,19 +229,19 @@ public class TeacherController : ControllerBase
         try
         {
             var result = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
-            var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
             var dtos = new List<TeacherDto>();
             foreach (var teacher in result)
             {
                 var dto = _mapper.Map<TeacherDto>(teacher);
+                var teacherTimeFund = await _dataManager.GetTeacherTimeFund(dto.Id, periodId);
                 var load = await _dataManager.GetTeacherLoadInPeriodAsync(teacher.Id, periodId);
-                var loadPercent = Math.Round(load / periodTimeFund * 100, 2);
+                var loadPercent = Math.Round(load / teacherTimeFund * 100, 2);
                 var loadDto = new TeacherLoadDto
                 {
                     TeacherId = teacher.Id,
-                    TimeFund = periodTimeFund,
+                    TimeFund = teacherTimeFund,
                     Load = load,
-                    LoadPercent = Math.Round(load / periodTimeFund * 100, 2),
+                    LoadPercent = Math.Round(load / teacherTimeFund * 100, 2),
                     Status = loadPercent switch
                     {
                         double p when p < 80 => TeacherLoadStatus.Underutilized,
@@ -281,19 +281,19 @@ public class TeacherController : ControllerBase
         try
         {
             var result = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
-            var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
             var dtos = new List<TeacherDto>();
             foreach (var teacher in result)
             {
                 var dto = _mapper.Map<TeacherDto>(teacher);
+                var teacherTimeFund = await _dataManager.GetTeacherTimeFund(dto.Id, periodId);
                 var load = await _dataManager.GetTeacherLoadInPeriodAsync(teacher.Id, periodId);
-                var loadPercent = Math.Round(load / periodTimeFund * 100, 2);
+                var loadPercent = Math.Round(load / teacherTimeFund * 100, 2);
                 var loadDto = new TeacherLoadDto
                 {
                     TeacherId = teacher.Id,
-                    TimeFund = periodTimeFund,
+                    TimeFund = teacherTimeFund,
                     Load = load,
-                    LoadPercent = Math.Round(load / periodTimeFund * 100, 2),
+                    LoadPercent = Math.Round(load / teacherTimeFund * 100, 2),
                     Status = loadPercent switch
                     {
                         double p when p < 80 => TeacherLoadStatus.Underutilized,
@@ -331,15 +331,15 @@ public class TeacherController : ControllerBase
         {
             var teacher = await _dataManager.GetTeacherAsync(id);
             var dto = _mapper.Map<TeacherDto>(teacher);
-            var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
+            var teacherTimeFund = await _dataManager.GetTeacherTimeFund(dto.Id, periodId);
             var load = await _dataManager.GetTeacherLoadInPeriodAsync(teacher.Id, periodId);
-            var loadPercent = Math.Round(load / periodTimeFund * 100, 2);
+            var loadPercent = Math.Round(load / teacherTimeFund * 100, 2);
             dto.Load = new TeacherLoadDto
             {
                 TeacherId = teacher.Id,
-                TimeFund = periodTimeFund,
+                TimeFund = teacherTimeFund,
                 Load = load,
-                LoadPercent = Math.Round(load / periodTimeFund * 100, 2),
+                LoadPercent = Math.Round(load / teacherTimeFund * 100, 2),
                 Status = loadPercent switch
                 {
                     double p when p < 80 => TeacherLoadStatus.Underutilized,
@@ -400,18 +400,18 @@ public class TeacherController : ControllerBase
         try
         {
             var result = await _dataManager.GetSupportTeachersAsync(departmentId, periodId);
-            var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
             var dtos = result.Select(_mapper.Map<TeacherDto>);
             foreach (var dto in dtos)
             {
                 var t = result.First(teacher => teacher.Id == dto.Id);
+                var teacherTimeFund = await _dataManager.GetTeacherTimeFund(t.Id, periodId);
                 var load = await _dataManager.GetTeacherLoadInPeriodAsync(dto.Id, periodId);
                 dto.Load = new TeacherLoadDto
                 {
                     TeacherId = dto.Id,
-                    TimeFund = periodTimeFund,
+                    TimeFund = teacherTimeFund,
                     Load = load,
-                    LoadPercent = Math.Round(load / periodTimeFund * 100, 2),
+                    LoadPercent = Math.Round(load / teacherTimeFund * 100, 2),
                     PeriodId = periodId
                 };
                 if (t.TeacherDisciplines?.Any() == true)

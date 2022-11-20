@@ -43,6 +43,11 @@
                         <span asp-validation-for="ContractType" />
                     </div>
                     <div class="mb-3">
+                        <label asp-for="SpecificTimeFund" class="form-label"></label>
+                        <input asp-for="SpecificTimeFund" class="form-control" />
+                        <span asp-validation-for="SpecificTimeFund" />
+                    </div>
+                    <div class="mb-3">
                         <label asp-for="Category" class="form-label"></label>
                         <select asp-for="Category" asp-items="@Html.GetEnumSelectList<TeacherCategory>()" class="form-control selected-teacherCategory"></select>
                         <span asp-validation-for="Category" />
@@ -103,16 +108,27 @@
     </script>
 
     <script src="~/lib/popper/popper.min.js"></script>
-        <script>
-            $(document).ready(function () {
-                LoadTooltips();
-            });
+    <script>
+        $(document).ready(function () {
+            LoadTooltips();
+            ContractTypeChanged();
+        });
 
-            function LoadTooltips() {
-                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                    return new bootstrap.Tooltip(tooltipTriggerEl);
-                });
+        function LoadTooltips() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+
+        function ContractTypeChanged() {
+            const timeFund = document.getElementById("SpecificTimeFund");
+            timeFund.disabled = true;
+            const contractTypeSelect = document.getElementById("ContractType");
+            let contractType = contractTypeSelect.options[contractTypeSelect.selectedIndex].innerText;
+            if (contractType != "Tiempo completo") {
+                timeFund.disabled = false;
             }
-        </script>
+        }
+    </script>
 }

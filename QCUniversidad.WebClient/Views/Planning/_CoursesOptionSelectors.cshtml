@@ -4,7 +4,13 @@
 {
     foreach (var course in Model)
     {
-        <div class="option-selector" value="@course.Id" @(course.Id == Model.First().Id ? "selected" : "")>@course.Denomination</div>
+        <div class="option-selector" value="@course.Id" @(course.Id == Model.First().Id ? "selected" : "")>
+            @course.Denomination
+            @if (course.LastCourse)
+            {
+                <small style="margin-left: 3px;"><span class="fa fa-flag-checkered"></span></small>
+            }
+        </div>
     }
 }
 else

@@ -84,6 +84,11 @@ public record TeacherModel
     public TeacherContractType ContractType { get; set; }
 
     /// <summary>
+    /// The specific time fund of the teacher.
+    /// </summary>
+    public double SpecificTimeFund { get; set; }
+
+    /// <summary>
     /// The email address of the teacher.
     /// </summary>
     public string? Email { get; set; }

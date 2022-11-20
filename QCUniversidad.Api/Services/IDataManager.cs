@@ -182,6 +182,7 @@ public interface IDataManager
     Task<bool> DeletePeriodAsync(Guid id);
     Task<IList<PeriodModel>> GetPeriodsOfSchoolYearAsync(Guid schoolYear);
     Task<double> GetPeriodTimeFund(Guid periodId);
+    Task<double> GetTeacherTimeFund(Guid teacherId, Guid periodId);
     Task<bool> IsPeriodInCurrentYear(Guid periodId);
 
     #endregion

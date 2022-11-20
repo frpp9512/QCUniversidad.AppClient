@@ -21,7 +21,13 @@
                     <tr>
                         <td>@teacher.Fullname</td>
                         <td>@teacher.PersonalId</td>
-                        <td>@teacher.ContractType.GetEnumDisplayNameValue()</td>
+                        <td>
+                            @teacher.ContractType.GetEnumDisplayNameValue()
+                            @if (teacher.ContractType != QCUniversidad.Api.Shared.Enums.TeacherContractType.FullTime)
+                            {
+                                <span>(@(teacher.SpecificTimeFund)h)</span>
+                            }
+                        </td>
                         <td>@teacher.Position</td>
                         <td>@teacher.Category.GetEnumDisplayNameValue()</td>
                         <td>@teacher.Email</td>

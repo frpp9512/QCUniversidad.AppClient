@@ -4,7 +4,7 @@ namespace QCUniversidad.Api.Shared.Enums;
 
 public enum SubjectTerminationMode
 {
-    [Display(Name = "Prueba final", Description = "La asignatura será evaluada mediante un exámen escrito.")]
+    [Display(Name = "Exámen final", Description = "La asignatura será evaluada mediante un exámen escrito.")]
     FinalExam,
 
     [Display(Name = "Trabajo de curso", Description = "La asignatura se evaluará mediante un trabajo investigativo.")]
