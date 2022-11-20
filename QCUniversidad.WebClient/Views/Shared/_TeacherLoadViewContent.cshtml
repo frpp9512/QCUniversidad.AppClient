@@ -16,7 +16,7 @@
     <div class="d-flex flex-column align-items-center">
         <svg data-value="@Model.Teacher.Load.LoadPercent" style="width: 50px; height: 50px;" class="circle-percentage" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-chart-pie'></span> Carga del profesor</small></div> <div><b>@Model.Teacher.Load.Status.GetEnumDisplayNameValue()</b></div> <div>@Model.Teacher.Load.Status.GetEnumDisplayDescriptionValue()</div>">
             <circle r="45" cx="50" cy="50" />
-            <path class="meter" style="stroke-width: "10px" d="M5,50a45,45 0 1,0 90,0a45,45 0 1,0 -90,0" stroke-linecap="round" stroke-linejoin="round" stroke-dashoffset="282.78302001953125" stroke-dasharray="282.78302001953125" />
+            <path class="meter" style="stroke-width: " 10px" d="M5,50a45,45 0 1,0 90,0a45,45 0 1,0 -90,0" stroke-linecap="round" stroke-linejoin="round" stroke-dashoffset="282.78302001953125" stroke-dasharray="282.78302001953125" />
             <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="2rem"></text>
         </svg>
         <div class="mt-2">
@@ -43,13 +43,13 @@
                     foreach (UniversityExtensionActionsOptions value in uavalues)
                     {
                         uacards.Add(new SelectCardModel
-                        {
-                            Id = $"card-{value.ToString()}",
-                            GroupName = "UniversityExtensionActionsOptions",
-                            Title = value.GetEnumDisplayNameValue(),
-                            Description = value.GetEnumDisplayDescriptionValue(),
-                            Value = value.ToString()
-                        });
+                {
+                    Id = $"card-{value.ToString()}",
+                    GroupName = "UniversityExtensionActionsOptions",
+                    Title = value.GetEnumDisplayNameValue(),
+                    Description = value.GetEnumDisplayDescriptionValue(),
+                    Value = value.ToString()
+                });
                     }
                 }
                 <partial name="_SelectCardSet" model="uacards" />
@@ -268,6 +268,111 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 <button type="button" class="btn btn-primary" id="EducationalWorkModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add FunctionalResponsibilities load -->
+<div class="modal fade" id="FunctionalResponsibilitiesModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="FunctionalResponsibilitiesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="FunctionalResponsibilitiesModalLabel">Definir carga de @NonTeachingLoadType.FunctionalResponsibilities.GetEnumDisplayNameValue()</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>@NonTeachingLoadType.FunctionalResponsibilities.GetEnumDisplayDescriptionValue()</p>
+                @{
+                    var tfrcards = new List<SelectCardModel>();
+                    var tfrvalues = Enum.GetValues(typeof(TeacherFunctionalResponsibilities));
+                    foreach (TeacherFunctionalResponsibilities value in tfrvalues)
+                    {
+                        tfrcards.Add(new SelectCardModel
+                        {
+                            Id = $"card-{value.ToString()}",
+                            GroupName = "FunctionalResponsibilitiesOptions",
+                            Title = value.GetEnumDisplayNameValue(),
+                            Description = value.GetEnumDisplayDescriptionValue(),
+                            Value = value.ToString()
+                        });
+                    }
+                }
+                <partial name="_SelectCardSet" model="tfrcards" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="FunctionalResponsibilitiesModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add SyndicalAndPoliticalResposabilities load -->
+<div class="modal fade" id="SyndicalAndPoliticalResposabilitiesModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="SyndicalAndPoliticalResposabilitiesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="SyndicalAndPoliticalResposabilitiesModalLabel">Definir carga de @NonTeachingLoadType.SyndicalAndPoliticalResposabilities.GetEnumDisplayNameValue()</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>@NonTeachingLoadType.SyndicalAndPoliticalResposabilities.GetEnumDisplayDescriptionValue()</p>
+                @{
+                    var tsprcards = new List<SelectCardModel>();
+                    var tsprvalues = Enum.GetValues(typeof(TeacherSyndicalAndPoliticalResposabilities));
+                    foreach (TeacherSyndicalAndPoliticalResposabilities value in tsprvalues)
+                    {
+                        tsprcards.Add(new SelectCardModel
+                        {
+                            Id = $"card-{value.ToString()}",
+                            GroupName = "SyndicalAndPoliticalResposabilitiesOptions",
+                            Title = value.GetEnumDisplayNameValue(),
+                            Description = value.GetEnumDisplayDescriptionValue(),
+                            Value = value.ToString()
+                        });
+                    }
+                }
+                <partial name="_SelectCardSet" model="tsprcards" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="SyndicalAndPoliticalResposabilitiesModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add AdquiredResponsabilities load -->
+<div class="modal fade" id="AdquiredResponsabilitiesModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="AdquiredResponsabilitiesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="AdquiredResponsabilitiesModalLabel">Definir carga de @NonTeachingLoadType.AdquiredResponsabilities.GetEnumDisplayNameValue()</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>@NonTeachingLoadType.AdquiredResponsabilities.GetEnumDisplayDescriptionValue()</p>
+                @{
+                    var tarcards = new List<SelectCardModel>();
+                    var tarvalues = Enum.GetValues(typeof(TeacherAdquiredResponsabilities));
+                    foreach (TeacherAdquiredResponsabilities value in tarvalues)
+                    {
+                        tarcards.Add(new SelectCardModel
+                        {
+                            Id = $"card-{value.ToString()}",
+                            GroupName = "AdquiredResponsabilitiesOptions",
+                            Title = value.GetEnumDisplayNameValue(),
+                            Description = value.GetEnumDisplayDescriptionValue(),
+                            Value = value.ToString()
+                        });
+                    }
+                }
+                <partial name="_SelectCardSet" model="tarcards" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="AdquiredResponsabilitiesModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
             </div>
         </div>
     </div>

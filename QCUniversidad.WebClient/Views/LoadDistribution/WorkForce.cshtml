@@ -9,20 +9,20 @@
     <link href="~/lib/datatables/datatables.min.css" rel="stylesheet" />
 }
 
-    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
-        <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start">
-            <div class="d-flex flex-column">
-                <div class="banner-title">Fuerza de trabajo</div>
-                <div class="banner-subtitle">del departamento de @Model.Department.Name</div>
-            </div>
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start">
+        <div class="d-flex flex-column">
+            <div class="banner-title">Fuerza de trabajo</div>
+            <div class="banner-subtitle">del departamento de @Model.Department.Name</div>
         </div>
-        <div class="d-flex flex-column align-items-center schoolyear-header">
-            <div class="index-schoolyearheader font-text-color">
-                Año escolar
-            </div>
-            <div class="index-schoolyearname">
-                @Model.SchoolYear.Name
-            </div>
+    </div>
+    <div class="d-flex flex-column align-items-center schoolyear-header">
+        <div class="index-schoolyearheader font-text-color">
+            Año escolar
+        </div>
+        <div class="index-schoolyearname">
+            @Model.SchoolYear.Name
+        </div>
         @if (!string.IsNullOrEmpty(Model.SchoolYear.Description))
         {
             <div class="index-schoolyeardesc">
@@ -42,26 +42,47 @@
     </div>
 </div>
 
-<div id="work-force" class="mb-5">
-</div>
-
-<div id="work-force-chart" class="mb-5">
-</div>
-
-<div id="work-force-load-chart" class="mb-5">
-</div>
-
-<div class="row justify-content-between">
-    <div class="col-12 col-sm-4">
-        <div id="chart-1">
+<ul class="nav nav-tabs" id="workForceDetails" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="workForce-tab" data-bs-toggle="tab" data-bs-target="#workForce" type="button" role="tab" aria-controls="workForce" aria-selected="true"><span class="fa fa-people-group"></span> Fuerza de trabajo</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="workForceChart-tab" data-bs-toggle="tab" data-bs-target="#workForceChart" type="button" role="tab" aria-controls="workForceChart" aria-selected="false"><span class="fa fa-chart-pie"></span> Distribución de carga</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="workForceLoadChart-tab" data-bs-toggle="tab" data-bs-target="#workForceLoadChart" type="button" role="tab" aria-controls="workForceLoadChart" aria-selected="false"><span class="fa fa-chart-pie"></span> Distribución de tiempo</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="workForceMiscCharts-tab" data-bs-toggle="tab" data-bs-target="#workForceMiscCharts" type="button" role="tab" aria-controls="workForceMiscCharts" aria-selected="false"><span class="fa fa-chart-pie"></span> Categorías</button>
+    </li>
+</ul>
+<div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade show active" id="workForce" role="tabpanel" aria-labelledby="workForce-tab">
+        <div id="work-force" class="mb-5">
         </div>
     </div>
-    <div class="col-12 col-sm-4">
-        <div id="chart-2">
+    <div class="tab-pane fade" id="workForceChart" role="tabpanel" aria-labelledby="workForceChart-tab">
+        <div id="work-force-chart" class="mb-5">
         </div>
     </div>
-    <div class="col-12 col-sm-4">
-        <div id="chart-3">
+    <div class="tab-pane fade" id="workForceLoadChart" role="tabpanel" aria-labelledby="workForceLoadChart-tab">
+        <div id="work-force-load-chart" class="mb-5">
+        </div>
+    </div>
+    <div class="tab-pane fade" id="workForceMiscCharts" role="tabpanel" aria-labelledby="workForceMiscCharts-tab">
+        <div class="row justify-content-between">
+            <div class="col-12 col-sm-4">
+                <div id="chart-1">
+                </div>
+            </div>
+            <div class="col-12 col-sm-4">
+                <div id="chart-2">
+                </div>
+            </div>
+            <div class="col-12 col-sm-4">
+                <div id="chart-3">
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -474,6 +495,93 @@
                     });
                 };
                 ewModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "FunctionalResponsibilities") {
+                const frModalElement = document.getElementById("FunctionalResponsibilitiesModal");
+                let frModal = bootstrap.Modal.getOrCreateInstance(frModalElement);
+                let frModalBtn = document.getElementById("FunctionalResponsibilitiesModalButton");
+                frModalBtn.onclick = function () {
+                    frModal.hide();
+                    let selected = GetSelectCardGroupSelectedValue("FunctionalResponsibilitiesOptions");
+                    let model = {
+                        Type: "FunctionalResponsibilities",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                frModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "SyndicalAndPoliticalResposabilities") {
+                const sprModalElement = document.getElementById("SyndicalAndPoliticalResposabilitiesModal");
+                let sprModal = bootstrap.Modal.getOrCreateInstance(sprModalElement);
+                let sprModalBtn = document.getElementById("SyndicalAndPoliticalResposabilitiesModalButton");
+                sprModalBtn.onclick = function () {
+                    sprModal.hide();
+                    let selected = GetSelectCardGroupSelectedValue("SyndicalAndPoliticalResposabilitiesOptions");
+                    let model = {
+                        Type: "SyndicalAndPoliticalResposabilities",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                sprModal.show();
+                InitializeSelectCards();
+                return;
+            }
+            if (type == "AdquiredResponsabilities") {
+                const arModalElement = document.getElementById("AdquiredResponsabilitiesModal");
+                let arModal = bootstrap.Modal.getOrCreateInstance(arModalElement);
+                let arModalBtn = document.getElementById("AdquiredResponsabilitiesModalButton");
+                arModalBtn.onclick = function () {
+                    arModal.hide();
+                    let selected = GetSelectCardGroupSelectedValue("AdquiredResponsabilitiesOptions");
+                    let model = {
+                        Type: "AdquiredResponsabilities",
+                        BaseValue: selected,
+                        TeacherId: teacherId,
+                        PeriodId: GetSelectedPeriod()
+                    };
+                    $.ajax({
+                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        type: "POST",
+                        data: model,
+                        success: function (data) {
+                            LoadTeacherLoadDetailsModalContent(teacherId);
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr, status, error);
+                        }
+                    });
+                };
+                arModal.show();
                 InitializeSelectCards();
                 return;
             }

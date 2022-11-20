@@ -100,6 +100,24 @@ public enum NonTeachingLoadType
     EducationalWork,
 
     /// <summary>
+    /// Should be provided by base value. (Type: CUMDirector, FUMDirector, HeadOfDepartment, CareerCoordinator, HeadOfDiscipline)
+    /// </summary>
+    [Display(Name = "Responsabilidades funcionales", Description = "Responsabilidades adquiridas por las funciones y obligaciones del cargo que ocupa.")]
+    FunctionalResponsibilities,
+
+    /// <summary>
+    /// Should be provided by base value. (Type: SyndicalBaseRepresentative, SyndicalGeneralRepresentative, UJCBaseRepresentative, UJCComiteeRepresentative, PCCBaseRepresentative, PCCComiteeRepresentative)
+    /// </summary>
+    [Display(Name = "Responsabilidades políticas y sindicales", Description = "Responsabilidades sobre funciones en el sindicato, UJC o el PCC.")]
+    SyndicalAndPoliticalResposabilities,
+
+    /// <summary>
+    /// Should be provided by base value. (Type: AreaProcessRepresentative, InstitutionProcessRepresentative)
+    /// </summary>
+    [Display(Name = "Responsabilidades adquiridas", Description = "Resposabilidades que se adquieren en función de cumplir objetivos del área o del centro.")]
+    AdquiredResponsabilities,
+
+    /// <summary>
     /// Should be provided by base value. (Load)
     /// </summary>
     [Display(Name = "Otras funciones", Description = "Tiempo para realizar otras funciones determinadas.")]
