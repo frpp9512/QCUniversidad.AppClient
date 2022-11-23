@@ -13,6 +13,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using QCUniversidad.Api.Shared.Dtos.Period;
 
 namespace QCUniversidad.Api.Controllers;
 
@@ -247,6 +248,45 @@ public class CourseController : ControllerBase
             var result = await _dataManager.GetCoursesForDepartmentAsync(departmentId, schoolYearId);
             var dtos = result.Select(i => _mapper.Map<CourseDto>(i));
             return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("periodplanninginfo")]
+    public async Task<IActionResult> GetPeriodPlanningInfoAsync(Guid id, Guid periodId)
+    {
+        try
+        {
+            var course = await _dataManager.GetCourseAsync(id);
+            var period = await _dataManager.GetPeriodAsync(periodId);
+            var totalPlanned = await _dataManager.GetTotalHoursInPeriodForCourseAsync(id, periodId);
+            var realPlanned = await _dataManager.GetRealHoursPlannedInPeriodForCourseAsync(id, periodId);
+            var dto = new CoursePeriodPlanningInfoDto
+            { 
+                PeriodId = periodId,
+                Period = _mapper.Map<SimplePeriodDto>(period),
+                CourseId = id,
+                Course = _mapper.Map<SimpleCourseDto>(course),
+                RealHoursPlanned = realPlanned,
+                TotalHoursPlanned = totalPlanned
+            };
+            return Ok(dto);
+        }
+        catch (ArgumentNullException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (CourseNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (PeriodNotFoundException ex)
+        {
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {

@@ -168,6 +168,10 @@ public interface IDataManager
 
     Task<IList<CourseModel>> GetCoursesForDepartmentAsync(Guid departmentId, Guid? schoolYearId = null);
 
+    Task<double> GetHoursPlannedInPeriodForCourseAsync(Guid courseId, Guid periodId);
+    Task<double> GetTotalHoursInPeriodForCourseAsync(Guid courseId, Guid periodId);
+    Task<double> GetRealHoursPlannedInPeriodForCourseAsync(Guid courseId, Guid periodId);
+
     #endregion
 
     #region Periods

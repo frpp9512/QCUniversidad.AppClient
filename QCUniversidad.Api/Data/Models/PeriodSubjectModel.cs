@@ -48,4 +48,14 @@ public record PeriodSubjectModel
     /// Defines how the subject will be terminated.
     /// </summary>
     public SubjectTerminationMode TerminationMode { get; set; }
+
+    /// <summary>
+    /// The amount of class hours planned in the period for the subject.
+    /// </summary>
+    public double HoursPlanned { get; set; }
+
+    /// <summary>
+    /// The amount of time (in hours) planned for the subject in the period.
+    /// </summary>
+    public double TotalHours { get; set; }
 }

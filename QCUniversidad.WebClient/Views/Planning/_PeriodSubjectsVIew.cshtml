@@ -16,6 +16,8 @@
         <thead>
             <tr>
                 <th>Asignatura</th>
+                <th>Horas clase</th>
+                <th>Horas reales</th>
                 <th>Exámenes parciales</th>
                 <th>Culminación</th>
                 <th></th>
@@ -29,6 +31,12 @@
                         <a asp-action="Details" asp-controller="Subjects" asp-route-id="@pssubject.SubjectId" class="link-info">
                             @pssubject.Subject.Name <small><span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Asignatura</small></div> <div><b>@pssubject.Subject.Name</b></div> <div>@pssubject.Subject.Description</div>"></span></small>
                         </a>
+                    </td>
+                    <td align="right">
+                        @pssubject.HoursPlanned
+                    </td>
+                    <td align="right">
+                        @pssubject.TotalHours
                     </td>
                     <td align="right">
                         @pssubject.MidtermExamsCount
@@ -64,6 +72,10 @@ else
                         <label for="subjectSelected" class="form-label">Asignatura</label>
                         <select id="subjectSelected" class="form-select" aria-label="Seleccionar período">
                         </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="hoursPlanned" class="form-label">Horas clase</label>
+                        <input type="number" min="0" class="form-control" id="hoursPlanned" />
                     </div>
                     <div class="mb-3">
                         <label for="midTermExamsCount" class="form-label">Cantidad de exámenes parciales</label>
@@ -110,6 +122,10 @@ else
                         <label for="editedSubjectSelected" class="form-label">Asignatura</label>
                         <input id="editedSubjectSelected" type="text" class="form-control" readonly />
                         <input id="editedSubjectSelectedId" type="hidden" class="form-control" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label for="editedHoursPlanned" class="form-label">Horas clase</label>
+                        <input type="number" min="0" class="form-control" id="editedHoursPlanned" />
                     </div>
                     <div class="mb-3">
                         <label for="editedMidTermExamsCount" class="form-label">Cantidad de exámenes parciales</label>

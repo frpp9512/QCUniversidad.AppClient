@@ -91,6 +91,10 @@
     </div>
 </div>
 
+<div class="mb-4" id="periodInfo">
+
+</div>
+
 <div class="row">
     <div class="container">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -207,6 +211,33 @@
         function PeriodSelected() {
             LoadPeriodSubjects();
             LoadPlanning();
+            LoadPeriodInfo();
+        }
+
+        let loadingPeriodInfo = false;
+
+        function LoadPeriodInfo() {
+            // GetPeriodPlanningInfo
+            const periodInfoDiv = document.getElementById("periodInfo");
+            if (!loadingPeriodInfo) {
+                loadingPeriodInfo = true;
+                periodInfoDiv.innerHTML = "";
+                let selectedPeriod = getSelectorOptionsSelectedValue("#periodSelector");
+                let selectedCourse = getSelectorOptionsSelectedValue("#courseSelector");
+                $.ajax({
+                    url: `/planning/GetPeriodPlanningInfo?periodId=${selectedPeriod}&courseId=${selectedCourse}`,
+                    type: "GET",
+                    success: function (data) {
+                        loadingPeriodInfo = false;
+                        periodInfoDiv.innerHTML = data;
+                    },
+                    error: function (xhr, status, error) {
+                        loadingPeriodInfo = false;
+                        periodInfoDiv.innerHTML = "<span class='fa fa-times'></span> Error cargando la información del período";
+                        console.log(xhr, status, error);
+                    }
+                });
+            }
         }
 
         let loadingPlanning = false;
@@ -511,6 +542,12 @@
             let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
             const subjectSelect = document.getElementById("subjectSelected");
             let subjectSelected = subjectSelect.options[subjectSelect.selectedIndex].value;
+            const hoursPlannedInput = document.getElementById("hoursPlanned");
+            let hoursPlanned = hoursPlannedInput.value;
+            if (hoursPlanned <= 0) {
+                alert("Debe de especificar un valor para las horas planificadas de la asignatura.");
+                return;
+            }
             let midTermExams = document.getElementById("midTermExamsCount").value;
             if (midTermExams < 0 || midTermExams > 5) {
                 alert("Debe de especificar un valor válido para la cantidad de exámenes parciales.");
@@ -521,6 +558,7 @@
                 PeriodId: periodSelected,
                 CourseId: courseSelected,
                 SubjectId: subjectSelected,
+                HoursPlanned: hoursPlanned,
                 MidtermExamsCount: midTermExams,
                 TerminationMode: terminationMode
             };
@@ -536,6 +574,7 @@
                 const addModal = bootstrap.Modal.getInstance(document.getElementById('addPeriodSubjectModal'));
                 addModal.hide();
                 LoadPeriodSubjects();
+                LoadPeriodInfo();
                 DisableCreateLoading();
             };
             xhttp.onerror = function () {
@@ -561,6 +600,8 @@
                         subjectName.value = subjectModel.name;
                         const subjectId = document.getElementById("editedSubjectSelectedId");
                         subjectId.value = subjectModel.id;
+                        const hoursPlannedInput = document.getElementById("editedHoursPlanned");
+                        hoursPlannedInput.value = periodSubjectModel.hoursPlanned;
                         const midTermExams = document.getElementById("editedMidTermExamsCount");
                         midTermExams.value = periodSubjectModel.midtermExamsCount;
                         const editModal = new bootstrap.Modal(document.getElementById('editPeriodSubjectModal'));
@@ -582,8 +623,14 @@
             let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
             const subjectId = document.getElementById("editedSubjectSelectedId");
             let subjectSelected = subjectId.value;
+            const hoursPlannedInput = document.getElementById("editedHoursPlanned");
+            let hoursPlanned = hoursPlannedInput.value;
+            if (hoursPlanned <= 0) {
+                alert("Debe de especificar un valor para el total de horas de la asignatura.");
+                return;
+            }
             let midTermExams = document.getElementById("editedMidTermExamsCount").value;
-            if (midTermExams <= 0 || midTermExams > 5) {
+            if (midTermExams < 0 || midTermExams > 5) {
                 alert("Debe de especificar un valor válido para la cantidad de exámenes parciales.");
                 return;
             }
@@ -595,6 +642,7 @@
                 PeriodId: periodSelected,
                 CourseId: courseSelected,
                 SubjectId: subjectSelected,
+                HoursPlanned: hoursPlanned,
                 MidtermExamsCount: midTermExams,
                 TerminationMode: terminationMode
             };
@@ -609,6 +657,7 @@
                     DisableEditLoading();
                     editModal.hide();
                     LoadPeriodSubjects();
+                    LoadPeriodInfo();
                 },
                 error: function (xhr, status, error) {
                     CloseLoadingModal();
@@ -702,6 +751,7 @@
                         console.log(response);
                         periodSubjectDeleteModal.hide();
                         LoadPeriodSubjects();
+                        LoadPeriodInfo();
                     }
                     requestingDelete = false;
                     HideCreatePeriodSubjectModalButtons();

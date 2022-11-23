@@ -358,6 +358,23 @@ public class PlanningController : Controller
         }
     }
 
+    public async Task<IActionResult> GetPeriodPlanningInfoAsync(Guid periodId, Guid courseId)
+    {
+        if (periodId == Guid.Empty)
+        {
+            return BadRequest();
+        }
+        try
+        {
+            var model = await _dataProvider.GetCoursePeriodPlanningInfoAsync(courseId, periodId);
+            return PartialView("_PeriodPlanningInfo", model);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetPeriodInfoAsync(Guid periodId)
     {

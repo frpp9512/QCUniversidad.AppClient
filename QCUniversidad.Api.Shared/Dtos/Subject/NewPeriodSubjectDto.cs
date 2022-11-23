@@ -9,4 +9,6 @@ public record NewPeriodSubjectDto
     public Guid CourseId { get; set; }
     public int MidtermExamsCount { get; set; }
     public SubjectTerminationMode TerminationMode { get; set; }
+    public double HoursPlanned { get; set; }
+    public double TotalHours { get; set; }
 }

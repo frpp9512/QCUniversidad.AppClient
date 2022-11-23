@@ -57,6 +57,7 @@ public interface IDataProvider
     Task<bool> CreateCareerAsync(CareerModel newCareer);
     Task<bool> UpdateCareerAsync(CareerModel career);
     Task<bool> DeleteCareerAsync(Guid careerId);
+    Task<CoursePeriodPlanningInfoModel> GetCoursePeriodPlanningInfoAsync(Guid courseId, Guid periodId);
 
     #endregion
 

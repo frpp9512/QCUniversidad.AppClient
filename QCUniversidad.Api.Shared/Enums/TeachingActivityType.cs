@@ -31,6 +31,24 @@ namespace QCUniversidad.Api.Shared.Enums
         CTP,
 
         /// <summary>
+        /// Seminar
+        /// </summary>
+        [Display(Name = "Seminario", Description = "Seminario para demostrar conocimientos teóricos.", Prompt = "Seminario")]
+        Seminar,
+
+        /// <summary>
+        /// Seminar
+        /// </summary>
+        [Display(Name = "Laboral", Description = "Laboral.", Prompt = "Laboral")]
+        Laboral,
+
+        /// <summary>
+        /// Workshop
+        /// </summary>
+        [Display(Name = "Taller", Description = "Taller.", Prompt = "Taller")]
+        Workshop,
+
+        /// <summary>
         /// Laboratory classes to perform practical experiments.
         /// </summary>
         [Display(Name = "Laboratorio", Description = "Clases de laboratorio para poner en práctica experimentos en entornos controlados.", Prompt = "Laboratorio")]

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QCUniversidad.Api.Data.Context;
@@ -11,9 +12,11 @@ using QCUniversidad.Api.Data.Context;
 namespace QCUniversidad.Api.Migrations
 {
     [DbContext(typeof(QCUniversidadContext))]
-    partial class QCUniversidadContextModelSnapshot : ModelSnapshot
+    [Migration("20221123170706_AddedTotalHoursToPeriodSubject")]
+    partial class AddedTotalHoursToPeriodSubject
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -318,9 +321,6 @@ namespace QCUniversidad.Api.Migrations
                     b.Property<Guid>("CourseId")
                         .HasColumnType("uuid");
 
-                    b.Property<double>("HoursPlanned")
-                        .HasColumnType("double precision");
-
                     b.Property<int>("MidtermExamsCount")
                         .HasColumnType("integer");
 
@@ -332,9 +332,6 @@ namespace QCUniversidad.Api.Migrations
 
                     b.Property<int>("TerminationMode")
                         .HasColumnType("integer");
-
-                    b.Property<double>("TotalHours")
-                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
@@ -384,6 +381,7 @@ namespace QCUniversidad.Api.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");

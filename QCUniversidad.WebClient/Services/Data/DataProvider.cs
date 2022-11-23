@@ -428,6 +428,28 @@ public class DataProvider : IDataProvider
         throw new ArgumentNullException(nameof(careerId));
     }
 
+    public async Task<CoursePeriodPlanningInfoModel> GetCoursePeriodPlanningInfoAsync(Guid courseId, Guid periodId)
+    {
+        if (courseId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(courseId));
+        }
+        if (periodId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(periodId));
+        }
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/course/periodplanninginfo?id={courseId}&periodId={periodId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contextText = await response.Content.ReadAsStringAsync();
+            var dto = JsonConvert.DeserializeObject<CoursePeriodPlanningInfoDto>(contextText);
+            var model = _mapper.Map<CoursePeriodPlanningInfoModel>(dto);
+            return model;
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
     #endregion
 
     #region Disciplines

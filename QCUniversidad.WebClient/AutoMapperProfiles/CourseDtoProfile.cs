@@ -1,25 +1,21 @@
 ﻿using AutoMapper;
 using QCUniversidad.Api.Shared.Dtos.Course;
 using QCUniversidad.WebClient.Models.Courses;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using QCUniversidad.WebClient.Models.Planning;
 
-namespace QCUniversidad.WebClient.AutoMapperProfiles
+namespace QCUniversidad.WebClient.AutoMapperProfiles;
+
+public class CourseDtoProfile : Profile
 {
-    public class CourseDtoProfile : Profile
+    public CourseDtoProfile()
     {
-        public CourseDtoProfile()
-        {
-            CreateMap<CourseDto, CourseModel>();
-            CreateMap<CourseModel, CourseDto>();
-            CreateMap<CreateCourseModel, NewCourseDto>();
-            CreateMap<NewCourseDto, CreateCourseModel>();
-            CreateMap<CourseModel, EditCourseModel>();
-            CreateMap<EditCourseModel, EditCourseDto>();
-            CreateMap<SimpleCourseDto, CourseModel>();
-        }
+        _ = CreateMap<CourseDto, CourseModel>();
+        _ = CreateMap<CourseModel, CourseDto>();
+        _ = CreateMap<CreateCourseModel, NewCourseDto>();
+        _ = CreateMap<NewCourseDto, CreateCourseModel>();
+        _ = CreateMap<CourseModel, EditCourseModel>();
+        _ = CreateMap<EditCourseModel, EditCourseDto>();
+        _ = CreateMap<SimpleCourseDto, CourseModel>();
+        _ = CreateMap<CoursePeriodPlanningInfoDto, CoursePeriodPlanningInfoModel>();
     }
 }

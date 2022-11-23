@@ -1861,7 +1861,7 @@ public class DataManager : IDataManager
                     if (calculationValue is not null)
                     {
                         var loadValue = calculationValue.Value * await GetPeriodMonthsCountAsync(periodId);
-                        
+
                         if (teacher.ContractType != TeacherContractType.FullTime)
                         {
                             loadValue = Math.Round((loadValue * teacher.SpecificTimeFund) / _calculationOptions.MonthTimeFund);
@@ -2177,6 +2177,7 @@ public class DataManager : IDataManager
             {
                 throw new SubjectNotFoundException();
             }
+            newPeriodSubject.TotalHours = newPeriodSubject.HoursPlanned * _calculationOptions.ClassHoursToRealHoursConversionCoefficient;
             _ = _context.PeriodSubjects.Add(newPeriodSubject);
             var result = await _context.SaveChangesAsync();
             return result > 0;
@@ -2224,6 +2225,7 @@ public class DataManager : IDataManager
         }
         try
         {
+            periodSubject.TotalHours = periodSubject.HoursPlanned * _calculationOptions.ClassHoursToRealHoursConversionCoefficient;
             _ = _context.PeriodSubjects.Update(periodSubject);
             var result = await _context.SaveChangesAsync();
             return result > 0;
@@ -2667,6 +2669,81 @@ public class DataManager : IDataManager
                     where course.Id == courseId
                     select course.Enrolment;
         return await query.CountAsync() > 0 ? await query.FirstAsync() : throw new CourseNotFoundException();
+    }
+
+    public async Task<double> GetHoursPlannedInPeriodForCourseAsync(Guid courseId, Guid periodId)
+    {
+        if (courseId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(courseId));
+        }
+        if (periodId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(periodId));
+        }
+        if (!await ExistsCourseAsync(courseId))
+        {
+            throw new CourseNotFoundException();
+        }
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        var query = from psubject in _context.PeriodSubjects
+                    where psubject.PeriodId == periodId && psubject.CourseId == courseId
+                    select psubject.HoursPlanned;
+
+        return (await query.ToListAsync()).Sum();
+    }
+
+    public async Task<double> GetTotalHoursInPeriodForCourseAsync(Guid courseId, Guid periodId)
+    {
+        if (courseId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(courseId));
+        }
+        if (periodId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(periodId));
+        }
+        if (!await ExistsCourseAsync(courseId))
+        {
+            throw new CourseNotFoundException();
+        }
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        var query = from psubject in _context.PeriodSubjects
+                    where psubject.PeriodId == periodId && psubject.CourseId == courseId
+                    select psubject.TotalHours;
+
+        return (await query.ToListAsync()).Sum();
+    }
+
+    public async Task<double> GetRealHoursPlannedInPeriodForCourseAsync(Guid courseId, Guid periodId)
+    {
+        if (courseId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(courseId));
+        }
+        if (periodId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(periodId));
+        }
+        if (!await ExistsCourseAsync(courseId))
+        {
+            throw new CourseNotFoundException();
+        }
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        var query = from planItem in _context.TeachingPlanItems
+                    where planItem.PeriodId == periodId && planItem.CourseId == courseId
+                    select planItem.HoursPlanned;
+
+        return (await query.ToListAsync()).Select(item => item * _calculationOptions.ClassHoursToRealHoursConversionCoefficient).Sum();
     }
 
     #endregion
