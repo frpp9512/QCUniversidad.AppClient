@@ -53,6 +53,9 @@
         <button class="nav-link" id="workForceLoadChart-tab" data-bs-toggle="tab" data-bs-target="#workForceLoadChart" type="button" role="tab" aria-controls="workForceLoadChart" aria-selected="false"><span class="fa fa-chart-pie"></span> Distribución de tiempo</button>
     </li>
     <li class="nav-item" role="presentation">
+        <button class="nav-link" id="workForceTeachingLoadChart-tab" data-bs-toggle="tab" data-bs-target="#workForceTeachingLoadChart" type="button" role="tab" aria-controls="workForceTeachingLoadChart" aria-selected="false"><span class="fa fa-chart-pie"></span> Distribución de carga directa</button>
+    </li>
+    <li class="nav-item" role="presentation">
         <button class="nav-link" id="workForceMiscCharts-tab" data-bs-toggle="tab" data-bs-target="#workForceMiscCharts" type="button" role="tab" aria-controls="workForceMiscCharts" aria-selected="false"><span class="fa fa-chart-pie"></span> Categorías</button>
     </li>
 </ul>
@@ -67,6 +70,10 @@
     </div>
     <div class="tab-pane fade" id="workForceLoadChart" role="tabpanel" aria-labelledby="workForceLoadChart-tab">
         <div id="work-force-load-chart" class="mb-5">
+        </div>
+    </div>
+    <div class="tab-pane fade" id="workForceTeachingLoadChart" role="tabpanel" aria-labelledby="workForceTeachingLoadChart-tab">
+        <div id="work-force-teaching-load-chart" class="mb-5">
         </div>
     </div>
     <div class="tab-pane fade" id="workForceMiscCharts" role="tabpanel" aria-labelledby="workForceMiscCharts-tab">
@@ -174,6 +181,7 @@
                         LoadTooltips();
                         LoadMeters();
                         LoadChart(`/loaddistribution/GetWorkForceChartData?periodId=${selectedPeriod}&departmentId=${selectedDepartment}`, "#work-force-chart");
+                        LoadChart(`/loaddistribution/GetWorkForceTeachingLoadChartData?periodId=${selectedPeriod}&departmentId=${selectedDepartment}`, "#work-force-teaching-load-chart");
                         LoadChart(`/loaddistribution/GetWorkForceWithMostDirectLoadChartData?periodId=${selectedPeriod}&departmentId=${selectedDepartment}`, "#work-force-load-chart", (chart, evt) => { let elements = chart.getActiveElements(); });
                         LoadChart(`/loaddistribution/GetTeachersChart?departmentId=${selectedDepartment}`, "#chart-1");
                         LoadChart(`/loaddistribution/GetTeachersChartByContractType?departmentId=${selectedDepartment}`, "#chart-2");
@@ -498,15 +506,15 @@
                 InitializeSelectCards();
                 return;
             }
-            if (type == "FunctionalResponsibilities") {
-                const frModalElement = document.getElementById("FunctionalResponsibilitiesModal");
+            if (type == "AdministrativeResponsibilities") {
+                const frModalElement = document.getElementById("AdministrativeResponsibilitiesModal");
                 let frModal = bootstrap.Modal.getOrCreateInstance(frModalElement);
-                let frModalBtn = document.getElementById("FunctionalResponsibilitiesModalButton");
+                let frModalBtn = document.getElementById("AdministrativeResponsibilitiesModalButton");
                 frModalBtn.onclick = function () {
                     frModal.hide();
-                    let selected = GetSelectCardGroupSelectedValue("FunctionalResponsibilitiesOptions");
+                    let selected = GetSelectCardGroupSelectedValue("AdministrativeResponsibilitiesOptions");
                     let model = {
-                        Type: "FunctionalResponsibilities",
+                        Type: "AdministrativeResponsibilities",
                         BaseValue: selected,
                         TeacherId: teacherId,
                         PeriodId: GetSelectedPeriod()
@@ -556,21 +564,21 @@
                 InitializeSelectCards();
                 return;
             }
-            if (type == "AdquiredResponsabilities") {
-                const arModalElement = document.getElementById("AdquiredResponsabilitiesModal");
+            if (type == "ProcessResponsabilities") {
+                const arModalElement = document.getElementById("ProcessResponsabilitiesModal");
                 let arModal = bootstrap.Modal.getOrCreateInstance(arModalElement);
-                let arModalBtn = document.getElementById("AdquiredResponsabilitiesModalButton");
+                let arModalBtn = document.getElementById("ProcessResponsabilitiesModalButton");
                 arModalBtn.onclick = function () {
                     arModal.hide();
-                    let selected = GetSelectCardGroupSelectedValue("AdquiredResponsabilitiesOptions");
+                    let selected = GetSelectCardGroupSelectedValue("ProcessResponsabilitiesOptions");
                     let model = {
-                        Type: "AdquiredResponsabilities",
+                        Type: "ProcessResponsabilities",
                         BaseValue: selected,
                         TeacherId: teacherId,
                         PeriodId: GetSelectedPeriod()
                     };
                     $.ajax({
-                        url: `/loaddistribution/SetNonTeachingLoad?teacherId=${teacherId}&`,
+                        url: `/loaddistribution/SetNonTeachingLoad`,
                         type: "POST",
                         data: model,
                         success: function (data) {

@@ -15,7 +15,7 @@
                     <dt class="col-sm-3">Año escolar</dt>
                     <dd class="col-sm-9">@Model.Period?.SchoolYear?.Name</dd>
                     <dt class="col-sm-3">Período</dt>
-                    <dd class="col-sm-9">@Model.Period?.Starts.ToString("dd-MM-yyyy") - @Model.Period?.Starts.ToString("dd-MM-yyyy")</dd>
+                    <dd class="col-sm-9">@Model.Period?.Starts.ToString("dd-MM-yyyy") - @Model.Period?.Ends.ToString("dd-MM-yyyy")</dd>
                     @if (Model.Course is not null)
                     {
                         <dt class="col-sm-3">Curso</dt>

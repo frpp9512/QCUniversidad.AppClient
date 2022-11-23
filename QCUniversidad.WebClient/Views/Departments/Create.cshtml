@@ -34,6 +34,13 @@
                         <span asp-validation-for="Description" />
                     </div>
                     <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="IsStudyCenter" class="form-check-input" type="checkbox" />
+                            <label asp-for="IsStudyCenter" class="form-check-label"></label>
+                            <small><span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Centro de estudios</small></div> <div>Define si el departamento es un centro de estudio e investigación.</div>"></span></small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
                         <label asp-for="InternalId" class="form-label"></label>
                         <input asp-for="InternalId" class="form-control" />
                         <span asp-validation-for="InternalId" />

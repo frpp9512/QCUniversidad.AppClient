@@ -2,9 +2,9 @@
 
 namespace QCUniversidad.Api.Shared.Enums;
 
-public enum TeacherFunctionalResponsibilities
+public enum TeacherAdministrativeResponsibilities
 {
-    [Display(Name = "Ninguna", Description = "No tiene responsabilidades funcionales.", Prompt = "Ninguna")]
+    [Display(Name = "Ninguna", Description = "No tiene responsabilidades administrativas.", Prompt = "Ninguna")]
     None,
 
     [Display(Name = "Director de CUM", Description = "Director de un centro universitario municipal (CUM).", Prompt = "Director de CUM")]

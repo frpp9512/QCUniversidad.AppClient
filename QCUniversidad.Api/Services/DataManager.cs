@@ -1080,6 +1080,13 @@ public class DataManager : IDataManager
                 monthCount = await getMonthCount();
 
                 var eValue = _calculationOptions.EventsAndPublicationsCoefficient;
+
+                var departmentIsStudyCenter = await _context.Departments.Where(d => d.Id == teacher.DepartmentId).Select(d => d.IsStudyCenter).FirstAsync();
+                if (departmentIsStudyCenter)
+                {
+                    eValue *= 3;
+                }
+
                 if (teacher.ContractType != TeacherContractType.FullTime)
                 {
                     eValue = (eValue * teacher.SpecificTimeFund) / _calculationOptions.MonthTimeFund;
@@ -1089,7 +1096,7 @@ public class DataManager : IDataManager
                 var eItem = new NonTeachingLoadModel
                 {
                     Type = NonTeachingLoadType.EventsAndPublications,
-                    Description = $"{Math.Round(eValue, 2)} horas al mes{(reajustedByContract ? " (Reajustado por tipo de contrato)" : "")} x {monthCount} meses en el período - {NonTeachingLoadType.EventsAndPublications.GetEnumDisplayDescriptionValue()}",
+                    Description = $"{Math.Round(eValue, 2)} horas al mes{(departmentIsStudyCenter ? " (Pertenece a centro de estudio)" : "")}{(reajustedByContract ? " (Reajustado por tipo de contrato)" : "")} x {monthCount} meses en el período - {NonTeachingLoadType.EventsAndPublications.GetEnumDisplayDescriptionValue()}",
                     TeacherId = teacherId,
                     PeriodId = periodId,
                     BaseValue = JsonConvert.SerializeObject(monthCount),
@@ -1774,35 +1781,6 @@ public class DataManager : IDataManager
                     throw new ConfigurationException();
                 }
                 throw new ArgumentException($"The base mValue supplied for {type} load type is invalid.", nameof(baseValue));
-            case NonTeachingLoadType.OtherFunctions:
-                if (double.TryParse(baseValue, out var ofCalculationOptions))
-                {
-                    var loadValue = ofCalculationOptions * await GetPeriodMonthsCountAsync(periodId);
-                    var existingUELoad = await GetTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
-                    if (existingUELoad is not null)
-                    {
-                        existingUELoad.BaseValue = JsonConvert.SerializeObject(ofCalculationOptions);
-                        existingUELoad.Load = loadValue;
-                        existingUELoad.Description = $"{ofCalculationOptions} h/mes - {type.GetEnumDisplayDescriptionValue()}";
-                        _context.NonTeachingLoad.Update(existingUELoad);
-                    }
-                    else
-                    {
-                        var newUELoad = new NonTeachingLoadModel
-                        {
-                            BaseValue = JsonConvert.SerializeObject(ofCalculationOptions),
-                            Load = loadValue,
-                            Description = $"{ofCalculationOptions} h/mes - {type.GetEnumDisplayDescriptionValue()}",
-                            Type = type,
-                            TeacherId = teacherId,
-                            PeriodId = periodId
-                        };
-                        _context.NonTeachingLoad.Add(newUELoad);
-                    }
-
-                    return await _context.SaveChangesAsync() > 0;
-                }
-                throw new ArgumentException($"The base mValue supplied for {type} load type is invalid.", nameof(baseValue));
             case NonTeachingLoadType.EducationalWork:
                 if (Enum.TryParse(baseValue, out EducationalWorkType ewtype))
                 {
@@ -1843,10 +1821,10 @@ public class DataManager : IDataManager
                     throw new ConfigurationException();
                 }
                 throw new ArgumentException($"The base mValue supplied for {ewtype} load type is invalid.", nameof(baseValue));
-            case NonTeachingLoadType.FunctionalResponsibilities:
-                if (Enum.TryParse(baseValue, out TeacherFunctionalResponsibilities frtype))
+            case NonTeachingLoadType.AdministrativeResponsibilities:
+                if (Enum.TryParse(baseValue, out TeacherAdministrativeResponsibilities frtype))
                 {
-                    var calculationValue = _calculationOptions[$"{nameof(TeacherFunctionalResponsibilities)}.{frtype}"];
+                    var calculationValue = _calculationOptions[$"{nameof(TeacherAdministrativeResponsibilities)}.{frtype}"];
                     if (calculationValue is not null)
                     {
                         var loadValue = calculationValue.Value * await GetPeriodMonthsCountAsync(periodId);
@@ -1915,10 +1893,10 @@ public class DataManager : IDataManager
                     }
                 }
                 throw new ArgumentException($"The base value supplied for {sprtype} load type is invalid.", nameof(baseValue));
-            case NonTeachingLoadType.AdquiredResponsabilities:
-                if (Enum.TryParse(baseValue, out TeacherAdquiredResponsabilities artype))
+            case NonTeachingLoadType.ProcessResponsabilities:
+                if (Enum.TryParse(baseValue, out TeacherProcessResponsabilities artype))
                 {
-                    var calculationValue = _calculationOptions[$"{nameof(TeacherAdquiredResponsabilities)}.{artype}"];
+                    var calculationValue = _calculationOptions[$"{nameof(TeacherProcessResponsabilities)}.{artype}"];
                     if (calculationValue is not null)
                     {
                         var loadValue = calculationValue.Value * await GetPeriodMonthsCountAsync(periodId);

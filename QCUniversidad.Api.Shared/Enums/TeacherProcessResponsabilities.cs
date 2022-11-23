@@ -2,7 +2,7 @@
 
 namespace QCUniversidad.Api.Shared.Enums;
 
-public enum TeacherAdquiredResponsabilities
+public enum TeacherProcessResponsabilities
 {
     [Display(Name = "Ninguna", Description = "No posee responsabilidades adquiridas.", Prompt = "Ninguna")]
     None,

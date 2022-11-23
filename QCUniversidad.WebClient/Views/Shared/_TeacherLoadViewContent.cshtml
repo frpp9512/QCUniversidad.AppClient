@@ -187,30 +187,6 @@
     </div>
 </div>
 
-<!-- Add OtherFunctions load -->
-<div class="modal fade" id="OtherFunctionsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="OtherFunctionsLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="OtherFunctionsLabel">Definir carga de @NonTeachingLoadType.OtherFunctions.GetEnumDisplayNameValue()</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>@NonTeachingLoadType.OtherFunctions.GetEnumDisplayDescriptionValue()</p>
-                <div class="mb-3">
-                    <label for="OtherFunctionsValue" class="form-label">Cantidad de tiempo destinado a otras funciones (h/mes)</label>
-                    <input type="number" min="0" class="form-control" id="OtherFunctionsValue" placeholder="Tiempo de otras funciones">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" id="OtherFunctionsModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
 <!-- Add PostgraduateThesisCourt load -->
 <div class="modal fade" id="PostgraduateThesisCourtAndRevisionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="PostgraduateThesisCourtAndRevisionLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -273,25 +249,25 @@
     </div>
 </div>
 
-<!-- Add FunctionalResponsibilities load -->
-<div class="modal fade" id="FunctionalResponsibilitiesModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="FunctionalResponsibilitiesModalLabel" aria-hidden="true">
+<!-- Add AdministrativeResponsibilities load -->
+<div class="modal fade" id="AdministrativeResponsibilitiesModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="AdministrativeResponsibilitiesModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="FunctionalResponsibilitiesModalLabel">Definir carga de @NonTeachingLoadType.FunctionalResponsibilities.GetEnumDisplayNameValue()</h5>
+                <h5 class="modal-title" id="AdministrativeResponsibilitiesModalLabel">Definir carga de @NonTeachingLoadType.AdministrativeResponsibilities.GetEnumDisplayNameValue()</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>@NonTeachingLoadType.FunctionalResponsibilities.GetEnumDisplayDescriptionValue()</p>
+                <p>@NonTeachingLoadType.AdministrativeResponsibilities.GetEnumDisplayDescriptionValue()</p>
                 @{
                     var tfrcards = new List<SelectCardModel>();
-                    var tfrvalues = Enum.GetValues(typeof(TeacherFunctionalResponsibilities));
-                    foreach (TeacherFunctionalResponsibilities value in tfrvalues)
+                    var tfrvalues = Enum.GetValues(typeof(TeacherAdministrativeResponsibilities));
+                    foreach (TeacherAdministrativeResponsibilities value in tfrvalues)
                     {
                         tfrcards.Add(new SelectCardModel
                         {
                             Id = $"card-{value.ToString()}",
-                            GroupName = "FunctionalResponsibilitiesOptions",
+                            GroupName = "AdministrativeResponsibilitiesOptions",
                             Title = value.GetEnumDisplayNameValue(),
                             Description = value.GetEnumDisplayDescriptionValue(),
                             Value = value.ToString()
@@ -302,7 +278,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" id="FunctionalResponsibilitiesModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
+                <button type="button" class="btn btn-primary" id="AdministrativeResponsibilitiesModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
             </div>
         </div>
     </div>
@@ -343,25 +319,25 @@
     </div>
 </div>
 
-<!-- Add AdquiredResponsabilities load -->
-<div class="modal fade" id="AdquiredResponsabilitiesModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="AdquiredResponsabilitiesModalLabel" aria-hidden="true">
+<!-- Add ProcessResponsabilities load -->
+<div class="modal fade" id="ProcessResponsabilitiesModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="ProcessResponsabilitiesModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="AdquiredResponsabilitiesModalLabel">Definir carga de @NonTeachingLoadType.AdquiredResponsabilities.GetEnumDisplayNameValue()</h5>
+                <h5 class="modal-title" id="ProcessResponsabilitiesModalLabel">Definir carga de @NonTeachingLoadType.ProcessResponsabilities.GetEnumDisplayNameValue()</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>@NonTeachingLoadType.AdquiredResponsabilities.GetEnumDisplayDescriptionValue()</p>
+                <p>@NonTeachingLoadType.ProcessResponsabilities.GetEnumDisplayDescriptionValue()</p>
                 @{
                     var tarcards = new List<SelectCardModel>();
-                    var tarvalues = Enum.GetValues(typeof(TeacherAdquiredResponsabilities));
-                    foreach (TeacherAdquiredResponsabilities value in tarvalues)
+                    var tarvalues = Enum.GetValues(typeof(TeacherProcessResponsabilities));
+                    foreach (TeacherProcessResponsabilities value in tarvalues)
                     {
                         tarcards.Add(new SelectCardModel
                         {
                             Id = $"card-{value.ToString()}",
-                            GroupName = "AdquiredResponsabilitiesOptions",
+                            GroupName = "ProcessResponsabilitiesOptions",
                             Title = value.GetEnumDisplayNameValue(),
                             Description = value.GetEnumDisplayDescriptionValue(),
                             Value = value.ToString()
@@ -372,7 +348,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" id="AdquiredResponsabilitiesModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
+                <button type="button" class="btn btn-primary" id="ProcessResponsabilitiesModalButton"><span class="fa fa-plus-square"></span> Agregar carga</button>
             </div>
         </div>
     </div>

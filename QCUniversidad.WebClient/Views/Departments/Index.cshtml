@@ -49,6 +49,7 @@
                 <tr>
                     <th>Nombre</th>
                     <th>Descripción</th>
+                    <th>Centro de estudios</th>
                     <th>Id interno</th>
                     <th>Disciplinas</th>
                     <th>Facultad</th>
@@ -70,6 +71,12 @@
                             else
                             {
                                 <i class="text-muted">No tiene descripción</i>
+                            }
+                        </td>
+                        <td align="center">
+                            @if (item.IsStudyCenter)
+                            {
+                                <span class="fa fa-check text-success"></span>
                             }
                         </td>
                         <td>

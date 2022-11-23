@@ -286,6 +286,26 @@ public class LoadDistributionController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> GetWorkForceTeachingLoadChartDataAsync(Guid periodId, Guid? departmentId = null)
+    {
+        if (User.IsAdmin() && departmentId is null)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+        var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
+        try
+        {
+            var depTeachers = await _dataProvider.GetTeachersOfDepartmentForPeriodWithLoadItemsAsync(workingDepartment, periodId);
+            var chartData = ModelListCharter.GetChartModel(ChartType.Bar, depTeachers, t => t.LoadViewItems.Where(item => item.Type == LoadViewItemType.Teaching).Sum(item => item.Value) / t.Load.TimeFund, t => t.FirstName, title: "Distribución de carga", subtitle: "Comparación de la distribución de carga directa entre los profesores del departamento.", showXGrid: false, xScaleTitle: "Profesores del departamento", yScaleTitle: "Carga directa (%)");
+            return Ok(chartData.GetJson());
+        }
+        catch (Exception)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+    }
+
+    [HttpGet]
     public async Task<IActionResult> GetWorkForceWithMostDirectLoadChartDataAsync(Guid periodId, Guid? departmentId = null)
     {
         if (User.IsAdmin() && departmentId is null)

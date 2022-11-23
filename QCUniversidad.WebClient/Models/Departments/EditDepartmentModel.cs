@@ -14,6 +14,9 @@ public class EditDepartmentModel
     [Display(Name = "Descripción", Prompt = "Descripción del departamento", Description = "La descripción del departamento.")]
     public string? Description { get; set; }
 
+    [Display(Name = "Centro de estudio", Prompt = "Es centro de estudio", Description = "El departamento es un centro de estudio e investigación.")]
+    public bool IsStudyCenter { get; set; }
+
     [Required]
     [Display(Name = "Identificador interno", Prompt = "Identificador interno", Description = "El identificador usado para la gestión interna de recursos humanos.")]
     public string? InternalId { get; set; }
