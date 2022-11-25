@@ -883,6 +883,19 @@ public class DataProvider : IDataProvider
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
+    public async Task<IList<SubjectModel>> GetSubjectsForDisciplineAsync(Guid disciplineId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/subject/listfordiscipline?disciplineId={disciplineId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var teachers = JsonConvert.DeserializeObject<IList<SubjectDto>>(contentText);
+            return teachers?.Select(f => _mapper.Map<SubjectModel>(f)).ToList() ?? new List<SubjectModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
     public async Task<IList<SubjectModel>> GetSubjectsForCourseAsync(Guid courseId)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();

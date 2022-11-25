@@ -1,0 +1,28 @@
+﻿@model IList<SubjectModel>
+
+<table class="table table-hover" id="subjects-table">
+    <thead>
+        <tr>
+            <td>Nombre</td>
+            <td>Descripción</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var subject in Model)
+        {
+            <tr>
+                <td>@subject.Name</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(subject.Description))
+                    {
+                        @subject.Description
+                    }
+                    else
+                    {
+                        <span class="text-muted"><i>No tiene descripción</i></span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -30,6 +30,30 @@ public class SubjectController : ControllerBase
     }
 
     [HttpGet]
+    [Route("listfordiscipline")]
+    public async Task<IActionResult> GetListForDisciplineAsync(Guid disciplineId)
+    {
+        try
+        {
+            var subjects = await _dataManager.GetSubjectsForDisciplineAsync(disciplineId);
+            var dtos = subjects.Select(s => _mapper.Map<SubjectDto>(s));
+            return Ok(dtos);
+        }
+        catch (ArgumentNullException)
+        {
+            return BadRequest();
+        }
+        catch (DisciplineNotFoundException)
+        {
+            return NotFound("Discipline not found.");
+        }
+        catch (Exception ex)
+        {
+            return Problem(detail: ex.Message);
+        }
+    }
+
+    [HttpGet]
     [Route("getforcourse")]
     public async Task<IActionResult> GetListForCourse(Guid courseId)
     {

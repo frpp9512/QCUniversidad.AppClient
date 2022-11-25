@@ -71,6 +71,48 @@ public class DisciplinesController : Controller
         }
     }
 
+    [Authorize("Auth")]
+    [HttpGet]
+    public async Task<IActionResult> DetailsAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+        try
+        {
+            var discipline = await _dataProvider.GetDisciplineAsync(id);
+            var schoolYear = await _dataProvider.GetCurrentSchoolYear();
+            ViewData["schoolYear"] = schoolYear;
+            return View(discipline);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, ex.Message);
+            return RedirectToAction("Error", "Home");
+        }
+    }
+
+    [Authorize("Auth")]
+    [HttpGet]
+    public async Task<IActionResult> DisciplineSubjectsAsync(Guid disciplineId)
+    {
+        if (disciplineId == Guid.Empty)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+        try
+        {
+            var subjects = await _dataProvider.GetSubjectsForDisciplineAsync(disciplineId);
+            return PartialView("_DisciplineSubjects", subjects);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, ex.Message);
+            return RedirectToAction("Error", "Home");
+        }
+    }
+
     [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> ImportAsync()

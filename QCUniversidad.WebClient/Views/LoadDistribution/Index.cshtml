@@ -19,9 +19,9 @@
             Año escolar
         </div>
         <div class="index-schoolyearname">
-            @Model.SchoolYear.Name
+            @Model.SchoolYear?.Name
         </div>
-        @if (!string.IsNullOrEmpty(Model.SchoolYear.Description))
+        @if (!string.IsNullOrEmpty(Model.SchoolYear?.Description))
         {
             <div class="index-schoolyeardesc">
                 @Model.SchoolYear.Description
@@ -33,9 +33,12 @@
 <div class="options-selector mb-3" id="periodSelector">
     <div class="options-selector-label"><span class="fa fa-calendar-days"></span> Período</div>
     <div class="options-selector-options">
-        @foreach (var period in Model.Periods)
+        @if (Model.Periods is not null)
         {
-            <div class="option-selector" value="@period.Id" @(Model.Periods.First().Id == period.Id ? "selected" : "")>@period.ToString()</div>
+            foreach (var period in Model.Periods)
+            {
+                <div class="option-selector" value="@period.Id" @(Model.Periods.First().Id == period.Id ? "selected" : "")>@period.ToString()</div>
+            }
         }
     </div>
 </div>
@@ -66,9 +69,10 @@
     <script src="~/js/loaditemsview.js"></script>
     <script src="~/js/select-card.js"></script>
     <script src="~/js/options-selector.js"></script>
+    <script src="~/lib/datatables/datatables.min.js"></script>
     <script>
         const selectedDepartment = '@(Model.Department.Id)';
-        const selectedSchoolYear = '@(User.IsAdmin() ? Model.SchoolYear.Id : null)';
+        const selectedSchoolYear = '@(User.IsAdmin() ? Model.SchoolYear?.Id : null)';
         var selectedCourse = null;
         var selectedPeriod = null;
         var selectedPlanItem = '';
@@ -127,9 +131,20 @@
                         const planningDetailsDiv = document.getElementById("load");
                         planningDetailsDiv.innerHTML = data;
                         LoadTooltips();
-                        RefreshView();
                         LoadMeters();
                         SetToggleButtons();
+                        $('#planning-table').DataTable({
+                            responsive: true,
+                            language: {
+                                url: '/lib/datatables/lang/datatables.spanish.json'
+                            },
+                            dom: 'Bfrtip',
+                            buttons: [
+                                'copyHtml5', 'excelHtml5', 'pdfHtml5'
+                            ]
+                        });
+                        const table = document.getElementById("planning-table");
+                        table.style.width = "100%";
                     },
                     error: function (xhr, status, error) {
                         DisableLoadingPlanning();
@@ -269,46 +284,6 @@
                     console.log(xhr, status, error);
                 }
             });
-        }
-    </script>
-
-    <script>
-        var currentView = "grid";
-
-        function SetView(view) {
-            if (view == null || view == '') {
-                return;
-            }
-            currentView = view;
-            RefreshView();
-        }
-
-        function RefreshView() {
-            const showTableBtn = document.getElementById("showTable");
-            const showGridBtn = document.getElementById("showGrid");
-            const tableView = document.getElementById("tableView");
-            const gridView = document.getElementById("gridView");
-
-            switch (currentView) {
-                case "grid":
-                    showTableBtn.classList.remove("btn-primary");
-                    showTableBtn.classList.add("btn-outline-primary");
-                    showGridBtn.classList.add("btn-primary");
-                    showGridBtn.classList.remove("btn-outline-primary");
-                    tableView.style.visibility = "collapse";
-                    gridView.style.visibility = "visible";
-                    break;
-                case "table":
-                    showTableBtn.classList.add("btn-primary");
-                    showTableBtn.classList.remove("btn-outline-primary");
-                    showGridBtn.classList.remove("btn-primary");
-                    showGridBtn.classList.add("btn-outline-primary");
-                    tableView.style.visibility = "visible";
-                    gridView.style.visibility = "collapse";
-                    break;
-                default:
-                    break;
-            }
         }
     </script>
 }

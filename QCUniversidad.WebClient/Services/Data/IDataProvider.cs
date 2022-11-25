@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using QCUniversidad.WebClient.Models.Careers;
+﻿using QCUniversidad.WebClient.Models.Careers;
 using QCUniversidad.WebClient.Models.Courses;
 using QCUniversidad.WebClient.Models.Curriculums;
 using QCUniversidad.WebClient.Models.Departments;
@@ -107,6 +106,7 @@ public interface IDataProvider
     #region Subjects
 
     Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to);
+    Task<IList<SubjectModel>> GetSubjectsForDisciplineAsync(Guid disciplineId);
     Task<IList<SubjectModel>> GetSubjectsForCourseAsync(Guid courseId);
     Task<IList<SubjectModel>> GetSubjectsForCourseInPeriodAsync(Guid courseId, Guid periodId);
     Task<IList<SubjectModel>> GetSubjectsForCourseNotAssignedInPeriodAsync(Guid courseId, Guid periodId);

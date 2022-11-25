@@ -1985,6 +1985,27 @@ public class DataManager : IDataManager
         return result;
     }
 
+    public async Task<IList<SubjectModel>> GetSubjectsForDisciplineAsync(Guid disciplineId)
+    {
+        if (disciplineId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(disciplineId));
+        }
+        if (!await ExistsDisciplineAsync(disciplineId))
+        {
+            throw new DisciplineNotFoundException();
+        }
+        try
+        {
+            var subjects = await _context.Subjects.Where(s => s.DisciplineId == disciplineId).ToListAsync();
+            return subjects;
+        }
+        catch
+        {
+            throw;
+        }
+    }
+
     public async Task<IList<SubjectModel>> GetSubjectsForCourseAsync(Guid courseId)
     {
         var query = from s in _context.Subjects

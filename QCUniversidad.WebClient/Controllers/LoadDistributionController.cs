@@ -45,6 +45,7 @@ public class LoadDistributionController : Controller
         var schoolYear = schoolYearId is null ? await _dataProvider.GetCurrentSchoolYear() : await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
         var department = await _dataProvider.GetDepartmentAsync(workingDepartment);
         var courses = await _dataProvider.GetCoursesForDepartment(workingDepartment, schoolYear.Id);
+        courses = courses.OrderBy(c => c.CareerId).ThenBy(c => c.TeachingModality).ThenBy(c => c.CareerYear).ToList();
         var periods = await _dataProvider.GetPeriodsAsync(schoolYear.Id);
         var model = new LoadDistributionIndexModel
         {
@@ -129,6 +130,7 @@ public class LoadDistributionController : Controller
         try
         {
             var result = await _dataProvider.GetTeachingPlanItemsOfDepartmentOnPeriodAsync(workingDepartment, periodId, courseId);
+            result = result.OrderBy(item => item.SubjectId).ThenBy(item => item.Course.CareerId).ThenBy(item => item.Course.CareerYear).ToList();
             return PartialView("_SimplifiedPlanningListView", result);
         }
         catch (Exception)

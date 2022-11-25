@@ -106,6 +106,7 @@ public interface IDataManager
     Task<bool> CreateSubjectAsync(SubjectModel subject);
     Task<bool> ExistsSubjectAsync(Guid id);
     Task<bool> ExistsSubjectAsync(string name);
+    Task<IList<SubjectModel>> GetSubjectsForDisciplineAsync(Guid disciplineId);
     Task<IList<SubjectModel>> GetSubjectsForCourseAsync(Guid courseId);
     Task<IList<SubjectModel>> GetSubjectsForCourseInPeriodAsync(Guid courseId, Guid periodId);
     Task<IList<SubjectModel>> GetSubjectsForCourseNotAssignedInPeriodAsync(Guid courseId, Guid periodId);

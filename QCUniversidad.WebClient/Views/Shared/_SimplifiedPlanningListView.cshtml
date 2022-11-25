@@ -10,12 +10,6 @@
         <h5>Planificación del período para el departamento</h5>
     </div>
     <div style="display: flex; flex-direction: row; align-items: center; justify-content: end;">
-        <button class="btn btn-sm btn-outline-primary" style="margin-right: 5px;" id="showTable" onclick="SetView('table')">
-            <span class="fa fa-table"></span>
-        </button>
-        <button class="btn btn-sm btn-primary" style="margin-right: 15px;" id="showGrid" onclick="SetView('grid')">
-            <span class="fa fa-grip"></span>
-        </button>
         <button class="btn btn-sm btn-info" onclick="LoadPlanningItems()">
             <span class="fa fa-refresh"></span>
         </button>
@@ -24,98 +18,111 @@
 
 @if (Model.Count > 0)
 {
-    <div class="fadeIn" id="tableView" style="visibility: collapse;">
-
-        <!--Table-->
-        <div class="table-responsive">
-            <table class="table table-hover" id="planning-table">
-                <thead>
-                    <tr>
-                        <th>
-                            Asignatura
-                        </th>
-                        <th>
-                            Tipo
-                        </th>
-                        <td align="right">
-                            <b>Horas planificadas</b>
-                        </td>
-                        <td align="right">
-                            <b>Horas cubiertas</b>
-                        </td>
-                        <td align="center">
-                        </td>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-                        <tr data-planitemrow-subject="@string.Join("", item.SubjectId.ToString().Split("-"))">
-                            <td>
-                                <a asp-action="Details" asp-controller="Subjects" asp-route-id="@item.Subject?.Id" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Asignatura</small></div> <div><b>@item.Subject?.Name</b></div> <div><i>@item.Subject?.Description</i></div>">
-                                    @item.Subject?.Name <small><span class="fa fa-info-circle"></span></small>
-                                </a>
-                            </td>
-                            <td>
-                                @Html.DisplayFor(m => item.Type)
+    <ul class="nav nav-tabs" id="planning-views" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="grid-tab" data-bs-toggle="tab" data-bs-target="#grid" type="button" role="tab" aria-controls="grid" aria-selected="true"><span class="fa fa-grip"></span></button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="table-tab" data-bs-toggle="tab" data-bs-target="#table" type="button" role="tab" aria-controls="table" aria-selected="false"><span class="fa fa-table"></span></button>
+        </li>
+    </ul>
+    <div class="tab-content" id="planning-views-content">
+        <div class="tab-pane fade show active pt-2" id="grid" role="tabpanel" aria-labelledby="grid-tab">
+            <!--Grid-->
+            <div class="load-items-set">
+                @foreach (var item in Model)
+                {
+                    var itemIndex = Model.IndexOf(item);
+                    <partial name="_LoadItem" model="(item, itemIndex)" />
+                }
+            </div>
+        </div>
+        <div class="tab-pane fade pt-2" id="table" role="tabpanel" aria-labelledby="table-tab">
+            <!--Table-->
+            <div class="table-responsive">
+                <table class="table table-hover" id="planning-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                Curso
+                            </th>
+                            <th>
+                                Asignatura
+                            </th>
+                            <th>
+                                Tipo
+                            </th>
+                            <td align="right">
+                                <b>Horas planificadas</b>
                             </td>
                             <td align="right">
-                                @if (item.FromPostgraduateCourse == true)
-                                {
-                                    <small>
-                                        <span class="fa fa-user-graduate" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Postgrado</small></div> <div><b>Es curso de postgrado</b></div> <div><i>Este elemento pertenece a un curso de postgrado y se le aplicará el coefeiciente de cálculo correspondiente.</i></div>"></span>
-                                    </small>
-                                }
-                                @item.TotalHoursPlanned
-                            </td>
-                            <td align="right">
-                                @item.TotalLoadCovered
+                                <b>Horas cubiertas</b>
                             </td>
                             <td align="center">
-                                <div class="load-item-header-supvalue" style="width: 50px;">
-                                    <svg data-value="@item.LoadCoveredPercent" class="circle-percentage" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-chart-pie'></span> Gráfico</small></div> <div><b>Carga distribuida</b></div> <div>Representa el porciento de carga distribuida.</div>">
-                                        <circle r="45" cx="50" cy="50" />
-                                        <path class="meter" d="M5,50a45,45 0 1,0 90,0a45,45 0 1,0 -90,0" stroke-linecap="round" stroke-linejoin="round" stroke-dashoffset="282.78302001953125" stroke-dasharray="282.78302001953125" />
-                                        <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="2.6rem"></text>
-                                    </svg>
-                                </div>
+                            </td>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr data-planitemrow-subject="@string.Join("", item.SubjectId.ToString().Split("-"))">
+                                <td>
+                                    <a asp-action="Details" asp-controller="Courses" asp-route-id="@item.Course?.Id" class="link-info">@item.Course?.Denomination</a>
+                                </td>
+                                <td>
+                                    <a asp-action="Details" asp-controller="Subjects" asp-route-id="@item.Subject?.Id" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Asignatura</small></div> <div><b>@item.Subject?.Name</b></div> <div><i>@item.Subject?.Description</i></div>">
+                                        @item.Subject?.Name <small><span class="fa fa-info-circle"></span></small>
+                                    </a>
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(m => item.Type)
+                                </td>
+                                <td align="right">
+                                    @if (item.FromPostgraduateCourse == true)
+                                    {
+                                        <small>
+                                            <span class="fa fa-user-graduate" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Postgrado</small></div> <div><b>Es curso de postgrado</b></div> <div><i>Este elemento pertenece a un curso de postgrado y se le aplicará el coefeiciente de cálculo correspondiente.</i></div>"></span>
+                                        </small>
+                                    }
+                                    @item.TotalHoursPlanned
+                                </td>
+                                <td align="right">
+                                    @item.TotalLoadCovered
+                                </td>
+                                <td align="center">
+                                    <div class="load-item-header-supvalue" style="width: 50px;">
+                                        <svg data-value="@item.LoadCoveredPercent" class="circle-percentage" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-chart-pie'></span> Gráfico</small></div> <div><b>Carga distribuida</b></div> <div>Representa el porciento de carga distribuida.</div>">
+                                            <circle r="45" cx="50" cy="50" />
+                                            <path class="meter" d="M5,50a45,45 0 1,0 90,0a45,45 0 1,0 -90,0" stroke-linecap="round" stroke-linejoin="round" stroke-dashoffset="282.78302001953125" stroke-dasharray="282.78302001953125" />
+                                            <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="2.6rem"></text>
+                                        </svg>
+                                    </div>
+                                </td>
+                                <td align="right">
+                                    <button class="btn btn-sm btn-outline-success" onclick="RiseAddLoadModal('@item.Id', '@item.Subject?.DisciplineId')"><span class="fa fa-user-plus"></span></button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2" align="right">
+                                <b>Total</b>
+                            </td>
+                            <td id="totalCell" align="right">
+                                <b>@Model.Sum(i => i.TotalHoursPlanned)</b>
                             </td>
                             <td align="right">
-                                <button class="btn btn-sm btn-outline-info"><span class="fa fa-info-circle"></span></button>
-                                <button class="btn btn-sm btn-outline-success" onclick="RiseAddLoadModal('@item.Id', '@item.Subject?.DisciplineId')"><span class="fa fa-user-plus"></span></button>
+                                <b>@Model.Sum(i => i.TotalLoadCovered)</b>
                             </td>
+                            <td colspan="2"></td>
                         </tr>
-                    }
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="2" align="right">
-                            <b>Total</b>
-                        </td>
-                        <td id="totalCell" align="right">
-                            <b>@Model.Sum(i => i.TotalHoursPlanned)</b>
-                        </td>
-                        <td align="right">
-                            <b>@Model.Sum(i => i.TotalLoadCovered)</b>
-                        </td>
-                        <td colspan="2"></td>
-                    </tr>
-                </tfoot>
-            </table>
+                    </tfoot>
+                </table>
+            </div>
         </div>
-
     </div>
-
-    <!--Grid-->
-    <div class="load-items-set fadeIn" id="gridView">
-        @foreach (var item in Model)
-        {
-            var itemIndex = Model.IndexOf(item);
-            <partial name="_LoadItem" model="(item, itemIndex)" />
-        }
-    </div>
-
     <!--Summary-->
     <div class="accordion mt-3" id="planningSummary">
         <div class="accordion-item">
@@ -129,8 +136,8 @@
                     <dl class="row">
                         @foreach (var subject in Model.Select(item => item.Subject).Distinct())
                         {
-                            <dt class="col-sm-3">@subject.Name</dt>
-                            <dd class="col-sm-9">@Model.Sum(i => i.SubjectId == subject.Id ? i.TotalHoursPlanned : 0)</dd>
+                            <dt class="col-sm-3">@subject?.Name</dt>
+                            <dd class="col-sm-9">@Model.Sum(i => i.SubjectId == subject?.Id ? i.TotalHoursPlanned : 0)</dd>
                         }
                         <dt class="col-sm-3 border-top">Total planificado</dt>
                         <dd class="col-sm-9 border-top"><b>@Model.Sum(i => i.TotalHoursPlanned) horas</b></dd>
