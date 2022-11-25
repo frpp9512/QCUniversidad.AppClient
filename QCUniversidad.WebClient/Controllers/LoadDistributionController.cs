@@ -129,7 +129,7 @@ public class LoadDistributionController : Controller
         var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
-            var result = await _dataProvider.GetTeachingPlanItemsOfDepartmentOnPeriodAsync(workingDepartment, periodId, courseId);
+            var result = await _dataProvider.GetTeachingPlanItemsOfDepartmentOnPeriodAsync(workingDepartment, periodId, courseId, true);
             result = result.OrderBy(item => item.SubjectId).ThenBy(item => item.Course.CareerId).ThenBy(item => item.Course.CareerYear).ToList();
             return PartialView("_SimplifiedPlanningListView", result);
         }

@@ -1682,10 +1682,10 @@ public class DataProvider : IDataProvider
         throw new ArgumentNullException(nameof(id));
     }
 
-    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriodAsync(Guid departmentId, Guid periodId, Guid? courseId = null)
+    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriodAsync(Guid departmentId, Guid periodId, Guid? courseId = null, bool onlyLoadItems = false)
     {
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
-        var response = await client.GetAsync($"/department/planningitems?id={departmentId}&periodId={periodId}{(courseId is not null ? $"&courseId={courseId}" : "")}");
+        var response = await client.GetAsync($"/department/planningitems?id={departmentId}&periodId={periodId}&onlyLoadItems={onlyLoadItems}{(courseId is not null ? $"&courseId={courseId}" : "")}");
         if (response.IsSuccessStatusCode)
         {
             var contentText = await response.Content.ReadAsStringAsync();

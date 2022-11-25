@@ -64,6 +64,12 @@
                         <label for="totalHoursInput" class="form-label">Horas totales</label>
                         <input id="totalHoursInput" type="number" min="0" class="form-control" disabled />
                     </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="IsNotLoadGenerator" class="form-check-input" type="checkbox" />
+                            <label asp-for="IsNotLoadGenerator" class="form-check-label"></label>
+                        </div>
+                    </div>
                 </fieldset>
                 <div class="form-footer mt-3">
                     <input asp-for="CourseId" type="hidden" />

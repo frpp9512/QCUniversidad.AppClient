@@ -11,6 +11,7 @@ public class CoursePeriodPlanningInfoModel
     public CourseModel? Course { get; set; }
     public double TotalHoursPlanned { get; set; }
     public double TotalHoursPlannedPercent { get; set; }
+    public bool IsNotLoadGenerator { get; set; }
     public double RealHoursPlanned { get; set; }
     public double RealHoursPlannedPercent { get; set; }
 }

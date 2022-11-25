@@ -29,6 +29,8 @@ public record TeachingPlanItemModel
 
     public bool FromPostgraduateCourse { get; set; }
 
+    public bool IsNotLoadGenerator { get; set; }
+
     public Guid PeriodId { get; set; }
     public PeriodModel Period { get; set; }
 

@@ -10,13 +10,15 @@
     --main-color-30: rgba(92, 92, 184, 0.3);
     --main-color-20: rgba(92, 92, 184, 0.2);
     --main-color-10: rgba(92, 92, 184, 0.1);
-    --text-color: rgba(0, 0, 0, 0.6);
+    --text-color: white;
     --white: #ffffff;
 }
 
 html {
     font-size: 14px;
     margin: 0;
+    background-color: black !important;
+    color: white !important;
 }
 
 @media (min-width: 768px) {
@@ -33,10 +35,45 @@ html {
     background-size: 500px;
 }
 
+header {
+    background-color: black !important;
+    color: white !important;
+}
+
+    header * {
+        background-color: black !important;
+        color: white !important;
+    }
+
 body {
     margin-bottom: 200px;
-    background-color: transparent;
     background-blend-mode: difference;
+    background-color: transparent;
+    color: white;
+}
+
+tbody {
+    color: white !important;
+}
+
+tbody tr:hover {
+    color: rgba(255, 255, 255, .5) !important;
+}
+
+.container {
+    background-color: black;
+    color: white;
+}
+
+.navbar {
+    background-color: black !important;
+    color: white !important;
+    border-bottom: #999 !important;
+}
+
+.navbar * {
+    background-color: black !important;
+    color: white !important;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -59,6 +96,8 @@ thead, tfoot {
 main {
     padding: 15px;
     border-radius: 5px;
+    background-color: black;
+    color: white;
 }
 
 .nav-profile-pic {
@@ -114,7 +153,7 @@ main {
     }
 
     .nav-link {
-        color: var(--main-color-90) !important;
+        color: white;
         font-weight: 500;
     }
 
@@ -124,7 +163,7 @@ main {
     }
 
 .nav-link:hover {
-    color: var(--main-color) !important;
+    color: #aaa !important;
 }
 
 .nav-link-icon {
@@ -132,12 +171,12 @@ main {
 }
 
 .dropdown-item {
-    color: var(--main-color-80);
+    color: white;
     font-weight: 500;
 }
 
     .dropdown-item:hover {
-        color: var(--main-color);
+        color: #999 !important;
         transition: 0.3s;
     }
 
@@ -253,9 +292,10 @@ main {
 }
 
 #main-container {
-    background-color: white;
     box-shadow: 1px 1px 10px #ccc;
     border-radius: 5px;
+    background-color: black !important;
+    color: white !important;
 }
 
 a {
@@ -632,7 +672,7 @@ dd {
 .load-item-course {
     font-weight: bold;
     font-size: 0.7rem;
-    color: #808080;
+    color: white;
     margin-bottom: 3px;
 }
 
@@ -652,7 +692,7 @@ dd {
 .load-item-subtitle {
     font-weight: 500;
     font-size: 0.8rem;
-    color: var(--text-color);
+    color: white;
 }
 
 .load-item-header-value {
@@ -697,7 +737,9 @@ dd {
         border: none;
         width: 25px;
         height: 25px;
-        margin: 2px
+        margin: 2px;
+        background-color: transparent;
+        color: white;
     }
 
         .load-item-header-buttons button:hover {
@@ -712,7 +754,7 @@ dd {
 
 .load-item-body {
     border-top: 1px solid #ddd;
-    background-color: white;
+    background-color: transparent;
     font-size: 0.8rem;
 }
 
@@ -1014,7 +1056,6 @@ dd {
     border-radius: 5px;
     box-shadow: 1px 1px 5px #ddd;
     cursor: pointer;
-    background-color: white;
     font-size: 1rem;
 }
 
@@ -1594,6 +1635,7 @@ footer {
     color: white;
     padding-top: 10px;
     padding-bottom: 10px;
+    border-top: none !important;
 }
 
     footer * {
@@ -1634,3 +1676,23 @@ footer {
 }
 
 /* end of footer */
+
+.accordion-button {
+    background-color: black !important;
+    color: white !important;
+}
+
+.accordion-collapse {
+    background-color: black !important;
+    color: white !important;
+}
+
+input[type="search"] {
+    background-color: black !important;
+    color: white !important;
+}
+
+input[type="search"]:active {
+    background-color: black !important;
+    color: white !important;
+}

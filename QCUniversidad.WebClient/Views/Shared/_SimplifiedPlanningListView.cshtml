@@ -105,24 +105,11 @@
                             </tr>
                         }
                     </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="2" align="right">
-                                <b>Total</b>
-                            </td>
-                            <td id="totalCell" align="right">
-                                <b>@Model.Sum(i => i.TotalHoursPlanned)</b>
-                            </td>
-                            <td align="right">
-                                <b>@Model.Sum(i => i.TotalLoadCovered)</b>
-                            </td>
-                            <td colspan="2"></td>
-                        </tr>
-                    </tfoot>
                 </table>
             </div>
         </div>
     </div>
+
     <!--Summary-->
     <div class="accordion mt-3" id="planningSummary">
         <div class="accordion-item">

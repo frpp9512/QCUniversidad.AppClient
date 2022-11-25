@@ -21,6 +21,7 @@
         <table class="table table-hover" id="planning-table" style="width: 100%">
             <thead>
                 <tr>
+                    <th></th>
                     <th>
                         @Html.LabelFor(m => Model.First().Subject)
                     </th>
@@ -46,6 +47,12 @@
                 @foreach (var item in Model)
                 {
                     <tr>
+                        <td align="center">
+                            @if (item.IsNotLoadGenerator)
+                            {
+                                <span class="fa fa-person-arrow-up-from-line font-text-color" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Práctica profesional o trabajo de culminación de curso o carrera</small></div> <div>Esta planificación es de una asignatura referente a actividades de prácticas profesionales, proyectos integradores o trabajos de diplomas que se realizan en su mayor parte fuera del centro sin interacción prolongada con un profesor específico de la actividad.</div> <small>No se genera elemento de carga distribuible.</small>"></span>
+                            }
+                        </td>
                         <td id="@item.SubjectId">
                             <a asp-action="Details" asp-controller="Subjects" asp-route-id="@item.Subject?.Id" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Asignatura</small></div> <div><b>@item.Subject?.Name</b></div> <div><i>@item.Subject?.Description</i></div>">
                                 @item.Subject?.Name <small><span class="fa fa-info-circle"></span></small>

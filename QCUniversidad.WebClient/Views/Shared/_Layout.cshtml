@@ -8,6 +8,7 @@
     <title>@ViewData["Title"] - QCUniversidad</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @*<link rel="stylesheet" href="~/css/site-dark.css" asp-append-version="true" />*@
     <link rel="stylesheet" href="~/QCUniversidad.WebClient.styles.css" asp-append-version="true" />
     <link href="/lib/fontawesome/css/fontawesome.css" rel="stylesheet">
     <link href="/lib/fontawesome/css/brands.css" rel="stylesheet">
@@ -154,15 +155,29 @@
     </div>
 
     <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2022 - QCUniversidad.WebClient - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-            <a href="https://facebook.com/frankinformaticservices"><span class="fa-brands fa-facebook"></span></a>
-            <a href="https://twitter.com/frankinformaticservices"><span class="fa-brands fa-twitter"></span></a>
-            <a href="https://instagram.com/frankinformaticservices"><span class="fa-brands fa-instagram"></span></a>
-            <a href="https://wa.me/5358591754"><span class="fa-brands fa-whatsapp"></span></a>
-            <a href="https://t.me/frankinformaticservices"><span class="fa-brands fa-telegram"></span></a>
+        <div class="footer-dev-info">
+            <img src="/img/site/dev_logo.svg" />
+            <div class="footer-dev-media">
+                <a href="https://facebook.com/frankinformaticservices"><span class="fa-brands fa-facebook"></span></a>
+                <a href="https://twitter.com/frankinformaticservices"><span class="fa-brands fa-twitter"></span></a>
+                <a href="https://instagram.com/frankinformaticservices"><span class="fa-brands fa-instagram"></span></a>
+                <a href="https://wa.me/5358591754"><span class="fa-brands fa-whatsapp"></span></a>
+                <a href="https://t.me/frankinformaticservices"><span class="fa-brands fa-telegram"></span></a>
+            </div>
+        </div>
+        <div class="footer-logo">
+            <img src="~/img/site/logo_fullvertical_negative.svg" />
+            <div class="footer-logo-copyright">
+                &copy; 2022 - QCUniversidad
+            </div>
+        </div>
+        <div class="footer-client-links">
+            <a href="https://www.uho.edu.cu/">
+                <img src="/img/site/client_logo_white.png" width="100" />
+            </a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

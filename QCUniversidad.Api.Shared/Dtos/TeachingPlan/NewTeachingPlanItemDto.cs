@@ -1,10 +1,4 @@
-﻿using QCUniversidad.Api.Shared.Dtos.Subject;
-using QCUniversidad.Api.Shared.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using QCUniversidad.Api.Shared.Enums;
 
 namespace QCUniversidad.Api.Shared.Dtos.TeachingPlan
 {
@@ -16,6 +10,7 @@ namespace QCUniversidad.Api.Shared.Dtos.TeachingPlan
         public double HoursPlanned { get; set; }
         public uint GroupsAmount { get; set; }
         public double TotalHoursPlanned { get; set; }
+        public bool IsNotLoadGenerator { get; set; }
         public Guid PeriodId { get; set; }
     }
 }

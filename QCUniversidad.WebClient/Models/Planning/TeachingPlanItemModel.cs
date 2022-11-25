@@ -38,6 +38,9 @@ public class TeachingPlanItemModel
 
     public bool? FromPostgraduateCourse { get; set; }
 
+    [Display(Name = "Práctica profesional o trabajo de culminación de curso o carrera", Description = "Define si la actividad es una actividad que da cierre al año o carrera, o en su defecto es una activdad de práctica profesional.", Prompt = "Práctica profesional o trabajo de culminación de curso o carrera")]
+    public bool IsNotLoadGenerator { get; set; }
+
     public IList<LoadItemModel>? LoadItems { get; set; }
 
     public Guid CourseId { get; set; }

@@ -195,7 +195,7 @@ public interface IDataProvider
     Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItemModel period);
     Task<bool> DeleteTeachingPlanItemAsync(Guid id);
 
-    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriodAsync(Guid departmentId, Guid periodId, Guid? courseId = null);
+    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriodAsync(Guid departmentId, Guid periodId, Guid? courseId = null, bool onlyLoadItems = false);
 
     #endregion
 

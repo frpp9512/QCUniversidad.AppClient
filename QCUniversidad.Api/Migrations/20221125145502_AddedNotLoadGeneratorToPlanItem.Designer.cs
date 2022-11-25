@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QCUniversidad.Api.Data.Context;
@@ -11,9 +12,11 @@ using QCUniversidad.Api.Data.Context;
 namespace QCUniversidad.Api.Migrations
 {
     [DbContext(typeof(QCUniversidadContext))]
-    partial class QCUniversidadContextModelSnapshot : ModelSnapshot
+    [Migration("20221125145502_AddedNotLoadGeneratorToPlanItem")]
+    partial class AddedNotLoadGeneratorToPlanItem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -469,9 +472,6 @@ namespace QCUniversidad.Api.Migrations
 
                     b.Property<double>("HoursPlanned")
                         .HasColumnType("double precision");
-
-                    b.Property<bool>("IsNotLoadGenerator")
-                        .HasColumnType("boolean");
 
                     b.Property<Guid>("PeriodId")
                         .HasColumnType("uuid");

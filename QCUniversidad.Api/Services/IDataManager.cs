@@ -204,7 +204,7 @@ public interface IDataManager
     Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItemModel period);
     Task<bool> DeleteTeachingPlanItemAsync(Guid id);
 
-    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId, Guid? courseId = null);
+    Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId, Guid? courseId = null, bool onlyLoadItems = false);
     Task<bool> IsTeachingPlanFromPostgraduateCourse(Guid teachingPlanId);
     Task<double> GetPlanItemTotalCoveredAsync(Guid planItemId);
 

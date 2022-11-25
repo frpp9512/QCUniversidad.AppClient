@@ -3,12 +3,6 @@ using QCUniversidad.Api.Shared.Dtos.LoadItem;
 using QCUniversidad.Api.Shared.Dtos.Period;
 using QCUniversidad.Api.Shared.Dtos.Subject;
 using QCUniversidad.Api.Shared.Enums;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Shared.Dtos.TeachingPlan;
 
@@ -22,8 +16,9 @@ public record TeachingPlanItemDto
     public uint GroupsAmount { get; set; }
     public double TotalHoursPlanned { get; set; }
     public bool FromPostgraduateCourse { get; set; }
+    public bool IsNotLoadGenerator { get; set; }
     public double TotalLoadCovered { get; set; }
-    public double LoadCoveredPercent => Math.Round((TotalLoadCovered / TotalHoursPlanned) * 100, 1);
+    public double LoadCoveredPercent => Math.Round(TotalLoadCovered / TotalHoursPlanned * 100, 1);
     public bool AllowLoad { get; set; }
     public Guid CourseId { get; set; }
     public SimpleCourseDto Course { get; set; }

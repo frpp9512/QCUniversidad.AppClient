@@ -1,16 +1,7 @@
 ﻿using QCUniversidad.Api.Shared.Enums;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using QCUniversidad.WebClient.Models.Subjects;
-using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.Courses;
-using Microsoft.CodeAnalysis.Diagnostics;
+using QCUniversidad.WebClient.Models.Periods;
+using System.ComponentModel.DataAnnotations;
 
 namespace QCUniversidad.WebClient.Models.Planning;
 
@@ -35,6 +26,9 @@ public class CreateTeachingPlanItemModel
 
     [Display(Name = "Grupos", Description = "Cantidad de grupos involucrados en la actividad", Prompt = "Cantidad de grupos")]
     public uint GroupsAmount { get; set; }
+
+    [Display(Name = "Práctica profesional o trabajo de culminación de curso o carrera", Description = "Define si la actividad es una actividad que da cierre al año o carrera, o en su defecto es una activdad de práctica profesional.", Prompt = "Práctica profesional o trabajo de culminación de curso o carrera")]
+    public bool IsNotLoadGenerator { get; set; }
 
     [Required]
     public Guid PeriodId { get; set; }

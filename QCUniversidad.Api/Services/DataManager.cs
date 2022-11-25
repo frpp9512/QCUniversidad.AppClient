@@ -3036,7 +3036,7 @@ public class DataManager : IDataManager
         throw new ArgumentNullException(nameof(id));
     }
 
-    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId, Guid? courseId = null)
+    public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId, Guid? courseId = null, bool onlyLoadItems = false)
     {
         try
         {
@@ -3057,7 +3057,7 @@ public class DataManager : IDataManager
             var planItems = from planItem in _context.TeachingPlanItems
                             join subject in subjects
                             on planItem.SubjectId equals subject.Id
-                            where planItem.PeriodId == periodId
+                            where planItem.PeriodId == periodId && (!onlyLoadItems || (onlyLoadItems && !planItem.IsNotLoadGenerator))
                             select planItem;
 
             var items = planItems.Distinct().Include(i => i.Subject).Include(p => p.Course).Include(i => i.LoadItems).ThenInclude(li => li.Teacher);
