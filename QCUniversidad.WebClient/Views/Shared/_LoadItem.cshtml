@@ -14,23 +14,27 @@
             </div>
             <div class="load-item-subtitle">@Html.DisplayFor(m => Model.planItem.Type)</div>
         </div>
-        <div class="load-item-header-value">
-            <div class="load-item-value">
-                @if (Model.planItem.FromPostgraduateCourse == true)
-                {
-                    <small>
-                        <span class="fa fa-user-graduate" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Postgrado</small></div> <div><b>Es curso de postgrado</b></div> <div><i>Este elemento pertenece a un curso de postgrado y se le aplicará el coefeiciente de cálculo correspondiente.</i></div>"></span>
-                    </small>
-                }
-                @(Model.planItem.TotalHoursPlanned)h
+        <div class="load-item-header-dynamic">
+            <div class="load-item-header-value-container">
+                <div class="load-item-header-value">
+                    <div class="load-item-value">
+                        @if (Model.planItem.FromPostgraduateCourse == true)
+                        {
+                            <small>
+                                <span class="fa fa-user-graduate" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Postgrado</small></div> <div><b>Es curso de postgrado</b></div> <div><i>Este elemento pertenece a un curso de postgrado y se le aplicará el coefeiciente de cálculo correspondiente.</i></div>"></span>
+                            </small>
+                        }
+                        @(Model.planItem.TotalHoursPlanned)h
+                    </div>
+                </div>
+                <div class="load-item-header-supvalue" style="width: 50px;">
+                    <partial name="_CircleIndicator" model="(Model.planItem.LoadCoveredPercent.Value, 30, string.Empty)" />
+                </div>
             </div>
-        </div>
-        <div class="load-item-header-supvalue" style="width: 50px;">
-            <partial name="_CircleIndicator" model="(Model.planItem.LoadCoveredPercent.Value, 30, string.Empty)" />
-        </div>
-        <div class="load-item-header-buttons">
-            <button onclick="RiseAddLoadModal('@Model.planItem.Id', '@Model.planItem.Subject?.DisciplineId')" @(!Model.planItem.AllowLoad.Value ? "disabled" : "")><span class="fa fa-user-plus"></span></button>
-            <button class="pi-toggle-btn" data-bs-toggle="collapse" data-bs-target="#pi@(itemIndex)" aria-expanded="false"><span class="fa fa-chevron-down"></span></button>
+            <div class="load-item-header-buttons">
+                <button onclick="RiseAddLoadModal('@Model.planItem.Id', '@Model.planItem.Subject?.DisciplineId')" @(!Model.planItem.AllowLoad.Value ? "disabled" : "")><span class="fa fa-user-plus"></span></button>
+                <button class="pi-toggle-btn" data-bs-toggle="collapse" data-bs-target="#pi@(itemIndex)" aria-expanded="false"><span class="fa fa-chevron-down"></span></button>
+            </div>
         </div>
     </div>
     <div class="load-item-body collapse" id="pi@(itemIndex)">

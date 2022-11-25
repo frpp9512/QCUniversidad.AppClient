@@ -1,36 +1,30 @@
 ﻿using Microsoft.Extensions.Options;
 using QCUniversidad.WebClient.Models.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace QCUniversidad.WebClient.Services.Platform
+namespace QCUniversidad.WebClient.Services.Platform;
+
+public class ApiCallerHttpClientFactory : IApiCallerHttpClientFactory
 {
-    public class ApiCallerHttpClientFactory : IApiCallerHttpClientFactory
+    private readonly ITokenManager _tokenManager;
+    private readonly IHttpClientFactory _clientFactory;
+    private readonly ApiConfiguration _apiConfiguration;
+
+    public ApiCallerHttpClientFactory(ITokenManager tokenManager, IHttpClientFactory clientFactory, IOptions<ApiConfiguration> options)
     {
-        private readonly ITokenManager _tokenManager;
-        private readonly IHttpClientFactory _clientFactory;
-        private readonly ApiConfiguration _apiConfiguration;
+        _tokenManager = tokenManager;
+        _clientFactory = clientFactory;
+        _apiConfiguration = options.Value;
+    }
 
-        public ApiCallerHttpClientFactory(ITokenManager tokenManager, IHttpClientFactory clientFactory, IOptions<ApiConfiguration> options)
+    public async Task<HttpClient> CreateApiCallerHttpClientAsync()
+    {
+        if (!_tokenManager.IsAccessTokenSetted || _tokenManager.IsExpired)
         {
-            _tokenManager = tokenManager;
-            _clientFactory = clientFactory;
-            _apiConfiguration = options.Value;
+            await _tokenManager.RefreshTokensAsync();
         }
-
-        public async Task<HttpClient> CreateApiCallerHttpClientAsync()
-        {
-            if (!_tokenManager.IsAccessTokenSetted || _tokenManager.IsExpired)
-            {
-                await _tokenManager.RefreshTokensAsync();
-            }
-            var client = _clientFactory.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenManager.AccessToken);
-            client.BaseAddress = new Uri(_apiConfiguration.BaseAddress);
-            return client;
-        }
+        var client = _clientFactory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenManager.AccessToken);
+        client.BaseAddress = new Uri(_apiConfiguration.BaseAddress);
+        return client;
     }
 }
