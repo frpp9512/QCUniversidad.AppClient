@@ -72,6 +72,27 @@ public class SubjectsController : Controller
         }
     }
 
+    [Authorize("Auth")]
+    [HttpGet]
+    public async Task<IActionResult> DetailsAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+        try
+        {
+            var subject = await _dataProvider.GetSubjectAsync(id);
+            var schoolYear = await _dataProvider.GetCurrentSchoolYear();
+            ViewData["schoolYear"] = schoolYear;
+            return View(subject);
+        }
+        catch
+        {
+            return RedirectToAction("Error", "Home");
+        }
+    }
+
     [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> ImportAsync()

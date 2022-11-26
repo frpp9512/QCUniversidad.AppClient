@@ -73,7 +73,7 @@
                             @item.TeachingModality.GetLabel()
                         </td>
                         <td>
-                            <a asp-action="Details" asp-controller="Carrers" asp-route-id="@item.CareerId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Carrera</small></div> <div><b>@item.Career?.Name</b></div> <div><i>@item.Career?.Description</i></div>">
+                            <a asp-action="Details" asp-controller="Careers" asp-route-id="@item.CareerId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Carrera</small></div> <div><b>@item.Career?.Name</b></div> <div><i>@item.Career?.Description</i></div>">
                                 @item.Career?.Name <small><span class="fa fa-circle-info"></span></small>
                             </a>
                         </td>

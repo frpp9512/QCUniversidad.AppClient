@@ -85,6 +85,9 @@
                             @item.SubjectsCount
                         </td>
                         <td>
+                            <a asp-action="Details" asp-controller="Disciplines" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">
+                                <span class="fa fa-info-circle" />
+                            </a>
                             <a asp-action="Edit" asp-controller="Disciplines" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
                                 <span class="fa fa-edit" />
                             </a>

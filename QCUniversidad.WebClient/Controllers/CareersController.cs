@@ -59,7 +59,24 @@ public class CareersController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> DetailsAsync(Guid id) => await Task.FromResult(View());
+    public async Task<IActionResult> DetailsAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            return RedirectToAction("Error", "Home");
+        }
+        try
+        {
+            var career = await _dataProvider.GetCareerAsync(id);
+            var schoolYear = await _dataProvider.GetSchoolYearAsync(id);
+            ViewData["schoolYear"] = schoolYear;
+            return View(career);
+        }
+        catch
+        {
+            return RedirectToAction("Error", "Home");
+        }
+    }
 
     [Authorize("Admin")]
     [HttpGet]
