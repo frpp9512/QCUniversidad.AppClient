@@ -1,5 +1,6 @@
 ﻿@using QCUniversidad.Api.Shared.Enums
 @using QCUniversidad.Api.Shared.Extensions
+@using System.Globalization;
 @model TeachersViewModel
 
 <div class="fadeIn">
@@ -19,8 +20,9 @@
                         <th>Nombre</th>
                         <th>Carné de identidad</th>
                         <th>Categoría</th>
-                        <th>Disciplinas</th>
+                        <th>Contrato</th>
                         <th>Carga</th>
+                        <th>Fondo de tiempo</th>
                         <th></th>
                         <th></th>
                     </tr>
@@ -39,28 +41,17 @@
                                 @Html.DisplayFor(m => teacher.Category)
                             </td>
                             <td>
-                                @if (teacher.Disciplines?.Any() == true)
+                                @Html.DisplayFor(m => teacher.ContractType)
+                                @if (teacher.ContractType != TeacherContractType.FullTime)
                                 {
-                                    <span class="badge bg-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Disciplinas</small></div> @string.Join("", teacher.Disciplines?.Select(d => $"<div>{d.Name}</div>").ToArray())">
-                                        @teacher.Disciplines?.Count
-                                        <span class="fa fa-info-circle"></span>
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Sin disciplina</span>
+                                    @Html.Raw($"({teacher.SpecificTimeFund} h)")
                                 }
                             </td>
                             <td align="right">
-                                @if (teacher.Load is not null)
-                                {
-                                    <div class="d-flex align-items-center justify-content-end">
-                                        <div class="font-heavy" style='margin-right: 5px;'>
-                                            <span>@(teacher.Load.Load) h</span>
-                                            <span class="text-muted d-none d-lg-inline">/ @(teacher.Load.TimeFund) h</span>
-                                        </div>
-                                    </div>
-                                }
+                                @(teacher.Load?.Load.ToString("F", CultureInfo.InvariantCulture))
+                            </td>
+                            <td align="right">
+                                @(teacher.Load?.TimeFund.ToString("F", CultureInfo.InvariantCulture))
                             </td>
                             <td>
                                 @{

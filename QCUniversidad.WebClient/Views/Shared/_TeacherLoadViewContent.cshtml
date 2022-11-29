@@ -5,7 +5,7 @@
 <div class="d-flex flex-row align-content-center justify-content-between mb-2">
     <div class="d-flex flex-column align-content-center justify-content-end mb-3">
         <h5>@Model.Teacher.Fullname</h5>
-        <div class="font-light">
+        <div>
             @Model.Teacher.Position - @Model.Teacher.ContractType.GetEnumDisplayNameValue()
             @if (Model.Teacher.ContractType != TeacherContractType.FullTime)
             {

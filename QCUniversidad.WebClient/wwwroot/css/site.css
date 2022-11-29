@@ -17,6 +17,11 @@
 html {
     font-size: 14px;
     margin: 0;
+    position: relative;
+    min-height: 100%;
+    background-image: url('../img/site/qcu_bg.svg');
+    background-clip: border-box;
+    background-size: 500px;
 }
 
 @media (min-width: 768px) {
@@ -25,15 +30,9 @@ html {
     }
 }
 
-html {
-    position: relative;
-    min-height: 100%;
-    background-image: url('../img/site/qcu_bg.svg');
-    background-clip: border-box;
-    background-size: 500px;
-}
-
 body {
+    color: var(--text-color);
+    font-weight: 500;
     margin-bottom: 200px;
     background-color: transparent;
     background-blend-mode: difference;
