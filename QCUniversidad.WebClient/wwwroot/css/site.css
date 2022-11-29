@@ -270,6 +270,10 @@ dd {
     color: var(--text-color);
 }
 
+.btn-rounded {
+    border-radius: 50px !important;
+}
+
 .login-container {
     display: grid;
     grid-template: "login-image login-form";

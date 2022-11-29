@@ -1,19 +1,14 @@
-﻿using AutoMapper.Execution;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using QCUniversidad.Api.ConfigurationModels;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Extensions;
+using QCUniversidad.Api.Shared.CommonModels;
 using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.Api.Shared.Extensions;
-using QCUniversidad.Api.Shared.CommonModels;
-using QCUniversidad.Api.Extensions;
-using QCUniversidad.Api.MappingProfiles;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Text;
-using Newtonsoft.Json.Linq;
-using Microsoft.AspNetCore.Mvc;
 
 namespace QCUniversidad.Api.Services;
 
@@ -330,7 +325,7 @@ public class DataManager : IDataManager
 
         var isPeriodFromCurrentYear = !await IsPeriodInCurrentYear(periodId);
 
-        var result = (await loadItemsQuery.SumAsync() + await nonTeachingLoadQuery.SumAsync());
+        var result = await loadItemsQuery.SumAsync() + await nonTeachingLoadQuery.SumAsync();
 
         return Math.Round(result, 2);
     }
@@ -361,7 +356,7 @@ public class DataManager : IDataManager
                                    select ntl.Load;
 
         var isPeriodFromCurrentYear = !await IsPeriodInCurrentYear(periodId);
-        var teachersCount = await _context.Teachers.CountAsync(t => t.DepartmentId == departmentId && (isPeriodFromCurrentYear ? t.Active : true));
+        var teachersCount = await _context.Teachers.CountAsync(t => t.DepartmentId == departmentId && (!isPeriodFromCurrentYear || t.Active));
 
         var result = (await loadItemsQuery.SumAsync() + await nonTeachingLoadQuery.SumAsync()) / teachersCount;
 
@@ -668,10 +663,11 @@ public class DataManager : IDataManager
             if (result > 0)
             {
                 var schoolYear = await GetCurrentSchoolYearAsync();
-                await _context.Periods.Where(p => p.SchoolYearId == schoolYear.Id).ForEachAsync(async p =>
+                var periods = await _context.Periods.Where(p => p.SchoolYearId == schoolYear.Id).ToListAsync();
+                foreach (var period in periods)
                 {
-                    await RecalculateAllTeachersInPeriodAsync(p.Id);
-                });
+                    await RecalculateAllTeachersOfDepartmentInPeriodAsync(teacher.DepartmentId, period.Id);
+                }
                 return true;
             }
             return false;
@@ -771,10 +767,11 @@ public class DataManager : IDataManager
                 if (result > 0)
                 {
                     var schoolYear = await GetCurrentSchoolYearAsync();
-                    await _context.Periods.Where(p => p.SchoolYearId == schoolYear.Id).ForEachAsync(async p =>
+                    var periods = await _context.Periods.Where(p => p.SchoolYearId == schoolYear.Id).ToListAsync();
+                    foreach (var period in periods)
                     {
-                        await RecalculateAllTeachersInPeriodAsync(p.Id);
-                    });
+                        await RecalculateAllTeachersOfDepartmentInPeriodAsync(teacher.DepartmentId, period.Id);
+                    }
                     return true;
                 }
                 return result > 0;
@@ -796,7 +793,7 @@ public class DataManager : IDataManager
                 throw new ArgumentNullException();
             }
             var query = from t in _context.Teachers
-                        where (loadInactives ? true : t.Active) && t.DepartmentId == departmentId
+                        where (loadInactives || t.Active) && t.DepartmentId == departmentId
                         select t;
             return await query.Include(t => t.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync();
         }
@@ -817,7 +814,7 @@ public class DataManager : IDataManager
             var query = from t in _context.Teachers
                         join d in _context.Departments
                         on t.DepartmentId equals d.Id
-                        where (loadInactives ? true : t.Active) && d.FacultyId == facultyId
+                        where (loadInactives || t.Active) && d.FacultyId == facultyId
                         select t;
             return await query.Include(t => t.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync();
         }
@@ -920,7 +917,7 @@ public class DataManager : IDataManager
             var loadItem = await GetTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
             if (loadItem is not null)
             {
-                await SetNonTeachingLoadAsync(loadItem.Type, loadItem.BaseValue, teacherId, periodId);
+                _ = await SetNonTeachingLoadAsync(loadItem.Type, loadItem.BaseValue, teacherId, periodId);
             }
         }
         return null;
@@ -940,12 +937,67 @@ public class DataManager : IDataManager
                             where teacher.Active
                             select teacher.Id;
         var teachersId = await teachersQuery.ToListAsync();
-        foreach (NonTeachingLoadType type in Enum.GetValues<NonTeachingLoadType>())
+        foreach (var type in Enum.GetValues<NonTeachingLoadType>())
         {
             foreach (var teacherId in teachersId)
             {
-                await RecalculateTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
+                _ = await RecalculateTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
             }
+        }
+    }
+
+    public async Task RecalculateAllTeachersOfDepartmentInPeriodAsync(Guid departmentId, Guid periodId)
+    {
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        if (!await IsPeriodInCurrentYear(periodId))
+        {
+            return;
+        }
+        var teachersQuery = from teacher in _context.Teachers
+                            where teacher.Active && teacher.DepartmentId == departmentId
+                            select teacher.Id;
+        var teachersId = await teachersQuery.ToListAsync();
+        foreach (var type in Enum.GetValues<NonTeachingLoadType>())
+        {
+            foreach (var teacherId in teachersId)
+            {
+                _ = await RecalculateTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
+            }
+        }
+    }
+
+    public async Task RecalculateAllTeachersRelatedToCourseInPeriodAsync(Guid courseId, Guid periodId)
+    {
+        if (!await ExistsPeriodAsync(periodId))
+        {
+            throw new PeriodNotFoundException();
+        }
+        if (!await IsPeriodInCurrentYear(periodId))
+        {
+            return;
+        }
+        /*
+            SELECT "Departments"."Id" FROM "Departments"
+                INNER JOIN "DepartmentsCareers" on "DepartmentsCareers"."DepartmentId"="Departments"."Id"
+                INNER JOIN "Careers" ON "DepartmentsCareers"."CareerId"="Careers"."Id"
+                INNER JOIN "Courses" ON "Careers"."Id"="Courses"."CareerId"
+                WHERE "Courses"."Id"='3445c071-3481-4193-a221-dd01f8bf2f41'
+        */
+        var query = from department in _context.Departments
+                    join departmentCareer in _context.DepartmentsCareers
+                    on department.Id equals departmentCareer.DepartmentId
+                    join career in _context.Careers
+                    on departmentCareer.CareerId equals career.Id
+                    join course in _context.Courses
+                    on career.Id equals course.CareerId
+                    where course.Id == courseId
+                    select department.Id;
+        foreach (var departmentId in await query.ToListAsync())
+        {
+            await RecalculateAllTeachersOfDepartmentInPeriodAsync(departmentId, periodId);
         }
     }
 
@@ -972,7 +1024,7 @@ public class DataManager : IDataManager
                                    && !planItem.FromPostgraduateCourse
                              select new { planItem.SubjectId, planItem.CourseId };
                 var cValue = cQuery.Distinct().Count();
-                string description = NonTeachingLoadType.Consultation.GetEnumDisplayDescriptionValue();
+                var description = NonTeachingLoadType.Consultation.GetEnumDisplayDescriptionValue();
                 if (cValue > 0)
                 {
                     description = $"{cValue} asignaturas x {_calculationOptions.ConsultationCoefficient} horas de consultas a cada una.";
@@ -1007,19 +1059,19 @@ public class DataManager : IDataManager
                 var descriptionBuilder = new StringBuilder();
                 if (calculationModel.MainClassesValue > 0)
                 {
-                    descriptionBuilder.AppendLine($"{calculationModel.MainClassesValue} conferencias o clases a postgrado x {_calculationOptions.ClassPreparationPrimaryCoefficient} horas de preparación cada una.");
+                    _ = descriptionBuilder.AppendLine($"{calculationModel.MainClassesValue} conferencias o clases a postgrado x {_calculationOptions.ClassPreparationPrimaryCoefficient} horas de preparación cada una.");
                 }
                 if (calculationModel.SecondaryClassesValue > 0)
                 {
-                    descriptionBuilder.AppendLine($"{calculationModel.SecondaryClassesValue} clases encuentro x {_calculationOptions.ClassPreparationSecondaryCoefficient} horas de preparación cada una.");
+                    _ = descriptionBuilder.AppendLine($"{calculationModel.SecondaryClassesValue} clases encuentro x {_calculationOptions.ClassPreparationSecondaryCoefficient} horas de preparación cada una.");
                 }
                 if (calculationModel.TertiaryClassesValue > 0)
                 {
-                    descriptionBuilder.AppendLine($"{calculationModel.SecondaryClassesValue} de otras actividades docentes x {_calculationOptions.ClassPreparationTertiaryCoefficient} horas de preparación cada una.");
+                    _ = descriptionBuilder.AppendLine($"{calculationModel.SecondaryClassesValue} de otras actividades docentes x {_calculationOptions.ClassPreparationTertiaryCoefficient} horas de preparación cada una.");
                 }
                 if (calculationModel.MainClassesValue == 0 && calculationModel.SecondaryClassesValue == 0 && calculationModel.TertiaryClassesValue == 0)
                 {
-                    descriptionBuilder.AppendLine(NonTeachingLoadType.ClassPreparation.GetEnumDisplayDescriptionValue());
+                    _ = descriptionBuilder.AppendLine(NonTeachingLoadType.ClassPreparation.GetEnumDisplayDescriptionValue());
                 }
 
                 var cpItem = new NonTeachingLoadModel
@@ -1042,7 +1094,7 @@ public class DataManager : IDataManager
                 var mValue = _calculationOptions.MeetingsCoefficient;
                 if (teacher.ContractType != TeacherContractType.FullTime)
                 {
-                    mValue = (mValue * teacher.SpecificTimeFund) / _calculationOptions.MonthTimeFund;
+                    mValue = mValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund;
                     reajustedByContract = true;
                 }
 
@@ -1062,7 +1114,7 @@ public class DataManager : IDataManager
                 var maValue = _calculationOptions.MethodologicalActionsCoefficient;
                 if (teacher.ContractType != TeacherContractType.FullTime)
                 {
-                    maValue = (maValue * teacher.SpecificTimeFund) / _calculationOptions.MonthTimeFund;
+                    maValue = maValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund;
                     reajustedByContract = true;
                 }
 
@@ -1089,7 +1141,7 @@ public class DataManager : IDataManager
 
                 if (teacher.ContractType != TeacherContractType.FullTime)
                 {
-                    eValue = (eValue * teacher.SpecificTimeFund) / _calculationOptions.MonthTimeFund;
+                    eValue = eValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund;
                     reajustedByContract = true;
                 }
 
@@ -1109,7 +1161,7 @@ public class DataManager : IDataManager
                 var oaValue = _calculationOptions.OtherActivitiesCoefficient;
                 if (teacher.ContractType != TeacherContractType.FullTime)
                 {
-                    oaValue = (oaValue * teacher.SpecificTimeFund) / _calculationOptions.MonthTimeFund;
+                    oaValue = oaValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund;
                     reajustedByContract = true;
                 }
 
@@ -1168,7 +1220,7 @@ public class DataManager : IDataManager
                                                  select loadItem.TeacherId;
                         var teachersCount = await teachersCountQuery.Distinct().CountAsync();
 
-                        var midTermExamValue = (periodSubjectData.MidtermExamsCount * _calculationOptions.ExamGradeMidTermAverageTime * courseEnrolment) / teachersCount;
+                        var midTermExamValue = periodSubjectData.MidtermExamsCount * _calculationOptions.ExamGradeMidTermAverageTime * courseEnrolment / teachersCount;
                         midTermExamGradeTotal += periodSubjectData.MidtermExamsCount;
 
                         double terminationValue = 0;
@@ -1177,24 +1229,24 @@ public class DataManager : IDataManager
                         {
                             case SubjectTerminationMode.FinalExam:
                                 var finalExamValue = _calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.ExamGradeFinalCoefficient);
-                                finalExamGradeTotal += (courseEnrolment * _calculationOptions.ExamGradeFinalCoefficient);
+                                finalExamGradeTotal += courseEnrolment * _calculationOptions.ExamGradeFinalCoefficient;
 
                                 var secondFinalExamValue = _calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.SecondExamGradeFinalCoefficient);
-                                secondFinalExamGradeTotal += (courseEnrolment * _calculationOptions.SecondExamGradeFinalCoefficient);
+                                secondFinalExamGradeTotal += courseEnrolment * _calculationOptions.SecondExamGradeFinalCoefficient;
 
                                 var thirdFinalExamValue = _calculationOptions.ExamGradeFinalAverageTime * (courseEnrolment * _calculationOptions.ThirdExamGradeFinalCoefficient);
-                                thirdFinalExamGradeTotal += (courseEnrolment * _calculationOptions.ThirdExamGradeFinalCoefficient);
+                                thirdFinalExamGradeTotal += courseEnrolment * _calculationOptions.ThirdExamGradeFinalCoefficient;
 
                                 terminationValue = finalExamValue + secondFinalExamValue + thirdFinalExamValue;
                                 break;
                             case SubjectTerminationMode.CourseWork:
-                                var courseWorkValue = _calculationOptions.CourseWorkAverageTime * ((courseEnrolment * _calculationOptions.CourseWorkEnrolmentCoefficient) / _calculationOptions.CourseWorkEnrolmentDivider);
+                                var courseWorkValue = _calculationOptions.CourseWorkAverageTime * (courseEnrolment * _calculationOptions.CourseWorkEnrolmentCoefficient / _calculationOptions.CourseWorkEnrolmentDivider);
                                 courseWorkTotal += courseEnrolment * _calculationOptions.CourseWorkEnrolmentCoefficient / _calculationOptions.CourseWorkEnrolmentDivider;
 
-                                var secondCourseWorkValue = _calculationOptions.CourseWorkAverageTime * ((courseEnrolment * _calculationOptions.SecondCourseWorkEnrolmentCoefficient) / _calculationOptions.CourseWorkEnrolmentDivider);
+                                var secondCourseWorkValue = _calculationOptions.CourseWorkAverageTime * (courseEnrolment * _calculationOptions.SecondCourseWorkEnrolmentCoefficient / _calculationOptions.CourseWorkEnrolmentDivider);
                                 secondCourseWorkTotal += courseEnrolment * _calculationOptions.SecondCourseWorkEnrolmentCoefficient / _calculationOptions.CourseWorkEnrolmentDivider;
 
-                                var thirdCourseWorkValue = _calculationOptions.CourseWorkAverageTime * ((courseEnrolment * _calculationOptions.ThirdCourseWorkEnrolmentCoefficient) / _calculationOptions.CourseWorkEnrolmentDivider);
+                                var thirdCourseWorkValue = _calculationOptions.CourseWorkAverageTime * (courseEnrolment * _calculationOptions.ThirdCourseWorkEnrolmentCoefficient / _calculationOptions.CourseWorkEnrolmentDivider);
                                 thirdCourseWorkTotal += courseEnrolment * _calculationOptions.ThirdCourseWorkEnrolmentCoefficient / _calculationOptions.CourseWorkEnrolmentDivider;
 
                                 terminationValue = courseWorkValue + secondCourseWorkValue + thirdCourseWorkValue;
@@ -1215,26 +1267,26 @@ public class DataManager : IDataManager
 
                 if (midTermExamGradeTotal > 0)
                 {
-                    examGradeDescriptionBuilder.AppendLine($"{Math.Round(midTermExamGradeTotal, 2)} exámenes parciales x {_calculationOptions.ExamGradeMidTermAverageTime} horas cada uno.");
+                    _ = examGradeDescriptionBuilder.AppendLine($"{Math.Round(midTermExamGradeTotal, 2)} exámenes parciales x {_calculationOptions.ExamGradeMidTermAverageTime} horas cada uno.");
                 }
 
                 if (finalExamGradeTotal > 0)
                 {
-                    examGradeDescriptionBuilder.AppendLine($"{Math.Round(finalExamGradeTotal, 2)} exámenes finales x {_calculationOptions.ExamGradeFinalAverageTime} horas cada uno.");
-                    examGradeDescriptionBuilder.AppendLine($"{Math.Round(secondFinalExamGradeTotal, 2)} exámenes extraordinarios x {_calculationOptions.ExamGradeFinalAverageTime} horas cada uno.");
-                    examGradeDescriptionBuilder.AppendLine($"{Math.Round(thirdFinalExamGradeTotal, 2)} exámenes mundiales x {_calculationOptions.ExamGradeFinalAverageTime} horas cada uno.");
+                    _ = examGradeDescriptionBuilder.AppendLine($"{Math.Round(finalExamGradeTotal, 2)} exámenes finales x {_calculationOptions.ExamGradeFinalAverageTime} horas cada uno.");
+                    _ = examGradeDescriptionBuilder.AppendLine($"{Math.Round(secondFinalExamGradeTotal, 2)} exámenes extraordinarios x {_calculationOptions.ExamGradeFinalAverageTime} horas cada uno.");
+                    _ = examGradeDescriptionBuilder.AppendLine($"{Math.Round(thirdFinalExamGradeTotal, 2)} exámenes mundiales x {_calculationOptions.ExamGradeFinalAverageTime} horas cada uno.");
                 }
 
                 if (courseWorkTotal > 0)
                 {
-                    examGradeDescriptionBuilder.AppendLine($"{Math.Round(courseWorkTotal)} trabajos de curso en ordinario x {_calculationOptions.CourseWorkAverageTime} horas cada uno.");
-                    examGradeDescriptionBuilder.AppendLine($"{Math.Round(secondCourseWorkTotal)} trabajos de curso en ordinario x {_calculationOptions.CourseWorkAverageTime} horas cada uno.");
-                    examGradeDescriptionBuilder.AppendLine($"{Math.Round(thirdCourseWorkTotal)} trabajos de curso en ordinario x {_calculationOptions.CourseWorkAverageTime} horas cada uno.");
+                    _ = examGradeDescriptionBuilder.AppendLine($"{Math.Round(courseWorkTotal)} trabajos de curso en ordinario x {_calculationOptions.CourseWorkAverageTime} horas cada uno.");
+                    _ = examGradeDescriptionBuilder.AppendLine($"{Math.Round(secondCourseWorkTotal)} trabajos de curso en ordinario x {_calculationOptions.CourseWorkAverageTime} horas cada uno.");
+                    _ = examGradeDescriptionBuilder.AppendLine($"{Math.Round(thirdCourseWorkTotal)} trabajos de curso en ordinario x {_calculationOptions.CourseWorkAverageTime} horas cada uno.");
                 }
 
                 if (midTermExamGradeTotal == 0 && finalExamGradeTotal == 0 && courseWorkTotal == 0)
                 {
-                    examGradeDescriptionBuilder.AppendLine(NonTeachingLoadType.ExamGrade.GetEnumDisplayNameValue());
+                    _ = examGradeDescriptionBuilder.AppendLine(NonTeachingLoadType.ExamGrade.GetEnumDisplayNameValue());
                 }
 
                 var examGradeLoad = new NonTeachingLoadModel
@@ -1268,7 +1320,7 @@ public class DataManager : IDataManager
                                                      select course.Enrolment;
                     var finalCoursesEnrolmentResult = await finalCoursesEnrolmentQuery.ToListAsync();
                     var finalCoursesEnrolment = finalCoursesEnrolmentResult.Select(ce => (double)ce).Sum();
-                    var thesisCourtTotal = (finalCoursesEnrolment * _calculationOptions.ThesisCourtCountMultiplier) / teacherDepartmentCount;
+                    var thesisCourtTotal = finalCoursesEnrolment * _calculationOptions.ThesisCourtCountMultiplier / teacherDepartmentCount;
                     var thesisCourtLoadValue = thesisCourtTotal * _calculationOptions.ThesisCourtCoefficient;
                     var thesisCourtLoad = new NonTeachingLoadModel
                     {
@@ -1383,12 +1435,9 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(teacherId));
         }
-        if (!await ExistsTeacherAsync(teacherId))
-        {
-            throw new TeacherNotFoundException();
-        }
-
-        return await _context.LoadItems.CountAsync(l => l.TeacherId == teacherId) > 0;
+        return !await ExistsTeacherAsync(teacherId)
+            ? throw new TeacherNotFoundException()
+            : await _context.LoadItems.CountAsync(l => l.TeacherId == teacherId) > 0;
     }
 
     public async Task<IList<TeacherModel>> GetTeachersOfDepartmentNotAssignedToPlanItemAsync(Guid departmentId, Guid planItemId, Guid? disciplineId = null)
@@ -1566,22 +1615,22 @@ public class DataManager : IDataManager
                         if (existingLoad is not null)
                         {
                             existingLoad.BaseValue = JsonConvert.SerializeObject(ptcModel);
-                            existingLoad.Load = loadValue.Value;
+                            existingLoad.Load = Math.Round(loadValue.Value, 2);
                             existingLoad.Description = $"Tribunales estimados: {ptcModel.MastersAndDiplomantsThesisCourts} de maestría, postgrado y/o diplomado, {ptcModel.DoctorateThesisCourts} de doctorado";
-                            _context.NonTeachingLoad.Update(existingLoad);
+                            _ = _context.NonTeachingLoad.Update(existingLoad);
                         }
                         else
                         {
                             var newPTCLoad = new NonTeachingLoadModel
                             {
                                 BaseValue = baseValue,
-                                Load = loadValue.Value,
+                                Load = Math.Round(loadValue.Value, 2),
                                 Description = $"Tribunales estimados: {ptcModel.MastersAndDiplomantsThesisCourts} de maestría, postgrado y/o diplomado, {ptcModel.DoctorateThesisCourts} de doctorado",
                                 Type = type,
                                 TeacherId = teacherId,
                                 PeriodId = periodId
                             };
-                            _context.NonTeachingLoad.Add(newPTCLoad);
+                            _ = _context.NonTeachingLoad.Add(newPTCLoad);
                         }
                         return await _context.SaveChangesAsync() > 0;
                     }
@@ -1598,7 +1647,7 @@ public class DataManager : IDataManager
 
                         if (teacher.ContractType != TeacherContractType.FullTime)
                         {
-                            loadValue = Math.Round((loadValue * teacher.SpecificTimeFund) / _calculationOptions.MonthTimeFund, 2);
+                            loadValue = Math.Round(loadValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund, 2);
                             reajustedByContract = true;
                         }
 
@@ -1606,22 +1655,22 @@ public class DataManager : IDataManager
                         if (existingLoad is not null)
                         {
                             existingLoad.BaseValue = JsonConvert.SerializeObject(option);
-                            existingLoad.Load = loadValue;
+                            existingLoad.Load = Math.Round(loadValue, 2);
                             existingLoad.Description = $"{option.GetEnumDisplayNameValue()} - {option.GetEnumDisplayDescriptionValue()} {(reajustedByContract ? "(Reajustado por tipo de contrato)" : "")}";
-                            _context.NonTeachingLoad.Update(existingLoad);
+                            _ = _context.NonTeachingLoad.Update(existingLoad);
                         }
                         else
                         {
                             var newUELoad = new NonTeachingLoadModel
                             {
                                 BaseValue = JsonConvert.SerializeObject(option),
-                                Load = loadValue,
+                                Load = Math.Round(loadValue, 2),
                                 Description = $"{option.GetEnumDisplayNameValue()} - {option.GetEnumDisplayDescriptionValue()} {(reajustedByContract ? "(Reajustado por tipo de contrato)" : "")}",
                                 Type = type,
                                 TeacherId = teacherId,
                                 PeriodId = periodId
                             };
-                            _context.NonTeachingLoad.Add(newUELoad);
+                            _ = _context.NonTeachingLoad.Add(newUELoad);
                         }
                         return await _context.SaveChangesAsync() > 0;
                     }
@@ -1642,22 +1691,22 @@ public class DataManager : IDataManager
                         if (existingLoad is not null)
                         {
                             existingLoad.BaseValue = baseValue;
-                            existingLoad.Load = loadValue;
+                            existingLoad.Load = Math.Round(loadValue, 2);
                             existingLoad.Description = $"Diplomantes estimados: {utModel.IntegrativeProjectDiplomants} de proyecto integrador y {utModel.ThesisDiplomants} de tesis";
-                            _context.NonTeachingLoad.Update(existingLoad);
+                            _ = _context.NonTeachingLoad.Update(existingLoad);
                         }
                         else
                         {
                             var newUELoad = new NonTeachingLoadModel
                             {
                                 BaseValue = baseValue,
-                                Load = loadValue,
+                                Load = Math.Round(loadValue, 2),
                                 Description = $"Diplomantes estimados: {utModel.IntegrativeProjectDiplomants} de proyecto integrador y {utModel.ThesisDiplomants} de tesis",
                                 Type = type,
                                 TeacherId = teacherId,
                                 PeriodId = periodId
                             };
-                            _context.NonTeachingLoad.Add(newUELoad);
+                            _ = _context.NonTeachingLoad.Add(newUELoad);
                         }
 
                         return await _context.SaveChangesAsync() > 0;
@@ -1678,22 +1727,22 @@ public class DataManager : IDataManager
                         if (existingLoad is not null)
                         {
                             existingLoad.BaseValue = baseValue;
-                            existingLoad.Load = loadValue;
+                            existingLoad.Load = Math.Round(loadValue, 2);
                             existingLoad.Description = $"Diplomantes estimados: {gtModel.DiplomaOrMastersDegreeDiplomants} de diplmado y/o maestría, y {gtModel.DoctorateDiplomants} de doctorado.";
-                            _context.NonTeachingLoad.Update(existingLoad);
+                            _ = _context.NonTeachingLoad.Update(existingLoad);
                         }
                         else
                         {
                             var newUELoad = new NonTeachingLoadModel
                             {
                                 BaseValue = baseValue,
-                                Load = loadValue,
+                                Load = Math.Round(loadValue, 2),
                                 Description = $"Diplomantes estimados: {gtModel.DiplomaOrMastersDegreeDiplomants} de diplmado y/o maestría, y {gtModel.DoctorateDiplomants} de doctorado.",
                                 Type = type,
                                 TeacherId = teacherId,
                                 PeriodId = periodId
                             };
-                            _context.NonTeachingLoad.Add(newUELoad);
+                            _ = _context.NonTeachingLoad.Add(newUELoad);
                         }
 
                         return await _context.SaveChangesAsync() > 0;
@@ -1709,7 +1758,7 @@ public class DataManager : IDataManager
                         var loadValue = calculationValue.Value * await GetPeriodMonthsCountAsync(periodId);
                         if (teacher.ContractType != TeacherContractType.FullTime)
                         {
-                            loadValue = Math.Round((loadValue * teacher.SpecificTimeFund) / _calculationOptions.MonthTimeFund, 2);
+                            loadValue = Math.Round(loadValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund, 2);
                             reajustedByContract = true;
                         }
 
@@ -1717,22 +1766,22 @@ public class DataManager : IDataManager
                         if (existingUELoad is not null)
                         {
                             existingUELoad.BaseValue = JsonConvert.SerializeObject(ppoption);
-                            existingUELoad.Load = loadValue;
+                            existingUELoad.Load = Math.Round(loadValue, 2);
                             existingUELoad.Description = $"{ppoption.GetEnumDisplayNameValue()} - {ppoption.GetEnumDisplayDescriptionValue()} {(reajustedByContract ? "(Reajustado por tipo de contrato)" : "")}";
-                            _context.NonTeachingLoad.Update(existingUELoad);
+                            _ = _context.NonTeachingLoad.Update(existingUELoad);
                         }
                         else
                         {
                             var newUELoad = new NonTeachingLoadModel
                             {
                                 BaseValue = JsonConvert.SerializeObject(ppoption),
-                                Load = loadValue,
+                                Load = Math.Round(loadValue, 2),
                                 Description = $"{ppoption.GetEnumDisplayNameValue()} - {ppoption.GetEnumDisplayDescriptionValue()} {(reajustedByContract ? "(Reajustado por tipo de contrato)" : "")}",
                                 Type = type,
                                 TeacherId = teacherId,
                                 PeriodId = periodId
                             };
-                            _context.NonTeachingLoad.Add(newUELoad);
+                            _ = _context.NonTeachingLoad.Add(newUELoad);
                         }
 
                         return await _context.SaveChangesAsync() > 0;
@@ -1750,7 +1799,7 @@ public class DataManager : IDataManager
 
                         if (teacher.ContractType != TeacherContractType.FullTime)
                         {
-                            loadValue = Math.Round((loadValue * teacher.SpecificTimeFund) / _calculationOptions.MonthTimeFund);
+                            loadValue = Math.Round(loadValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund);
                             reajustedByContract = true;
                         }
 
@@ -1758,22 +1807,22 @@ public class DataManager : IDataManager
                         if (existingUELoad is not null)
                         {
                             existingUELoad.BaseValue = JsonConvert.SerializeObject(ueoption);
-                            existingUELoad.Load = loadValue;
+                            existingUELoad.Load = Math.Round(loadValue, 2);
                             existingUELoad.Description = $"{ueoption.GetEnumDisplayNameValue()} - {ueoption.GetEnumDisplayDescriptionValue()} {(reajustedByContract ? "(Reajustado por tipo de contrato)" : "")}";
-                            _context.NonTeachingLoad.Update(existingUELoad);
+                            _ = _context.NonTeachingLoad.Update(existingUELoad);
                         }
                         else
                         {
                             var newUELoad = new NonTeachingLoadModel
                             {
                                 BaseValue = JsonConvert.SerializeObject(ueoption),
-                                Load = loadValue,
+                                Load = Math.Round(loadValue, 2),
                                 Description = $"{ueoption.GetEnumDisplayNameValue()} - {ueoption.GetEnumDisplayDescriptionValue()} {(reajustedByContract ? "(Reajustado por tipo de contrato)" : "")}",
                                 Type = type,
                                 TeacherId = teacherId,
                                 PeriodId = periodId
                             };
-                            _context.NonTeachingLoad.Add(newUELoad);
+                            _ = _context.NonTeachingLoad.Add(newUELoad);
                         }
 
                         return await _context.SaveChangesAsync() > 0;
@@ -1791,7 +1840,7 @@ public class DataManager : IDataManager
 
                         if (teacher.ContractType != TeacherContractType.FullTime)
                         {
-                            loadValue = Math.Round((loadValue * teacher.SpecificTimeFund) / _calculationOptions.MonthTimeFund);
+                            loadValue = Math.Round(loadValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund);
                             reajustedByContract = true;
                         }
 
@@ -1799,22 +1848,22 @@ public class DataManager : IDataManager
                         if (existingLoad is not null)
                         {
                             existingLoad.BaseValue = JsonConvert.SerializeObject(ewtype);
-                            existingLoad.Load = loadValue;
+                            existingLoad.Load = Math.Round(loadValue, 2);
                             existingLoad.Description = $"{ewtype.GetEnumDisplayNameValue()} - {ewtype.GetEnumDisplayDescriptionValue()} {(reajustedByContract ? "(Reajustado por tipo de contrato)" : "")}";
-                            _context.NonTeachingLoad.Update(existingLoad);
+                            _ = _context.NonTeachingLoad.Update(existingLoad);
                         }
                         else
                         {
                             var newEWLoad = new NonTeachingLoadModel
                             {
                                 BaseValue = JsonConvert.SerializeObject(ewtype),
-                                Load = loadValue,
+                                Load = Math.Round(loadValue, 2),
                                 Description = $"{ewtype.GetEnumDisplayNameValue()} - {ewtype.GetEnumDisplayDescriptionValue()} {(reajustedByContract ? "(Reajustado por tipo de contrato)" : "")}",
                                 Type = type,
                                 TeacherId = teacherId,
                                 PeriodId = periodId
                             };
-                            _context.NonTeachingLoad.Add(newEWLoad);
+                            _ = _context.NonTeachingLoad.Add(newEWLoad);
                         }
                         return await _context.SaveChangesAsync() > 0;
                     }
@@ -1833,22 +1882,22 @@ public class DataManager : IDataManager
                         if (existingLoad is not null)
                         {
                             existingLoad.BaseValue = JsonConvert.SerializeObject(frtype);
-                            existingLoad.Load = loadValue;
+                            existingLoad.Load = Math.Round(loadValue, 2);
                             existingLoad.Description = $"{frtype.GetEnumDisplayNameValue()} - {frtype.GetEnumDisplayDescriptionValue()}";
-                            _context.NonTeachingLoad.Update(existingLoad);
+                            _ = _context.NonTeachingLoad.Update(existingLoad);
                         }
                         else
                         {
                             var newLoad = new NonTeachingLoadModel
                             {
                                 BaseValue = JsonConvert.SerializeObject(frtype),
-                                Load = loadValue,
+                                Load = Math.Round(loadValue, 2),
                                 Description = $"{frtype.GetEnumDisplayNameValue()} - {frtype.GetEnumDisplayDescriptionValue()}",
                                 Type = type,
                                 TeacherId = teacherId,
                                 PeriodId = periodId
                             };
-                            _context.NonTeachingLoad.Add(newLoad);
+                            _ = _context.NonTeachingLoad.Add(newLoad);
                         }
                         return await _context.SaveChangesAsync() > 0;
                     }
@@ -1864,7 +1913,7 @@ public class DataManager : IDataManager
 
                         if (teacher.ContractType != TeacherContractType.FullTime)
                         {
-                            loadValue = Math.Round((loadValue * teacher.SpecificTimeFund) / _calculationOptions.MonthTimeFund);
+                            loadValue = Math.Round(loadValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund);
                             reajustedByContract = true;
                         }
 
@@ -1872,22 +1921,22 @@ public class DataManager : IDataManager
                         if (existingLoad is not null)
                         {
                             existingLoad.BaseValue = JsonConvert.SerializeObject(sprtype);
-                            existingLoad.Load = loadValue;
+                            existingLoad.Load = Math.Round(loadValue, 2);
                             existingLoad.Description = $"{sprtype.GetEnumDisplayNameValue()} - {sprtype.GetEnumDisplayDescriptionValue()} {(reajustedByContract ? "(Reajustado por tipo de contrato)" : "")}";
-                            _context.NonTeachingLoad.Update(existingLoad);
+                            _ = _context.NonTeachingLoad.Update(existingLoad);
                         }
                         else
                         {
                             var newLoad = new NonTeachingLoadModel
                             {
                                 BaseValue = JsonConvert.SerializeObject(sprtype),
-                                Load = loadValue,
+                                Load = Math.Round(loadValue, 2),
                                 Description = $"{sprtype.GetEnumDisplayNameValue()} - {sprtype.GetEnumDisplayDescriptionValue()} {(reajustedByContract ? "(Reajustado por tipo de contrato)" : "")}",
                                 Type = type,
                                 TeacherId = teacherId,
                                 PeriodId = periodId
                             };
-                            _context.NonTeachingLoad.Add(newLoad);
+                            _ = _context.NonTeachingLoad.Add(newLoad);
                         }
                         return await _context.SaveChangesAsync() > 0;
                     }
@@ -1903,7 +1952,7 @@ public class DataManager : IDataManager
 
                         if (teacher.ContractType != TeacherContractType.FullTime)
                         {
-                            loadValue = Math.Round((loadValue * teacher.SpecificTimeFund) / _calculationOptions.MonthTimeFund);
+                            loadValue = Math.Round(loadValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund);
                             reajustedByContract = true;
                         }
 
@@ -1911,22 +1960,22 @@ public class DataManager : IDataManager
                         if (existingLoad is not null)
                         {
                             existingLoad.BaseValue = JsonConvert.SerializeObject(artype);
-                            existingLoad.Load = loadValue;
+                            existingLoad.Load = Math.Round(loadValue, 2);
                             existingLoad.Description = $"{artype.GetEnumDisplayNameValue()} - {artype.GetEnumDisplayDescriptionValue()} {(reajustedByContract ? "(Reajustado por tipo de contrato)" : "")}";
-                            _context.NonTeachingLoad.Update(existingLoad);
+                            _ = _context.NonTeachingLoad.Update(existingLoad);
                         }
                         else
                         {
                             var newLoad = new NonTeachingLoadModel
                             {
                                 BaseValue = JsonConvert.SerializeObject(artype),
-                                Load = loadValue,
+                                Load = Math.Round(loadValue, 2),
                                 Description = $"{artype.GetEnumDisplayNameValue()} - {artype.GetEnumDisplayDescriptionValue()} {(reajustedByContract ? "(Reajustado por tipo de contrato)" : "")}",
                                 Type = type,
                                 TeacherId = teacherId,
                                 PeriodId = periodId
                             };
-                            _context.NonTeachingLoad.Add(newLoad);
+                            _ = _context.NonTeachingLoad.Add(newLoad);
                         }
                         return await _context.SaveChangesAsync() > 0;
                     }
@@ -2513,17 +2562,15 @@ public class DataManager : IDataManager
     {
         if (course is not null)
         {
-            var recalculate = course.LastCourse;
-
-            _ = await _context.Courses.AddAsync(course);
+            var addedCourse = await _context.Courses.AddAsync(course);
             var result = await _context.SaveChangesAsync();
 
-            if (recalculate)
+            if (course.LastCourse)
             {
                 var currentYear = await GetCurrentSchoolYearAsync();
                 foreach (var period in currentYear.Periods)
                 {
-                    await RecalculateAllTeachersInPeriodAsync(period.Id);
+                    await RecalculateAllTeachersRelatedToCourseInPeriodAsync(addedCourse.Entity.Id, period.Id);
                 }
             }
 
@@ -2620,16 +2667,22 @@ public class DataManager : IDataManager
             _ = _context.Courses.Update(course);
             var result = await _context.SaveChangesAsync();
 
-            var currentYear = await GetCurrentSchoolYearAsync();
-            foreach (var period in currentYear.Periods)
+            if (result > 0 && (course.LastCourse || await CourseHavePlanningAsync(course.Id)))
             {
-                await RecalculateAllTeachersInPeriodAsync(period.Id);
+                var currentYear = await GetCurrentSchoolYearAsync();
+                foreach (var period in currentYear.Periods)
+                {
+                    await RecalculateAllTeachersRelatedToCourseInPeriodAsync(course.Id, period.Id);
+                }
             }
 
             return result > 0;
         }
         throw new ArgumentNullException(nameof(course));
     }
+
+    private async Task<bool> CourseHavePlanningAsync(Guid courseId) 
+        => await _context.TeachingPlanItems.AnyAsync(p => p.CourseId == courseId);
 
     public async Task<bool> DeleteCourseAsync(Guid id)
     {
@@ -2640,6 +2693,16 @@ public class DataManager : IDataManager
                 var course = await GetCourseAsync(id);
                 _ = _context.Courses.Remove(course);
                 var result = await _context.SaveChangesAsync();
+
+                if (result > 0 && (course.LastCourse || await CourseHavePlanningAsync(course.Id)))
+                {
+                    var currentYear = await GetCurrentSchoolYearAsync();
+                    foreach (var period in currentYear.Periods)
+                    {
+                        await RecalculateAllTeachersRelatedToCourseInPeriodAsync(course.Id, period.Id);
+                    }
+                }
+
                 return result > 0;
             }
             catch (DisciplineNotFoundException)
@@ -2968,8 +3031,8 @@ public class DataManager : IDataManager
     {
         var result =
             (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
-            ? await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Where(tp => courseId != null ? tp.CourseId == courseId : true).Skip(from).Take(to).Include(p => p.Subject).Include(p => p.Course).Include(p => p.LoadItems).ThenInclude(i => i.Teacher).ToListAsync()
-            : await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Where(tp => courseId != null ? tp.CourseId == courseId : true).Include(p => p.Subject).Include(p => p.Course).Include(p => p.LoadItems).ThenInclude(i => i.Teacher).ToListAsync();
+            ? await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Where(tp => courseId == null || tp.CourseId == courseId).Skip(from).Take(to).Include(p => p.Subject).Include(p => p.Course).Include(p => p.LoadItems).ThenInclude(i => i.Teacher).ToListAsync()
+            : await _context.TeachingPlanItems.Where(tp => tp.PeriodId == periodId).Where(tp => courseId == null || tp.CourseId == courseId).Include(p => p.Subject).Include(p => p.Course).Include(p => p.LoadItems).ThenInclude(i => i.Teacher).ToListAsync();
         result.ForEach(i => i.TotalHoursPlanned = _planItemCalculator.CalculateValue(i));
         return result;
     }

@@ -9,20 +9,31 @@
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    Asignatura: <b>@Model.PlanItem.Subject?.Name</b> Actividad: <b>@Html.DisplayFor(m => m.PlanItem.Type)</b>
+                    Asignatura: <span class="badge rounded-pill bg-success">@Model.PlanItem.Subject?.Name</span> Actividad: <span class="badge rounded-pill bg-success">@Html.DisplayFor(m => m.PlanItem.Type)</span>
                     <br />
-                    Total de horas planificadas: <b>@Model.PlanItem.TotalHoursPlanned.ToString("N2")</b> Total cubierto: <b>@Model.PlanItem.LoadCoveredPercent (@Model.PlanItem.LoadCoveredPercent %)</b>
+                    Total de horas planificadas: <span class="badge rounded-pill bg-info">@Model.PlanItem.TotalHoursPlanned.ToString("N2")</span> Total cubierto: <span class="badge rounded-pill bg-info">@Model.PlanItem.LoadCoveredPercent (@Model.PlanItem.LoadCoveredPercent %)</span>
+                    <br />
+                    Restante a distribuir: <span class="badge rounded-pill bg-success">@(Model.MaxValue) h</span>
                 </div>
-                <div class="d-flex flex-column mb-3">
-                    <select id="selectTeacher" class="form-select select-teacher" aria-label="Seleccionar profesor" style="margin-right: 5px;">
-                        <option value="none">Seleccione el profesor</option>
-                        @foreach (var teacher in Model.Teachers)
-                        {
-                            <option value="@teacher.Id">@teacher.Fullname</option>
-                        }
-                    </select>
-
-                    <input type="number" min="0" max="@Model.MaxValue" id="loadHours" class="form-control mt-3" placeholder="Cant. horas" />
+                <div class="d-flex flex-column">
+                    <div class="mb-1">
+                        <select id="selectTeacher" class="form-select select-teacher" aria-label="Seleccionar profesor" style="margin-right: 5px; width: 100%;">
+                            <option value="none">Seleccione el profesor</option>
+                            @foreach (var teacher in Model.Teachers)
+                            {
+                                <option value="@teacher.Id">@teacher.Fullname</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <input type="number" min="0" max="@Model.MaxValue" id="loadHours" class="form-control mt-3" placeholder="Cant. horas" />
+                        <div class="d-flex flex-row gap-1 justify-content-end mt-1">
+                            <button class="btn btn-rounded btn-sm btn-success font-bold" style="width: 40px" onclick="SetValue(@Model.MaxValue)"> = </button>
+                            <button class="btn btn-rounded btn-sm btn-info font-bold" style="width: 40px" onclick="SetValue(@(Model.MaxValue * 0.5))"> 1/2 </button>
+                            <button class="btn btn-rounded btn-sm btn-warning font-bold" style="width: 40px" onclick="SetValue(@(Model.MaxValue * 0.33))"> 1/3 </button>
+                            <button class="btn btn-rounded btn-sm btn-danger font-bold" style="width: 40px" onclick="SetValue(@(Model.MaxValue * 0.66))"> 2/3 </button>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">

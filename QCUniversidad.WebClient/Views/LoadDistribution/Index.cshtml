@@ -221,6 +221,11 @@
             });
         }
 
+        function SetValue(value) {
+            const valueInput = document.getElementById("loadHours");
+            valueInput.value = value;
+        }
+
         function AddLoadToTeacher(planItemId) {
             if (selectedPlanItem == planItemId
                 && document.querySelectorAll(`div[data-planitem-id='${planItemId}']`).length == 1) {

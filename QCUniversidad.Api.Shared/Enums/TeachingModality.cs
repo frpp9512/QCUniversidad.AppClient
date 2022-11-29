@@ -31,6 +31,12 @@ public enum TeachingModality
     DistanceLearning,
 
     /// <summary>
+    /// When the students recieve the subjects via internet, and only make presence for the tests.
+    /// </summary>
+    [Display(Name = "Posgrado", Description = "Modalidad para estudiantes de diplomados, cursos, entrenamientos, especialidades, posgrados, maestrías y doctorados.", Prompt = "Postgrados")]
+    PostgraduateCourse,
+
+    /// <summary>
     /// Courses for graduated students.
     /// </summary>
     //[Display(Name = "Postgrado", Description = "Modalidad de cursos para estudiantes graduados.", Prompt = "Modalidad de postgrado")]
