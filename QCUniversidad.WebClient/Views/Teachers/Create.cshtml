@@ -67,14 +67,17 @@
                             var groups = Model.Disciplines?.GroupBy(d => d.DepartmentId);
                             <label for="SelectedDisciplines">Disciplinas a la que pertenece</label>
                             <select asp-for="SelectedDisciplines" class="form-control selected-disciplines" multiple aria-label="multiple select example">
-                                @foreach (var group in groups)
+                                @if (groups is not null)
                                 {
-                                    <optgroup label="@group.FirstOrDefault()?.Name">
-                                        @foreach (var d in group)
-                                        {
-                                            <option value="@d.Id">@d.Name</option>
-                                        }
-                                    </optgroup>
+                                    foreach (var group in groups)
+                                    {
+                                        <optgroup label="@group.FirstOrDefault()?.Name">
+                                            @foreach (var d in group)
+                                            {
+                                                <option value="@d.Id">@d.Name</option>
+                                            }
+                                        </optgroup>
+                                    }
                                 }
                             </select>
                         }
@@ -141,7 +144,7 @@
             timeFund.disabled = true;
             const contractTypeSelect = document.getElementById("ContractType");
             let contractType = contractTypeSelect.options[contractTypeSelect.selectedIndex].innerText;
-            if (contractType != "Tiempo completo") {
+            if (contractType == "Tiempo parcial") {
                 timeFund.disabled = false;
             }
         }

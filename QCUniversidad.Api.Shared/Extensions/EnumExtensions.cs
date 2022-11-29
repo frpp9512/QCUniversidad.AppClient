@@ -36,6 +36,16 @@ public static class EnumExtensions
         return display;
     }
 
+    public static int GetEnumDisplayOrderValue<T>(this T enumValue) where T : Enum
+    {
+        var enumType = enumValue.GetType();
+        var member = enumType.GetMember(enumValue.ToString());
+        var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
+        var attributes = enumMember.GetCustomAttributes(typeof(DisplayAttribute), false);
+        var order = attributes.Any() ? ((DisplayAttribute)attributes.First()).GetOrder() : 0;
+        return order ?? 0;
+    }
+
     public static bool GetEnumDisplayAutogenerateValue<T>(this T enumValue) where T : Enum
     {
         var enumType = enumValue.GetType();

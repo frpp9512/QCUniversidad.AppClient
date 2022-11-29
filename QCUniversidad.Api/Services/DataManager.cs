@@ -1092,7 +1092,7 @@ public class DataManager : IDataManager
                 monthCount = await getMonthCount();
 
                 var mValue = _calculationOptions.MeetingsCoefficient;
-                if (teacher.ContractType != TeacherContractType.FullTime)
+                if (teacher.ContractType == TeacherContractType.PartTime)
                 {
                     mValue = mValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund;
                     reajustedByContract = true;
@@ -1112,7 +1112,7 @@ public class DataManager : IDataManager
                 monthCount = await getMonthCount();
 
                 var maValue = _calculationOptions.MethodologicalActionsCoefficient;
-                if (teacher.ContractType != TeacherContractType.FullTime)
+                if (teacher.ContractType == TeacherContractType.PartTime)
                 {
                     maValue = maValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund;
                     reajustedByContract = true;
@@ -1139,7 +1139,7 @@ public class DataManager : IDataManager
                     eValue *= 3;
                 }
 
-                if (teacher.ContractType != TeacherContractType.FullTime)
+                if (teacher.ContractType == TeacherContractType.PartTime)
                 {
                     eValue = eValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund;
                     reajustedByContract = true;
@@ -1159,7 +1159,7 @@ public class DataManager : IDataManager
                 monthCount = await getMonthCount();
 
                 var oaValue = _calculationOptions.OtherActivitiesCoefficient;
-                if (teacher.ContractType != TeacherContractType.FullTime)
+                if (teacher.ContractType == TeacherContractType.PartTime)
                 {
                     oaValue = oaValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund;
                     reajustedByContract = true;
@@ -1645,7 +1645,7 @@ public class DataManager : IDataManager
                     {
                         var loadValue = calculationValue.Value * await GetPeriodMonthsCountAsync(periodId);
 
-                        if (teacher.ContractType != TeacherContractType.FullTime)
+                        if (teacher.ContractType == TeacherContractType.PartTime)
                         {
                             loadValue = Math.Round(loadValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund, 2);
                             reajustedByContract = true;
@@ -1756,7 +1756,7 @@ public class DataManager : IDataManager
                     if (calculationValue is not null)
                     {
                         var loadValue = calculationValue.Value * await GetPeriodMonthsCountAsync(periodId);
-                        if (teacher.ContractType != TeacherContractType.FullTime)
+                        if (teacher.ContractType == TeacherContractType.PartTime)
                         {
                             loadValue = Math.Round(loadValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund, 2);
                             reajustedByContract = true;
@@ -1797,7 +1797,7 @@ public class DataManager : IDataManager
                     {
                         var loadValue = calculationValue.Value * await GetPeriodMonthsCountAsync(periodId);
 
-                        if (teacher.ContractType != TeacherContractType.FullTime)
+                        if (teacher.ContractType == TeacherContractType.PartTime)
                         {
                             loadValue = Math.Round(loadValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund);
                             reajustedByContract = true;
@@ -1838,7 +1838,7 @@ public class DataManager : IDataManager
                     {
                         var loadValue = calculationValue.Value * await GetPeriodMonthsCountAsync(periodId);
 
-                        if (teacher.ContractType != TeacherContractType.FullTime)
+                        if (teacher.ContractType == TeacherContractType.PartTime)
                         {
                             loadValue = Math.Round(loadValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund);
                             reajustedByContract = true;
@@ -1911,7 +1911,7 @@ public class DataManager : IDataManager
                     {
                         var loadValue = calculationValue.Value * await GetPeriodMonthsCountAsync(periodId);
 
-                        if (teacher.ContractType != TeacherContractType.FullTime)
+                        if (teacher.ContractType == TeacherContractType.PartTime)
                         {
                             loadValue = Math.Round(loadValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund);
                             reajustedByContract = true;
@@ -1950,7 +1950,7 @@ public class DataManager : IDataManager
                     {
                         var loadValue = calculationValue.Value * await GetPeriodMonthsCountAsync(periodId);
 
-                        if (teacher.ContractType != TeacherContractType.FullTime)
+                        if (teacher.ContractType == TeacherContractType.PartTime)
                         {
                             loadValue = Math.Round(loadValue * teacher.SpecificTimeFund / _calculationOptions.MonthTimeFund);
                             reajustedByContract = true;
@@ -2957,7 +2957,7 @@ public class DataManager : IDataManager
         }
         var teacherInfo = await _context.Teachers.Where(t => t.Id == teacherId).Select(t => new { t.ContractType, t.SpecificTimeFund }).FirstAsync();
         var periodInfo = await _context.Periods.Where(p => p.Id == periodId).Select(p => new { p.MonthsCount, p.TimeFund }).FirstAsync();
-        var timeFund = teacherInfo.ContractType != TeacherContractType.FullTime ? periodInfo.MonthsCount * teacherInfo.SpecificTimeFund : periodInfo.TimeFund;
+        var timeFund = teacherInfo.ContractType == TeacherContractType.FullTime || teacherInfo.ContractType == TeacherContractType.Collaborator ? periodInfo.TimeFund : periodInfo.MonthsCount * teacherInfo.SpecificTimeFund;
         return timeFund;
     }
 

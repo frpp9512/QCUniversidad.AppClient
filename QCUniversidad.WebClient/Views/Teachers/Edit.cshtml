@@ -126,7 +126,7 @@
             timeFund.disabled = true;
             const contractTypeSelect = document.getElementById("ContractType");
             let contractType = contractTypeSelect.options[contractTypeSelect.selectedIndex].innerText;
-            if (contractType != "Tiempo completo") {
+            if (contractType == "Tiempo parcial") {
                 timeFund.disabled = false;
             }
         }

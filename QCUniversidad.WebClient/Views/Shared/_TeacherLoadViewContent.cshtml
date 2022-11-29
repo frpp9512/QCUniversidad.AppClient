@@ -1,5 +1,6 @@
 ﻿@using QCUniversidad.Api.Shared.Enums
 @using QCUniversidad.Api.Shared.Extensions
+@using System.Linq;
 @model TeacherLoadViewModel
 
 <div class="d-flex flex-row align-content-center justify-content-between mb-2">
@@ -261,7 +262,7 @@
                 <p>@NonTeachingLoadType.AdministrativeResponsibilities.GetEnumDisplayDescriptionValue()</p>
                 @{
                     var tfrcards = new List<SelectCardModel>();
-                    var tfrvalues = Enum.GetValues(typeof(TeacherAdministrativeResponsibilities));
+                    var tfrvalues = Enum.GetValues<TeacherAdministrativeResponsibilities>().OrderBy(item => item.GetEnumDisplayOrderValue()).ToList();
                     foreach (TeacherAdministrativeResponsibilities value in tfrvalues)
                     {
                         tfrcards.Add(new SelectCardModel

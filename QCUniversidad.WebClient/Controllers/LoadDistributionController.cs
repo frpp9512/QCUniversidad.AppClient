@@ -323,8 +323,11 @@ public class LoadDistributionController : Controller
             foreach (var teacher in depTeachers)
             {
                 var loadItems = teacher.LoadViewItems;
-                var dataValue = (teacher, loadItems.Where(item => item.Type == LoadViewItemType.Teaching).Sum(item => item.Value), loadItems.Where(item => item.Type == LoadViewItemType.NonTeaching).Sum(item => item.Value));
-                data.Add(dataValue);
+                if (loadItems is not null)
+                {
+                    var dataValue = (teacher, loadItems.Where(item => item.Type == LoadViewItemType.Teaching).Sum(item => item.Value), loadItems.Where(item => item.Type == LoadViewItemType.NonTeaching).Sum(item => item.Value));
+                    data.Add(dataValue);
+                }
             }
 
             var dataSet1Values = data.Select(dataItem => new ChartDataValue
@@ -346,7 +349,7 @@ public class LoadDistributionController : Controller
 
             var chartData = new ChartData
             {
-                Labels = data.Select(dataItem => $"{dataItem.teacher.FirstName} {(dataItem.teacher.ContractType != TeacherContractType.FullTime ? $"({dataItem.teacher.ContractType.GetEnumDisplayNameValue()} [{dataItem.teacher.SpecificTimeFund}h/mes])" : "")}").ToArray(),
+                Labels = data.Select(dataItem => $"{dataItem.teacher.FirstName} {(dataItem.teacher.ContractType == TeacherContractType.PartTime ? $"({dataItem.teacher.ContractType.GetEnumDisplayNameValue()} [{dataItem.teacher.SpecificTimeFund}h/mes])" : "")}").ToArray(),
                 DataSets = new ChartDataEntry[] { dataSet2, dataSet1 }
             };
 
