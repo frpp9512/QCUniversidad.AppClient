@@ -10,6 +10,21 @@ public record CoursePeriodPlanningInfoDto
     public SimpleCourseDto? Course { get; set; }
     public double TotalHoursPlanned { get; set; }
     public double TotalHoursPlannedPercent => Math.Round(TotalHoursPlanned / Period.TimeFund, 2);
+
+    public double TotalHoursPlannedCourseByMeetingPercent => Math.Round(TotalHoursPlanned / CourseByMeetingTimeFund, 2);
+
+    public double CourseByMeetingTimeFund => (CourseByMeetingsCount * 2) * 8;
+
+    public double CourseByMeetingsCount
+    {
+        get
+        {
+            var dateDiff = Period.Ends - Period.Starts;
+            var weekends = Math.Floor(Math.Ceiling((double)(dateDiff.TotalDays / 7)) / 2);
+            return weekends;
+        }
+    }
+
     public double RealHoursPlanned { get; set; }
     public double RealHoursPlannedPercent => TotalHoursPlanned > 0 ? Math.Round(RealHoursPlanned / TotalHoursPlanned, 2) : 0;
 }

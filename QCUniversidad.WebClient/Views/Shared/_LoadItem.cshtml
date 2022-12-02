@@ -27,8 +27,9 @@
                         @(Model.planItem.TotalHoursPlanned)h
                     </div>
                 </div>
-                <div class="load-item-header-supvalue" style="width: 50px;">
+                <div class="load-item-header-supvalue">
                     <partial name="_CircleIndicator" model="(Model.planItem.LoadCoveredPercent.Value, 30, string.Empty)" />
+                    <div class="load-item-loadcount" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Profesores asignados</small></div> <div>Cantidad de profesores que se encuentran asignados cubriendo el elemento de planificación.</div>"><span class="fa fa-users"></span> @Model.planItem.LoadItems.Count</div>
                 </div>
             </div>
             <div class="load-item-header-buttons">

@@ -1,4 +1,5 @@
 @import url('site.css');
+
 :root {
     --main-color: rgba(92, 92, 184, 1);
     --main-color-90: rgba(92, 92, 184, 0.9);
@@ -88,43 +89,43 @@ main {
         text-align: right;
     }
 
-    @media (max-width: 575px) {
-        .nav-profile-picture {
-            grid-template-areas: "pic fullname" "pic email";
+@media (max-width: 575px) {
+    .nav-profile-picture {
+        grid-template-areas: "pic fullname" "pic email";
+    }
+
+        .nav-profile-picture img {
+            grid-area: pic;
+            display: flex;
+            justify-content: end;
+            align-items: center;
         }
 
-            .nav-profile-picture img {
-                grid-area: pic;
-                display: flex;
-                justify-content: end;
-                align-items: center;
-            }
+        .nav-profile-picture div:first-child {
+            grid-area: fullname;
+            text-align: left;
+        }
 
-            .nav-profile-picture div:first-child {
-                grid-area: fullname;
-                text-align: left;
-            }
+        .nav-profile-picture div:last-child {
+            grid-area: email;
+            font-size: 0.75rem;
+            text-align: left;
+        }
+}
 
-            .nav-profile-picture div:last-child {
-                grid-area: email;
-                font-size: 0.75rem;
-                text-align: left;
-            }
-    }
-
-    .nav-link {
-        color: var(--main-color-90) !important;
-        font-weight: 500;
-    }
+.nav-link {
+    color: var(--main-color-90) !important;
+    font-weight: 500;
+}
 
     .nav-link.active {
         color: var(--text-color);
         font-weight: 600;
     }
 
-.nav-link:hover {
-    color: var(--main-color) !important;
-}
+    .nav-link:hover {
+        color: var(--main-color) !important;
+    }
 
 .nav-link-icon {
     min-width: 25px;
@@ -596,7 +597,7 @@ dd {
 
 .load-items-set {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 0.5fr));
+    grid-template-columns: repeat(auto-fit, minmax(340px, 0.5fr));
     grid-template-rows: repeat(auto-fit, minmax(80px, 1fr));
     grid-gap: 10px;
 }
@@ -645,7 +646,7 @@ dd {
     line-height: 1.2rem;
     margin-bottom: 3px;
     color: var(--main-color);
-/*    text-overflow: ellipsis;
+    /*    text-overflow: ellipsis;
     overflow: clip;
     overflow: hidden;
     white-space: nowrap;
@@ -679,7 +680,10 @@ dd {
 
 .load-item-header-supvalue {
     display: flex;
+    flex-direction: column;
     justify-content: center;
+    align-items: center;
+    margin-top: 25px;
 }
 
 .load-item-value {
@@ -712,6 +716,16 @@ dd {
         .load-item-header-buttons button:disabled:hover {
             background-color: #ddd;
         }
+
+.load-item-loadcount {
+    display: flex;
+    flex-direction: row;
+    font-size: 0.6rem;
+    align-items: center;
+    font-weight: bolder;
+    padding: 3px;
+    gap: 3px;
+}
 
 .load-item-body {
     border-top: 1px solid #ddd;
@@ -801,8 +815,8 @@ dd {
 .load-info {
     display: grid;
     grid-template-areas: "type content"
-                         "name content"
-                         "description content";
+        "name content"
+        "description content";
     row-gap: 5px;
     column-gap: 15px;
     border-bottom: solid 1px #ccc;
@@ -1176,28 +1190,28 @@ dd {
         }
 }
 
-    .options-selector[disabled] * {
-        filter: grayscale(100%);
-    }
+.options-selector[disabled] * {
+    filter: grayscale(100%);
+}
 
-    .options-selector .options-selector-label {
-        display: flex;
-        gap: 5px;
-        align-content: center;
-        align-items: center;
-        color: rgba(92, 92, 184, 1);
-        font-weight: 600;
-    }
+.options-selector .options-selector-label {
+    display: flex;
+    gap: 5px;
+    align-content: center;
+    align-items: center;
+    color: rgba(92, 92, 184, 1);
+    font-weight: 600;
+}
 
-    .options-selector .options-selector-options {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        grid-auto-rows: minmax(25px, 1fr);
-        justify-items: start;
-        grid-column-gap: 10px;
-        grid-row-gap: 10px;
-        width: 100%;
-    }
+.options-selector .options-selector-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-auto-rows: minmax(25px, 1fr);
+    justify-items: start;
+    grid-column-gap: 10px;
+    grid-row-gap: 10px;
+    width: 100%;
+}
 
 .options-selector .option-selector {
     display: flex;
@@ -1516,10 +1530,10 @@ ol.guide {
     color: var(--main-color-80);
 }
 
-.qcbt-name span {
-    color: #ccc;
-    margin: 3px;
-}
+    .qcbt-name span {
+        color: #ccc;
+        margin: 3px;
+    }
 
 .qcbt-date {
     font-weight: 700;
@@ -1568,10 +1582,10 @@ ol.guide {
     padding: 15px;
 }
 
-.noitems-placeholder img {
-    max-width: 150px;
-    margin: 15px;
-}
+    .noitems-placeholder img {
+        max-width: 150px;
+        margin: 15px;
+    }
 
 .noitems-placeholder-text div:first-child {
     font-weight: 700;

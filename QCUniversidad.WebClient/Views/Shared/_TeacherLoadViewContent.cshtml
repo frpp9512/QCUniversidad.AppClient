@@ -8,7 +8,7 @@
         <h5>@Model.Teacher.Fullname</h5>
         <div>
             @Model.Teacher.Position - @Model.Teacher.ContractType.GetEnumDisplayNameValue()
-            @if (Model.Teacher.ContractType != TeacherContractType.FullTime)
+            @if (Model.Teacher.ContractType == TeacherContractType.PartTime)
             {
                 <span style="margin-left: 3px;">(@Model.Teacher.SpecificTimeFund h/mes)</span>
             }

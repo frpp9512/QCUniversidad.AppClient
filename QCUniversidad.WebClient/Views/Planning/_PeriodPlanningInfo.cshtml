@@ -2,16 +2,31 @@
 
 <div class="planning-period-info d-flex flex-column gap-3">
     <div class="planning-period-progress">
-        <div class="planning-period-progress-title font-regular font-text-color">
-            Planficación de asignaturas (@(Model.TotalHoursPlanned)h / @(Model.Period.TimeFund)h)
-        </div>
-        <div class="progress">
-            <div class="progress-bar font-regular @(Model.TotalHoursPlannedPercent switch { double p when p < 0.8 || p > 1 => "bg-danger", double p when p >= 0.8 && p < 1 => "bg-warning", double p when p == 1 => "bg-success", _ => "bg-info" })" role="progressbar" style="width: @(Math.Round(Model.TotalHoursPlannedPercent * 100, 2))%;" aria-valuenow="@Math.Round(Model.TotalHoursPlannedPercent * 100, 2)" aria-valuemin="0" aria-valuemax="100">@(Math.Round(Model.TotalHoursPlannedPercent * 100, 2))%</div>
-        </div>
+        @if (Model.Course?.TeachingModality == QCUniversidad.Api.Shared.Enums.TeachingModality.ByMeeting)
+        {
+            <div class="planning-period-progress-title font-regular font-text-color">
+                Planficación de asignaturas (@(Model.TotalHoursPlanned)h / @(Model.CourseByMeetingTimeFund)h)
+            </div>
+            <div class="progress">
+                <div class="progress-bar font-regular @(Model.TotalHoursPlannedCourseByMeetingPercent switch { double p when p < 0.8 || p > 1 => "bg-danger", double p when p >= 0.8 && p < 1 => "bg-warning", double p when p == 1 => "bg-success", _ => "bg-info" })" role="progressbar" style="width: @(Math.Round(Model.TotalHoursPlannedCourseByMeetingPercent * 100, 2))%;" aria-valuenow="@Math.Round(Model.TotalHoursPlannedCourseByMeetingPercent * 100, 2)" aria-valuemin="0" aria-valuemax="100">@(Math.Round(Model.TotalHoursPlannedCourseByMeetingPercent * 100, 2))%</div>
+            </div>
+            <div>
+                <small>Ajustado para curso por encuentro (CPE) con @Model.CourseByMeetingsCount encuentros.</small>
+            </div>
+        }
+        else
+        {
+            <div class="planning-period-progress-title font-regular font-text-color">
+                Planficación de asignaturas (@(Model.TotalHoursPlanned)h / @(Model.Period.TimeFund)h)
+            </div>
+            <div class="progress">
+                <div class="progress-bar font-regular @(Model.TotalHoursPlannedPercent switch { double p when p < 0.8 || p > 1 => "bg-danger", double p when p >= 0.8 && p < 1 => "bg-warning", double p when p == 1 => "bg-success", _ => "bg-info" })" role="progressbar" style="width: @(Math.Round(Model.TotalHoursPlannedPercent * 100, 2))%;" aria-valuenow="@Math.Round(Model.TotalHoursPlannedPercent * 100, 2)" aria-valuemin="0" aria-valuemax="100">@(Math.Round(Model.TotalHoursPlannedPercent * 100, 2))%</div>
+            </div>
+        }
     </div>
     <div class="planning-period-progress">
         <div class="planning-period-progress-title font-regular font-text-color">
-            Planficación real (@(Model.RealHoursPlanned)h / @(Model.TotalHoursPlanned)h)
+            Planficación cubierta (@(Model.RealHoursPlanned)h / @(Model.TotalHoursPlanned)h)
         </div>
         <div class="progress">
             <div class="progress-bar font-regular @(Model.RealHoursPlannedPercent switch { double p when p < 0.8 || p > 1 => "bg-danger", double p when p >= 0.8 && p < 1 => "bg-warning", double p when p == 1 => "bg-success", _ => "bg-info" })" role="progressbar" style="width: @(Math.Round(Model.RealHoursPlannedPercent * 100))%;" aria-valuenow="@(Math.Round(Model.RealHoursPlannedPercent * 100, 2))" aria-valuemin="0" aria-valuemax="100">@(Math.Round(Model.RealHoursPlannedPercent * 100, 2))%</div>
