@@ -1221,7 +1221,7 @@ public class DataManager : IDataManager
                         var teachersCount = await teachersCountQuery.Distinct().CountAsync();
 
                         var midTermExamValue = periodSubjectData.MidtermExamsCount * _calculationOptions.ExamGradeMidTermAverageTime * courseEnrolment / teachersCount;
-                        midTermExamGradeTotal += periodSubjectData.MidtermExamsCount;
+                        midTermExamGradeTotal += periodSubjectData.MidtermExamsCount * courseEnrolment;
 
                         double terminationValue = 0;
 

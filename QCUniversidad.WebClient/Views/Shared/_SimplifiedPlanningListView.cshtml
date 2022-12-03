@@ -1,4 +1,5 @@
 ﻿@using QCUniversidad.Api.Shared.Enums
+@using System.Globalization;
 @model IList<TeachingPlanItemModel>
 
 @{
@@ -109,6 +110,7 @@
     </div>
 
     <!--Summary-->
+
     <div class="accordion mt-3" id="planningSummary">
         <div class="accordion-item">
             <h2 class="accordion-header" id="headingOne">
@@ -118,15 +120,52 @@
             </h2>
             <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#planningSummary">
                 <div class="accordion-body">
-                    <dl class="row">
-                        @foreach (var subject in Model.Select(item => item.Subject).Distinct())
-                        {
-                            <dt class="col-sm-3">@subject?.Name</dt>
-                            <dd class="col-sm-9">@Model.Sum(i => i.SubjectId == subject?.Id ? i.TotalHoursPlanned : 0)</dd>
-                        }
-                        <dt class="col-sm-3 border-top">Total planificado</dt>
-                        <dd class="col-sm-9 border-top"><b>@Model.Sum(i => i.TotalHoursPlanned) horas</b></dd>
-                    </dl>
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Asignatura</th>
+                                <th align="right">Horas planificadas</th>
+                                <th align="right">Horas cubiertas</th>
+                                <th align="right">Porciento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var subject in Model.Select(item => item.Subject).Distinct())
+                            {
+                                var planned = @Model.Sum(i => i.SubjectId == subject?.Id ? i.TotalHoursPlanned : 0);
+                                var covered = @Model.Where(i => i.SubjectId == subject?.Id).Sum(i => i.LoadItems.Sum(li => li.HoursCovered));
+                                var percent = Math.Round(covered / planned * 100, 2);
+                                
+                                <tr>
+                                    <td>
+                                        @subject?.Name
+                                    </td>
+                                    <td align="right">
+                                        @planned.ToString("F", CultureInfo.InvariantCulture)
+                                    </td>
+                                    <td align="right">
+                                        @covered.ToString("F", CultureInfo.InvariantCulture)
+                                    </td>
+                                    <td align="right">
+                                        @percent.ToString("F", CultureInfo.InvariantCulture)
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                @{
+                                    var totalPlanned = Model.Sum(i => i.TotalHoursPlanned);
+                                    var totalCovered = Model.Sum(i => i.LoadItems.Sum(li => li.HoursCovered));
+                                    var totalPercent = totalCovered / totalPlanned * 100;
+                                }
+                                <td>Total</td>
+                                <td align="right">@totalPlanned.ToString("F", CultureInfo.InvariantCulture)</td>
+                                <td align="right">@totalCovered.ToString("F", CultureInfo.InvariantCulture)</td>
+                                <td align="right">@totalPercent.ToString("F", CultureInfo.InvariantCulture)</td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
         </div>
@@ -139,20 +178,42 @@
             </h2>
             <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#planningSummary">
                 <div class="accordion-body">
-                    <dl class="row">
-                        @foreach (var type in types)
-                        {
-                            <dt class="col-sm-3">@Html.DisplayFor(m => type)</dt>
-                            <dd class="col-sm-9">@Model.Sum(i => i.Type == type ? i.TotalHoursPlanned : 0)</dd>
-                        }
-                        <dt class="col-sm-3 border-top">Total planificado</dt>
-                        <dd class="col-sm-9 border-top"><b>@Model.Sum(i => i.TotalHoursPlanned) horas</b></dd>
-                    </dl>
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Actividad</th>
+                                <th align="right">Horas planificadas</th>
+                                <th align="right">Horas cubiertas</th>
+                                <th align="right">Porciento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var type in types)
+                            {
+                                var typeHoursPlanned = Model.Where(i => i.Type == type).Sum(i => i.TotalHoursPlanned);
+                                var typeHoursCovered = Model.Where(i => i.Type == type).Sum(i => i.LoadItems.Sum(li => li.HoursCovered));
+                                var typePercent = Math.Round(typeHoursCovered / typeHoursPlanned * 100, 2);
+                                <tr>
+                                    <td>@Html.DisplayFor(m => type)</td>
+                                    <td align="right">@typeHoursPlanned.ToString("F", CultureInfo.InvariantCulture)</td>
+                                    <td align="right">@typeHoursCovered.ToString("F", CultureInfo.InvariantCulture)</td>
+                                    <td align="right">@typePercent.ToString("F", CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>Total</td>
+                                <td align="right">@totalPlanned.ToString("F", CultureInfo.InvariantCulture)</td>
+                                <td align="right">@totalCovered.ToString("F", CultureInfo.InvariantCulture)</td>
+                                <td align="right">@totalPercent.ToString("F", CultureInfo.InvariantCulture)</td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-
 }
 else
 {

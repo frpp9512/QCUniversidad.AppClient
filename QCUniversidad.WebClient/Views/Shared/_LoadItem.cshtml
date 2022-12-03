@@ -28,7 +28,10 @@
                     </div>
                 </div>
                 <div class="load-item-header-supvalue">
-                    <partial name="_CircleIndicator" model="(Model.planItem.LoadCoveredPercent.Value, 30, string.Empty)" />
+                    @{
+                        var tooltip = "<div><small><span class='fa fa-info-circle'></span> Carga distribuida</small></div> <div><i>Representa el porciento (%) de la carga distribuida a profesores de este elemento.</i></div>";
+                    }
+                    <partial name="_CircleIndicator" model="(Model.planItem.LoadCoveredPercent.Value, 30, tooltip)" />
                     <div class="load-item-loadcount" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Profesores asignados</small></div> <div>Cantidad de profesores que se encuentran asignados cubriendo el elemento de planificación.</div>"><span class="fa fa-users"></span> @Model.planItem.LoadItems.Count</div>
                 </div>
             </div>
