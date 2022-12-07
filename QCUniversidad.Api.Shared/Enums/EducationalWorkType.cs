@@ -14,5 +14,11 @@ public enum EducationalWorkType
     YearCoordinator,
 
     [Display(Name = "Profesor", Description = "Realiza atención directa con los estudiantes en función de las actividades docentes.")]
-    Teacher
+    Teacher,
+
+    [Display(Name = "Coordinador de maestría", Description = "Encargado de coordinar y controlar las actividades docentes y extradocentes de los cursos de maestrías.")]
+    MastersCoordinator,
+
+    [Display(Name = "Coordinador de doctorado", Description = "Encargado de coordinar y controlar las actividades docentes y extradocentes de los cursos de doctorado.")]
+    DoctorateCoordinator
 }

@@ -1045,29 +1045,62 @@ public class DataManager : IDataManager
                               on loadItem.PlanningItemId equals planItem.Id
                               where loadItem.TeacherId == teacherId
                                     && planItem.PeriodId == periodId
-                              select new { hoursCovered = loadItem.HoursCovered, type = planItem.Type };
-                var calculationModel = new ClassPreparationCalculationModel
+                              select new { hoursCovered = loadItem.HoursCovered, type = planItem.Type, groupCount = planItem.GroupsAmount };
+
+                ClassPreparationCalculationModel calculationModel = new();
+                double primaryGroups = 0;
+                int primaryItemsCounted = 0;
+                double secondaryGroups = 0;
+                int secondaryItemsCounted = 0;
+                double tertiaryGroups = 0;
+                int tertiaryItemsCounted = 0;
+
+                foreach (var value in cpQuery)
                 {
-                    MainClassesValue = await cpQuery.SumAsync(
-                        value => value.type == TeachingActivityType.Conference || value.type == TeachingActivityType.PostgraduateClass ? value.hoursCovered : 0),
-                    SecondaryClassesValue = await cpQuery.SumAsync(
-                        value => value.type == TeachingActivityType.MeetingClass ? value.hoursCovered : 0),
-                    TertiaryClassesValue = await cpQuery.SumAsync(
-                        value => value.type != TeachingActivityType.Conference && value.type != TeachingActivityType.PostgraduateClass && value.type != TeachingActivityType.MeetingClass ? value.hoursCovered : 0)
-                };
+                    if (value.type == TeachingActivityType.Conference || value.type == TeachingActivityType.PostgraduateClass)
+                    {
+                        primaryGroups += value.groupCount;
+                        primaryItemsCounted++;
+                        calculationModel.MainClassesValue += value.hoursCovered / value.groupCount;
+                        continue;
+                    }
+                    if (value.type == TeachingActivityType.MeetingClass)
+                    {
+                        secondaryGroups += value.groupCount;
+                        secondaryItemsCounted++;
+                        calculationModel.SecondaryClassesValue += value.hoursCovered / value.groupCount;
+                        continue;
+                    }
+                    tertiaryGroups += value.groupCount;
+                    tertiaryItemsCounted++;
+                    calculationModel.TertiaryClassesValue += value.hoursCovered / value.groupCount;
+                }
+
+                if (primaryGroups > 0)
+                {
+                    calculationModel.MainClassesGroupCount = primaryGroups / primaryItemsCounted;
+                }
+                if (secondaryGroups > 0)
+                {
+                    calculationModel.SecondaryClassesGroupCount = secondaryGroups / secondaryItemsCounted;
+                }
+                if (tertiaryGroups > 0)
+                {
+                    calculationModel.TertiaryClassesGroupCount = tertiaryGroups / tertiaryItemsCounted;
+                }
 
                 var descriptionBuilder = new StringBuilder();
                 if (calculationModel.MainClassesValue > 0)
                 {
-                    _ = descriptionBuilder.AppendLine($"{calculationModel.MainClassesValue} conferencias o clases a postgrado x {_calculationOptions.ClassPreparationPrimaryCoefficient} horas de preparación cada una.");
+                    _ = descriptionBuilder.AppendLine($"{calculationModel.MainClassesValue} conferencias o clases a postgrado x {_calculationOptions.ClassPreparationPrimaryCoefficient} horas de preparación cada una, dividido entre {calculationModel.MainClassesGroupCount} grupos.");
                 }
                 if (calculationModel.SecondaryClassesValue > 0)
                 {
-                    _ = descriptionBuilder.AppendLine($"{calculationModel.SecondaryClassesValue} clases encuentro x {_calculationOptions.ClassPreparationSecondaryCoefficient} horas de preparación cada una.");
+                    _ = descriptionBuilder.AppendLine($"{calculationModel.SecondaryClassesValue} clases encuentro x {_calculationOptions.ClassPreparationSecondaryCoefficient} horas de preparación cada una, dividido entre {calculationModel.SecondaryClassesGroupCount} grupos.");
                 }
                 if (calculationModel.TertiaryClassesValue > 0)
                 {
-                    _ = descriptionBuilder.AppendLine($"{calculationModel.SecondaryClassesValue} de otras actividades docentes x {_calculationOptions.ClassPreparationTertiaryCoefficient} horas de preparación cada una.");
+                    _ = descriptionBuilder.AppendLine($"{calculationModel.SecondaryClassesValue} de otras actividades docentes x {_calculationOptions.ClassPreparationTertiaryCoefficient} horas de preparación cada una, dividido entre {calculationModel.TertiaryClassesGroupCount} grupos.");
                 }
                 if (calculationModel.MainClassesValue == 0 && calculationModel.SecondaryClassesValue == 0 && calculationModel.TertiaryClassesValue == 0)
                 {
@@ -1192,7 +1225,7 @@ public class DataManager : IDataManager
                 double secondCourseWorkTotal = 0;
                 double thirdCourseWorkTotal = 0;
 
-                var loadSubjectsInfo = await loadSubjects.ToListAsync();
+                var loadSubjectsInfo = await loadSubjects.Distinct().ToListAsync();
                 var loadSubjectsGroup = loadSubjectsInfo.GroupBy(ls => ls.CourseId);
 
                 foreach (var lsc in loadSubjectsGroup)
@@ -1357,7 +1390,6 @@ public class DataManager : IDataManager
             throw new PeriodNotFoundException();
         }
         var schoolYearId = await schoolYearQuery.FirstAsync();
-        //var lastPeriod = await _context.Periods.Where(p => p.SchoolYearId == schoolYearId).OrderByDescending(p => p.Starts).FirstAsync();
         var lastPeriodQuery = await _context.Periods.Where(p => p.SchoolYearId == schoolYearId)
                                                .Select(p => new { p.Id, Starts = p.Starts.DateTime })
                                                .ToListAsync();
@@ -1457,14 +1489,8 @@ public class DataManager : IDataManager
                                on teacher.Id equals teacherDiscipline.TeacherId
                                where teacherDiscipline.DisciplineId == disciplineId
                                   && (teacher.DepartmentId == departmentId || teacher.ServiceProvider)
-                               //where teacher.Active && (teacher.DepartmentId == departmentId) || (teacher.ServiceProvider)
-                               //&& teacherDiscipline.DisciplineId == disciplineId
-                               //|| !disciplineId.HasValue
-                               //|| teacherDiscipline.DisciplineId == disciplineId
                                select teacher;
-        //var depTeachersQuery = from teacher in _context.Teachers
-        //                       where teacher.DepartmentId == departmentId
-        //                       select teacher;
+        
         depTeachersQuery = depTeachersQuery.Distinct();
 
         var planItemLoads = from planItem in _context.TeachingPlanItems
@@ -1609,8 +1635,7 @@ public class DataManager : IDataManager
                     var ptcPhdCalculationBase = _calculationOptions[$"{nameof(PostgraduateThesisCourtModel)}.{nameof(ptcModel.DoctorateThesisCourts)}"];
                     if (ptcDmCalculationBase is not null && ptcPhdCalculationBase is not null)
                     {
-                        var monthCount = await GetPeriodMonthsCountAsync(periodId);
-                        var loadValue = (ptcModel.MastersAndDiplomantsThesisCourts * ptcDmCalculationBase * monthCount) + (ptcModel.DoctorateThesisCourts * ptcPhdCalculationBase * monthCount);
+                        var loadValue = (ptcModel.MastersAndDiplomantsThesisCourts * ptcDmCalculationBase) + (ptcModel.DoctorateThesisCourts * ptcPhdCalculationBase);
                         var existingLoad = await GetTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
                         if (existingLoad is not null)
                         {
@@ -1686,7 +1711,7 @@ public class DataManager : IDataManager
                     if (ipCalculationBase is not null && tCalculationBase is not null)
                     {
                         var monthCount = await GetPeriodMonthsCountAsync(periodId);
-                        var loadValue = (utModel.IntegrativeProjectDiplomants * ipCalculationBase.Value * monthCount) + (utModel.ThesisDiplomants * tCalculationBase.Value * monthCount);
+                        var loadValue = (utModel.IntegrativeProjectDiplomants * ipCalculationBase.Value) + (utModel.ThesisDiplomants * tCalculationBase.Value * monthCount);
                         var existingLoad = await GetTeacherNonTeachingLoadItemInPeriodAsync(type, teacherId, periodId);
                         if (existingLoad is not null)
                         {
@@ -1728,7 +1753,7 @@ public class DataManager : IDataManager
                         {
                             existingLoad.BaseValue = baseValue;
                             existingLoad.Load = Math.Round(loadValue, 2);
-                            existingLoad.Description = $"Diplomantes estimados: {gtModel.DiplomaOrMastersDegreeDiplomants} de diplmado y/o maestría, y {gtModel.DoctorateDiplomants} de doctorado.";
+                            existingLoad.Description = $"Tutorados estimados: {gtModel.DiplomaOrMastersDegreeDiplomants} de diplmado y/o maestría, y {gtModel.DoctorateDiplomants} de doctorado.";
                             _ = _context.NonTeachingLoad.Update(existingLoad);
                         }
                         else
@@ -1737,7 +1762,7 @@ public class DataManager : IDataManager
                             {
                                 BaseValue = baseValue,
                                 Load = Math.Round(loadValue, 2),
-                                Description = $"Diplomantes estimados: {gtModel.DiplomaOrMastersDegreeDiplomants} de diplmado y/o maestría, y {gtModel.DoctorateDiplomants} de doctorado.",
+                                Description = $"Tutorados estimados: {gtModel.DiplomaOrMastersDegreeDiplomants} de diplmado y/o maestría, y {gtModel.DoctorateDiplomants} de doctorado.",
                                 Type = type,
                                 TeacherId = teacherId,
                                 PeriodId = periodId
@@ -1984,7 +2009,6 @@ public class DataManager : IDataManager
             default:
                 throw new NonTeachingLoadUnsettableException();
         }
-        return false;
     }
 
     private async Task<double> GetPeriodMonthsCountAsync(Guid periodId)

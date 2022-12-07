@@ -23,6 +23,7 @@
                         <th>Contrato</th>
                         <th>Carga</th>
                         <th>Fondo de tiempo</th>
+                        <th>%</th>
                         <th></th>
                         <th></th>
                     </tr>
@@ -52,6 +53,9 @@
                             </td>
                             <td align="right">
                                 @(teacher.Load?.TimeFund.ToString("F", CultureInfo.InvariantCulture))
+                            </td>
+                            <td align="right">
+                                @teacher.Load.LoadPercent
                             </td>
                             <td>
                                 @{
