@@ -9,6 +9,7 @@ namespace QCUniversidad.WebClient.Models.LoadDistribution;
 
 public class TeachersViewModel
 {
-    public IList<TeacherModel> DepartmentsTeacher { get; set; }
-    public IList<TeacherModel> SupportTeachers { get; set; }
+    public Guid PeriodId { get; set; }
+    public required IList<TeacherModel> DepartmentsTeacher { get; set; }
+    public IList<TeacherModel>? SupportTeachers { get; set; }
 }

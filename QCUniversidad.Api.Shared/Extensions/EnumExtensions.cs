@@ -11,7 +11,7 @@ public static class EnumExtensions
         var enumType = type.GetType();
         var member = enumType.GetMember(type.ToString());
         var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
-        var attributes = enumMember.GetCustomAttributes(typeof(DisplayAttribute), false);
+        var attributes = enumMember?.GetCustomAttributes(typeof(DisplayAttribute), false);
         var display = attributes.Any() ? ((DisplayAttribute)attributes.First()).GetName() : type.ToString();
         return display;
     }
@@ -51,7 +51,7 @@ public static class EnumExtensions
         var enumType = enumValue.GetType();
         var member = enumType.GetMember(enumValue.ToString());
         var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
-        var attributes = enumMember.GetCustomAttributes(typeof(DisplayAttribute), false);
+        var attributes = enumMember?.GetCustomAttributes(typeof(DisplayAttribute), false);
         var display = attributes.Any() && ((DisplayAttribute)attributes.First()).GetAutoGenerateField() == true;
         return display;
     }
@@ -61,7 +61,61 @@ public static class EnumExtensions
         var enumType = enumValue.GetType();
         var member = enumType.GetMember(enumValue.ToString());
         var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
-        var attributes = enumMember.GetCustomAttributes(typeof(RecalculateAttribute), false);
+        var attributes = enumMember?.GetCustomAttributes(typeof(RecalculateAttribute), false);
         return attributes.Any();
     }
+
+    public static string? GetNonTeachingLoadCategory(this NonTeachingLoadType loadType)
+    {
+        var enumType = loadType.GetType();
+        var member = enumType.GetMember(loadType.ToString());
+        var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
+        var attributes = enumMember?.GetCustomAttributes(typeof(LoadCategoryAttribute), false);
+        if (attributes?.Any() is true)
+        {
+            var value = ((LoadCategoryAttribute)attributes.First()).Category;
+            return value;
+        }
+        return null;
+    }
+
+    public static string? GetNonTeachingLoadCategoryPromtName(this NonTeachingLoadType loadType)
+    {
+        var enumType = loadType.GetType();
+        var member = enumType.GetMember(loadType.ToString());
+        var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
+        var attributes = enumMember?.GetCustomAttributes(typeof(LoadCategoryAttribute), false);
+        if (attributes?.Any() is true)
+        {
+            var value = ((LoadCategoryAttribute)attributes.First()).PromtName;
+            return value;
+        }
+        return null;
+    }
+
+    public static string? GetNonTeachingLoadCategoryDescription(this NonTeachingLoadType loadType)
+    {
+        var enumType = loadType.GetType();
+        var member = enumType.GetMember(loadType.ToString());
+        var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
+        var attributes = enumMember?.GetCustomAttributes(typeof(LoadCategoryAttribute), false);
+        if (attributes?.Any() is true)
+        {
+            var value = ((LoadCategoryAttribute)attributes.First()).Description;
+            return value;
+        }
+        return null;
+    }
+
+    public static bool IsResearchLoad(this NonTeachingLoadType loadType)
+        => GetNonTeachingLoadCategory(loadType) == "Research";
+
+    public static bool IsOthersLoad(this NonTeachingLoadType loadType)
+        => GetNonTeachingLoadCategory(loadType) == "Others";
+
+    public static bool IsUniversityExtensionLoad(this NonTeachingLoadType loadType)
+        => GetNonTeachingLoadCategory(loadType) == "UniversityExtension";
+
+    public static bool IsFormationLoad(this NonTeachingLoadType loadType)
+        => GetNonTeachingLoadCategory(loadType) == "Formation";
 }

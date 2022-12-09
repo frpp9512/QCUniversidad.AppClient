@@ -25,7 +25,7 @@ public static class ModelListCharter
         return typeName;
     }
 
-    private static string GetExpressionMemberName(LambdaExpression expression)
+    private static string? GetExpressionMemberName(LambdaExpression expression)
     {
         if (expression.Body.NodeType == ExpressionType.MemberAccess)
         {

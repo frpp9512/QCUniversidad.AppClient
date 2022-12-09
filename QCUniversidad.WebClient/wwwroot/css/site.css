@@ -815,9 +815,9 @@ dd {
 .load-info {
     display: grid;
     grid-template-areas: "type content"
-        "name content"
-        "description content";
-    row-gap: 5px;
+                         "name content"
+                         "description content";
+    row-gap: 3px;
     column-gap: 15px;
     border-bottom: solid 1px #ccc;
     padding-bottom: 5px;
@@ -832,16 +832,11 @@ dd {
 
 .load-type {
     grid-area: type;
-    border: none;
-    background-color: rgba(92, 92, 184, 1);
     display: flex;
-    justify-content: center;
-    color: white;
-    font-size: 0.7rem;
-    width: 4.2rem;
-    padding: 1px 3px;
-    font-weight: bold;
-    border-radius: 5px;
+    color: var(--main-color);
+    font-size: 0.75rem;
+    font-weight: 700;
+    align-items: center;
 }
 
 .load-total-name {
@@ -855,7 +850,7 @@ dd {
 .load-name {
     grid-area: name;
     color: rgba(92, 92, 184, 1);
-    font-weight: bold;
+    font-weight: 700;
     font-size: 1rem;
 }
 

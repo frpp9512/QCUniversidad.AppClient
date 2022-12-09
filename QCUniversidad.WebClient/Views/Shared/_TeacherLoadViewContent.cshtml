@@ -21,7 +21,7 @@
             <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-size="2rem"></text>
         </svg>
         <div class="mt-2">
-            <span class="font-heavy" style="color: @(Model.Teacher.Load.Status switch { TeacherLoadStatus.Acceptable => "#a5b800", TeacherLoadStatus.Balanced => "#179b18", _ => "#ff0000" });">@(Model.Teacher.Load.Load) h</span> / <small class="text-muted">@(Model.Teacher.Load.TimeFund) h</small>
+            <span class="font-heavy">@(Model.Teacher.Load.Load) h</span> / <small class="text-muted">@(Model.Teacher.Load.TimeFund) h</small>
         </div>
     </div>
 </div>

@@ -1425,14 +1425,14 @@ public class DataManager : IDataManager
                                    where ntl.TeacherId == teacherId && ntl.PeriodId == periodId
                                    select ntl.Load;
 
-        var nonTeachingValue = Math.Round(await _context.NonTeachingLoad.Where(item => item.TeacherId == teacherId && item.PeriodId == periodId).SumAsync(item => item.Load), 2);
+        var nonTeachingValue = await _context.NonTeachingLoad.Where(item => item.TeacherId == teacherId && item.PeriodId == periodId).SumAsync(item => item.Load);
         if (nonTeachingValue == 0)
         {
             await RecalculateAutogenerateTeachingLoadItemsAsync(teacherId, periodId);
             nonTeachingValue = await _context.NonTeachingLoad.Where(item => item.TeacherId == teacherId && item.PeriodId == periodId).SumAsync(item => item.Load);
         }
 
-        return await query.SumAsync(i => i.HoursCovered) + nonTeachingValue;
+        return Math.Round(await query.SumAsync(i => i.HoursCovered) + nonTeachingValue, 2);
     }
 
     private async Task RecalculateAutogenerateTeachingLoadItemsAsync(Guid teacherId, Guid periodId)
