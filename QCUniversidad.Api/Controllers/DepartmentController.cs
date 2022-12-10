@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using QCUniversidad.Api.ConfigurationModels;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Department;
+using QCUniversidad.Api.Shared.Dtos.Statistics;
 using QCUniversidad.Api.Shared.Dtos.Teacher;
 using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
 
@@ -16,11 +19,13 @@ public class DepartmentController : ControllerBase
 {
     private readonly IDataManager _dataManager;
     private readonly IMapper _mapper;
+    private readonly CalculationOptions _calculationOptions;
 
-    public DepartmentController(IDataManager dataManager, IMapper mapper)
+    public DepartmentController(IDataManager dataManager, IMapper mapper, IOptions<CalculationOptions> options)
     {
         _dataManager = dataManager;
         _mapper = mapper;
+        _calculationOptions = options.Value;
     }
 
     [HttpGet]
@@ -241,6 +246,104 @@ public class DepartmentController : ControllerBase
         catch (Exception ex)
         {
             return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("periodstats")]
+    public async Task<IActionResult> GetPeriodStatistics(Guid departmentId, Guid periodId)
+    {
+        if (periodId == Guid.Empty)
+        {
+            return BadRequest(new { error = "You should provide a valid period id." });
+        }
+        if (departmentId == Guid.Empty)
+        {
+            return BadRequest(new { error = "You should provide a valid department id." });
+        }
+        try
+        {
+            List<StatisticItemDto> stats = new();
+            var period = await _dataManager.GetPeriodAsync(periodId);
+            var timeFund = period.TimeFund;
+            
+            stats.Add(new()
+            {
+                Name = "Fondo de tiempo del período",
+                Mu = "h",
+                Value = timeFund
+            });
+
+            var teachersCount = await _dataManager.GetTeachersCountAsync();
+            stats.Add(new()
+            {
+                Name = "Cantidad de profesores",
+                Mu = "U",
+                Value = teachersCount
+            });
+
+            var salary = teachersCount * _calculationOptions.AverageMonthlySalary * period.MonthsCount;
+            stats.Add(new()
+            {
+                Name = "Salario promedio",
+                Mu = "CUP",
+                Value = salary
+            });
+
+            var depCapacity = timeFund * teachersCount;
+            stats.Add(new()
+            {
+                Name = "Capacidad del departamento",
+                Mu = "h-profesor/período",
+                Value = depCapacity
+            });
+
+            var depLoad = await _dataManager.GetDepartmentTotalLoadInPeriodAsync(periodId, departmentId);
+            stats.Add(new()
+            {
+                Name = "Carga del departamento",
+                Mu = "h-profesor/período",
+                Value = depLoad
+            });
+
+            var depLoadPercent = Math.Round(depLoad / depCapacity * 100, 2);
+            stats.Add(new()
+            {
+                Name = "Porciento de carga",
+                Mu = "Porciento (%)",
+                Value = depLoadPercent
+            });
+
+            var diff = depLoad - depCapacity;
+            var personalRequiriement = Math.Floor(diff / (_calculationOptions.MonthTimeFund * period.MonthsCount));
+            stats.Add(new()
+            {
+                Name = "Ajustes de personal",
+                Mu = "U",
+                Value = personalRequiriement
+            });
+
+            var salaryImpact = personalRequiriement * _calculationOptions.AverageMonthlySalary * period.MonthsCount;
+            stats.Add(new()
+            {
+                Name = "Imacto económico luego de ajustes de personal",
+                Mu = "CUP",
+                Value = salaryImpact
+            });
+
+            var rap = await _dataManager.CalculateRAPAsync(departmentId);
+            stats.Add(new()
+            {
+                Name = "Relación alumno-profesor",
+                Mu = "",
+                Value = rap
+            });
+
+            return Ok(stats);
+        }
+        catch (Exception ex)
+        {
+            return Problem(detail: ex.Message);
         }
     }
 }

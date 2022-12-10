@@ -291,6 +291,19 @@ public class DataProvider : IDataProvider
         throw new ArgumentNullException(nameof(departmentId));
     }
 
+    public async Task<IList<StatisticItemModel>> GetDepartmentPeriodStatsAsync(Guid departmentId, Guid periodId)
+    {
+        var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
+        var response = await client.GetAsync($"/department/periodstats?departmentId={departmentId}&periodId={periodId}");
+        if (response.IsSuccessStatusCode)
+        {
+            var contentText = await response.Content.ReadAsStringAsync();
+            var statisticsItems = JsonConvert.DeserializeObject<IList<StatisticItemDto>>(contentText);
+            return statisticsItems?.Select(_mapper.Map<StatisticItemModel>).ToList() ?? new List<StatisticItemModel>();
+        }
+        throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+    }
+
     #endregion
 
     #region Careers

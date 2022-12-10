@@ -42,6 +42,7 @@ public interface IDataProvider
     Task<bool> CreateDepartmentAsync(DepartmentModel newDepartment);
     Task<bool> UpdateDepartmentAsync(DepartmentModel department);
     Task<bool> DeleteDepartmentAsync(Guid departmentId);
+    Task<IList<StatisticItemModel>> GetDepartmentPeriodStatsAsync(Guid departmentId, Guid periodId);
 
     #endregion
 

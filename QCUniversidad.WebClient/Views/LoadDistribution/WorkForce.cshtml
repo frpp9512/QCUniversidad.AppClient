@@ -44,6 +44,9 @@
 
 <ul class="nav nav-tabs" id="workForceDetails" role="tablist">
     <li class="nav-item" role="presentation">
+        <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button" role="tab" aria-controls="stats" aria-selected="false"><span class="fa fa-list-numeric"></span> Estadísticas</button>
+    </li>
+    <li class="nav-item" role="presentation">
         <button class="nav-link active" id="workForce-tab" data-bs-toggle="tab" data-bs-target="#workForce" type="button" role="tab" aria-controls="workForce" aria-selected="true"><span class="fa fa-people-group"></span> Fuerza de trabajo</button>
     </li>
     <li class="nav-item" role="presentation">
@@ -63,6 +66,10 @@
     </li>
 </ul>
 <div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+        <div id="stats-content" class="mb-5">
+        </div>
+    </div>
     <div class="tab-pane fade show active" id="workForce" role="tabpanel" aria-labelledby="workForce-tab">
         <div id="work-force" class="mb-5">
         </div>
@@ -187,6 +194,7 @@
                                 url: '/lib/datatables/lang/datatables.spanish.json'
                             }
                         });
+                        LoadStats();
                         LoadTooltips();
                         LoadMeters();
                         LoadChart(`/loaddistribution/GetWorkForceChartData?periodId=${selectedPeriod}&departmentId=${selectedDepartment}`, "#work-force-chart");
@@ -200,6 +208,32 @@
                     error: function (xhr, status, error) {
                         DisableLoadingTeachers();
                         loadingTeachers = false;
+                        console.log(xhr, status, error);
+                    }
+                });
+            }
+        }
+
+        var loadingStats = false;
+
+        function LoadStats() {
+            if (!loadingStats) {
+                loadingStats = true;
+                $.ajax({
+                    url: `/loaddistribution/GetDepartmentPeriodStats?departmentId=${selectedDepartment}&periodId=${selectedPeriod}`,
+                    type: "GET",
+                    success: function (data) {
+                        loadingStats = false;
+                        const statsContentDiv = document.getElementById("stats-content");
+                        statsContentDiv.innerHTML = data;
+                        //$('#stats-table').DataTable({
+                        //    language: {
+                        //        url: '/lib/datatables/lang/datatables.spanish.json'
+                        //    }
+                        //});
+                    },
+                    error: function (xhr, status, error) {
+                        loadingStats = false;
                         console.log(xhr, status, error);
                     }
                 });

@@ -7,6 +7,7 @@ public class CalculationOptions
     public double PostgraduateTotalHoursCoefficient { get; set; }
     public double RAPReference { get; set; }
     public double MonthTimeFund { get; set; }
+    public double AverageMonthlySalary { get; set; }
     public double ClassPreparationPrimaryCoefficient { get; set; } = 2;
     public double ClassPreparationSecondaryCoefficient { get; set; } = 1.5;
     public double ClassPreparationTertiaryCoefficient { get; set; } = 1;

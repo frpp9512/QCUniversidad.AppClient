@@ -8,6 +8,7 @@ using QCUniversidad.Api.Extensions;
 using QCUniversidad.Api.Shared.CommonModels;
 using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.Api.Shared.Extensions;
+using System.Net.WebSockets;
 using System.Text;
 
 namespace QCUniversidad.Api.Services;
@@ -258,21 +259,25 @@ public class DataManager : IDataManager
         {
             throw new PeriodNotFoundException();
         }
-        var query = from planItem in _context.TeachingPlanItems
-                    where planItem.PeriodId == periodId
-                    join subject in _context.Subjects
-                    on planItem.SubjectId equals subject.Id
-                    join discipline in _context.Disciplines
-                    on subject.DisciplineId equals discipline.Id
-                    join department in _context.Departments
-                    on discipline.DepartmentId equals department.Id
-                    where discipline.DepartmentId == department.Id
-                    select planItem.TotalHoursPlanned;
-        var listResult = await query.ToListAsync();
+        var directLoadQuery = from loadItem in _context.LoadItems
+                              join teacher in _context.Teachers
+                              on loadItem.TeacherId equals teacher.Id
+                              join planItem in _context.TeachingPlanItems
+                              on loadItem.PlanningItemId equals planItem.Id
+                              where teacher.DepartmentId == departmentId && planItem.PeriodId == periodId
+                              select loadItem.HoursCovered;
 
-        var result = listResult.Sum();
+        var directLoad = await directLoadQuery.SumAsync();
 
-        return result;
+        var indirectLoadQuery = from ntLoadItem in _context.NonTeachingLoad
+                                join teacher in _context.Teachers
+                                on ntLoadItem.TeacherId equals teacher.Id
+                                where ntLoadItem.PeriodId == periodId && teacher.DepartmentId == departmentId
+                                select ntLoadItem.Load;
+
+        var indirectLoad = await indirectLoadQuery.SumAsync();
+
+        return directLoad + indirectLoad;
     }
 
     public async Task<double> GetTotalLoadCoveredInPeriodAsync(Guid periodId)
@@ -397,10 +402,68 @@ public class DataManager : IDataManager
         var courses = from course in _context.Courses
                       join planItem in planItems
                       on course.Id equals planItem.CourseId
+                      join schoolYear in _context.SchoolYears
+                      on course.SchoolYearId equals schoolYear.Id
+                      where schoolYear.Current
                       select course;
 
         courses = courses.Distinct().Include(c => c.Career);
-        var totalEnrolment = await courses.SumAsync(c => c.Career.PostgraduateCourse ? c.Enrolment / 3 : c.Enrolment);
+
+        // Tiempo del departamento en la carreras de pregrado
+        var departmentTimeAmount = await planItems.Where(item => !item.FromPostgraduateCourse).SumAsync(item => item.HoursPlanned);
+
+        // Tiempo total de las asignaturas del pregrado que imparte el departamento en las carreras
+        var totalTimeSubjectsQuery = from periodSubject in _context.PeriodSubjects
+                                     join depSubject in departmentSubjects
+                                     on periodSubject.SubjectId equals depSubject.Id
+                                     join course in courses
+                                     on periodSubject.CourseId equals course.Id
+                                     join career in _context.Careers
+                                     on course.CareerId equals career.Id
+                                     where !career.PostgraduateCourse
+                                     select periodSubject.TotalHours;
+
+        var totalTimeSubjects = await totalTimeSubjectsQuery.SumAsync();
+
+        // Coeficiente de carga del pregrado
+        var loadCoeff = departmentTimeAmount / totalTimeSubjects;
+
+        // Matrícula de pregrado
+        var enrolment = await courses.Where(c => !c.Career.PostgraduateCourse).SumAsync(c => c.Enrolment);
+
+        // Matrícula equivalente de pregrado
+        var equivEnrolment = enrolment * loadCoeff;
+
+
+        // Tiempo del departamento en la carreras de posgrado
+        var postgraduatedepartmentTimeAmount = await planItems.Where(item => item.FromPostgraduateCourse).SumAsync(item => item.HoursPlanned);
+
+        // Tiempo total de las asignaturas del posgrado que imparte el departamento en las carreras
+        var postgraduatetotalTimeSubjectsQuery = from periodSubject in _context.PeriodSubjects
+                                                 join depSubject in departmentSubjects
+                                                 on periodSubject.SubjectId equals depSubject.Id
+                                                 join course in courses
+                                                 on periodSubject.CourseId equals course.Id
+                                                 join career in _context.Careers
+                                                 on course.CareerId equals career.Id
+                                                 where career.PostgraduateCourse
+                                                 select periodSubject.TotalHours;
+
+        var postgraduatetotalTimeSubjects = await postgraduatetotalTimeSubjectsQuery.SumAsync();
+
+        // Coeficiente de carga del posgrado
+        var postgraduateloadCoeff = postgraduatedepartmentTimeAmount / postgraduatetotalTimeSubjects;
+
+        // Matrícula de posgrado
+        var postgraduateenrolment = await courses.Where(c => c.Career.PostgraduateCourse).SumAsync(c => c.Enrolment);
+
+        // Matrícula equivalente de posgrado
+        var postgraduateequivEnrolment = postgraduateenrolment * 3;
+
+
+        // Matrícula equivalente total
+        var totalEnrolment = equivEnrolment + postgraduateequivEnrolment;
+
 
         var teachers = from teacher in _context.Teachers
                        where teacher.DepartmentId == departmentId && teacher.Active

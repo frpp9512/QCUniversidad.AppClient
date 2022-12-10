@@ -679,8 +679,6 @@ public class LoadDistributionController : Controller
                 // Agregar los datos de la tabla a partir de la segunda fila
                 var body = worksheet.Cells[14, 1].LoadFromArrays(bodyData);
                 body.Style.VerticalAlignment = ExcelVerticalAlignment.Top;
-                body.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                body.Style.Fill.BackgroundColor.SetColor(Color.White); // Dando formato al rango del cuerpo de la tabla
                 body.AutoFitColumns(18, 75);
 
                 var descriptions = worksheet.Cells[$"D14:D{loadItems.Count + 14}"];
@@ -699,9 +697,12 @@ public class LoadDistributionController : Controller
                 devInfo.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
 
                 // Crear la tabla de excel para que aplique toda
-                var tableRange = worksheet.Cells[$"A13:E{loadItems.Count + 1}"];
+                var tableRange = worksheet.Cells[$"A13:E{13 + loadItems.Count}"];
                 var table = worksheet.Tables.Add(tableRange, "Carga");
                 table.ShowRowStripes = true;
+                table.ShowTotal = true;
+
+                // Ajustes de página para impresión
                 worksheet.PrinterSettings.HorizontalCentered = true;
                 worksheet.PrinterSettings.VerticalCentered = true;
                 worksheet.PrinterSettings.Orientation = eOrientation.Landscape;
@@ -715,6 +716,28 @@ public class LoadDistributionController : Controller
                     FileDownloadName = $"Carga de {teacher.Fullname}.xlsx"
                 };
             }
+        }
+        catch (Exception ex)
+        {
+            return Problem(detail: ex.Message);
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetDepartmentPeriodStatsAsync(Guid departmentId, Guid periodId)
+    {
+        if (departmentId == Guid.Empty)
+        {
+            return BadRequest(new { error = "Debe de especificar un id de departamento válido." });
+        }
+        if (periodId == Guid.Empty)
+        {
+            return BadRequest(new { error = "Debe de especificar un id de período válido." });
+        }
+        try
+        {
+            var stats = await _dataProvider.GetDepartmentPeriodStatsAsync(departmentId, periodId);
+            return PartialView("_DepartmentPeriodStats", stats);
         }
         catch (Exception ex)
         {
