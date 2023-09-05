@@ -22,6 +22,7 @@ public class ApiCallerHttpClientFactory : IApiCallerHttpClientFactory
         {
             await _tokenManager.RefreshTokensAsync();
         }
+
         var client = _clientFactory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenManager.AccessToken);
         client.BaseAddress = new Uri(_apiConfiguration.BaseAddress);

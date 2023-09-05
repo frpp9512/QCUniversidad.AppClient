@@ -1,22 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using QCUniversidad.Api.ConfigurationModels;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
-using QCUniversidad.Api.Shared.Dtos.Curriculum;
-using QCUniversidad.Api.Shared.Dtos.Discipline;
 using QCUniversidad.Api.Shared.Dtos.Period;
-using QCUniversidad.Api.Shared.Dtos.Course;
 using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
 
 namespace QCUniversidad.Api.Controllers;
 
@@ -41,6 +29,7 @@ public class PeriodController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.GetPeriodAsync(id);
@@ -57,7 +46,7 @@ public class PeriodController : ControllerBase
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
         var periods = await _dataManager.GetPeriodsAsync(from, to);
-        var dtos = periods.Select(d => _mapper.Map<PeriodDto>(d));
+        var dtos = periods.Select(_mapper.Map<PeriodDto>);
         return Ok(dtos);
     }
 
@@ -65,7 +54,7 @@ public class PeriodController : ControllerBase
     public async Task<IActionResult> GetListBySchoolYearAsync(Guid schoolYearId)
     {
         var periods = await _dataManager.GetPeriodsOfSchoolYearAsync(schoolYearId);
-        var dtos = periods.Select(d => _mapper.Map<PeriodDto>(d));
+        var dtos = periods.Select(_mapper.Map<PeriodDto>);
         return Ok(dtos);
     }
 
@@ -123,6 +112,7 @@ public class PeriodController : ControllerBase
             var result = await _dataManager.CreatePeriodAsync(model);
             return result ? Ok(model.Id) : Problem("An error has occured creating the period.");
         }
+
         return BadRequest("The period cannot be null.");
     }
 
@@ -141,6 +131,7 @@ public class PeriodController : ControllerBase
                 return Problem(ex.Message);
             }
         }
+
         return BadRequest("The period cannot be null.");
     }
 
@@ -151,6 +142,7 @@ public class PeriodController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.DeletePeriodAsync(id);
@@ -170,6 +162,7 @@ public class PeriodController : ControllerBase
         {
             return BadRequest("You must provide a plan item id.");
         }
+
         try
         {
             var result = await _dataManager.GetTeachingPlanItemAsync(id);
@@ -190,6 +183,7 @@ public class PeriodController : ControllerBase
         {
             return BadRequest("You must provide a period id.");
         }
+
         try
         {
             var result = await _dataManager.GetTeachingPlanItemsAsync(periodId, courseId, from, to);
@@ -201,6 +195,7 @@ public class PeriodController : ControllerBase
                 dto.AllowLoad = dto.TotalHoursPlanned > dto.TotalLoadCovered;
                 dtos.Add(dto);
             }
+
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -217,14 +212,17 @@ public class PeriodController : ControllerBase
         {
             return BadRequest("You must provide a teaching plan.");
         }
+
         if (teachingPlan.PeriodId == Guid.Empty)
         {
             return Problem("The teaching plan must have a period id.");
         }
+
         if (!await _dataManager.ExistsPeriodAsync(teachingPlan.PeriodId))
         {
             return Problem("The period of the teaching plan do not exist.");
         }
+
         try
         {
             var model = _mapper.Map<TeachingPlanItemModel>(teachingPlan);
@@ -245,6 +243,7 @@ public class PeriodController : ControllerBase
         {
             return BadRequest("You must provide a valid id.");
         }
+
         try
         {
             var result = await _dataManager.ExistsTeachingPlanItemAsync(id);
@@ -264,6 +263,7 @@ public class PeriodController : ControllerBase
         {
             return BadRequest("You must provide a valid id.");
         }
+
         try
         {
             var result = await _dataManager.GetTeachingPlanItemsCountAsync(periodId);
@@ -283,14 +283,17 @@ public class PeriodController : ControllerBase
         {
             return BadRequest("You must provide a plan item model.");
         }
+
         if (!await _dataManager.ExistsTeachingPlanItemAsync(dto.Id))
         {
             return BadRequest($"The plan item with id {dto.PeriodId} do not exists.");
         }
+
         if (!await _dataManager.ExistsPeriodAsync(dto.PeriodId))
         {
             return BadRequest($"The period with id {dto.PeriodId} do not exists.");
         }
+
         try
         {
             var model = _mapper.Map<TeachingPlanItemModel>(dto);
@@ -311,12 +314,14 @@ public class PeriodController : ControllerBase
         {
             return BadRequest("You must provide a valid id.");
         }
+
         try
         {
             if (!await _dataManager.ExistsTeachingPlanItemAsync(id))
             {
                 return BadRequest("The teaching item do not exist.");
             }
+
             var result = await _dataManager.DeleteTeachingPlanItemAsync(id);
             return result ? Ok(result) : Problem();
         }

@@ -32,22 +32,22 @@ builder.Services.AddAuthentication(Constants.AUTH_SCHEME)
                     options.ReturnUrlParameter = "returnUrl";
                 });
 
-builder.Services.AddAuthorization(config => 
+builder.Services.AddAuthorization(config =>
 {
     var authPolicyBuilder = new AuthorizationPolicyBuilder();
-    authPolicyBuilder.RequireAuthenticatedUser();
+    _ = authPolicyBuilder.RequireAuthenticatedUser();
     config.AddPolicy("Auth", authPolicyBuilder.Build());
 
     var adminPolicyBuilder = new AuthorizationPolicyBuilder();
-    adminPolicyBuilder.RequireAuthenticatedUser().RequireRole("Administrador");
+    _ = adminPolicyBuilder.RequireAuthenticatedUser().RequireRole("Administrador");
     config.AddPolicy("Admin", adminPolicyBuilder.Build());
 
     var plannerPolicyBuilder = new AuthorizationPolicyBuilder();
-    plannerPolicyBuilder.RequireAuthenticatedUser().RequireRole("Administrador", "Planificador");
+    _ = plannerPolicyBuilder.RequireAuthenticatedUser().RequireRole("Administrador", "Planificador");
     config.AddPolicy("Planner", plannerPolicyBuilder.Build());
 
     var distributorPolicyBuilder = new AuthorizationPolicyBuilder();
-    distributorPolicyBuilder.RequireAuthenticatedUser().RequireRole("Administrador", "Jefe de departamento");
+    _ = distributorPolicyBuilder.RequireAuthenticatedUser().RequireRole("Administrador", "Jefe de departamento");
     config.AddPolicy("Distributor", distributorPolicyBuilder.Build());
 });
 
@@ -55,13 +55,13 @@ builder.Services.AddAuthorization(config =>
 builder.Services.AddDbContext<WebDataContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSql")));
 builder.Services.AddScoped<IAccountSecurityRepository, AccountSecurityRepository>();
 
-builder.Services.AddExcelParser<TeacherModel>(config => 
+builder.Services.AddExcelParser<TeacherModel>(config =>
 {
     config.Worksheet = "Profesores";
     config.TableName = "Profesores";
     config.ConfigureColumn("Nombre completo", teacher => teacher.Fullname);
     config.ConfigureColumn("Carné de identidad", teacher => teacher.PersonalId);
-    config.ConfigureColumn("Tipo de contrato", teacher => teacher.ContractType, value => 
+    config.ConfigureColumn("Tipo de contrato", teacher => teacher.ContractType, value =>
     {
         foreach (var enumValue in Enum.GetValues<TeacherContractType>())
         {
@@ -70,10 +70,11 @@ builder.Services.AddExcelParser<TeacherModel>(config =>
                 return enumValue;
             }
         }
+
         return TeacherContractType.FullTime;
     });
     config.ConfigureColumn("Cargo", teacher => teacher.Position);
-    config.ConfigureColumn("Categoría docente", teacher => teacher.Category, value => 
+    config.ConfigureColumn("Categoría docente", teacher => teacher.Category, value =>
     {
         foreach (var enumValue in Enum.GetValues<TeacherCategory>())
         {
@@ -82,6 +83,7 @@ builder.Services.AddExcelParser<TeacherModel>(config =>
                 return enumValue;
             }
         }
+
         return TeacherCategory.Assistant;
     });
     config.ConfigureColumn("Correo electrónico", teacher => teacher.Email);
@@ -124,9 +126,9 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    _ = app.UseExceptionHandler("/Home/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    _ = app.UseHsts();
 }
 
 app.UseHttpsRedirection();

@@ -36,6 +36,7 @@ public class DepartmentsController : Controller
             {
                 startingItemIndex = 0;
             }
+
             var departments = await _dataProvider.GetDepartmentsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             var totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
             var viewModel = new NavigationListViewModel<DepartmentModel>
@@ -60,6 +61,7 @@ public class DepartmentsController : Controller
         {
             return RedirectToAction("Error", "Home");
         }
+
         try
         {
             var department = await _dataProvider.GetDepartmentAsync(id);
@@ -80,6 +82,7 @@ public class DepartmentsController : Controller
         {
             return BadRequest();
         }
+
         try
         {
             var disciplines = await _dataProvider.GetDisciplinesAsync(departmentId);
@@ -98,6 +101,7 @@ public class DepartmentsController : Controller
         {
             return BadRequest();
         }
+
         try
         {
             var teachers = await _dataProvider.GetTeachersOfDepartmentAsync(departmentId);
@@ -179,6 +183,7 @@ public class DepartmentsController : Controller
         {
             return BadRequest("Debe de proveer un id de facultad válido.");
         }
+
         var careers = await _dataProvider.GetCareersAsync(facultyId);
         return PartialView("_CareersSelect", careers);
     }
@@ -207,6 +212,7 @@ public class DepartmentsController : Controller
                 ModelState.AddModelError("Error de facultad", "La facultad seleccionada no existe en el servidor.");
             }
         }
+
         await LoadFacultiesIntoViewModel(model);
         return View(model);
     }
@@ -244,6 +250,7 @@ public class DepartmentsController : Controller
                     TempData["department-edited"] = true;
                     return RedirectToActionPermanent("Index");
                 }
+
                 ModelState.AddModelError("Error", "Ha ocurrido un error editando el departamento.");
             }
             catch (Exception)
@@ -251,6 +258,7 @@ public class DepartmentsController : Controller
                 return RedirectToAction("Error", "Home");
             }
         }
+
         return View(model);
     }
 
@@ -273,6 +281,7 @@ public class DepartmentsController : Controller
                     return Problem($"Ha ocurrido un error eliminando el departmento con id {id}.");
                 }
             }
+
             return NotFound($"No se ha encontrado el departamento con id {id}.");
         }
         catch (Exception ex)

@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using QCUniversidad.Api.Shared.Dtos.Career;
 using QCUniversidad.Api.Shared.Dtos.Course;
@@ -15,7 +14,7 @@ using QCUniversidad.Api.Shared.Dtos.Subject;
 using QCUniversidad.Api.Shared.Dtos.Teacher;
 using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
 using QCUniversidad.WebClient.Models.Careers;
-using QCUniversidad.WebClient.Models.Courses;
+using QCUniversidad.WebClient.Models.Course;
 using QCUniversidad.WebClient.Models.Curriculums;
 using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Disciplines;
@@ -54,8 +53,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var faculties = JsonConvert.DeserializeObject<IList<FacultyDto>>(contentText);
-            return faculties?.Select(f => _mapper.Map<FacultyModel>(f)).ToList() ?? new List<FacultyModel>();
+            return faculties?.Select(_mapper.Map<FacultyModel>).ToList() ?? new List<FacultyModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -69,6 +69,7 @@ public class DataProvider : IDataProvider
             var result = JsonConvert.DeserializeObject<bool>(contentText);
             return result;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -82,6 +83,7 @@ public class DataProvider : IDataProvider
             var response = await client.PutAsync("/faculty", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(facultyModel));
     }
 
@@ -94,6 +96,7 @@ public class DataProvider : IDataProvider
             var total = int.Parse(await response.Content.ReadAsStringAsync());
             return total;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -106,6 +109,7 @@ public class DataProvider : IDataProvider
             var faculty = JsonConvert.DeserializeObject<FacultyDto>(await response.Content.ReadAsStringAsync());
             return _mapper.Map<FacultyModel>(faculty);
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -119,6 +123,7 @@ public class DataProvider : IDataProvider
             var response = await client.PostAsync("/faculty/update", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(facultyModel));
     }
 
@@ -130,6 +135,7 @@ public class DataProvider : IDataProvider
             var response = await client.DeleteAsync($"/faculty?id={id}");
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -145,9 +151,10 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var dtos = JsonConvert.DeserializeObject<List<DepartmentDto>>(contentText);
-            var models = dtos.Select(dto => _mapper.Map<DepartmentModel>(dto)).ToList();
+            var models = dtos.Select(_mapper.Map<DepartmentModel>).ToList();
             return models;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -161,11 +168,13 @@ public class DataProvider : IDataProvider
             {
                 var contentText = await response.Content.ReadAsStringAsync();
                 var dtos = JsonConvert.DeserializeObject<List<DepartmentDto>>(contentText);
-                var models = dtos.Select(dto => _mapper.Map<DepartmentModel>(dto)).ToList();
+                var models = dtos.Select(_mapper.Map<DepartmentModel>).ToList();
                 return models;
             }
+
             throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
         }
+
         throw new ArgumentNullException(nameof(facultyId));
     }
 
@@ -179,11 +188,13 @@ public class DataProvider : IDataProvider
             {
                 var contentText = await response.Content.ReadAsStringAsync();
                 var dtos = JsonConvert.DeserializeObject<List<DepartmentDto>>(contentText);
-                var models = dtos.Select(dto => _mapper.Map<DepartmentModel>(dto)).ToList();
+                var models = dtos.Select(_mapper.Map<DepartmentModel>).ToList();
                 return models;
             }
+
             throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
         }
+
         throw new ArgumentNullException(nameof(periodId));
     }
 
@@ -197,6 +208,7 @@ public class DataProvider : IDataProvider
             var result = JsonConvert.DeserializeObject<bool>(contentText);
             return result;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -209,6 +221,7 @@ public class DataProvider : IDataProvider
             var total = int.Parse(await response.Content.ReadAsStringAsync());
             return total;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -221,6 +234,7 @@ public class DataProvider : IDataProvider
             var total = int.Parse(await response.Content.ReadAsStringAsync());
             return total;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -233,6 +247,7 @@ public class DataProvider : IDataProvider
             var total = int.Parse(await response.Content.ReadAsStringAsync());
             return total;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -249,8 +264,10 @@ public class DataProvider : IDataProvider
                 var model = _mapper.Map<DepartmentModel>(dto);
                 return model;
             }
+
             throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
         }
+
         throw new ArgumentNullException(nameof(departmentId));
     }
 
@@ -264,6 +281,7 @@ public class DataProvider : IDataProvider
             var response = await client.PutAsync("/department", new StringContent(serializedData, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(newDepartment));
     }
 
@@ -277,6 +295,7 @@ public class DataProvider : IDataProvider
             var response = await client.PostAsync("/department/update", new StringContent(serializedData, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(department));
     }
 
@@ -288,6 +307,7 @@ public class DataProvider : IDataProvider
             var response = await client.DeleteAsync($"/department?id={departmentId}");
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(departmentId));
     }
 
@@ -301,6 +321,7 @@ public class DataProvider : IDataProvider
             var statisticsItems = JsonConvert.DeserializeObject<IList<StatisticItemDto>>(contentText);
             return statisticsItems?.Select(_mapper.Map<StatisticItemModel>).ToList() ?? new List<StatisticItemModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -316,9 +337,10 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var dtos = JsonConvert.DeserializeObject<List<CareerDto>>(contentText);
-            var models = dtos.Select(dto => _mapper.Map<CareerModel>(dto)).ToList();
+            var models = dtos.Select(_mapper.Map<CareerModel>).ToList();
             return models;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -332,11 +354,13 @@ public class DataProvider : IDataProvider
             {
                 var contentText = await response.Content.ReadAsStringAsync();
                 var dtos = JsonConvert.DeserializeObject<List<CareerDto>>(contentText);
-                var models = dtos.Select(dto => _mapper.Map<CareerModel>(dto)).ToList();
+                var models = dtos.Select(_mapper.Map<CareerModel>).ToList();
                 return models;
             }
+
             throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
         }
+
         throw new ArgumentNullException(nameof(facultyId));
     }
 
@@ -350,11 +374,13 @@ public class DataProvider : IDataProvider
             {
                 var contentText = await response.Content.ReadAsStringAsync();
                 var dtos = JsonConvert.DeserializeObject<List<CareerDto>>(contentText);
-                var models = dtos.Select(dto => _mapper.Map<CareerModel>(dto)).ToList();
+                var models = dtos.Select(_mapper.Map<CareerModel>).ToList();
                 return models;
             }
+
             throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
         }
+
         throw new ArgumentNullException(nameof(departmentId));
     }
 
@@ -367,6 +393,7 @@ public class DataProvider : IDataProvider
             var total = int.Parse(await response.Content.ReadAsStringAsync());
             return total;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -383,8 +410,10 @@ public class DataProvider : IDataProvider
                 var model = _mapper.Map<CareerModel>(dto);
                 return model;
             }
+
             throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
         }
+
         throw new ArgumentNullException(nameof(careerId));
     }
 
@@ -401,6 +430,7 @@ public class DataProvider : IDataProvider
                 return result;
             }
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -414,6 +444,7 @@ public class DataProvider : IDataProvider
             var response = await client.PutAsync("/career", new StringContent(serializedData, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(newCareer));
     }
 
@@ -427,6 +458,7 @@ public class DataProvider : IDataProvider
             var response = await client.PostAsync("/career/update", new StringContent(serializedData, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(career));
     }
 
@@ -438,6 +470,7 @@ public class DataProvider : IDataProvider
             var response = await client.DeleteAsync($"/career?id={careerId}");
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(careerId));
     }
 
@@ -447,10 +480,12 @@ public class DataProvider : IDataProvider
         {
             throw new ArgumentNullException(nameof(courseId));
         }
+
         if (periodId == Guid.Empty)
         {
             throw new ArgumentNullException(nameof(periodId));
         }
+
         var client = await _apiCallerFactory.CreateApiCallerHttpClientAsync();
         var response = await client.GetAsync($"/course/periodplanninginfo?id={courseId}&periodId={periodId}");
         if (response.IsSuccessStatusCode)
@@ -460,6 +495,7 @@ public class DataProvider : IDataProvider
             var model = _mapper.Map<CoursePeriodPlanningInfoModel>(dto);
             return model;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -475,8 +511,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var disciplines = JsonConvert.DeserializeObject<IList<PopulatedDisciplineDto>>(contentText);
-            return disciplines?.Select(f => _mapper.Map<DisciplineModel>(f)).ToList() ?? new List<DisciplineModel>();
+            return disciplines?.Select(_mapper.Map<DisciplineModel>).ToList() ?? new List<DisciplineModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -488,8 +525,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var disciplines = JsonConvert.DeserializeObject<IList<PopulatedDisciplineDto>>(contentText);
-            return disciplines?.Select(f => _mapper.Map<DisciplineModel>(f)).ToList() ?? new List<DisciplineModel>();
+            return disciplines?.Select(_mapper.Map<DisciplineModel>).ToList() ?? new List<DisciplineModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -502,6 +540,7 @@ public class DataProvider : IDataProvider
             var total = int.Parse(await response.Content.ReadAsStringAsync());
             return total;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -514,6 +553,7 @@ public class DataProvider : IDataProvider
             var discipline = JsonConvert.DeserializeObject<DisciplineModel>(await response.Content.ReadAsStringAsync());
             return _mapper.Map<DisciplineModel>(discipline);
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -526,6 +566,7 @@ public class DataProvider : IDataProvider
             var discipline = JsonConvert.DeserializeObject<DisciplineModel>(await response.Content.ReadAsStringAsync());
             return _mapper.Map<DisciplineModel>(discipline);
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -539,6 +580,7 @@ public class DataProvider : IDataProvider
             var result = JsonConvert.DeserializeObject<bool>(contentText);
             return result;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -552,6 +594,7 @@ public class DataProvider : IDataProvider
             var result = JsonConvert.DeserializeObject<bool>(contentText);
             return result;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -565,6 +608,7 @@ public class DataProvider : IDataProvider
             var response = await client.PutAsync("/discipline", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(newDiscipline));
     }
 
@@ -578,6 +622,7 @@ public class DataProvider : IDataProvider
             var response = await client.PostAsync("/discipline/update", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(discipline));
     }
 
@@ -589,6 +634,7 @@ public class DataProvider : IDataProvider
             var response = await client.DeleteAsync($"/discipline?id={disciplineId}");
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(disciplineId));
     }
 
@@ -604,8 +650,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<TeacherDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<TeacherModel>(f)).ToList() ?? new List<TeacherModel>();
+            return teachers?.Select(_mapper.Map<TeacherModel>).ToList() ?? new List<TeacherModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -618,6 +665,7 @@ public class DataProvider : IDataProvider
             var total = int.Parse(await response.Content.ReadAsStringAsync());
             return total;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -631,6 +679,7 @@ public class DataProvider : IDataProvider
             var result = JsonConvert.DeserializeObject<bool>(contentText);
             return result;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -644,6 +693,7 @@ public class DataProvider : IDataProvider
             var result = JsonConvert.DeserializeObject<bool>(contentText);
             return result;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -656,6 +706,7 @@ public class DataProvider : IDataProvider
             var discipline = JsonConvert.DeserializeObject<TeacherModel>(await response.Content.ReadAsStringAsync());
             return _mapper.Map<TeacherModel>(discipline);
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -668,6 +719,7 @@ public class DataProvider : IDataProvider
             var teacher = JsonConvert.DeserializeObject<TeacherModel>(await response.Content.ReadAsStringAsync());
             return _mapper.Map<TeacherModel>(teacher);
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -680,6 +732,7 @@ public class DataProvider : IDataProvider
             var discipline = JsonConvert.DeserializeObject<TeacherModel>(await response.Content.ReadAsStringAsync());
             return _mapper.Map<TeacherModel>(discipline);
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -693,6 +746,7 @@ public class DataProvider : IDataProvider
             var response = await client.PutAsync("/teacher", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(newTeacher));
     }
 
@@ -706,6 +760,7 @@ public class DataProvider : IDataProvider
             var response = await client.PostAsync("/teacher/update", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(teacher));
     }
 
@@ -717,6 +772,7 @@ public class DataProvider : IDataProvider
             var response = await client.DeleteAsync($"/teacher?id={teacherId}");
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(teacherId));
     }
 
@@ -728,8 +784,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<TeacherDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<TeacherModel>(f)).ToList() ?? new List<TeacherModel>();
+            return teachers?.Select(_mapper.Map<TeacherModel>).ToList() ?? new List<TeacherModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -741,8 +798,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<TeacherDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<TeacherModel>(f)).ToList() ?? new List<TeacherModel>();
+            return teachers?.Select(_mapper.Map<TeacherModel>).ToList() ?? new List<TeacherModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -754,8 +812,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<LoadViewItemDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<LoadViewItemModel>(f)).ToList() ?? new List<LoadViewItemModel>();
+            return teachers?.Select(_mapper.Map<LoadViewItemModel>).ToList() ?? new List<LoadViewItemModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -776,8 +835,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<TeacherDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<TeacherModel>(f)).ToList() ?? new List<TeacherModel>();
+            return teachers?.Select(_mapper.Map<TeacherModel>).ToList() ?? new List<TeacherModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -789,8 +849,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<TeacherDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<TeacherModel>(f)).ToList() ?? new List<TeacherModel>();
+            return teachers?.Select(_mapper.Map<TeacherModel>).ToList() ?? new List<TeacherModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -802,6 +863,7 @@ public class DataProvider : IDataProvider
             var response = await client.DeleteAsync($"/teacher/deleteload?loadItemId={loadItemId}");
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(loadItemId));
     }
 
@@ -813,8 +875,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<TeacherDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<TeacherModel>(f)).ToList() ?? new List<TeacherModel>();
+            return teachers?.Select(_mapper.Map<TeacherModel>).ToList() ?? new List<TeacherModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -835,8 +898,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<BirthdayTeacherDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<BirthdayTeacherModel>(f)).ToList() ?? new List<BirthdayTeacherModel>();
+            return teachers?.Select(_mapper.Map<BirthdayTeacherModel>).ToList() ?? new List<BirthdayTeacherModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -848,8 +912,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<BirthdayTeacherDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<BirthdayTeacherModel>(f)).ToList() ?? new List<BirthdayTeacherModel>();
+            return teachers?.Select(_mapper.Map<BirthdayTeacherModel>).ToList() ?? new List<BirthdayTeacherModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -861,8 +926,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<BirthdayTeacherDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<BirthdayTeacherModel>(f)).ToList() ?? new List<BirthdayTeacherModel>();
+            return teachers?.Select(_mapper.Map<BirthdayTeacherModel>).ToList() ?? new List<BirthdayTeacherModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -874,8 +940,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<BirthdayTeacherDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<BirthdayTeacherModel>(f)).ToList() ?? new List<BirthdayTeacherModel>();
+            return teachers?.Select(_mapper.Map<BirthdayTeacherModel>).ToList() ?? new List<BirthdayTeacherModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -891,8 +958,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<SubjectDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<SubjectModel>(f)).ToList() ?? new List<SubjectModel>();
+            return teachers?.Select(_mapper.Map<SubjectModel>).ToList() ?? new List<SubjectModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -904,8 +972,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<SubjectDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<SubjectModel>(f)).ToList() ?? new List<SubjectModel>();
+            return teachers?.Select(_mapper.Map<SubjectModel>).ToList() ?? new List<SubjectModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -917,8 +986,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<SubjectDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<SubjectModel>(f)).ToList() ?? new List<SubjectModel>();
+            return teachers?.Select(_mapper.Map<SubjectModel>).ToList() ?? new List<SubjectModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -930,8 +1000,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<SubjectDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<SubjectModel>(f)).ToList() ?? new List<SubjectModel>();
+            return teachers?.Select(_mapper.Map<SubjectModel>).ToList() ?? new List<SubjectModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -943,8 +1014,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<SubjectDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<SubjectModel>(f)).ToList() ?? new List<SubjectModel>();
+            return teachers?.Select(_mapper.Map<SubjectModel>).ToList() ?? new List<SubjectModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -957,6 +1029,7 @@ public class DataProvider : IDataProvider
             var total = int.Parse(await response.Content.ReadAsStringAsync());
             return total;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -970,6 +1043,7 @@ public class DataProvider : IDataProvider
             var result = JsonConvert.DeserializeObject<bool>(contentText);
             return result;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -983,6 +1057,7 @@ public class DataProvider : IDataProvider
             var result = JsonConvert.DeserializeObject<bool>(contentText);
             return result;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -995,6 +1070,7 @@ public class DataProvider : IDataProvider
             var subject = JsonConvert.DeserializeObject<SubjectModel>(await response.Content.ReadAsStringAsync());
             return _mapper.Map<SubjectModel>(subject);
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1007,6 +1083,7 @@ public class DataProvider : IDataProvider
             var subject = JsonConvert.DeserializeObject<SubjectModel>(await response.Content.ReadAsStringAsync());
             return _mapper.Map<SubjectModel>(subject);
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1020,6 +1097,7 @@ public class DataProvider : IDataProvider
             var response = await client.PutAsync("/subject", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(newSubject));
     }
 
@@ -1033,6 +1111,7 @@ public class DataProvider : IDataProvider
             var response = await client.PostAsync("/subject/update", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(subject));
     }
 
@@ -1044,6 +1123,7 @@ public class DataProvider : IDataProvider
             var response = await client.DeleteAsync($"/subject?id={subjectId}");
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(subjectId));
     }
 
@@ -1055,8 +1135,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var teachers = JsonConvert.DeserializeObject<IList<PeriodSubjectDto>>(contentText);
-            return teachers?.Select(f => _mapper.Map<PeriodSubjectModel>(f)).ToList() ?? new List<PeriodSubjectModel>();
+            return teachers?.Select(_mapper.Map<PeriodSubjectModel>).ToList() ?? new List<PeriodSubjectModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1070,6 +1151,7 @@ public class DataProvider : IDataProvider
             var response = await client.PutAsync("/subject/periodsubject", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(newPeriodSubject));
     }
 
@@ -1082,6 +1164,7 @@ public class DataProvider : IDataProvider
             var subject = JsonConvert.DeserializeObject<PeriodSubjectDto>(await response.Content.ReadAsStringAsync());
             return _mapper.Map<PeriodSubjectModel>(subject);
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1095,6 +1178,7 @@ public class DataProvider : IDataProvider
             var response = await client.PostAsync("/subject/updateperiodsubject", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(model));
     }
 
@@ -1106,6 +1190,7 @@ public class DataProvider : IDataProvider
             var response = await client.DeleteAsync($"/subject/deleteperiodsubject?id={id}");
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -1121,8 +1206,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var curriculums = JsonConvert.DeserializeObject<IList<CurriculumDto>>(contentText);
-            return curriculums?.Select(f => _mapper.Map<CurriculumModel>(f)).ToList() ?? new List<CurriculumModel>();
+            return curriculums?.Select(_mapper.Map<CurriculumModel>).ToList() ?? new List<CurriculumModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1134,8 +1220,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var curriculums = JsonConvert.DeserializeObject<IList<CurriculumDto>>(contentText);
-            return curriculums?.Select(f => _mapper.Map<CurriculumModel>(f)).ToList() ?? new List<CurriculumModel>();
+            return curriculums?.Select(_mapper.Map<CurriculumModel>).ToList() ?? new List<CurriculumModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1148,6 +1235,7 @@ public class DataProvider : IDataProvider
             var total = int.Parse(await response.Content.ReadAsStringAsync());
             return total;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1161,6 +1249,7 @@ public class DataProvider : IDataProvider
             var result = JsonConvert.DeserializeObject<bool>(contentText);
             return result;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1173,6 +1262,7 @@ public class DataProvider : IDataProvider
             var discipline = JsonConvert.DeserializeObject<CurriculumModel>(await response.Content.ReadAsStringAsync());
             return _mapper.Map<CurriculumModel>(discipline);
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1186,6 +1276,7 @@ public class DataProvider : IDataProvider
             var response = await client.PutAsync("/curriculum", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(newCurriculum));
     }
 
@@ -1199,6 +1290,7 @@ public class DataProvider : IDataProvider
             var response = await client.PostAsync("/curriculum/update", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(curriculum));
     }
 
@@ -1210,6 +1302,7 @@ public class DataProvider : IDataProvider
             var response = await client.DeleteAsync($"/curriculum?id={curriculumId}");
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(curriculumId));
     }
 
@@ -1226,6 +1319,7 @@ public class DataProvider : IDataProvider
             var schoolYear = JsonConvert.DeserializeObject<SchoolYearDto>(await response.Content.ReadAsStringAsync());
             return _mapper.Map<SchoolYearModel>(schoolYear);
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1238,6 +1332,7 @@ public class DataProvider : IDataProvider
             var schoolYear = JsonConvert.DeserializeObject<SchoolYearDto>(await response.Content.ReadAsStringAsync());
             return _mapper.Map<SchoolYearModel>(schoolYear);
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1249,8 +1344,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var schoolYears = JsonConvert.DeserializeObject<IList<SchoolYearDto>>(contentText);
-            return schoolYears?.Select(f => _mapper.Map<SchoolYearModel>(f)).ToList() ?? new List<SchoolYearModel>();
+            return schoolYears?.Select(_mapper.Map<SchoolYearModel>).ToList() ?? new List<SchoolYearModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1263,6 +1359,7 @@ public class DataProvider : IDataProvider
             var total = int.Parse(await response.Content.ReadAsStringAsync());
             return total;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1276,6 +1373,7 @@ public class DataProvider : IDataProvider
             var result = JsonConvert.DeserializeObject<bool>(contentText);
             return result;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1289,6 +1387,7 @@ public class DataProvider : IDataProvider
             var response = await client.PutAsync("/schoolyear", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(schoolYear));
     }
 
@@ -1302,6 +1401,7 @@ public class DataProvider : IDataProvider
             var response = await client.PostAsync("/schoolYear/update", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(schoolYear));
     }
 
@@ -1313,6 +1413,7 @@ public class DataProvider : IDataProvider
             var response = await client.DeleteAsync($"/schoolyear?id={id}");
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -1335,6 +1436,7 @@ public class DataProvider : IDataProvider
                 return id;
             }
         }
+
         throw new ArgumentNullException(nameof(course));
     }
 
@@ -1348,6 +1450,7 @@ public class DataProvider : IDataProvider
             var result = JsonConvert.DeserializeObject<bool>(contentText);
             return result;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1361,6 +1464,7 @@ public class DataProvider : IDataProvider
             var result = JsonConvert.DeserializeObject<bool>(contentText);
             return result;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1373,6 +1477,7 @@ public class DataProvider : IDataProvider
             var total = int.Parse(await response.Content.ReadAsStringAsync());
             return total;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1385,8 +1490,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var courses = JsonConvert.DeserializeObject<IList<CourseDto>>(contentText);
-            return courses?.Select(f => _mapper.Map<CourseModel>(f)).ToList() ?? new List<CourseModel>();
+            return courses?.Select(_mapper.Map<CourseModel>).ToList() ?? new List<CourseModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1399,8 +1505,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var courses = JsonConvert.DeserializeObject<IList<CourseDto>>(contentText);
-            return courses?.Select(f => _mapper.Map<CourseModel>(f)).ToList() ?? new List<CourseModel>();
+            return courses?.Select(_mapper.Map<CourseModel>).ToList() ?? new List<CourseModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1413,8 +1520,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var courses = JsonConvert.DeserializeObject<IList<CourseDto>>(contentText);
-            return courses?.Select(f => _mapper.Map<CourseModel>(f)).ToList() ?? new List<CourseModel>();
+            return courses?.Select(_mapper.Map<CourseModel>).ToList() ?? new List<CourseModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1427,8 +1535,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var courses = JsonConvert.DeserializeObject<IList<CourseDto>>(contentText);
-            return courses?.Select(f => _mapper.Map<CourseModel>(f)).ToList() ?? new List<CourseModel>();
+            return courses?.Select(_mapper.Map<CourseModel>).ToList() ?? new List<CourseModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1441,6 +1550,7 @@ public class DataProvider : IDataProvider
             var discipline = JsonConvert.DeserializeObject<CourseDto>(await response.Content.ReadAsStringAsync());
             return _mapper.Map<CourseModel>(discipline);
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1454,6 +1564,7 @@ public class DataProvider : IDataProvider
             var response = await client.PostAsync("/course/update", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(course));
     }
 
@@ -1465,6 +1576,7 @@ public class DataProvider : IDataProvider
             var response = await client.DeleteAsync($"/course?id={id}");
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -1477,8 +1589,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var courses = JsonConvert.DeserializeObject<IList<CourseDto>>(contentText);
-            return courses?.Select(f => _mapper.Map<CourseModel>(f)).ToList() ?? new List<CourseModel>();
+            return courses?.Select(_mapper.Map<CourseModel>).ToList() ?? new List<CourseModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1496,6 +1609,7 @@ public class DataProvider : IDataProvider
             var response = await client.PutAsync("/period", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(period));
     }
 
@@ -1509,6 +1623,7 @@ public class DataProvider : IDataProvider
             var result = JsonConvert.DeserializeObject<bool>(contentText);
             return result;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1521,6 +1636,7 @@ public class DataProvider : IDataProvider
             var total = int.Parse(await response.Content.ReadAsStringAsync());
             return total;
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1532,8 +1648,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var periods = JsonConvert.DeserializeObject<IList<PeriodDto>>(contentText);
-            return periods?.Select(f => _mapper.Map<PeriodModel>(f)).ToList() ?? new List<PeriodModel>();
+            return periods?.Select(_mapper.Map<PeriodModel>).ToList() ?? new List<PeriodModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1546,8 +1663,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var periods = JsonConvert.DeserializeObject<IList<PeriodDto>>(contentText);
-            return periods?.Select(f => _mapper.Map<PeriodModel>(f)).ToList() ?? new List<PeriodModel>();
+            return periods?.Select(_mapper.Map<PeriodModel>).ToList() ?? new List<PeriodModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1560,6 +1678,7 @@ public class DataProvider : IDataProvider
             var discipline = JsonConvert.DeserializeObject<PeriodDto>(await response.Content.ReadAsStringAsync());
             return _mapper.Map<PeriodModel>(discipline);
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1573,6 +1692,7 @@ public class DataProvider : IDataProvider
             var response = await client.PostAsync("/period/update", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(period));
     }
 
@@ -1584,6 +1704,7 @@ public class DataProvider : IDataProvider
             var response = await client.DeleteAsync($"/period?id={id}");
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -1601,6 +1722,7 @@ public class DataProvider : IDataProvider
             var response = await client.PutAsync("/period/addplanitem", new StringContent(serializedDtos, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException("The item should not be null.");
     }
 
@@ -1616,8 +1738,10 @@ public class DataProvider : IDataProvider
                 var result = JsonConvert.DeserializeObject<bool>(contentText);
                 return result;
             }
+
             throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
         }
+
         throw new ArgumentNullException("The id must be a valid Guid.");
     }
 
@@ -1635,8 +1759,10 @@ public class DataProvider : IDataProvider
                 var total = int.Parse(await response.Content.ReadAsStringAsync());
                 return total;
             }
+
             throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
         }
+
         throw new ArgumentNullException("The id must be a valid Guid.");
     }
 
@@ -1650,8 +1776,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var periods = JsonConvert.DeserializeObject<IList<TeachingPlanItemSimpleDto>>(contentText);
-            return periods?.Select(f => _mapper.Map<TeachingPlanItemModel>(f)).ToList() ?? new List<TeachingPlanItemModel>();
+            return periods?.Select(_mapper.Map<TeachingPlanItemModel>).ToList() ?? new List<TeachingPlanItemModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1666,8 +1793,10 @@ public class DataProvider : IDataProvider
                 var teachingPlanItem = JsonConvert.DeserializeObject<TeachingPlanItemDto>(await response.Content.ReadAsStringAsync());
                 return _mapper.Map<TeachingPlanItemModel>(teachingPlanItem);
             }
+
             throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
         }
+
         throw new ArgumentNullException("The id must be a valid Guid.");
     }
 
@@ -1681,6 +1810,7 @@ public class DataProvider : IDataProvider
             var response = await client.PostAsync("/period/updateplanitem", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(period));
     }
 
@@ -1692,6 +1822,7 @@ public class DataProvider : IDataProvider
             var response = await client.DeleteAsync($"/period/deleteplanitem?id={id}");
             return response.IsSuccessStatusCode;
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -1703,8 +1834,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var periods = JsonConvert.DeserializeObject<IList<TeachingPlanItemDto>>(contentText);
-            return periods?.Select(f => _mapper.Map<TeachingPlanItemModel>(f)).ToList() ?? new List<TeachingPlanItemModel>();
+            return periods?.Select(_mapper.Map<TeachingPlanItemModel>).ToList() ?? new List<TeachingPlanItemModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1720,8 +1852,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var statisticsItems = JsonConvert.DeserializeObject<IList<StatisticItemDto>>(contentText);
-            return statisticsItems?.Select(f => _mapper.Map<StatisticItemModel>(f)).ToList() ?? new List<StatisticItemModel>();
+            return statisticsItems?.Select(_mapper.Map<StatisticItemModel>).ToList() ?? new List<StatisticItemModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 
@@ -1733,8 +1866,9 @@ public class DataProvider : IDataProvider
         {
             var contentText = await response.Content.ReadAsStringAsync();
             var statisticsItems = JsonConvert.DeserializeObject<IList<StatisticItemDto>>(contentText);
-            return statisticsItems?.Select(f => _mapper.Map<StatisticItemModel>(f)).ToList() ?? new List<StatisticItemModel>();
+            return statisticsItems?.Select(_mapper.Map<StatisticItemModel>).ToList() ?? new List<StatisticItemModel>();
         }
+
         throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
     }
 

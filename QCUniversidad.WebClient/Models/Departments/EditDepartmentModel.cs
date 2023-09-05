@@ -21,7 +21,7 @@ public class EditDepartmentModel
     [Display(Name = "Identificador interno", Prompt = "Identificador interno", Description = "El identificador usado para la gestión interna de recursos humanos.")]
     public string? InternalId { get; set; }
     public IList<CareerModel>? Careers { get; set; }
-    
+
     [Display(Name = "Carreras que gestiona", Prompt = "Carreras que gestiona", Description = "Carreras que gestiona el departamento.")]
     public Guid[]? SelectedCareers { get; set; }
     public Guid FacultyId { get; set; }

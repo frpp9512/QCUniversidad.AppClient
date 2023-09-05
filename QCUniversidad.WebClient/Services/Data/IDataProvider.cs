@@ -1,5 +1,5 @@
 ﻿using QCUniversidad.WebClient.Models.Careers;
-using QCUniversidad.WebClient.Models.Courses;
+using QCUniversidad.WebClient.Models.Course;
 using QCUniversidad.WebClient.Models.Curriculums;
 using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Disciplines;

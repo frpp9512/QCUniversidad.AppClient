@@ -8,7 +8,6 @@ using QCUniversidad.Api.Extensions;
 using QCUniversidad.Api.Shared.CommonModels;
 using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.Api.Shared.Extensions;
-using System.Net.WebSockets;
 using System.Text;
 
 namespace QCUniversidad.Api.Services;
@@ -88,6 +87,7 @@ public class DataManager : IDataManager
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(faculty));
     }
 
@@ -99,6 +99,7 @@ public class DataManager : IDataManager
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(faculty));
     }
 
@@ -162,6 +163,7 @@ public class DataManager : IDataManager
                 var deparments = await _context.Departments.Where(d => d.FacultyId == facultyId).OrderBy(d => d.Name).ToListAsync();
                 return deparments;
             }
+
             throw new FacultyNotFoundException();
         }
         catch
@@ -198,6 +200,7 @@ public class DataManager : IDataManager
         {
             throw new DepartmentNotFoundException();
         }
+
         var count = await _context.Teachers.CountAsync(t => t.DepartmentId == departmentId);
         return count;
     }
@@ -208,6 +211,7 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(department));
         }
+
         _ = await _context.Departments.AddAsync(department);
         var result = await _context.SaveChangesAsync();
         return result > 0;
@@ -219,6 +223,7 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(department));
         }
+
         await _context.DepartmentsCareers.Where(dc => dc.DepartmentId == department.Id)
                                          .ForEachAsync(dc => _context.Remove(dc));
         _ = _context.Departments.Update(department);
@@ -232,6 +237,7 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(departmentId));
         }
+
         var department = await GetDepartmentAsync(departmentId);
         _ = _context.Departments.Remove(department);
         var result = await _context.SaveChangesAsync();
@@ -244,6 +250,7 @@ public class DataManager : IDataManager
         {
             throw new PeriodNotFoundException();
         }
+
         var query = from planItem in _context.TeachingPlanItems
                     where planItem.PeriodId == periodId
                     select planItem.TotalHoursPlanned;
@@ -259,6 +266,7 @@ public class DataManager : IDataManager
         {
             throw new PeriodNotFoundException();
         }
+
         var directLoadQuery = from loadItem in _context.LoadItems
                               join teacher in _context.Teachers
                               on loadItem.TeacherId equals teacher.Id
@@ -286,6 +294,7 @@ public class DataManager : IDataManager
         {
             throw new PeriodNotFoundException();
         }
+
         var query = from loadItem in _context.LoadItems
                     join planItem in _context.TeachingPlanItems
                     on loadItem.PlanningItemId equals planItem.Id
@@ -309,6 +318,7 @@ public class DataManager : IDataManager
         {
             throw new PeriodNotFoundException();
         }
+
         var loadItemsQuery = from loadItem in _context.LoadItems
                              join planItem in _context.TeachingPlanItems
                              on loadItem.PlanningItemId equals planItem.Id
@@ -341,6 +351,7 @@ public class DataManager : IDataManager
         {
             throw new PeriodNotFoundException();
         }
+
         var loadItemsQuery = from loadItem in _context.LoadItems
                              join planItem in _context.TeachingPlanItems
                              on loadItem.PlanningItemId equals planItem.Id
@@ -374,10 +385,12 @@ public class DataManager : IDataManager
         {
             throw new DepartmentNotFoundException();
         }
+
         if (!await ExistsPeriodAsync(periodId))
         {
             throw new PeriodNotFoundException();
         }
+
         var periodTimeFund = await GetPeriodTimeFund(periodId);
         var teachersCount = await GetDeparmentTeachersCountAsync(departmentId);
         return periodTimeFund * teachersCount;
@@ -434,7 +447,6 @@ public class DataManager : IDataManager
         // Matrícula equivalente de pregrado
         var equivEnrolment = enrolment * loadCoeff;
 
-
         // Tiempo del departamento en la carreras de posgrado
         var postgraduatedepartmentTimeAmount = await planItems.Where(item => item.FromPostgraduateCourse).SumAsync(item => item.HoursPlanned);
 
@@ -460,10 +472,8 @@ public class DataManager : IDataManager
         // Matrícula equivalente de posgrado
         var postgraduateequivEnrolment = postgraduateenrolment * 3;
 
-
         // Matrícula equivalente total
         var totalEnrolment = equivEnrolment + postgraduateequivEnrolment;
-
 
         var teachers = from teacher in _context.Teachers
                        where teacher.DepartmentId == departmentId && teacher.Active
@@ -483,6 +493,7 @@ public class DataManager : IDataManager
             var result = await _context.Careers.AnyAsync(c => c.Id == id);
             return result;
         }
+
         throw new ArgumentException(nameof(id));
     }
 
@@ -494,6 +505,7 @@ public class DataManager : IDataManager
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(career));
     }
 
@@ -512,6 +524,7 @@ public class DataManager : IDataManager
             var result = await _context.Careers.Where(c => c.FacultyId == facultyId).Include(c => c.Faculty).ToListAsync();
             return result;
         }
+
         throw new ArgumentNullException(nameof(facultyId));
     }
 
@@ -527,6 +540,7 @@ public class DataManager : IDataManager
             var result = await query.Include(c => c.Faculty).ToListAsync();
             return result;
         }
+
         throw new ArgumentNullException(nameof(departmentId));
     }
 
@@ -541,6 +555,7 @@ public class DataManager : IDataManager
                                                .FirstOrDefaultAsync();
             return result ?? throw new CareerNotFoundException();
         }
+
         throw new ArgumentNullException(nameof(careerId));
     }
 
@@ -574,8 +589,10 @@ public class DataManager : IDataManager
                     _ = await _context.SaveChangesAsync();
                 }
             }
+
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(career));
     }
 
@@ -595,6 +612,7 @@ public class DataManager : IDataManager
                 throw;
             }
         }
+
         throw new ArgumentNullException(nameof(careerId));
     }
 
@@ -610,6 +628,7 @@ public class DataManager : IDataManager
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(discipline));
     }
 
@@ -668,6 +687,7 @@ public class DataManager : IDataManager
                                                    .FirstOrDefaultAsync();
             return result ?? throw new DisciplineNotFoundException();
         }
+
         throw new ArgumentNullException(nameof(disciplineId));
     }
 
@@ -680,6 +700,7 @@ public class DataManager : IDataManager
                                                    .FirstOrDefaultAsync();
             return result ?? throw new DisciplineNotFoundException();
         }
+
         throw new ArgumentNullException(nameof(name));
     }
 
@@ -691,6 +712,7 @@ public class DataManager : IDataManager
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(discipline));
     }
 
@@ -710,6 +732,7 @@ public class DataManager : IDataManager
                 throw;
             }
         }
+
         throw new ArgumentNullException(nameof(disciplineId));
     }
 
@@ -731,10 +754,13 @@ public class DataManager : IDataManager
                 {
                     await RecalculateAllTeachersOfDepartmentInPeriodAsync(teacher.DepartmentId, period.Id);
                 }
+
                 return true;
             }
+
             return false;
         }
+
         throw new ArgumentNullException(nameof(teacher));
     }
 
@@ -777,6 +803,7 @@ public class DataManager : IDataManager
                                                 .FirstOrDefaultAsync();
             return result ?? throw new TeacherNotFoundException();
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -790,6 +817,7 @@ public class DataManager : IDataManager
                                                 .FirstOrDefaultAsync();
             return result ?? throw new TeacherNotFoundException();
         }
+
         throw new ArgumentNullException(nameof(personalId));
     }
 
@@ -803,10 +831,12 @@ public class DataManager : IDataManager
             {
                 await _context.TeachersDisciplines.AddRangeAsync(teacher.TeacherDisciplines);
             }
+
             _ = _context.Teachers.Update(teacher);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(teacher));
     }
 
@@ -826,6 +856,7 @@ public class DataManager : IDataManager
                     teacher.Active = false;
                     _ = _context.Teachers.Update(teacher);
                 }
+
                 var result = await _context.SaveChangesAsync();
                 if (result > 0)
                 {
@@ -835,8 +866,10 @@ public class DataManager : IDataManager
                     {
                         await RecalculateAllTeachersOfDepartmentInPeriodAsync(teacher.DepartmentId, period.Id);
                     }
+
                     return true;
                 }
+
                 return result > 0;
             }
             catch (TeacherNotFoundException)
@@ -844,6 +877,7 @@ public class DataManager : IDataManager
                 throw;
             }
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -855,6 +889,7 @@ public class DataManager : IDataManager
             {
                 throw new ArgumentNullException();
             }
+
             var query = from t in _context.Teachers
                         where (loadInactives || t.Active) && t.DepartmentId == departmentId
                         select t;
@@ -874,6 +909,7 @@ public class DataManager : IDataManager
             {
                 throw new ArgumentNullException();
             }
+
             var query = from t in _context.Teachers
                         join d in _context.Departments
                         on t.DepartmentId equals d.Id
@@ -893,10 +929,12 @@ public class DataManager : IDataManager
         {
             throw new TeacherNotFoundException();
         }
+
         if (!await ExistsPeriodAsync(periodId))
         {
             throw new PeriodNotFoundException();
         }
+
         var query = from loadItem in _context.LoadItems
                     join planItem in _context.TeachingPlanItems
                     on loadItem.PlanningItemId equals planItem.Id
@@ -917,10 +955,12 @@ public class DataManager : IDataManager
         {
             throw new TeacherNotFoundException();
         }
+
         if (!await ExistsPeriodAsync(periodId))
         {
             throw new PeriodNotFoundException();
         }
+
         var items = await _context.NonTeachingLoad.Where(l => l.TeacherId == teacherId && l.PeriodId == periodId).ToListAsync();
         var types = Enum.GetValues<NonTeachingLoadType>();
         foreach (var type in types.Where(t => t.GetEnumDisplayAutogenerateValue()))
@@ -936,6 +976,7 @@ public class DataManager : IDataManager
                 { }
             }
         }
+
         return items;
     }
 
@@ -945,10 +986,12 @@ public class DataManager : IDataManager
         {
             throw new TeacherNotFoundException();
         }
+
         if (!await ExistsPeriodAsync(periodId))
         {
             throw new PeriodNotFoundException();
         }
+
         var itemQuery = from ntl in _context.NonTeachingLoad
                         where ntl.TeacherId == teacherId && ntl.PeriodId == periodId && ntl.Type == type
                         select ntl;
@@ -972,6 +1015,7 @@ public class DataManager : IDataManager
             {
                 _ = _context.NonTeachingLoad.Add(calculated);
             }
+
             var result = await _context.SaveChangesAsync();
             return result > 0 ? (loadItem is null ? calculated : loadItem) : throw new DatabaseOperationException();
         }
@@ -983,6 +1027,7 @@ public class DataManager : IDataManager
                 _ = await SetNonTeachingLoadAsync(loadItem.Type, loadItem.BaseValue, teacherId, periodId);
             }
         }
+
         return null;
     }
 
@@ -992,10 +1037,12 @@ public class DataManager : IDataManager
         {
             throw new PeriodNotFoundException();
         }
+
         if (!await IsPeriodInCurrentYear(periodId))
         {
             return;
         }
+
         var teachersQuery = from teacher in _context.Teachers
                             where teacher.Active
                             select teacher.Id;
@@ -1015,10 +1062,12 @@ public class DataManager : IDataManager
         {
             throw new PeriodNotFoundException();
         }
+
         if (!await IsPeriodInCurrentYear(periodId))
         {
             return;
         }
+
         var teachersQuery = from teacher in _context.Teachers
                             where teacher.Active && teacher.DepartmentId == departmentId
                             select teacher.Id;
@@ -1038,6 +1087,7 @@ public class DataManager : IDataManager
         {
             throw new PeriodNotFoundException();
         }
+
         if (!await IsPeriodInCurrentYear(periodId))
         {
             return;
@@ -1092,6 +1142,7 @@ public class DataManager : IDataManager
                 {
                     description = $"{cValue} asignaturas x {_calculationOptions.ConsultationCoefficient} horas de consultas a cada una.";
                 }
+
                 var cItem = new NonTeachingLoadModel
                 {
                     Type = NonTeachingLoadType.Consultation,
@@ -1112,21 +1163,22 @@ public class DataManager : IDataManager
 
                 ClassPreparationCalculationModel calculationModel = new();
                 double primaryGroups = 0;
-                int primaryItemsCounted = 0;
+                var primaryItemsCounted = 0;
                 double secondaryGroups = 0;
-                int secondaryItemsCounted = 0;
+                var secondaryItemsCounted = 0;
                 double tertiaryGroups = 0;
-                int tertiaryItemsCounted = 0;
+                var tertiaryItemsCounted = 0;
 
                 foreach (var value in cpQuery)
                 {
-                    if (value.type == TeachingActivityType.Conference || value.type == TeachingActivityType.PostgraduateClass)
+                    if (value.type is TeachingActivityType.Conference or TeachingActivityType.PostgraduateClass)
                     {
                         primaryGroups += value.groupCount;
                         primaryItemsCounted++;
                         calculationModel.MainClassesValue += value.hoursCovered / value.groupCount;
                         continue;
                     }
+
                     if (value.type == TeachingActivityType.MeetingClass)
                     {
                         secondaryGroups += value.groupCount;
@@ -1134,6 +1186,7 @@ public class DataManager : IDataManager
                         calculationModel.SecondaryClassesValue += value.hoursCovered / value.groupCount;
                         continue;
                     }
+
                     tertiaryGroups += value.groupCount;
                     tertiaryItemsCounted++;
                     calculationModel.TertiaryClassesValue += value.hoursCovered / value.groupCount;
@@ -1143,10 +1196,12 @@ public class DataManager : IDataManager
                 {
                     calculationModel.MainClassesGroupCount = primaryGroups / primaryItemsCounted;
                 }
+
                 if (secondaryGroups > 0)
                 {
                     calculationModel.SecondaryClassesGroupCount = secondaryGroups / secondaryItemsCounted;
                 }
+
                 if (tertiaryGroups > 0)
                 {
                     calculationModel.TertiaryClassesGroupCount = tertiaryGroups / tertiaryItemsCounted;
@@ -1157,14 +1212,17 @@ public class DataManager : IDataManager
                 {
                     _ = descriptionBuilder.AppendLine($"{calculationModel.MainClassesValue} conferencias o clases a postgrado x {_calculationOptions.ClassPreparationPrimaryCoefficient} horas de preparación cada una, dividido entre {calculationModel.MainClassesGroupCount} grupos.");
                 }
+
                 if (calculationModel.SecondaryClassesValue > 0)
                 {
                     _ = descriptionBuilder.AppendLine($"{calculationModel.SecondaryClassesValue} clases encuentro x {_calculationOptions.ClassPreparationSecondaryCoefficient} horas de preparación cada una, dividido entre {calculationModel.SecondaryClassesGroupCount} grupos.");
                 }
+
                 if (calculationModel.TertiaryClassesValue > 0)
                 {
                     _ = descriptionBuilder.AppendLine($"{calculationModel.SecondaryClassesValue} de otras actividades docentes x {_calculationOptions.ClassPreparationTertiaryCoefficient} horas de preparación cada una, dividido entre {calculationModel.TertiaryClassesGroupCount} grupos.");
                 }
+
                 if (calculationModel.MainClassesValue == 0 && calculationModel.SecondaryClassesValue == 0 && calculationModel.TertiaryClassesValue == 0)
                 {
                     _ = descriptionBuilder.AppendLine(NonTeachingLoadType.ClassPreparation.GetEnumDisplayDescriptionValue());
@@ -1356,6 +1414,7 @@ public class DataManager : IDataManager
                         var examGradeValue = (midTermExamValue + terminationValue) / teachersCount;
                         subtotal += examGradeValue;
                     }
+
                     examGradeTotal += subtotal;
                 }
 
@@ -1429,6 +1488,7 @@ public class DataManager : IDataManager
                     };
                     return thesisCourtLoad;
                 }
+
                 return new NonTeachingLoadModel
                 {
                     Type = NonTeachingLoadType.ThesisCourtAndRevision,
@@ -1452,6 +1512,7 @@ public class DataManager : IDataManager
         {
             throw new PeriodNotFoundException();
         }
+
         var schoolYearId = await schoolYearQuery.FirstAsync();
         var lastPeriodQuery = await _context.Periods.Where(p => p.SchoolYearId == schoolYearId)
                                                .Select(p => new { p.Id, Starts = p.Starts.DateTime })
@@ -1466,18 +1527,22 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(teacherId));
         }
+
         if (!await ExistsTeacherAsync(teacherId))
         {
             throw new TeacherNotFoundException();
         }
+
         if (periodId == Guid.Empty)
         {
             throw new ArgumentException(nameof(periodId));
         }
+
         if (!await ExistsPeriodAsync(periodId))
         {
             throw new PeriodNotFoundException();
         }
+
         var query = from loadItem in _context.LoadItems
                     join planItem in _context.TeachingPlanItems
                     on loadItem.PlanningItemId equals planItem.Id
@@ -1524,16 +1589,11 @@ public class DataManager : IDataManager
         }
     }
 
-    private async Task<bool> TeacherHaveLoad(Guid teacherId)
-    {
-        if (teacherId == Guid.Empty)
-        {
-            throw new ArgumentNullException(nameof(teacherId));
-        }
-        return !await ExistsTeacherAsync(teacherId)
+    private async Task<bool> TeacherHaveLoad(Guid teacherId) => teacherId == Guid.Empty
+            ? throw new ArgumentNullException(nameof(teacherId))
+            : !await ExistsTeacherAsync(teacherId)
             ? throw new TeacherNotFoundException()
             : await _context.LoadItems.CountAsync(l => l.TeacherId == teacherId) > 0;
-    }
 
     public async Task<IList<TeacherModel>> GetTeachersOfDepartmentNotAssignedToPlanItemAsync(Guid departmentId, Guid planItemId, Guid? disciplineId = null)
     {
@@ -1541,6 +1601,7 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(departmentId));
         }
+
         if (planItemId == Guid.Empty)
         {
             throw new ArgumentNullException(nameof(planItemId));
@@ -1553,7 +1614,7 @@ public class DataManager : IDataManager
                                where teacherDiscipline.DisciplineId == disciplineId
                                   && (teacher.DepartmentId == departmentId || teacher.ServiceProvider)
                                select teacher;
-        
+
         depTeachersQuery = depTeachersQuery.Distinct();
 
         var planItemLoads = from planItem in _context.TeachingPlanItems
@@ -1580,28 +1641,34 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(teacherId));
         }
+
         if (planItemId == Guid.Empty)
         {
             throw new ArgumentNullException(nameof(planItemId));
         }
+
         if (!await ExistsTeacherAsync(teacherId))
         {
             throw new TeacherNotFoundException();
         }
+
         if (!await ExistsTeachingPlanItemAsync(planItemId))
         {
             throw new TeachingPlanItemNotFoundException();
         }
+
         if (hours <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(hours), "The hours amount should be greater than zero.");
         }
+
         var planItem = await GetTeachingPlanItemAsync(planItemId);
         var hoursToCover = planItem.TotalHoursPlanned - planItem.LoadItems.Sum(i => i.HoursCovered);
         if (hoursToCover <= 0)
         {
             throw new PlanItemFullyCoveredException();
         }
+
         var loadItem = new LoadItemModel
         {
             TeacherId = teacherId,
@@ -1627,6 +1694,7 @@ public class DataManager : IDataManager
                 return result > 0;
             }
         }
+
         throw new LoadItemNotFoundException();
     }
 
@@ -1639,10 +1707,12 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(departmentId));
         }
+
         if (!await ExistDepartmentAsync(departmentId))
         {
             throw new DepartmentNotFoundException();
         }
+
         var disciplines = from discipline in _context.Disciplines
                           where discipline.DepartmentId == departmentId
                           select discipline;
@@ -1678,14 +1748,17 @@ public class DataManager : IDataManager
         {
             throw new TeacherNotFoundException();
         }
+
         if (!await ExistsPeriodAsync(periodId))
         {
             throw new PeriodNotFoundException();
         }
+
         if (string.IsNullOrEmpty(baseValue))
         {
             throw new ArgumentNullException(nameof(baseValue));
         }
+
         var teacher = await GetTeacherAsync(teacherId);
         var reajustedByContract = false;
         switch (type)
@@ -1720,10 +1793,13 @@ public class DataManager : IDataManager
                             };
                             _ = _context.NonTeachingLoad.Add(newPTCLoad);
                         }
+
                         return await _context.SaveChangesAsync() > 0;
                     }
+
                     throw new ConfigurationException();
                 }
+
                 throw new ArgumentException($"The base mValue supplied for {type} load type is invalid.", nameof(baseValue));
             case NonTeachingLoadType.CoursesReceivedAndImprovement:
                 if (Enum.TryParse(baseValue, out CoursesReceivedAndImprovementOptions option))
@@ -1760,10 +1836,13 @@ public class DataManager : IDataManager
                             };
                             _ = _context.NonTeachingLoad.Add(newUELoad);
                         }
+
                         return await _context.SaveChangesAsync() > 0;
                     }
+
                     throw new ConfigurationException();
                 }
+
                 throw new ArgumentException($"The base mValue supplied for {type} load type is invalid.", nameof(baseValue));
             case NonTeachingLoadType.UndergraduateTutoring:
                 var utModel = JsonConvert.DeserializeObject<UndergraduateTutoringModel>(baseValue);
@@ -1800,6 +1879,7 @@ public class DataManager : IDataManager
                         return await _context.SaveChangesAsync() > 0;
                     }
                 }
+
                 throw new ArgumentException($"The base mValue supplied for {type} load type is invalid.", nameof(baseValue));
             case NonTeachingLoadType.GraduateTutoring:
                 var gtModel = JsonConvert.DeserializeObject<GraduateTutoringModel>(baseValue);
@@ -1836,6 +1916,7 @@ public class DataManager : IDataManager
                         return await _context.SaveChangesAsync() > 0;
                     }
                 }
+
                 throw new ArgumentException($"The base mValue supplied for {type} load type is invalid.", nameof(baseValue));
             case NonTeachingLoadType.ParticipationInProjects:
                 if (Enum.TryParse(baseValue, out ParticipationInProjectsOptions ppoption))
@@ -1876,6 +1957,7 @@ public class DataManager : IDataManager
                     };
                     throw new ConfigurationException();
                 }
+
                 throw new ArgumentException($"The base mValue supplied for {type} load type is invalid.", nameof(baseValue));
             case NonTeachingLoadType.UniversityExtensionActions:
                 if (Enum.TryParse(baseValue, out UniversityExtensionActionsOptions ueoption))
@@ -1917,6 +1999,7 @@ public class DataManager : IDataManager
                     };
                     throw new ConfigurationException();
                 }
+
                 throw new ArgumentException($"The base mValue supplied for {type} load type is invalid.", nameof(baseValue));
             case NonTeachingLoadType.EducationalWork:
                 if (Enum.TryParse(baseValue, out EducationalWorkType ewtype))
@@ -1953,10 +2036,13 @@ public class DataManager : IDataManager
                             };
                             _ = _context.NonTeachingLoad.Add(newEWLoad);
                         }
+
                         return await _context.SaveChangesAsync() > 0;
                     }
+
                     throw new ConfigurationException();
                 }
+
                 throw new ArgumentException($"The base mValue supplied for {ewtype} load type is invalid.", nameof(baseValue));
             case NonTeachingLoadType.AdministrativeResponsibilities:
                 if (Enum.TryParse(baseValue, out TeacherAdministrativeResponsibilities frtype))
@@ -1987,9 +2073,11 @@ public class DataManager : IDataManager
                             };
                             _ = _context.NonTeachingLoad.Add(newLoad);
                         }
+
                         return await _context.SaveChangesAsync() > 0;
                     }
                 }
+
                 throw new ArgumentException($"The base value supplied for {frtype} load type is invalid.", nameof(baseValue));
             case NonTeachingLoadType.SyndicalAndPoliticalResposabilities:
                 if (Enum.TryParse(baseValue, out TeacherSyndicalAndPoliticalResposabilities sprtype))
@@ -2026,9 +2114,11 @@ public class DataManager : IDataManager
                             };
                             _ = _context.NonTeachingLoad.Add(newLoad);
                         }
+
                         return await _context.SaveChangesAsync() > 0;
                     }
                 }
+
                 throw new ArgumentException($"The base value supplied for {sprtype} load type is invalid.", nameof(baseValue));
             case NonTeachingLoadType.ProcessResponsabilities:
                 if (Enum.TryParse(baseValue, out TeacherProcessResponsabilities artype))
@@ -2065,9 +2155,11 @@ public class DataManager : IDataManager
                             };
                             _ = _context.NonTeachingLoad.Add(newLoad);
                         }
+
                         return await _context.SaveChangesAsync() > 0;
                     }
                 }
+
                 throw new ArgumentException($"The base value supplied for {artype} load type is invalid.", nameof(baseValue));
             default:
                 throw new NonTeachingLoadUnsettableException();
@@ -2095,6 +2187,7 @@ public class DataManager : IDataManager
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(subject));
     }
 
@@ -2127,10 +2220,12 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(disciplineId));
         }
+
         if (!await ExistsDisciplineAsync(disciplineId))
         {
             throw new DisciplineNotFoundException();
         }
+
         try
         {
             var subjects = await _context.Subjects.Where(s => s.DisciplineId == disciplineId).ToListAsync();
@@ -2163,10 +2258,12 @@ public class DataManager : IDataManager
         {
             throw new CourseNotFoundException();
         }
+
         if (!await ExistsPeriodAsync(periodId))
         {
             throw new PeriodNotFoundException();
         }
+
         try
         {
             var query = from subject in _context.Subjects
@@ -2228,6 +2325,7 @@ public class DataManager : IDataManager
                                                 .FirstOrDefaultAsync();
             return result ?? throw new SubjectNotFoundException();
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -2240,6 +2338,7 @@ public class DataManager : IDataManager
                                                 .FirstOrDefaultAsync();
             return result ?? throw new SubjectNotFoundException();
         }
+
         throw new ArgumentNullException(nameof(name));
     }
 
@@ -2251,6 +2350,7 @@ public class DataManager : IDataManager
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(subject));
     }
 
@@ -2270,6 +2370,7 @@ public class DataManager : IDataManager
                     subject.Active = false;
                     _ = _context.Update(subject);
                 }
+
                 var result = await _context.SaveChangesAsync();
                 return result > 0;
             }
@@ -2278,6 +2379,7 @@ public class DataManager : IDataManager
                 throw;
             }
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -2287,10 +2389,12 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(subjectId));
         }
+
         if (!await ExistsSubjectAsync(subjectId))
         {
             throw new SubjectNotFoundException();
         }
+
         var query = from planItem in _context.TeachingPlanItems
                     join loadItem in _context.LoadItems
                     on planItem.Id equals loadItem.PlanningItemId
@@ -2306,10 +2410,12 @@ public class DataManager : IDataManager
         {
             throw new PeriodNotFoundException();
         }
+
         if (!await ExistsCourseAsync(courseId))
         {
             throw new CourseNotFoundException();
         }
+
         var query = from periodSubject in _context.PeriodSubjects
                     where periodSubject.PeriodId == periodId && periodSubject.CourseId == courseId
                     select periodSubject;
@@ -2326,14 +2432,17 @@ public class DataManager : IDataManager
             {
                 throw new PeriodNotFoundException();
             }
+
             if (!await ExistsCourseAsync(newPeriodSubject.CourseId))
             {
                 throw new CourseNotFoundException();
             }
+
             if (!await ExistsSubjectAsync(newPeriodSubject.SubjectId))
             {
                 throw new SubjectNotFoundException();
             }
+
             newPeriodSubject.TotalHours = newPeriodSubject.HoursPlanned * _calculationOptions.ClassHoursToRealHoursConversionCoefficient;
             _ = _context.PeriodSubjects.Add(newPeriodSubject);
             var result = await _context.SaveChangesAsync();
@@ -2380,6 +2489,7 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(periodSubject));
         }
+
         try
         {
             periodSubject.TotalHours = periodSubject.HoursPlanned * _calculationOptions.ClassHoursToRealHoursConversionCoefficient;
@@ -2399,10 +2509,12 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(id));
         }
+
         if (!await ExistsPeriodSubjectAsync(id))
         {
             throw new PeriodSubjectNotFoundException();
         }
+
         try
         {
             var periodSubject = await _context.PeriodSubjects.FirstAsync(ps => ps.Id == id);
@@ -2428,6 +2540,7 @@ public class DataManager : IDataManager
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(curriculum));
     }
 
@@ -2460,12 +2573,14 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(careerId));
         }
+
         try
         {
             if (!await ExistsCareerAsync(careerId))
             {
                 throw new CareerNotFoundException();
             }
+
             var curriculums = await _context.Curriculums.Where(c => c.CareerId == careerId).ToListAsync();
             return curriculums;
         }
@@ -2486,6 +2601,7 @@ public class DataManager : IDataManager
                                                    .FirstOrDefaultAsync();
             return result ?? throw new TeacherNotFoundException();
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -2500,6 +2616,7 @@ public class DataManager : IDataManager
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(curriculum));
     }
 
@@ -2519,6 +2636,7 @@ public class DataManager : IDataManager
                 throw;
             }
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -2573,10 +2691,12 @@ public class DataManager : IDataManager
             {
                 await RemoveCurrentSchoolYearMark();
             }
+
             _ = await _context.AddAsync(schoolYear);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(schoolYear));
     }
 
@@ -2588,10 +2708,12 @@ public class DataManager : IDataManager
             {
                 await RemoveCurrentSchoolYearMark();
             }
+
             _ = _context.Update(schoolYear);
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(schoolYear));
     }
 
@@ -2618,6 +2740,7 @@ public class DataManager : IDataManager
                     goal++;
                 }
             }
+
             _ = _context.Remove(schoolYear);
             var result = await _context.SaveChangesAsync();
             return result >= goal;
@@ -2638,6 +2761,7 @@ public class DataManager : IDataManager
             schoolYear.Current = false;
             _ = _context.Update(schoolYear);
         }
+
         _ = await _context.SaveChangesAsync();
     }
 
@@ -2663,6 +2787,7 @@ public class DataManager : IDataManager
 
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(course));
     }
 
@@ -2744,6 +2869,7 @@ public class DataManager : IDataManager
                                                .FirstOrDefaultAsync();
             return result ?? throw new CourseNotFoundException();
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -2765,10 +2891,11 @@ public class DataManager : IDataManager
 
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(course));
     }
 
-    private async Task<bool> CourseHavePlanningAsync(Guid courseId) 
+    private async Task<bool> CourseHavePlanningAsync(Guid courseId)
         => await _context.TeachingPlanItems.AnyAsync(p => p.CourseId == courseId);
 
     public async Task<bool> DeleteCourseAsync(Guid id)
@@ -2797,6 +2924,7 @@ public class DataManager : IDataManager
                 throw;
             }
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -2831,6 +2959,7 @@ public class DataManager : IDataManager
                              .Include(sy => sy.Curriculum);
             return await courses.ToListAsync();
         }
+
         throw new ArgumentNullException();
     }
 
@@ -2848,18 +2977,22 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(courseId));
         }
+
         if (periodId == Guid.Empty)
         {
             throw new ArgumentNullException(nameof(periodId));
         }
+
         if (!await ExistsCourseAsync(courseId))
         {
             throw new CourseNotFoundException();
         }
+
         if (!await ExistsPeriodAsync(periodId))
         {
             throw new PeriodNotFoundException();
         }
+
         var query = from psubject in _context.PeriodSubjects
                     where psubject.PeriodId == periodId && psubject.CourseId == courseId
                     select psubject.HoursPlanned;
@@ -2873,18 +3006,22 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(courseId));
         }
+
         if (periodId == Guid.Empty)
         {
             throw new ArgumentNullException(nameof(periodId));
         }
+
         if (!await ExistsCourseAsync(courseId))
         {
             throw new CourseNotFoundException();
         }
+
         if (!await ExistsPeriodAsync(periodId))
         {
             throw new PeriodNotFoundException();
         }
+
         var query = from psubject in _context.PeriodSubjects
                     where psubject.PeriodId == periodId && psubject.CourseId == courseId
                     select psubject.TotalHours;
@@ -2898,18 +3035,22 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(courseId));
         }
+
         if (periodId == Guid.Empty)
         {
             throw new ArgumentNullException(nameof(periodId));
         }
+
         if (!await ExistsCourseAsync(courseId))
         {
             throw new CourseNotFoundException();
         }
+
         if (!await ExistsPeriodAsync(periodId))
         {
             throw new PeriodNotFoundException();
         }
+
         var query = from planItem in _context.TeachingPlanItems
                     where planItem.PeriodId == periodId && planItem.CourseId == courseId
                     select planItem.HoursPlanned;
@@ -2932,6 +3073,7 @@ public class DataManager : IDataManager
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(period));
     }
 
@@ -2961,6 +3103,7 @@ public class DataManager : IDataManager
                                                .FirstOrDefaultAsync();
             return result ?? throw new PeriodNotFoundException();
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -2976,6 +3119,7 @@ public class DataManager : IDataManager
                 var newMonthsCount = period.MonthsCount;
                 recalculateTeachers = (currentMonthsCount != newMonthsCount) && await IsPeriodInCurrentYear(period.Id);
             }
+
             period.Starts = period.Starts.SetKindUtc();
             period.Ends = period.Ends.SetKindUtc();
             _ = _context.Periods.Update(period);
@@ -2988,6 +3132,7 @@ public class DataManager : IDataManager
 
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(period));
     }
 
@@ -3007,6 +3152,7 @@ public class DataManager : IDataManager
                 throw;
             }
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -3016,10 +3162,12 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(periodId));
         }
+
         if (!await ExistsPeriodAsync(periodId))
         {
             throw new PeriodNotFoundException();
         }
+
         var period = await _context.Periods.FirstAsync(p => p.Id == periodId);
         return period.TimeFund;
     }
@@ -3030,21 +3178,25 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(periodId));
         }
+
         if (!await ExistsPeriodAsync(periodId))
         {
             throw new PeriodNotFoundException();
         }
+
         if (teacherId == Guid.Empty)
         {
             throw new ArgumentNullException(nameof(teacherId));
         }
+
         if (!await ExistsTeacherAsync(teacherId))
         {
             throw new TeacherNotFoundException();
         }
+
         var teacherInfo = await _context.Teachers.Where(t => t.Id == teacherId).Select(t => new { t.ContractType, t.SpecificTimeFund }).FirstAsync();
         var periodInfo = await _context.Periods.Where(p => p.Id == periodId).Select(p => new { p.MonthsCount, p.TimeFund }).FirstAsync();
-        var timeFund = teacherInfo.ContractType == TeacherContractType.FullTime || teacherInfo.ContractType == TeacherContractType.Collaborator ? periodInfo.TimeFund : periodInfo.MonthsCount * teacherInfo.SpecificTimeFund;
+        var timeFund = teacherInfo.ContractType is TeacherContractType.FullTime or TeacherContractType.Collaborator ? periodInfo.TimeFund : periodInfo.MonthsCount * teacherInfo.SpecificTimeFund;
         return timeFund;
     }
 
@@ -3084,6 +3236,7 @@ public class DataManager : IDataManager
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(teachingPlanItem));
     }
 
@@ -3143,9 +3296,11 @@ public class DataManager : IDataManager
             {
                 throw new TeachingPlanItemNotFoundException();
             }
+
             result.TotalHoursPlanned = _planItemCalculator.CalculateValue(result);
             return result;
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -3157,6 +3312,7 @@ public class DataManager : IDataManager
             var result = await _context.SaveChangesAsync();
             return result > 0;
         }
+
         throw new ArgumentNullException(nameof(teachingPlanItem));
     }
 
@@ -3176,6 +3332,7 @@ public class DataManager : IDataManager
                 {
                     await RecalculateAutogenerateTeachingLoadItemsAsync(item.teacherId, item.periodId);
                 }
+
                 return result > 0;
             }
             catch (TeachingPlanItemNotFoundException)
@@ -3183,6 +3340,7 @@ public class DataManager : IDataManager
                 throw;
             }
         }
+
         throw new ArgumentNullException(nameof(id));
     }
 
@@ -3227,10 +3385,12 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(teachingPlanId));
         }
+
         if (!await ExistsTeachingPlanItemAsync(teachingPlanId))
         {
             throw new TeachingPlanItemNotFoundException();
         }
+
         var query = from planItem in _context.TeachingPlanItems
                     join course in _context.Courses
                     on planItem.CourseId equals course.Id
@@ -3248,6 +3408,7 @@ public class DataManager : IDataManager
         {
             throw new ArgumentNullException(nameof(planItemId));
         }
+
         var query = from loadItem in _context.LoadItems
                     where loadItem.PlanningItemId == planItemId
                     select loadItem;
@@ -3270,6 +3431,7 @@ public class DataManager : IDataManager
             disciplines = disciplines.Include(d => d.Department);
             return await disciplines.ToListAsync();
         }
+
         throw new TeacherNotFoundException();
     }
 

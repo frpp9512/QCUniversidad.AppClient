@@ -1,4 +1,4 @@
-﻿using QCUniversidad.WebClient.Models.Courses;
+﻿using QCUniversidad.WebClient.Models.Course;
 using QCUniversidad.WebClient.Models.Periods;
 using System.ComponentModel.DataAnnotations;
 
@@ -10,7 +10,7 @@ public record SchoolYearModel
 
     [Required]
     [Display(Name = "Nombre", Prompt = "Nombre del año escolar", Description = "El nombre del año escolar")]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     [Display(Name = "Descripción", Prompt = "Descripción del año escolar", Description = "Descripción de año escolar")]
     public string? Description { get; set; }

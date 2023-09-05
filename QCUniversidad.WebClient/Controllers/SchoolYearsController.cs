@@ -39,6 +39,7 @@ public class SchoolYearsController : Controller
         {
             startingItemIndex = 0;
         }
+
         var schoolYears = await _dataProvider.GetSchoolYearsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
         var totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
         NavigationListViewModel<SchoolYearModel> viewModel = new()
@@ -73,6 +74,7 @@ public class SchoolYearsController : Controller
                 ModelState.AddModelError("Server error", ex.Message);
             }
         }
+
         return View(model);
     }
 
@@ -121,6 +123,7 @@ public class SchoolYearsController : Controller
                     TempData["schoolyear-edited"] = true;
                     return RedirectToActionPermanent("Index");
                 }
+
                 ModelState.AddModelError("Error de servidor", "Ha ocurrido un problema actualizando el año escolar.");
             }
             catch (Exception ex)
@@ -128,6 +131,7 @@ public class SchoolYearsController : Controller
                 ModelState.AddModelError("Server error", ex.Message);
             }
         }
+
         return View(model);
     }
 
@@ -150,6 +154,7 @@ public class SchoolYearsController : Controller
                     return Problem($"Ha ocurrido un error eliminando el año escolar con id {id}.");
                 }
             }
+
             return NotFound($"No se ha encontrado el año escolar con id {id}.");
         }
         catch (Exception ex)
@@ -169,16 +174,19 @@ public class SchoolYearsController : Controller
             {
                 return NotFound("El año escolar no existe.");
             }
+
             if (model.Starts >= model.Ends)
             {
                 return BadRequest(new { responseText = "La fecha de culminación debe de suceder a la de inicio." });
             }
+
             var result = await _dataProvider.CreatePeriodAsync(_mapper.Map<PeriodModel>(model));
             if (result)
             {
                 TempData["period-created"] = true;
                 return Ok(new { responseText = result });
             }
+
             return Problem("Ha ocurrido un problema creando el período.");
         }
         catch (Exception ex)
@@ -206,20 +214,24 @@ public class SchoolYearsController : Controller
             {
                 return NotFound(new { responseText = "El periodo no existe." });
             }
+
             if (!await _dataProvider.ExistSchoolYearAsync(model.SchoolYearId))
             {
                 return NotFound(new { responseText = "El año escolar no existe." });
             }
+
             if (model.Starts >= model.Ends)
             {
                 return BadRequest(new { responseText = "La fecha de culminación debe de suceder a la de inicio." });
             }
+
             var result = await _dataProvider.UpdatePeriodAsync(model);
             if (result)
             {
                 TempData["period-updated"] = true;
                 return Ok(new { responseText = result });
             }
+
             return Problem("Ha ocurrido un problema actualizando el período.");
         }
         catch (Exception ex)
@@ -241,8 +253,10 @@ public class SchoolYearsController : Controller
                 TempData["period-deleted"] = true;
                 return Ok(new { responseText = "ok" });
             }
+
             return Problem("Ha ocurrido un problema eliminando el período.");
         }
+
         return NotFound(new { responseText = $"No existe el período con id {id}" });
     }
 }

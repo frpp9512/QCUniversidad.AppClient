@@ -1,4 +1,4 @@
-﻿using QCUniversidad.WebClient.Models.Courses;
+﻿using QCUniversidad.WebClient.Models.Course;
 using System.Security.Claims;
 
 namespace QCUniversidad.WebClient.Services.Platform;

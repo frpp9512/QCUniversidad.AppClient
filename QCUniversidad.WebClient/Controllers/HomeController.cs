@@ -39,6 +39,7 @@ public class HomeController : Controller
                 };
                 return View(model);
             }
+
             if (User.IsDepartmentManager())
             {
                 model = new IndexViewModel
@@ -48,6 +49,7 @@ public class HomeController : Controller
                 };
                 return View(model);
             }
+
             if (User.IsPlanner())
             {
                 model = new IndexViewModel
@@ -117,8 +119,9 @@ public class HomeController : Controller
         if (User.IsDepartmentManager())
         {
             var departmentId = User.GetDepartmentId();
-            birthdays = await _dataProvider.GetBirthdayTeachersForCurrentMonthAsync(departmentId, "department");
+            _ = await _dataProvider.GetBirthdayTeachersForCurrentMonthAsync(departmentId, "department");
         }
+
         if (User.IsPlanner())
         {
             var facultyId = User.GetFacultyId();
@@ -128,6 +131,7 @@ public class HomeController : Controller
         {
             birthdays = await _dataProvider.GetBirthdayTeachersForCurrentMonthAsync(new Guid(), "global");
         }
+
         return PartialView("_BirthdayCard", birthdays);
     }
 

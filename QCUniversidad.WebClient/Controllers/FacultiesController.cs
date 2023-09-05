@@ -31,6 +31,7 @@ public class FacultiesController : Controller
         {
             startingItemIndex = 0;
         }
+
         var faculties = await _dataProvider.GetFacultiesAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
         var totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
         var viewModel = new NavigationListViewModel<FacultyModel>
@@ -65,6 +66,7 @@ public class FacultiesController : Controller
         {
             return BadRequest();
         }
+
         try
         {
             var careers = await _dataProvider.GetCareersAsync(facultyId);
@@ -83,6 +85,7 @@ public class FacultiesController : Controller
         {
             return BadRequest();
         }
+
         try
         {
             var departments = await _dataProvider.GetDepartmentsAsync(facultyId);
@@ -116,6 +119,7 @@ public class FacultiesController : Controller
                 ModelState.AddModelError("Server error", ex.Message);
             }
         }
+
         return View(model);
     }
 
@@ -149,6 +153,7 @@ public class FacultiesController : Controller
                     TempData["faculty-edited"] = true;
                     return RedirectToActionPermanent("Index");
                 }
+
                 ModelState.AddModelError("Error de servidor", "Ha ocurrido un problema actualizando la facultad.");
             }
             catch (Exception ex)
@@ -156,6 +161,7 @@ public class FacultiesController : Controller
                 ModelState.AddModelError("Server error", ex.Message);
             }
         }
+
         return View(model);
     }
 
@@ -178,6 +184,7 @@ public class FacultiesController : Controller
                     return Problem($"Ha ocurrido un error eliminando la facultad con id {id}.");
                 }
             }
+
             return NotFound($"No se ha encontrado la facultad con id {id}.");
         }
         catch (Exception ex)

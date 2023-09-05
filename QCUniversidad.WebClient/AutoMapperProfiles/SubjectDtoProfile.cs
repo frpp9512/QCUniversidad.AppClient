@@ -1,11 +1,6 @@
 ﻿using AutoMapper;
 using QCUniversidad.Api.Shared.Dtos.Subject;
 using QCUniversidad.WebClient.Models.Subjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.WebClient.AutoMapperProfiles;
 
@@ -13,19 +8,19 @@ public class SubjectDtoProfile : Profile
 {
     public SubjectDtoProfile()
     {
-        CreateMap<SubjectDto, SubjectModel>();
-        CreateMap<SubjectModel, SubjectDto>();
-        CreateMap<SubjectModel, NewSubjectDto>();
-        CreateMap<NewSubjectDto, SubjectModel>();
-        CreateMap<SubjectModel, EditSubjectDto>();
-        CreateMap<EditSubjectDto, SubjectModel>();
-        CreateMap<SubjectModel, CreateSubjectModel>();
-        CreateMap<CreateSubjectModel, SubjectModel>();
-        CreateMap<SubjectModel, EditSubjectModel>().ForMember(e => e.DisciplineName, opt => opt.MapFrom(s => s.Discipline.Name));
-        CreateMap<EditSubjectModel, SubjectModel>();
-        CreateMap<CreatePeriodSubjectModel, PeriodSubjectModel>();
-        CreateMap<PeriodSubjectModel, NewPeriodSubjectDto>();
-        CreateMap<PeriodSubjectModel, EditPeriodSubjectDto>();
-        CreateMap<PeriodSubjectDto, PeriodSubjectModel>();
+        _ = CreateMap<SubjectDto, SubjectModel>();
+        _ = CreateMap<SubjectModel, SubjectDto>();
+        _ = CreateMap<SubjectModel, NewSubjectDto>();
+        _ = CreateMap<NewSubjectDto, SubjectModel>();
+        _ = CreateMap<SubjectModel, EditSubjectDto>();
+        _ = CreateMap<EditSubjectDto, SubjectModel>();
+        _ = CreateMap<SubjectModel, CreateSubjectModel>();
+        _ = CreateMap<CreateSubjectModel, SubjectModel>();
+        _ = CreateMap<SubjectModel, EditSubjectModel>().ForMember(e => e.DisciplineName, opt => opt.MapFrom(s => s.Discipline.Name));
+        _ = CreateMap<EditSubjectModel, SubjectModel>();
+        _ = CreateMap<CreatePeriodSubjectModel, PeriodSubjectModel>();
+        _ = CreateMap<PeriodSubjectModel, NewPeriodSubjectDto>();
+        _ = CreateMap<PeriodSubjectModel, EditPeriodSubjectDto>();
+        _ = CreateMap<PeriodSubjectDto, PeriodSubjectModel>();
     }
 }

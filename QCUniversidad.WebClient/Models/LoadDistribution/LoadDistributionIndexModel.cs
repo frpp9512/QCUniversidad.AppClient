@@ -1,4 +1,4 @@
-﻿using QCUniversidad.WebClient.Models.Courses;
+﻿using QCUniversidad.WebClient.Models.Course;
 using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.SchoolYears;

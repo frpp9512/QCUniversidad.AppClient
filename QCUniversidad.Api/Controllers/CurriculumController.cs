@@ -5,13 +5,6 @@ using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Curriculum;
 using QCUniversidad.Api.Shared.Dtos.Discipline;
-using QCUniversidad.Api.Shared.Dtos.Subject;
-using QCUniversidad.Api.Shared.Dtos.Teacher;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Controllers;
 
@@ -33,7 +26,7 @@ public class CurriculumController : ControllerBase
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
         var curriculums = await _dataManager.GetCurriculumsAsync(from, to);
-        var dtos = curriculums.Select(d => _mapper.Map<CurriculumDto>(d));
+        var dtos = curriculums.Select(_mapper.Map<CurriculumDto>);
         return Ok(dtos);
     }
 
@@ -43,7 +36,7 @@ public class CurriculumController : ControllerBase
         try
         {
             var curriculums = await _dataManager.GetCurriculumsForCareerAsync(careerId);
-            var dtos = curriculums.Select(d => _mapper.Map<CurriculumDto>(d));
+            var dtos = curriculums.Select(_mapper.Map<CurriculumDto>);
             return Ok(dtos);
         }
         catch (CareerNotFoundException)
@@ -102,6 +95,7 @@ public class CurriculumController : ControllerBase
                 return Problem(ex.Message);
             }
         }
+
         return BadRequest("The teacher cannot be null.");
     }
 
@@ -112,6 +106,7 @@ public class CurriculumController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.GetCurriculumAsync(id);
@@ -137,6 +132,7 @@ public class CurriculumController : ControllerBase
             var result = await _dataManager.UpdateCurriculumAsync(model);
             return Ok(result);
         }
+
         return BadRequest("The curriculum cannot be null.");
     }
 
@@ -147,6 +143,7 @@ public class CurriculumController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.DeleteCurriculumAsync(id);

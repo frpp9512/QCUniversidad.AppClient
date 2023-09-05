@@ -1,26 +1,20 @@
 ﻿using AutoMapper;
 using QCUniversidad.Api.Shared.Dtos.Career;
 using QCUniversidad.WebClient.Models.Careers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace QCUniversidad.WebClient.AutoMapperProfiles
+namespace QCUniversidad.WebClient.AutoMapperProfiles;
+
+public class CareerDtoProfile : Profile
 {
-    public class CareerDtoProfile : Profile
+    public CareerDtoProfile()
     {
-        public CareerDtoProfile()
-        {
-            CreateMap<CareerDto, CareerModel>();
-            CreateMap<CareerModel, CareerDto>();
-            CreateMap<CareerModel, NewCareerDto>();
-            CreateMap<NewCareerDto, CareerModel>();
-            CreateMap<CareerModel, EditCareerDto>();
-            CreateMap<EditCareerDto, CareerModel>();
-            CreateMap<CareerModel, EditCareerModel>().ForMember(c => c.FacultyName, opt => opt.MapFrom(e => e.Faculty.Name));
-            CreateMap<EditCareerModel, CareerModel>();
-        }
+        _ = CreateMap<CareerDto, CareerModel>();
+        _ = CreateMap<CareerModel, CareerDto>();
+        _ = CreateMap<CareerModel, NewCareerDto>();
+        _ = CreateMap<NewCareerDto, CareerModel>();
+        _ = CreateMap<CareerModel, EditCareerDto>();
+        _ = CreateMap<EditCareerDto, CareerModel>();
+        _ = CreateMap<CareerModel, EditCareerModel>().ForMember(c => c.FacultyName, opt => opt.MapFrom(e => e.Faculty.Name));
+        _ = CreateMap<EditCareerModel, CareerModel>();
     }
 }

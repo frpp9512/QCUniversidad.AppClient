@@ -45,6 +45,7 @@ public class TeachersController : Controller
             {
                 startingItemIndex = 0;
             }
+
             _logger.LogInformation($"Loading teachers starting in {startingItemIndex} and taking {_navigationSettings.ItemsPerPage}.");
             var teachers = await _dataProvider.GetTeachersAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             _logger.LogInformation($"Loaded {teachers.Count} teachers.");
@@ -106,6 +107,7 @@ public class TeachersController : Controller
         {
             TempData["importing-error"] = "No se ha podido importar ningún profesor.";
         }
+
         var created = 0;
         var updated = 0;
         var failed = 0;
@@ -122,6 +124,7 @@ public class TeachersController : Controller
                 failed++;
             }
         }
+
         foreach (var teacherToUpdate in parsedModels.Where(t => t.ImportAction == TeacherImportAction.Update))
         {
             try
@@ -140,7 +143,8 @@ public class TeachersController : Controller
                 failed++;
             }
         }
-        TempData["importing-result"] = $"Se han importado un total de {(created + updated)} profesores, creando {created} y actualizando {updated}, con {failed} fallos.";
+
+        TempData["importing-result"] = $"Se han importado un total de {created + updated} profesores, creando {created} y actualizando {updated}, con {failed} fallos.";
         return RedirectToAction("Index");
     }
 
@@ -168,6 +172,7 @@ public class TeachersController : Controller
                 var exists = await _dataProvider.ExistsTeacherAsync(parsedModel.PersonalId);
                 action = exists ? TeacherImportAction.Update : TeacherImportAction.Create;
             }
+
             parsedModel.ImportAction = action;
         }
 
@@ -180,6 +185,7 @@ public class TeachersController : Controller
         {
             return NotFound("The template file is missing!");
         }
+
         var templateBytes = await System.IO.File.ReadAllBytesAsync("templates/teachers_import.xlsx");
         return File(templateBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "QCU Plantilla para importar profesores.xlsx");
     }
@@ -238,6 +244,7 @@ public class TeachersController : Controller
                             TempData["teacher-created"] = true;
                             return RedirectToActionPermanent("Index");
                         }
+
                         _logger.LogError("Error while creating teacher.");
                         ModelState.AddModelError("Error creating teacher", "Ha ocurrido un error mientras se creaba el profesor.");
                     }
@@ -254,6 +261,7 @@ public class TeachersController : Controller
                 }
             }
         }
+
         await LoadCreateViewModel(model);
         return View(model);
     }
@@ -267,6 +275,7 @@ public class TeachersController : Controller
                 return false;
             }
         }
+
         return true;
     }
 
@@ -289,6 +298,7 @@ public class TeachersController : Controller
             await LoadEditViewModel(teacher);
             return View(teacher);
         }
+
         _logger.LogWarning($"The teacher with id {id} does not exists.");
         return RedirectToAction("Error", "Home");
     }
@@ -317,6 +327,7 @@ public class TeachersController : Controller
                             TempData["teacher-edited"] = true;
                             return RedirectToActionPermanent("Index");
                         }
+
                         _logger.LogError("Error while updating teacher.");
                         ModelState.AddModelError("Error updating teacher", "Ha ocurrido un error mientras se acutalizaba el profesor.");
                     }
@@ -338,6 +349,7 @@ public class TeachersController : Controller
                 return RedirectToAction("Error", "Home");
             }
         }
+
         await LoadEditViewModel(model);
         return View(model);
     }
@@ -365,6 +377,7 @@ public class TeachersController : Controller
                 return Ok();
             }
         }
+
         return BadRequest();
     }
 }

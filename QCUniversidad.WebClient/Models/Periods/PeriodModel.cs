@@ -1,11 +1,5 @@
-﻿using QCUniversidad.WebClient.Models.Courses;
-using QCUniversidad.WebClient.Models.Planning;
+﻿using QCUniversidad.WebClient.Models.Planning;
 using QCUniversidad.WebClient.Models.SchoolYears;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.WebClient.Models.Periods;
 
@@ -21,8 +15,8 @@ public record PeriodModel
     public double MonthsCount { get; set; }
     public double TimeFund { get; set; }
     public Guid SchoolYearId { get; set; }
-    public SchoolYearModel SchoolYear { get; set; }
+    public required SchoolYearModel SchoolYear { get; set; }
     public IList<TeachingPlanItemModel>? PlanItems { get; set; }
 
-    public override string ToString() => $"{Starts.ToString("dd-MM-yyyy")} - {Ends.ToString("dd-MM-yyyy")}";
+    public override string ToString() => $"{Starts:dd-MM-yyyy} - {Ends:dd-MM-yyyy}";
 }

@@ -7,12 +7,12 @@ namespace QCUniversidad.WebClient.AutoMapperProfiles;
 
 public class LoadItemDtoProfile : Profile
 {
-	public LoadItemDtoProfile()
-	{
-		_ = CreateMap<CreateLoadItemModel, NewLoadItemDto>();
-		_ = CreateMap<LoadItemDto, LoadItemModel>();
-		_ = CreateMap<SimpleLoadItemDto, LoadItemModel>();
-		_ = CreateMap<LoadViewItemDto, LoadViewItemModel>();
-		_ = CreateMap<SetNonTeachingLoadModel, SetNonTeachingLoadDto>();
-	}
+    public LoadItemDtoProfile()
+    {
+        _ = CreateMap<CreateLoadItemModel, NewLoadItemDto>();
+        _ = CreateMap<LoadItemDto, LoadItemModel>();
+        _ = CreateMap<SimpleLoadItemDto, LoadItemModel>();
+        _ = CreateMap<LoadViewItemDto, LoadViewItemModel>();
+        _ = CreateMap<SetNonTeachingLoadModel, SetNonTeachingLoadDto>();
+    }
 }

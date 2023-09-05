@@ -43,6 +43,7 @@ public class CurriculumsController : Controller
             {
                 startingItemIndex = 0;
             }
+
             _logger.LogModelSetLoading<CurriculumsController, CurriculumModel>(HttpContext, startingItemIndex, _navigationSettings.ItemsPerPage);
             var curriculums = await _dataProvider.GetCurriculumsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             _logger.LogInformation($"Loaded {curriculums.Count} curriculums.");
@@ -115,6 +116,7 @@ public class CurriculumsController : Controller
                     TempData["curriculum-created"] = true;
                     return RedirectToActionPermanent("Index");
                 }
+
                 _logger.LogErrorCreatingModel<CurriculumsController, CurriculumModel>(HttpContext);
                 ModelState.AddModelError("Error creating curriculum", "Ha ocurrido un error mientras se creaba el curriculum.");
             }
@@ -124,6 +126,7 @@ public class CurriculumsController : Controller
                 ModelState.AddModelError("Error", "Al menos una de las disciplinas seleccionadas no existe.");
             }
         }
+
         await LoadCreateViewModel(model);
         return View(model);
     }
@@ -137,6 +140,7 @@ public class CurriculumsController : Controller
                 return false;
             }
         }
+
         return true;
     }
 
@@ -154,6 +158,7 @@ public class CurriculumsController : Controller
             await LoadEditViewModel(curriculum);
             return View(curriculum);
         }
+
         _logger.LogModelNotExist<CurriculumsController, CurriculumModel>(HttpContext, id);
         return RedirectToAction("Error", "Home");
     }
@@ -180,6 +185,7 @@ public class CurriculumsController : Controller
                         TempData["curriculum-edited"] = true;
                         return RedirectToActionPermanent("Index");
                     }
+
                     _logger.LogErrorEditingModel<CurriculumsController, CurriculumModel>(HttpContext);
                     ModelState.AddModelError("Error updating curriculum", "Ha ocurrido un error mientras se acutalizaba el curriculum.");
                 }
@@ -195,6 +201,7 @@ public class CurriculumsController : Controller
                 return RedirectToAction("Error", "Home");
             }
         }
+
         await LoadEditViewModel(model);
         return View(model);
     }
@@ -221,6 +228,7 @@ public class CurriculumsController : Controller
                 return Ok();
             }
         }
+
         return BadRequest();
     }
 }

@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using QCUniversidad.Api.Shared.Dtos.Course;
-using QCUniversidad.WebClient.Models.Courses;
+using QCUniversidad.WebClient.Models.Course;
 using QCUniversidad.WebClient.Models.Planning;
 
 namespace QCUniversidad.WebClient.AutoMapperProfiles;

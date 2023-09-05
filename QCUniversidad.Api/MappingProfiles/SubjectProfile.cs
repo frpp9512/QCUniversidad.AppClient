@@ -8,15 +8,15 @@ public class SubjectProfile : Profile
 {
     public SubjectProfile()
     {
-        CreateMap<SubjectModel, SubjectDto>();
-        CreateMap<SubjectDto, SubjectModel>();
-        CreateMap<SubjectModel, NewSubjectDto>();
-        CreateMap<NewSubjectDto, SubjectModel>();
-        CreateMap<SubjectModel, EditSubjectDto>();
-        CreateMap<EditSubjectDto, SubjectModel>();
-        CreateMap<PeriodSubjectModel, SimplePeriodSubjectDto>();
-        CreateMap<PeriodSubjectModel, PeriodSubjectDto>();
-        CreateMap<NewPeriodSubjectDto, PeriodSubjectModel>();
-        CreateMap<EditPeriodSubjectDto, PeriodSubjectModel>();
+        _ = CreateMap<SubjectModel, SubjectDto>();
+        _ = CreateMap<SubjectDto, SubjectModel>();
+        _ = CreateMap<SubjectModel, NewSubjectDto>();
+        _ = CreateMap<NewSubjectDto, SubjectModel>();
+        _ = CreateMap<SubjectModel, EditSubjectDto>();
+        _ = CreateMap<EditSubjectDto, SubjectModel>();
+        _ = CreateMap<PeriodSubjectModel, SimplePeriodSubjectDto>();
+        _ = CreateMap<PeriodSubjectModel, PeriodSubjectDto>();
+        _ = CreateMap<NewPeriodSubjectDto, PeriodSubjectModel>();
+        _ = CreateMap<EditPeriodSubjectDto, PeriodSubjectModel>();
     }
 }

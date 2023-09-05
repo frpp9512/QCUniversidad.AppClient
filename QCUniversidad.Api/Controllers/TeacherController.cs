@@ -42,6 +42,7 @@ public class TeacherController : ControllerBase
                 }
             }
         }
+
         return Ok(dtos);
     }
 
@@ -108,6 +109,7 @@ public class TeacherController : ControllerBase
             })));
             return result ? Ok() : Problem("An error has occured creating the teacher.");
         }
+
         return BadRequest("The teacher cannot be null.");
     }
 
@@ -118,6 +120,7 @@ public class TeacherController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.GetTeacherAsync(id);
@@ -142,6 +145,7 @@ public class TeacherController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.GetTeacherAsync(personalId);
@@ -177,6 +181,7 @@ public class TeacherController : ControllerBase
             var result = await _dataManager.UpdateTeacherAsync(model);
             return Ok(result);
         }
+
         return BadRequest("The teacher cannot be null.");
     }
 
@@ -187,6 +192,7 @@ public class TeacherController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.DeleteTeacherAsync(id);
@@ -206,6 +212,7 @@ public class TeacherController : ControllerBase
         {
             return BadRequest("You must provide a department id.");
         }
+
         try
         {
             var result = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
@@ -226,6 +233,7 @@ public class TeacherController : ControllerBase
         {
             return BadRequest("You must provide a department id.");
         }
+
         try
         {
             var result = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
@@ -260,8 +268,10 @@ public class TeacherController : ControllerBase
                         dto.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
                     }
                 }
+
                 dtos.Add(dto);
             }
+
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -278,6 +288,7 @@ public class TeacherController : ControllerBase
         {
             return BadRequest("You must provide a department id.");
         }
+
         try
         {
             var result = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
@@ -312,9 +323,11 @@ public class TeacherController : ControllerBase
                         dto.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
                     }
                 }
+
                 dto.LoadViewItems = await GetTeacherLoadItemsAsync(teacher.Id, periodId);
                 dtos.Add(dto);
             }
+
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -357,6 +370,7 @@ public class TeacherController : ControllerBase
                     dto.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
                 }
             }
+
             return Ok(dto);
         }
         catch (Exception ex)
@@ -373,6 +387,7 @@ public class TeacherController : ControllerBase
         {
             return BadRequest("You must provide a department id.");
         }
+
         try
         {
             var result = await _dataManager.GetTeachersOfDepartmentNotAssignedToPlanItemAsync(departmentId, planItemId, disciplineId);
@@ -393,10 +408,12 @@ public class TeacherController : ControllerBase
         {
             return BadRequest("You must provide a department id.");
         }
+
         if (periodId == Guid.Empty)
         {
             return BadRequest("You must provide a period id.");
         }
+
         try
         {
             var result = await _dataManager.GetSupportTeachersAsync(departmentId, periodId);
@@ -423,6 +440,7 @@ public class TeacherController : ControllerBase
                     }
                 }
             }
+
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -493,6 +511,7 @@ public class TeacherController : ControllerBase
         {
             return BadRequest("Should provide a teacher id.");
         }
+
         try
         {
             var items = await GetTeacherLoadItemsAsync(id, periodId);
@@ -564,6 +583,7 @@ public class TeacherController : ControllerBase
         {
             return BadRequest("No model provided.");
         }
+
         if (Enum.TryParse(typeof(NonTeachingLoadType), model.Type, out var parsedType))
         {
             if (parsedType is not null)
@@ -604,6 +624,7 @@ public class TeacherController : ControllerBase
                 }
             }
         }
+
         return BadRequest("The provided type is invalid.");
     }
 

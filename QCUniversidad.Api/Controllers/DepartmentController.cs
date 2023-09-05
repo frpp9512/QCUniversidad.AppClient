@@ -33,11 +33,12 @@ public class DepartmentController : ControllerBase
     public async Task<IActionResult> GetList(int from = 0, int to = 0)
     {
         var deparments = await _dataManager.GetDepartmentsAsync(from, to);
-        var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d)).ToList();
+        var dtos = deparments.Select(_mapper.Map<DepartmentDto>).ToList();
         foreach (var dto in dtos)
         {
             dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
         }
+
         return Ok(dtos);
     }
 
@@ -48,13 +49,15 @@ public class DepartmentController : ControllerBase
         if (facultyId != Guid.Empty)
         {
             var deparments = await _dataManager.GetDepartmentsAsync(facultyId);
-            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d)).ToList();
+            var dtos = deparments.Select(_mapper.Map<DepartmentDto>).ToList();
             foreach (var dto in dtos)
             {
                 dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
             }
+
             return Ok(dtos);
         }
+
         return BadRequest("You should provide a faculty id to load the departments from.");
     }
 
@@ -65,7 +68,7 @@ public class DepartmentController : ControllerBase
         try
         {
             var deparments = await _dataManager.GetDepartmentsAsync();
-            var dtos = deparments.Select(d => _mapper.Map<DepartmentDto>(d)).ToList();
+            var dtos = deparments.Select(_mapper.Map<DepartmentDto>).ToList();
             foreach (var dto in dtos)
             {
                 dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
@@ -78,6 +81,7 @@ public class DepartmentController : ControllerBase
                 dto.TotalTimeFund = totalFund;
                 dto.LoadPercent = totalFund == 0 ? 0 : Math.Round(load / totalFund * 100, 1);
             }
+
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -165,6 +169,7 @@ public class DepartmentController : ControllerBase
                 return Problem(ex.Message);
             }
         }
+
         return BadRequest("You should provide a department id.");
     }
 
@@ -184,6 +189,7 @@ public class DepartmentController : ControllerBase
                 return Problem(ex.Message);
             }
         }
+
         return BadRequest("You should provide a department.");
     }
 
@@ -197,6 +203,7 @@ public class DepartmentController : ControllerBase
             var result = await _dataManager.UpdateDeparmentAsync(model);
             return result ? Ok(result) : (IActionResult)Problem("Error while updating department in database.");
         }
+
         return BadRequest("You should provide a department.");
     }
 
@@ -208,6 +215,7 @@ public class DepartmentController : ControllerBase
             var result = await _dataManager.DeleteDeparmentAsync(id);
             return result ? Ok(result) : (IActionResult)Problem("Error while deleting department from database.");
         }
+
         return BadRequest("You should provide a department id.");
     }
 
@@ -219,7 +227,7 @@ public class DepartmentController : ControllerBase
         {
             var result = await _dataManager.GetTeachingPlanItemsOfDepartmentOnPeriod(id, periodId, courseId, onlyLoadItems);
             var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
-            var dtos = result.Select(i => _mapper.Map<TeachingPlanItemDto>(i)).ToList();
+            var dtos = result.Select(_mapper.Map<TeachingPlanItemDto>).ToList();
             foreach (var dto in dtos)
             {
                 if (dto.LoadItems is not null)
@@ -241,6 +249,7 @@ public class DepartmentController : ControllerBase
                     }
                 }
             }
+
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -257,16 +266,18 @@ public class DepartmentController : ControllerBase
         {
             return BadRequest(new { error = "You should provide a valid period id." });
         }
+
         if (departmentId == Guid.Empty)
         {
             return BadRequest(new { error = "You should provide a valid department id." });
         }
+
         try
         {
             List<StatisticItemDto> stats = new();
             var period = await _dataManager.GetPeriodAsync(periodId);
             var timeFund = period.TimeFund;
-            
+
             stats.Add(new()
             {
                 Name = "Fondo de tiempo del período",

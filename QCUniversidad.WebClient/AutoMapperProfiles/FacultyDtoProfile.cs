@@ -1,20 +1,14 @@
 ﻿using AutoMapper;
 using QCUniversidad.Api.Shared.Dtos.Faculty;
 using QCUniversidad.WebClient.Models.Faculties;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace QCUniversidad.WebClient.AutoMapperProfiles
+namespace QCUniversidad.WebClient.AutoMapperProfiles;
+
+public class FacultyDtoProfile : Profile
 {
-    public class FacultyDtoProfile : Profile
+    public FacultyDtoProfile()
     {
-        public FacultyDtoProfile()
-        {
-            CreateMap<FacultyDto, FacultyModel>();
-            CreateMap<FacultyModel, FacultyDto>();
-        }
+        _ = CreateMap<FacultyDto, FacultyModel>();
+        _ = CreateMap<FacultyModel, FacultyDto>();
     }
 }

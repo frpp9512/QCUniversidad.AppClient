@@ -6,7 +6,6 @@ using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Models.Subjects;
-using QCUniversidad.WebClient.Models.Teachers;
 using QCUniversidad.WebClient.Services.Data;
 using QCUniversidad.WebClient.Services.Extensions;
 using QCUniversidad.WebClient.Services.Platform;
@@ -51,6 +50,7 @@ public class SubjectsController : Controller
             {
                 startingItemIndex = 0;
             }
+
             _logger.LogInformation($"Loading subjects starting in {startingItemIndex} and taking {_navigationSettings.ItemsPerPage}.");
             var subjects = await _dataProvider.GetSubjectsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             _logger.LogInformation($"Loaded {subjects.Count} subjects.");
@@ -80,6 +80,7 @@ public class SubjectsController : Controller
         {
             return RedirectToAction("Error", "Home");
         }
+
         try
         {
             var subject = await _dataProvider.GetSubjectAsync(id);
@@ -113,6 +114,7 @@ public class SubjectsController : Controller
         {
             TempData["importing-error"] = "No se ha podido importar ninguna asignatura.";
         }
+
         var created = 0;
         var updated = 0;
         var failed = 0;
@@ -121,7 +123,7 @@ public class SubjectsController : Controller
             try
             {
                 newSubject.DisciplineId = selectedDiscipline;
-                await _dataProvider.CreateSubjectAsync(newSubject);
+                _ = await _dataProvider.CreateSubjectAsync(newSubject);
                 created++;
             }
             catch
@@ -129,20 +131,22 @@ public class SubjectsController : Controller
                 failed++;
             }
         }
+
         foreach (var subjectToUpdate in parsedModels.Where(t => t.ImportAction == SubjectImportAction.Update))
         {
             try
             {
                 var subject = await _dataProvider.GetSubjectAsync(subjectToUpdate.Name);
                 subject.Description = subjectToUpdate.Description;
-                await _dataProvider.UpdateSubjectAsync(subject);
+                _ = await _dataProvider.UpdateSubjectAsync(subject);
             }
             catch
             {
                 failed++;
             }
         }
-        TempData["importing-result"] = $"Se han importado un total de {(created + updated)} asignaturas, creando {created} y actualizando {updated}, con {failed} fallos.";
+
+        TempData["importing-result"] = $"Se han importado un total de {created + updated} asignaturas, creando {created} y actualizando {updated}, con {failed} fallos.";
         return RedirectToAction("Index");
     }
 
@@ -164,6 +168,7 @@ public class SubjectsController : Controller
             var action = exists ? SubjectImportAction.Update : SubjectImportAction.Create;
             parsedModel.ImportAction = action;
         }
+
         return parsedModels;
     }
 
@@ -173,6 +178,7 @@ public class SubjectsController : Controller
         {
             return NotFound("The template file is missing!");
         }
+
         var templateBytes = await System.IO.File.ReadAllBytesAsync("templates/subjects_import.xlsx");
         return File(templateBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "QCU Plantilla para importar asignaturas.xlsx");
     }
@@ -216,6 +222,7 @@ public class SubjectsController : Controller
                     TempData["subject-created"] = true;
                     return Redirect(createModel.ReturnTo ?? "Index");
                 }
+
                 _logger.LogErrorCreatingModel<SubjectsController, SubjectModel>(HttpContext, result);
                 ModelState.AddModelError("Error creating subject", "Ha ocurrido un error mientras se creaba la asignatura.");
             }
@@ -225,6 +232,7 @@ public class SubjectsController : Controller
                 ModelState.AddModelError("Error disciplina", "La disciplina no existe.");
             }
         }
+
         await LoadCreateViewModel(createModel);
         return View(createModel);
     }
@@ -241,6 +249,7 @@ public class SubjectsController : Controller
             var model = _mapper.Map<EditSubjectModel>(subject);
             return View(model);
         }
+
         _logger.LogModelNotExist<SubjectsController, SubjectModel>(HttpContext, id);
         return RedirectToAction("Error", "Home");
     }
@@ -266,6 +275,7 @@ public class SubjectsController : Controller
                     TempData["subject-edited"] = true;
                     return RedirectToActionPermanent("Index");
                 }
+
                 _logger.LogErrorEditingModel<SubjectsController, SubjectModel>(HttpContext, editModel.Id);
                 ModelState.AddModelError("Error updating subect", "Ha ocurrido un error mientras se actualizaba la asignatura.");
             }
@@ -275,6 +285,7 @@ public class SubjectsController : Controller
                 return RedirectToAction("Error", "Home");
             }
         }
+
         return View(editModel);
     }
 
@@ -295,6 +306,7 @@ public class SubjectsController : Controller
                 return Ok();
             }
         }
+
         _logger.LogModelNotExist<SubjectsController, SubjectModel>(HttpContext, id);
         return BadRequest();
     }

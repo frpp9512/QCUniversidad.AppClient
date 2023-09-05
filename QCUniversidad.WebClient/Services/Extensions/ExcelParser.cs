@@ -40,6 +40,7 @@ public class ExcelParser<T> : IExcelParser<T> where T : class, new()
                     {
                         value = _columnValueConverters[columnName].Invoke(items[i]);
                     }
+
                     var expressionBody = _columnsMembers[columnName].Body;
                     var memberExpression = expressionBody.NodeType switch
                     {
@@ -54,6 +55,7 @@ public class ExcelParser<T> : IExcelParser<T> where T : class, new()
 
             result.Add(obj);
         }
+
         return result;
     }
 
@@ -70,15 +72,13 @@ public class ExcelParser<T> : IExcelParser<T> where T : class, new()
     private async Task<string> GetContentDataAsync(Stream fileStream)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Definier el tipo de licencia, sino da error a la hora de crear el Excel
-        using (var excel = new ExcelPackage()) // Utilizar un using para no tener que hacer dispose al final de las operaciones
-        {
-            excel.Load(fileStream);
-            using var memStream = new MemoryStream();
-            var workSheet = excel.Workbook.Worksheets[_worksheet];
-            await workSheet.Tables[_tableName].SaveToTextAsync(memStream, new ExcelOutputTextFormat { Encoding = Encoding.UTF8, Delimiter = '\t' });
-            var dataText = GetStringData(memStream);
-            return dataText;
-        }
+        using var excel = new ExcelPackage(); // Utilizar un using para no tener que hacer dispose al final de las operaciones
+        excel.Load(fileStream);
+        using var memStream = new MemoryStream();
+        var workSheet = excel.Workbook.Worksheets[_worksheet];
+        await workSheet.Tables[_tableName].SaveToTextAsync(memStream, new ExcelOutputTextFormat { Encoding = Encoding.UTF8, Delimiter = '\t' });
+        var dataText = GetStringData(memStream);
+        return dataText;
     }
 
     private string GetStringData(MemoryStream stream)

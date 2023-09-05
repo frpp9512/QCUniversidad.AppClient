@@ -6,7 +6,6 @@ using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Shared;
-using QCUniversidad.WebClient.Models.Teachers;
 using QCUniversidad.WebClient.Services.Data;
 using QCUniversidad.WebClient.Services.Extensions;
 using QCUniversidad.WebClient.Services.Platform;
@@ -50,6 +49,7 @@ public class DisciplinesController : Controller
             {
                 startingItemIndex = 0;
             }
+
             _logger.LogInformation($"Loading disciplines starting in {startingItemIndex} and taking {_navigationSettings.ItemsPerPage}.");
             var disciplines = await _dataProvider.GetDisciplinesAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             _logger.LogInformation($"Loaded {disciplines.Count} disciplines.");
@@ -79,6 +79,7 @@ public class DisciplinesController : Controller
         {
             return RedirectToAction("Error", "Home");
         }
+
         try
         {
             var discipline = await _dataProvider.GetDisciplineAsync(id);
@@ -101,6 +102,7 @@ public class DisciplinesController : Controller
         {
             return RedirectToAction("Error", "Home");
         }
+
         try
         {
             var subjects = await _dataProvider.GetSubjectsForDisciplineAsync(disciplineId);
@@ -133,6 +135,7 @@ public class DisciplinesController : Controller
         {
             TempData["importing-error"] = "No se ha podido importar ninguna disciplina.";
         }
+
         var created = 0;
         var updated = 0;
         var failed = 0;
@@ -141,7 +144,7 @@ public class DisciplinesController : Controller
             try
             {
                 newDiscipline.DepartmentId = selectedDepartment;
-                await _dataProvider.CreateDisciplineAsync(newDiscipline);
+                _ = await _dataProvider.CreateDisciplineAsync(newDiscipline);
                 created++;
             }
             catch
@@ -149,20 +152,22 @@ public class DisciplinesController : Controller
                 failed++;
             }
         }
+
         foreach (var disciplineToUpdate in parsedModels.Where(t => t.ImportAction == DisciplineImportAction.Update))
         {
             try
             {
                 var discipline = await _dataProvider.GetDisciplineAsync(disciplineToUpdate.Name);
                 discipline.Description = disciplineToUpdate.Description;
-                await _dataProvider.UpdateDisciplineAsync(discipline);
+                _ = await _dataProvider.UpdateDisciplineAsync(discipline);
             }
             catch
             {
                 failed++;
             }
         }
-        TempData["importing-result"] = $"Se han importado un total de {(created + updated)} disciplinas, creando {created} y actualizando {updated}, con {failed} fallos.";
+
+        TempData["importing-result"] = $"Se han importado un total de {created + updated} disciplinas, creando {created} y actualizando {updated}, con {failed} fallos.";
         return RedirectToAction("Index");
     }
 
@@ -184,6 +189,7 @@ public class DisciplinesController : Controller
             var action = exists ? DisciplineImportAction.Update : DisciplineImportAction.Create;
             parsedModel.ImportAction = action;
         }
+
         return parsedModels;
     }
 
@@ -193,6 +199,7 @@ public class DisciplinesController : Controller
         {
             return NotFound("The template file is missing!");
         }
+
         var templateBytes = await System.IO.File.ReadAllBytesAsync("templates/disciplines_import.xlsx");
         return File(templateBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "QCU Plantilla para importar disciplinas.xlsx");
     }
@@ -234,6 +241,7 @@ public class DisciplinesController : Controller
                     TempData["discipline-added"] = true;
                     return RedirectToActionPermanent("Index");
                 }
+
                 _logger.LogWarning($"Error while creating the discipline.");
                 ModelState.AddModelError("Error", "Error agregando la nueva disciplina.");
             }
@@ -243,6 +251,7 @@ public class DisciplinesController : Controller
                 ModelState.AddModelError("Error", "No existe el departamento seleccionado.");
             }
         }
+
         _logger.LogWarning($"Model state is invalid with {ModelState.ErrorCount} errors.");
         await LoadDepartmentsIntoViewModel(model);
         return View(model);
@@ -306,6 +315,7 @@ public class DisciplinesController : Controller
                 return RedirectToActionPermanent("Error", "Home");
             }
         }
+
         return View(model);
     }
 
@@ -329,6 +339,7 @@ public class DisciplinesController : Controller
                     return Ok();
                 }
             }
+
             _logger.LogInformation($"The discipline with id {id} does not exists, returning NotFound result.");
             return NotFound($"No se ha encontrado la disciplina con id {id}.");
         }

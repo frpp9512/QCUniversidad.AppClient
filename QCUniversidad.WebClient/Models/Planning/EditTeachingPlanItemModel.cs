@@ -1,5 +1,5 @@
 ﻿using QCUniversidad.Api.Shared.Enums;
-using QCUniversidad.WebClient.Models.Courses;
+using QCUniversidad.WebClient.Models.Course;
 using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.Subjects;
 using System.ComponentModel.DataAnnotations;

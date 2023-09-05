@@ -30,7 +30,7 @@ public class CalculationOptions
     public double ThesisCourtCoefficient { get; set; }
     public double PostgraduateThesisCourtCoefficient { get; set; }
     public double PostgraduateDoctorateThesisCourtCoefficient { get; set; }
-    public SpecificCalculationValue[] SpecificCalculationValues { get; set; }
+    public required SpecificCalculationValue[] SpecificCalculationValues { get; set; }
 
     public double? this[string key] => SpecificCalculationValues?.FirstOrDefault(value => value.Key == key)?.Value;
 }

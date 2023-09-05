@@ -1,5 +1,4 @@
-﻿using OfficeOpenXml.FormulaParsing.Excel.Functions;
-using QCUniversidad.WebClient.Models.Courses;
+﻿using QCUniversidad.WebClient.Models.Course;
 using QCUniversidad.WebClient.Models.Periods;
 
 namespace QCUniversidad.WebClient.Models.Planning;

@@ -6,9 +6,9 @@ namespace QCUniversidad.Api.MappingProfiles;
 
 public class LoadItemsProfile : Profile
 {
-	public LoadItemsProfile()
-	{
-		_ = CreateMap<LoadItemModel, LoadItemDto>();
-		_ = CreateMap<LoadItemModel, SimpleLoadItemDto>();
-	}
+    public LoadItemsProfile()
+    {
+        _ = CreateMap<LoadItemModel, LoadItemDto>();
+        _ = CreateMap<LoadItemModel, SimpleLoadItemDto>();
+    }
 }

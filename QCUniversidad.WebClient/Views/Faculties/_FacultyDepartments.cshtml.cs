@@ -1,12 +1,10 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace QCUniversidad.WebClient.Views.Faculties
+namespace QCUniversidad.WebClient.Views.Faculties;
+
+public class FacultyDepartmentsModel : PageModel
 {
-    public class FacultyDepartmentsModel : PageModel
+    public void OnGet()
     {
-        public void OnGet()
-        {
-        }
     }
 }

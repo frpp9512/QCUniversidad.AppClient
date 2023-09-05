@@ -1,13 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore.Metadata;
-using QCUniversidad.Api.Shared.Enums;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using QCUniversidad.Api.Shared.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Data.Models;
 
@@ -32,10 +24,10 @@ public record TeachingPlanItemModel
     public bool IsNotLoadGenerator { get; set; }
 
     public Guid PeriodId { get; set; }
-    public PeriodModel Period { get; set; }
+    public required PeriodModel Period { get; set; }
 
     public Guid CourseId { get; set; }
-    public CourseModel Course { get; set; }
+    public required CourseModel Course { get; set; }
 
-    public IList<LoadItemModel> LoadItems { get; set; }
+    public required IList<LoadItemModel> LoadItems { get; set; }
 }

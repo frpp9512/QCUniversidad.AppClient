@@ -53,8 +53,27 @@ public class AccountsController : Controller
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult Login(string returnUrl = "/")
-        => View(model: new LoginViewModel { ReturnUrl = returnUrl });
+    public async Task<IActionResult> Login(string returnUrl = "/")
+    {
+        if (!(await _repository.AnyUserAsync()))
+        {
+            var roles = new List<Role>
+            {
+                new Role { Name = "Administrador", Description = "Administrador del sistema", Active = true },
+                new Role { Name = "Planificador", Description = "Planificador de carga docente", Active = true },
+                new Role { Name = "Jefe de departamento", Description = "Distribuidor de carga docente", Active = true }
+            };
+            foreach (var role in roles)
+            {
+                await _repository.CreateRoleAsync(role);
+            }
+            var user = new User { Email = "admin@fis.cu", Fullname = "Default administrator", Active = true };
+            await _repository.CreateUserAsync(user, "admin.123");
+            var adminRole = roles.First();
+            await _repository.AssignRoleToUserAsync(user, adminRole);
+        }
+        return View(model: new LoginViewModel { ReturnUrl = returnUrl });
+    }
 
     [HttpPost]
     [AllowAnonymous]
@@ -77,6 +96,7 @@ public class AccountsController : Controller
                             using FileStream fileStream = new(_profilePictureFileName, FileMode.Create);
                             await fileStream.WriteAsync(user.ProfilePicture);
                         }
+
                         return !string.IsNullOrEmpty(viewModel.ReturnUrl) ? Redirect(viewModel.ReturnUrl) : Redirect("/");
                     }
                     else
@@ -94,6 +114,7 @@ public class AccountsController : Controller
                 ModelState.AddModelError("Usuario desconocido", "El usuario no existe.");
             }
         }
+
         return View(viewModel);
     }
 
@@ -146,6 +167,7 @@ public class AccountsController : Controller
                 using FileStream fileStream = new(GetTempPhotoPath(user.Id.ToString()), FileMode.Create);
                 await fileStream.WriteAsync(user.ProfilePicture);
             }
+
             if (user.ExtraClaims?.Any(c => c.Type == "DepartmentId") == true)
             {
                 if (await _dataProvider.ExistsDepartmentAsync(new Guid(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value)))
@@ -153,6 +175,7 @@ public class AccountsController : Controller
                     user.DepartmentModel = await _dataProvider.GetDepartmentAsync(new Guid(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value));
                 }
             }
+
             if (user.ExtraClaims?.Any(c => c.Type == "FacultyId") == true)
             {
                 if (await _dataProvider.ExistFacultyAsync(new Guid(user.ExtraClaims.First(c => c.Type == "FacultyId").Value)))
@@ -275,6 +298,7 @@ public class AccountsController : Controller
                         };
                     }
                 }
+
                 user.Roles = userRoles;
                 await _repository.CreateUserAsync(user, viewModel.Password);
                 TempData.SetModelCreated<User, Guid>(user.Id);
@@ -285,6 +309,7 @@ public class AccountsController : Controller
                 ModelState.AddModelError("NoRolesSelected", "No se ha seleccionado ningún rol a desempeñar por el usuario.");
             }
         }
+
         viewModel.RoleList = await GetRoleViewModelsAsync();
         viewModel.Departments = await GetDeparmentsModels();
         return View(viewModel);
@@ -316,6 +341,7 @@ public class AccountsController : Controller
                 ? Ok(new { url = $"{Url.Action("ProfileTempPhoto", "Accounts")}?fileId={fileId}", fileId })
                 : BadRequest("Error creando fichero en el servidor.");
         }
+
         return BadRequest(new { errorMessage = "Error no esperado." });
     }
 
@@ -363,9 +389,11 @@ public class AccountsController : Controller
             {
                 return BadRequest("No existe el usuario con el id específicado.");
             }
+
             pictureBytes = user.ProfilePicture;
             pictureBytes ??= System.IO.File.ReadAllBytes(_profileDefaultPath);
         }
+
         return new FileStreamResult(new MemoryStream(pictureBytes), new MediaTypeHeaderValue("image/jpeg"))
         {
             FileDownloadName = "Profile.jpg"
@@ -384,12 +412,14 @@ public class AccountsController : Controller
         {
             vm.SelectedDepartment = new Guid(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value);
         }
+
         vm.Departments = await GetDeparmentsModels();
         if (user.ProfilePicture is not null)
         {
             using FileStream stream = new(GetTempPhotoPath(user.Id.ToString()), FileMode.Create);
             await stream.WriteAsync(user.ProfilePicture);
         }
+
         return View(vm);
     }
 
@@ -478,6 +508,7 @@ public class AccountsController : Controller
                 ModelState.AddModelError("NoRolesSelected", "No se ha seleccionado ningún rol a desempeñar por el usuario.");
             }
         }
+
         viewModel.RoleList = await GetRoleViewModelsAsync();
         return View();
     }
@@ -491,6 +522,7 @@ public class AccountsController : Controller
         {
             return BadRequest("El usuario no existe.");
         }
+
         user.Active = true;
         await _repository.UpdateUserAsync(user);
         return Ok($"El usuario {user.Fullname} ha sido activado satisfactoriamente.");
@@ -504,6 +536,7 @@ public class AccountsController : Controller
         {
             return BadRequest("El usuario no existe.");
         }
+
         user.Active = false;
         await _repository.UpdateUserAsync(user);
         return Ok($"El usuario {user.Fullname} ha sido desactivado satisfactoriamente.");
@@ -518,6 +551,7 @@ public class AccountsController : Controller
         {
             return BadRequest("El usuario no existe.");
         }
+
         user.PermanentDeactivation = true;
         user.Active = false;
         _repository.UpdateUserAsync(user).Wait();

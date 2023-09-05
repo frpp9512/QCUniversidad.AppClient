@@ -1,28 +1,22 @@
 ﻿using AutoMapper;
 using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
 using QCUniversidad.WebClient.Models.Planning;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace QCUniversidad.WebClient.AutoMapperProfiles
+namespace QCUniversidad.WebClient.AutoMapperProfiles;
+
+public class TeachingPlanItemDtoProfile : Profile
 {
-    public class TeachingPlanItemDtoProfile : Profile
+    public TeachingPlanItemDtoProfile()
     {
-        public TeachingPlanItemDtoProfile()
-        {
-            CreateMap<TeachingPlanItemModel, TeachingPlanItemDto>();
-            CreateMap<TeachingPlanItemDto, TeachingPlanItemModel>();
-            CreateMap<TeachingPlanItemModel, TeachingPlanItemSimpleDto>();
-            CreateMap<TeachingPlanItemSimpleDto, TeachingPlanItemModel>();
-            CreateMap<TeachingPlanItemModel, NewTeachingPlanItemDto>();
-            CreateMap<TeachingPlanItemModel, CreateTeachingPlanItemModel>();
-            CreateMap<CreateTeachingPlanItemModel, TeachingPlanItemModel>();
-            CreateMap<TeachingPlanItemModel, EditTeachingPlanItemModel>();
-            CreateMap<EditTeachingPlanItemModel, TeachingPlanItemModel>();
-            CreateMap<TeachingPlanItemModel, EditTeachingPlanItemDto>();
-        }
+        _ = CreateMap<TeachingPlanItemModel, TeachingPlanItemDto>();
+        _ = CreateMap<TeachingPlanItemDto, TeachingPlanItemModel>();
+        _ = CreateMap<TeachingPlanItemModel, TeachingPlanItemSimpleDto>();
+        _ = CreateMap<TeachingPlanItemSimpleDto, TeachingPlanItemModel>();
+        _ = CreateMap<TeachingPlanItemModel, NewTeachingPlanItemDto>();
+        _ = CreateMap<TeachingPlanItemModel, CreateTeachingPlanItemModel>();
+        _ = CreateMap<CreateTeachingPlanItemModel, TeachingPlanItemModel>();
+        _ = CreateMap<TeachingPlanItemModel, EditTeachingPlanItemModel>();
+        _ = CreateMap<EditTeachingPlanItemModel, TeachingPlanItemModel>();
+        _ = CreateMap<TeachingPlanItemModel, EditTeachingPlanItemDto>();
     }
 }

@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using QCUniversidad.Api.Data.Context;
-using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
-using QCUniversidad.Api.Services;
 using QCUniversidad.Api.ConfigurationModels;
+using QCUniversidad.Api.Data.Context;
+using QCUniversidad.Api.Services;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,13 +23,13 @@ builder.Services.AddDbContext<QCUniversidadContext>(options => options.UseNpgsql
 builder.Services.AddTransient<IDataManager, DataManager>();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.Configure<CalculationOptions>(builder.Configuration.GetSection("CalculationOptions"));
-builder.Services.AddAuthentication(options => 
+builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-    .AddJwtBearer(config => 
+    .AddJwtBearer(config =>
     {
         config.Authority = "https://localhost:5001/";
         config.Audience = "qcuniversidad.api";
@@ -49,8 +49,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    _ = app.UseSwagger();
+    _ = app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();

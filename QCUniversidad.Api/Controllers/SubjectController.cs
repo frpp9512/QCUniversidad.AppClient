@@ -25,7 +25,7 @@ public class SubjectController : ControllerBase
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
         var subjects = await _dataManager.GetSubjectsAsync(from, to);
-        var dtos = subjects.Select(s => _mapper.Map<SubjectDto>(s));
+        var dtos = subjects.Select(_mapper.Map<SubjectDto>);
         return Ok(dtos);
     }
 
@@ -36,7 +36,7 @@ public class SubjectController : ControllerBase
         try
         {
             var subjects = await _dataManager.GetSubjectsForDisciplineAsync(disciplineId);
-            var dtos = subjects.Select(s => _mapper.Map<SubjectDto>(s));
+            var dtos = subjects.Select(_mapper.Map<SubjectDto>);
             return Ok(dtos);
         }
         catch (ArgumentNullException)
@@ -63,8 +63,9 @@ public class SubjectController : ControllerBase
             {
                 return BadRequest("The course do not exists.");
             }
+
             var result = await _dataManager.GetSubjectsForCourseAsync(courseId);
-            var dtos = result.Select(r => _mapper.Map<SubjectDto>(r));
+            var dtos = result.Select(_mapper.Map<SubjectDto>);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -80,7 +81,7 @@ public class SubjectController : ControllerBase
         try
         {
             var subjects = await _dataManager.GetSubjectsForCourseInPeriodAsync(courseId, periodId);
-            var dtos = subjects.Select(s => _mapper.Map<SubjectDto>(s));
+            var dtos = subjects.Select(_mapper.Map<SubjectDto>);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -99,12 +100,14 @@ public class SubjectController : ControllerBase
             {
                 return NotFound("The course do not exists.");
             }
+
             if (!await _dataManager.ExistsPeriodAsync(periodId))
             {
                 return NotFound("The period do not exists.");
             }
+
             var result = await _dataManager.GetSubjectsForCourseNotAssignedInPeriodAsync(courseId, periodId);
-            var dtos = result.Select(r => _mapper.Map<SubjectDto>(r));
+            var dtos = result.Select(_mapper.Map<SubjectDto>);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -166,6 +169,7 @@ public class SubjectController : ControllerBase
             var result = await _dataManager.CreateSubjectAsync(_mapper.Map<SubjectModel>(subjectDto));
             return result ? Ok() : Problem("An error has occured creating the subject.");
         }
+
         return BadRequest("The subject cannot be null.");
     }
 
@@ -176,6 +180,7 @@ public class SubjectController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.GetSubjectAsync(id);
@@ -196,6 +201,7 @@ public class SubjectController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.GetSubjectAsync(name);
@@ -217,6 +223,7 @@ public class SubjectController : ControllerBase
             var result = await _dataManager.UpdateSubjectAsync(model);
             return Ok(result);
         }
+
         return BadRequest("The subject cannot be null.");
     }
 
@@ -227,6 +234,7 @@ public class SubjectController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.DeleteSubjectAsync(id);
@@ -245,7 +253,7 @@ public class SubjectController : ControllerBase
         try
         {
             var periodSubjects = await _dataManager.GetPeriodSubjectsForCourseAsync(periodId, courseId);
-            var dtos = periodSubjects.Select(ps => _mapper.Map<SimplePeriodSubjectDto>(ps));
+            var dtos = periodSubjects.Select(_mapper.Map<SimplePeriodSubjectDto>);
             return Ok(dtos);
         }
         catch (PeriodNotFoundException)
@@ -330,6 +338,7 @@ public class SubjectController : ControllerBase
         {
             return BadRequest("The id of the period subject should not be empty.");
         }
+
         try
         {
             var result = await _dataManager.DeletePeriodSubjectAsync(id);

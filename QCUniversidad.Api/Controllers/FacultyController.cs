@@ -4,11 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Faculty;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Controllers;
 
@@ -63,6 +58,7 @@ public class FacultyController : ControllerBase
             var result = await _dataManager.CreateFacultyAsync(_mapper.Map<FacultyModel>(facultyDto));
             return result ? Ok() : BadRequest("An error has occured creating the faculty.");
         }
+
         return BadRequest("The faculty cannot be null.");
     }
 
@@ -73,6 +69,7 @@ public class FacultyController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.GetFacultyAsync(id);
@@ -101,6 +98,7 @@ public class FacultyController : ControllerBase
             var result = await _dataManager.UpdateFacultyAsync(_mapper.Map<FacultyModel>(faculty));
             return Ok(result);
         }
+
         return BadRequest("The faculty cannot be null.");
     }
 
@@ -111,6 +109,7 @@ public class FacultyController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.DeleteFacultyAsync(id);

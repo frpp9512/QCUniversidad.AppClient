@@ -3,17 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
-using QCUniversidad.Api.Shared.Dtos.Discipline;
 using QCUniversidad.Api.Shared.Dtos.Course;
-using QCUniversidad.Api.Shared.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
 using QCUniversidad.Api.Shared.Dtos.Period;
+using QCUniversidad.Api.Shared.Enums;
 
 namespace QCUniversidad.Api.Controllers;
 
@@ -35,7 +27,7 @@ public class CourseController : ControllerBase
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
         var courses = await _dataManager.GetCoursesAsync(from, to);
-        var dtos = courses.Select(d => _mapper.Map<CourseDto>(d));
+        var dtos = courses.Select(_mapper.Map<CourseDto>);
         return Ok(dtos);
     }
 
@@ -49,8 +41,9 @@ public class CourseController : ControllerBase
             {
                 return NotFound();
             }
+
             var result = await _dataManager.GetCoursesAsync(schoolYearId);
-            var dtos = result.Select(c => _mapper.Map<CourseDto>(c)).OrderBy(dto => dto.CareerId).ThenBy(dto => dto.CareerYear);
+            var dtos = result.Select(_mapper.Map<CourseDto>).OrderBy(dto => dto.CareerId).ThenBy(dto => dto.CareerYear);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -69,12 +62,14 @@ public class CourseController : ControllerBase
             {
                 return NotFound();
             }
+
             if (!await _dataManager.ExistFacultyAsync(facultyId))
             {
                 return NotFound();
             }
+
             var result = await _dataManager.GetCoursesAsync(schoolYearId, facultyId);
-            var dtos = result.Select(c => _mapper.Map<CourseDto>(c)).OrderBy(dto => dto.CareerId).ThenBy(dto => dto.CareerYear);
+            var dtos = result.Select(_mapper.Map<CourseDto>).OrderBy(dto => dto.CareerId).ThenBy(dto => dto.CareerYear);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -93,16 +88,19 @@ public class CourseController : ControllerBase
             {
                 return NotFound();
             }
+
             if (!await _dataManager.ExistSchoolYearAsync(schoolYearId))
             {
                 return NotFound();
             }
+
             if (!await _dataManager.ExistFacultyAsync(facultyId))
             {
                 return NotFound();
             }
+
             var result = await _dataManager.GetCoursesAsync(careerId, schoolYearId, facultyId);
-            var dtos = result.Select(c => _mapper.Map<CourseDto>(c)).OrderBy(dto => dto.CareerId).ThenBy(dto => dto.CareerYear);
+            var dtos = result.Select(_mapper.Map<CourseDto>).OrderBy(dto => dto.CareerId).ThenBy(dto => dto.CareerYear);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -165,6 +163,7 @@ public class CourseController : ControllerBase
             var result = await _dataManager.CheckCourseExistenceByCareerYearAndModality(careerId, careerYear, (TeachingModality)modality);
             return Ok(result);
         }
+
         return BadRequest("The parameters should not be null.");
     }
 
@@ -184,6 +183,7 @@ public class CourseController : ControllerBase
                 return Problem(ex.Message);
             }
         }
+
         return BadRequest("The discipline cannot be null.");
     }
 
@@ -194,6 +194,7 @@ public class CourseController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.GetCourseAsync(id);
@@ -214,6 +215,7 @@ public class CourseController : ControllerBase
             var result = await _dataManager.UpdateCourseAsync(_mapper.Map<CourseModel>(course));
             return Ok(result);
         }
+
         return BadRequest("The school year cannot be null.");
     }
 
@@ -224,6 +226,7 @@ public class CourseController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.DeleteCourseAsync(id);
@@ -243,10 +246,11 @@ public class CourseController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.GetCoursesForDepartmentAsync(departmentId, schoolYearId);
-            var dtos = result.Select(i => _mapper.Map<CourseDto>(i));
+            var dtos = result.Select(_mapper.Map<CourseDto>);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -266,7 +270,7 @@ public class CourseController : ControllerBase
             var totalPlanned = await _dataManager.GetTotalHoursInPeriodForCourseAsync(id, periodId);
             var realPlanned = await _dataManager.GetRealHoursPlannedInPeriodForCourseAsync(id, periodId);
             var dto = new CoursePeriodPlanningInfoDto
-            { 
+            {
                 PeriodId = periodId,
                 Period = _mapper.Map<SimplePeriodDto>(period),
                 CourseId = id,

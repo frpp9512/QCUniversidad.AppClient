@@ -75,5 +75,5 @@ public record CourseModel
     /// <summary>
     /// The set of subjects teached in a specific period to this course.
     /// </summary>
-    public IList<PeriodSubjectModel> PeriodSubjects { get; set; }
+    public required IList<PeriodSubjectModel> PeriodSubjects { get; set; }
 }

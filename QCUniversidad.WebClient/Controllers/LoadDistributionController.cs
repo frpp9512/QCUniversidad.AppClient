@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using QCUniversidad.Api.Shared.Enums;
@@ -14,7 +15,6 @@ using QCUniversidad.WebClient.Models.Teachers;
 using QCUniversidad.WebClient.Services.Data;
 using QCUniversidad.WebClient.Services.Platform;
 using System.Drawing;
-using Microsoft.Net.Http.Headers;
 
 namespace QCUniversidad.WebClient.Controllers;
 
@@ -41,10 +41,12 @@ public class LoadDistributionController : Controller
         {
             return RedirectToAction("SelectDepartment");
         }
+
         if (!User.IsAdmin() && schoolYearId is not null)
         {
             schoolYearId = null;
         }
+
         var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         var schoolYear = schoolYearId is null ? await _dataProvider.GetCurrentSchoolYear() : await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
         var department = await _dataProvider.GetDepartmentAsync(workingDepartment);
@@ -67,10 +69,12 @@ public class LoadDistributionController : Controller
         {
             return RedirectToAction("SelectDepartment", new { redirectTo = "WorkForce" });
         }
+
         if (!User.IsAdmin() && schoolYearId is not null)
         {
             schoolYearId = null;
         }
+
         var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         var schoolYear = schoolYearId is null ? await _dataProvider.GetCurrentSchoolYear() : await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
         var department = await _dataProvider.GetDepartmentAsync(workingDepartment);
@@ -94,6 +98,7 @@ public class LoadDistributionController : Controller
         {
             return RedirectToAction(redirectTo, new { departmentId = departments.First().Id, schoolYearId = schoolYears.First().Id });
         }
+
         var model = new SelectDepartmentViewModel
         {
             Departments = departments,
@@ -130,6 +135,7 @@ public class LoadDistributionController : Controller
         {
             return RedirectToAction("Error", "Home");
         }
+
         var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
@@ -150,6 +156,7 @@ public class LoadDistributionController : Controller
         {
             return RedirectToAction("Error", "Home");
         }
+
         var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
@@ -175,10 +182,12 @@ public class LoadDistributionController : Controller
         {
             return BadRequest("The plan item should not be null");
         }
+
         if (User.IsAdmin() && departmentId is null)
         {
             return BadRequest("If you're logged in as admin you should provide a department id.");
         }
+
         var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         var loadItem = await _dataProvider.GetTeachingPlanItemAsync(planItemId);
         var teachers = await _dataProvider.GetTeachersOfDepartmentNotAssignedToLoadItemAsync(workingDepartment, planItemId, disciplineId);
@@ -208,6 +217,7 @@ public class LoadDistributionController : Controller
                 return Problem(ex.Message);
             }
         }
+
         return BadRequest("The model should not be null.");
     }
 
@@ -218,6 +228,7 @@ public class LoadDistributionController : Controller
         {
             return BadRequest();
         }
+
         try
         {
             var result = await _dataProvider.DeleteLoadItemAsync(loadItemId);
@@ -236,10 +247,12 @@ public class LoadDistributionController : Controller
         {
             return BadRequest("Should provide a teacher id.");
         }
+
         if (periodId == Guid.Empty)
         {
             return BadRequest("Should provide a period id.");
         }
+
         try
         {
             var teacher = await _dataProvider.GetTeacherAsync(teacherId, periodId);
@@ -268,6 +281,7 @@ public class LoadDistributionController : Controller
                 return result ? Ok(result) : BadRequest();
             }
         }
+
         return BadRequest();
     }
 
@@ -278,6 +292,7 @@ public class LoadDistributionController : Controller
         {
             return RedirectToAction("Error", "Home");
         }
+
         var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
@@ -298,6 +313,7 @@ public class LoadDistributionController : Controller
         {
             return RedirectToAction("Error", "Home");
         }
+
         var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
@@ -327,6 +343,7 @@ public class LoadDistributionController : Controller
         {
             return RedirectToAction("Error", "Home");
         }
+
         var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
@@ -406,6 +423,7 @@ public class LoadDistributionController : Controller
                 ? await _dataProvider.GetTeachersOfDepartmentAsync(departmentId.Value)
                 : await _dataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
         }
+
         var chartModel = ModelListCharter.GetChartModel(ChartType.Doughnut,
                                                         new List<TeacherCategory>((TeacherCategory[])Enum.GetValues(typeof(TeacherCategory))),
                                                         e => teachers.Count(t => t.Category == e),
@@ -431,6 +449,7 @@ public class LoadDistributionController : Controller
                 ? await _dataProvider.GetTeachersOfDepartmentAsync(departmentId.Value)
                 : await _dataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
         }
+
         var chartModel = ModelListCharter.GetChartModel(ChartType.Doughnut,
                                                         new List<TeacherContractType>((TeacherContractType[])Enum.GetValues(typeof(TeacherContractType))),
                                                         e => teachers.Count(t => t.ContractType == e),
@@ -456,6 +475,7 @@ public class LoadDistributionController : Controller
                 ? await _dataProvider.GetTeachersOfDepartmentAsync(departmentId.Value)
                 : await _dataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
         }
+
         var ageGroups = new[]
         {
             new
@@ -507,6 +527,7 @@ public class LoadDistributionController : Controller
         {
             return RedirectToAction("Error", "Home");
         }
+
         var workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
@@ -550,10 +571,12 @@ public class LoadDistributionController : Controller
         {
             return BadRequest("Should provide a teacher id.");
         }
+
         if (periodId == Guid.Empty)
         {
             return BadRequest("Should provide a period id.");
         }
+
         try
         {
             var period = await _dataProvider.GetPeriodAsync(periodId);
@@ -561,111 +584,110 @@ public class LoadDistributionController : Controller
             var loadItems = await _dataProvider.GetTeacherLoadItemsInPeriodAsync(teacherId, periodId);
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Definier el tipo de licencia, sino da error a la hora de crear el Excel
-            using (var excel = new ExcelPackage()) // Utilizar un using para no tener que hacer dispose al final de las operaciones
+            using var excel = new ExcelPackage(); // Utilizar un using para no tener que hacer dispose al final de las operaciones
+            var worksheet = excel.Workbook.Worksheets.Add("Carga del profesor");
+            worksheet.Cells.Style.Font.Name = "Segoe UI";
+            var date = worksheet.Cells["D1:E1"];
+            date.Merge = true;
+            date.Value = DateTime.Now.ToString("dd-MM-yyyy HH:mm");
+            date.Style.Font.Bold = true;
+            date.Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+            date.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            date.Style.Font.Color.SetColor(Color.FromArgb(100, 92, 92, 184));
+            var title = worksheet.Cells["A1"];
+            title.Value = "Carga del profesor";
+            title.Style.Font.Size = 16;
+            title.Style.Font.Color.SetColor(Color.FromArgb(100, 92, 92, 184));
+
+            var periodDetails = worksheet.Cells["A2:E2"];
+            periodDetails["A2"].Value = "Período (Inicia | Termina | Meses | Fondo tiempo)";
+            periodDetails["B2"].Value = period.Starts.ToString("dd-MM-yyyy");
+            periodDetails["C2"].Value = period.Ends.ToString("dd-MM-yyyy");
+            periodDetails["D2"].Value = $"{period.MonthsCount} meses";
+            periodDetails["E2"].Value = $"{period.TimeFund} h";
+
+            var teacherName = worksheet.Cells["A3:E3"];
+            var teacherNameTitle = teacherName["A3"];
+            teacherNameTitle.Value = "Nombre completo";
+            var teacherNameValue = teacherName["B3:E3"];
+            teacherNameValue.Merge = true;
+            teacherNameValue.Value = teacher.Fullname;
+
+            var teacherPersonalId = worksheet.Cells["A4:E4"];
+            teacherPersonalId["A4"].Value = "Carné de identidad";
+            var teacherPersonalIdValue = teacherPersonalId["B4:E4"];
+            teacherPersonalIdValue.Merge = true;
+            teacherPersonalIdValue.Value = teacher.PersonalId;
+
+            var teacherCategory = worksheet.Cells["A5:E5"];
+            teacherCategory["A5"].Value = "Categoría";
+            var teacherCategoryValue = teacherCategory["B5:E5"];
+            teacherCategoryValue.Merge = true;
+            teacherCategoryValue.Value = teacher.Category.GetEnumDisplayNameValue();
+
+            var teacherContractType = worksheet.Cells["A6:E6"];
+            teacherContractType["A6"].Value = "Tipo de contrato";
+            var teacherContractTypeValue = teacherCategory["B6:E6"];
+            teacherContractTypeValue.Merge = true;
+            teacherContractTypeValue.Value = $"{teacher.ContractType.GetEnumDisplayNameValue()}{(teacher.ContractType == TeacherContractType.PartTime ? $" ({teacher.SpecificTimeFund} h/mes)" : "")}";
+
+            var teacherPosition = worksheet.Cells["A7:E7"];
+            teacherPosition["A7"].Value = "Cargo";
+            var teacherPositionValue = teacherCategory["B7:E7"];
+            teacherPositionValue.Merge = true;
+            teacherPositionValue.Value = teacher.Position;
+
+            var teacherEmail = worksheet.Cells["A8:E8"];
+            teacherEmail["A8"].Value = "Correo electrónico";
+            var teacherEmailValue = worksheet.Cells["B8:E8"];
+            teacherEmailValue.Merge = true;
+            teacherEmailValue.Value = teacher.Email;
+
+            var teacherBirthdate = worksheet.Cells["A9:E9"];
+            teacherBirthdate["A9"].Value = "Fecha de nacimiento";
+            var teacherBirthdateValue = worksheet.Cells["B9:E9"];
+            teacherBirthdateValue.Merge = true;
+            teacherBirthdateValue.Value = teacher.Birthday?.ToShortDateString();
+
+            var teacherAge = worksheet.Cells["A10:E10"];
+            teacherAge["A10"].Value = "Edad";
+            var teacherAgeValue = worksheet.Cells["B10:E10"];
+            teacherAgeValue.Merge = true;
+            teacherAgeValue.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+            teacherAgeValue.Value = teacher.Age;
+
+            var teacherLoad = worksheet.Cells["A11:D11"];
+            teacherLoad["A11"].Value = "Carga (Carga total | Fondo tiempo | %)";
+            var loadtotal = loadItems.Sum(l => l.Value);
+            teacherLoad["B11"].Value = loadtotal;
+
+            var timeFund = period.TimeFund;
+            if (teacher.ContractType == TeacherContractType.PartTime)
             {
-                var worksheet = excel.Workbook.Worksheets.Add("Carga del profesor");
-                worksheet.Cells.Style.Font.Name = "Segoe UI";
-                var date = worksheet.Cells["D1:E1"];
-                date.Merge = true;
-                date.Value = DateTime.Now.ToString("dd-MM-yyyy HH:mm");
-                date.Style.Font.Bold = true;
-                date.Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
-                date.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                date.Style.Font.Color.SetColor(Color.FromArgb(100, 92, 92, 184));
-                var title = worksheet.Cells["A1"];
-                title.Value = "Carga del profesor";
-                title.Style.Font.Size = 16;
-                title.Style.Font.Color.SetColor(Color.FromArgb(100, 92, 92, 184));
+                timeFund = teacher.SpecificTimeFund;
+            }
 
-                var periodDetails = worksheet.Cells["A2:E2"];
-                periodDetails["A2"].Value = "Período (Inicia | Termina | Meses | Fondo tiempo)";
-                periodDetails["B2"].Value = period.Starts.ToString("dd-MM-yyyy");
-                periodDetails["C2"].Value = period.Ends.ToString("dd-MM-yyyy");
-                periodDetails["D2"].Value = $"{period.MonthsCount} meses";
-                periodDetails["E2"].Value = $"{period.TimeFund} h";
+            var loadPercent = Math.Round(loadtotal / timeFund * 100, 2);
+            teacherLoad["C11"].Value = timeFund;
+            var percentCell = teacherLoad["D11"];
+            teacherLoad["D11"].Value = loadPercent;
 
-                var teacherName = worksheet.Cells["A3:E3"];
-                var teacherNameTitle = teacherName["A3"];
-                teacherNameTitle.Value = "Nombre completo";
-                var teacherNameValue = teacherName["B3:E3"];
-                teacherNameValue.Merge = true;
-                teacherNameValue.Value = teacher.Fullname;
+            // Creando la cabecera de la tabla
+            var columnHeaders = new List<string> { "Tipo de carga", "Proceso clave", "Denominación", "Descripción", "Valor" };
 
-                var teacherPersonalId = worksheet.Cells["A4:E4"];
-                teacherPersonalId["A4"].Value = "Carné de identidad";
-                var teacherPersonalIdValue = teacherPersonalId["B4:E4"];
-                teacherPersonalIdValue.Merge = true;
-                teacherPersonalIdValue.Value = teacher.PersonalId;
+            var headerRange = $"A13:{char.ConvertFromUtf32(columnHeaders.Count + 64)}13"; // Rango de la cabecera desde A10:(calcular letra en función de la cantidad de colmnas)10
+            var header = worksheet.Cells[headerRange].LoadFromArrays(new List<string[]> { columnHeaders.ToArray() }); // Agregamos la información de la cabecera a la hora de trabajo y seleccionamos en rango
+                                                                                                                      // Dar formato al rango de la cabecera
+            header.Style.Font.Bold = true;
+            header.Style.Font.Color.SetColor(Color.White);
+            header.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            header.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(100, 92, 92, 184));
 
-                var teacherCategory = worksheet.Cells["A5:E5"];
-                teacherCategory["A5"].Value = "Categoría";
-                var teacherCategoryValue = teacherCategory["B5:E5"];
-                teacherCategoryValue.Merge = true;
-                teacherCategoryValue.Value = teacher.Category.GetEnumDisplayNameValue();
-
-                var teacherContractType = worksheet.Cells["A6:E6"];
-                teacherContractType["A6"].Value = "Tipo de contrato";
-                var teacherContractTypeValue = teacherCategory["B6:E6"];
-                teacherContractTypeValue.Merge = true;
-                teacherContractTypeValue.Value = $"{teacher.ContractType.GetEnumDisplayNameValue()}{(teacher.ContractType == TeacherContractType.PartTime ? $" ({teacher.SpecificTimeFund} h/mes)" : "") }";
-
-                var teacherPosition = worksheet.Cells["A7:E7"];
-                teacherPosition["A7"].Value = "Cargo";
-                var teacherPositionValue = teacherCategory["B7:E7"];
-                teacherPositionValue.Merge = true;
-                teacherPositionValue.Value = teacher.Position;
-
-                var teacherEmail = worksheet.Cells["A8:E8"];
-                teacherEmail["A8"].Value = "Correo electrónico";
-                var teacherEmailValue = worksheet.Cells["B8:E8"];
-                teacherEmailValue.Merge = true;
-                teacherEmailValue.Value = teacher.Email;
-
-                var teacherBirthdate = worksheet.Cells["A9:E9"];
-                teacherBirthdate["A9"].Value = "Fecha de nacimiento";
-                var teacherBirthdateValue = worksheet.Cells["B9:E9"];
-                teacherBirthdateValue.Merge = true;
-                teacherBirthdateValue.Value = teacher.Birthday?.ToShortDateString();
-
-                var teacherAge = worksheet.Cells["A10:E10"];
-                teacherAge["A10"].Value = "Edad";
-                var teacherAgeValue = worksheet.Cells["B10:E10"];
-                teacherAgeValue.Merge = true;
-                teacherAgeValue.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
-                teacherAgeValue.Value = teacher.Age;
-
-                var teacherLoad = worksheet.Cells["A11:D11"];
-                teacherLoad["A11"].Value = "Carga (Carga total | Fondo tiempo | %)";
-                var loadtotal = loadItems.Sum(l => l.Value);
-                teacherLoad["B11"].Value = loadtotal;
-
-                var timeFund = period.TimeFund;
-                if (teacher.ContractType == TeacherContractType.PartTime)
-                {
-                    timeFund = teacher.SpecificTimeFund;
-                }
-
-                var loadPercent = Math.Round(loadtotal / timeFund * 100, 2);
-                teacherLoad["C11"].Value = timeFund;
-                var percentCell = teacherLoad["D11"];
-                teacherLoad["D11"].Value = loadPercent;
-
-                // Creando la cabecera de la tabla
-                var columnHeaders = new List<string> { "Tipo de carga", "Proceso clave", "Denominación", "Descripción", "Valor" };
-                
-                var headerRange = $"A13:{char.ConvertFromUtf32(columnHeaders.Count + 64)}13"; // Rango de la cabecera desde A10:(calcular letra en función de la cantidad de colmnas)10
-                var header = worksheet.Cells[headerRange].LoadFromArrays(new List<string[]> { columnHeaders.ToArray() }); // Agregamos la información de la cabecera a la hora de trabajo y seleccionamos en rango
-                                                                                                                          // Dar formato al rango de la cabecera
-                header.Style.Font.Bold = true;
-                header.Style.Font.Color.SetColor(Color.White);
-                header.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                header.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(100, 92, 92, 184));
-
-                // Cargar los datos del cuerpo de la tabla
-                var bodyData = new List<object?[]>();
-                foreach (var value in loadItems)
-                {
-                    var row = new List<object?>
+            // Cargar los datos del cuerpo de la tabla
+            var bodyData = new List<object?[]>();
+            foreach (var value in loadItems)
+            {
+                var row = new List<object?>
                     {
                         value.Type.GetEnumDisplayNameValue(),
                         value.NonTeachingLoadType is null ? NonTeachingLoadType.ClassPreparation.GetNonTeachingLoadCategoryPromtName() : value.NonTeachingLoadType?.GetNonTeachingLoadCategoryPromtName(),
@@ -673,49 +695,48 @@ public class LoadDistributionController : Controller
                         value.Description,
                         value.Value
                     };
-                    bodyData.Add(row.ToArray());
-                }
-
-                // Agregar los datos de la tabla a partir de la segunda fila
-                var body = worksheet.Cells[14, 1].LoadFromArrays(bodyData);
-                body.Style.VerticalAlignment = ExcelVerticalAlignment.Top;
-                body.AutoFitColumns(18, 75);
-
-                var descriptions = worksheet.Cells[$"D14:D{loadItems.Count + 14}"];
-                descriptions.Style.WrapText = true;
-
-                var teacherDetailTitles = worksheet.Cells["A2:A11"];
-                teacherDetailTitles.Style.Font.Bold = true;
-                teacherDetailTitles.Style.Font.Color.SetColor(Color.FromArgb(100, 92, 92, 184));
-                teacherDetailTitles.AutoFitColumns();
-
-                var devInfo = worksheet.Cells[$"A{14 + loadItems.Count + 2}:E{14 + loadItems.Count + 2}"];
-                devInfo.Merge = true;
-                devInfo.Value = $"QCUniversidad - Frank Raúl Pérez Pérez © 2022";
-                devInfo.Style.Font.Color.SetColor(Color.FromArgb(100, 92, 92, 184));
-                devInfo.Style.Font.Bold = true;
-                devInfo.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-
-                // Crear la tabla de excel para que aplique toda
-                var tableRange = worksheet.Cells[$"A13:E{13 + loadItems.Count}"];
-                var table = worksheet.Tables.Add(tableRange, "Carga");
-                table.ShowRowStripes = true;
-                table.ShowTotal = true;
-
-                // Ajustes de página para impresión
-                worksheet.PrinterSettings.HorizontalCentered = true;
-                worksheet.PrinterSettings.VerticalCentered = true;
-                worksheet.PrinterSettings.Orientation = eOrientation.Landscape;
-                worksheet.PrinterSettings.PaperSize = ePaperSize.Letter;
-                worksheet.PrinterSettings.FitToPage = true;
-
-                var array = await excel.GetAsByteArrayAsync();
-                // Retornar el FileStream con el array del archivo Excel
-                return new FileStreamResult(new MemoryStream(array), new MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                {
-                    FileDownloadName = $"Carga de {teacher.Fullname}.xlsx"
-                };
+                bodyData.Add(row.ToArray());
             }
+
+            // Agregar los datos de la tabla a partir de la segunda fila
+            var body = worksheet.Cells[14, 1].LoadFromArrays(bodyData);
+            body.Style.VerticalAlignment = ExcelVerticalAlignment.Top;
+            body.AutoFitColumns(18, 75);
+
+            var descriptions = worksheet.Cells[$"D14:D{loadItems.Count + 14}"];
+            descriptions.Style.WrapText = true;
+
+            var teacherDetailTitles = worksheet.Cells["A2:A11"];
+            teacherDetailTitles.Style.Font.Bold = true;
+            teacherDetailTitles.Style.Font.Color.SetColor(Color.FromArgb(100, 92, 92, 184));
+            teacherDetailTitles.AutoFitColumns();
+
+            var devInfo = worksheet.Cells[$"A{14 + loadItems.Count + 2}:E{14 + loadItems.Count + 2}"];
+            devInfo.Merge = true;
+            devInfo.Value = $"QCUniversidad - Frank Raúl Pérez Pérez © 2022";
+            devInfo.Style.Font.Color.SetColor(Color.FromArgb(100, 92, 92, 184));
+            devInfo.Style.Font.Bold = true;
+            devInfo.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+            // Crear la tabla de excel para que aplique toda
+            var tableRange = worksheet.Cells[$"A13:E{13 + loadItems.Count}"];
+            var table = worksheet.Tables.Add(tableRange, "Carga");
+            table.ShowRowStripes = true;
+            table.ShowTotal = true;
+
+            // Ajustes de página para impresión
+            worksheet.PrinterSettings.HorizontalCentered = true;
+            worksheet.PrinterSettings.VerticalCentered = true;
+            worksheet.PrinterSettings.Orientation = eOrientation.Landscape;
+            worksheet.PrinterSettings.PaperSize = ePaperSize.Letter;
+            worksheet.PrinterSettings.FitToPage = true;
+
+            var array = await excel.GetAsByteArrayAsync();
+            // Retornar el FileStream con el array del archivo Excel
+            return new FileStreamResult(new MemoryStream(array), new MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+            {
+                FileDownloadName = $"Carga de {teacher.Fullname}.xlsx"
+            };
         }
         catch (Exception ex)
         {
@@ -730,10 +751,12 @@ public class LoadDistributionController : Controller
         {
             return BadRequest(new { error = "Debe de especificar un id de departamento válido." });
         }
+
         if (periodId == Guid.Empty)
         {
             return BadRequest(new { error = "Debe de especificar un id de período válido." });
         }
+
         try
         {
             var stats = await _dataProvider.GetDepartmentPeriodStatsAsync(departmentId, periodId);

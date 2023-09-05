@@ -4,11 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Discipline;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Controllers;
 
@@ -30,12 +25,13 @@ public class DisciplineController : ControllerBase
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
         var disciplines = await _dataManager.GetDisciplinesAsync(from, to);
-        var dtos = disciplines.Select(d => _mapper.Map<PopulatedDisciplineDto>(d)).ToList();
+        var dtos = disciplines.Select(_mapper.Map<PopulatedDisciplineDto>).ToList();
         foreach (var dto in dtos)
         {
             dto.TeachersCount = await _dataManager.GetDisciplineTeachersCountAsync(dto.Id);
             dto.SubjectsCount = await _dataManager.GetDisciplineSubjectsCountAsync(dto.Id);
         }
+
         return Ok(dtos);
     }
 
@@ -54,6 +50,7 @@ public class DisciplineController : ControllerBase
                     dto.TeachersCount = await _dataManager.GetDisciplineTeachersCountAsync(dto.Id);
                     dto.SubjectsCount = await _dataManager.GetDisciplineSubjectsCountAsync(dto.Id);
                 }
+
                 return Ok(dtos);
             }
             catch (Exception ex)
@@ -61,6 +58,7 @@ public class DisciplineController : ControllerBase
                 return Problem(ex.Message);
             }
         }
+
         return BadRequest();
     }
 
@@ -117,6 +115,7 @@ public class DisciplineController : ControllerBase
             var result = await _dataManager.CreateDisciplineAsync(_mapper.Map<DisciplineModel>(disciplineDto));
             return result ? Ok() : Problem("An error has occured creating the discipline.");
         }
+
         return BadRequest("The discipline cannot be null.");
     }
 
@@ -127,6 +126,7 @@ public class DisciplineController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.GetDisciplineAsync(id);
@@ -149,6 +149,7 @@ public class DisciplineController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.GetDisciplineAsync(name);
@@ -171,6 +172,7 @@ public class DisciplineController : ControllerBase
             var result = await _dataManager.UpdateDisciplineAsync(_mapper.Map<DisciplineModel>(discipline));
             return Ok(result);
         }
+
         return BadRequest("The discipline cannot be null.");
     }
 
@@ -181,6 +183,7 @@ public class DisciplineController : ControllerBase
         {
             return BadRequest("You must provide an id.");
         }
+
         try
         {
             var result = await _dataManager.DeleteDisciplineAsync(id);

@@ -1,14 +1,8 @@
 ﻿using QCUniversidad.WebClient.Models.Curriculums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace QCUniversidad.WebClient.Models.Courses
+namespace QCUniversidad.WebClient.Models.Course;
+
+public record EditCourseModel : CourseModel
 {
-    public record EditCourseModel : CourseModel
-    {
-        public IList<CurriculumModel>? Curricula { get; set; }
-    }
+    public IList<CurriculumModel>? Curricula { get; set; }
 }

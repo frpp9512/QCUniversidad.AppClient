@@ -1,16 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.OpenApi.Writers;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Career;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QCUniversidad.Api.Controllers;
 
@@ -44,6 +37,7 @@ public class CareerController : ControllerBase
                 return Problem(ex.Message);
             }
         }
+
         return BadRequest("You must provide a career.");
     }
 
@@ -67,6 +61,7 @@ public class CareerController : ControllerBase
                 return Problem(ex.Message);
             }
         }
+
         return BadRequest("You must provide a career id.");
     }
 
@@ -79,7 +74,7 @@ public class CareerController : ControllerBase
             try
             {
                 var careers = await _dataManager.GetCareersAsync(facultyId);
-                var dtos = careers.Select(c => _mapper.Map<CareerDto>(c)).ToList();
+                var dtos = careers.Select(_mapper.Map<CareerDto>).ToList();
                 return Ok(dtos);
             }
             catch (FacultyNotFoundException)
@@ -91,6 +86,7 @@ public class CareerController : ControllerBase
                 return Problem(ex.Message);
             }
         }
+
         return BadRequest("You must provide a faculty id.");
     }
 
@@ -115,6 +111,7 @@ public class CareerController : ControllerBase
                 return Problem(ex.Message);
             }
         }
+
         return BadRequest("You must provide a department id.");
     }
 
@@ -140,7 +137,7 @@ public class CareerController : ControllerBase
         try
         {
             var careers = await _dataManager.GetCareersAsync(from, to);
-            var dtos = careers.Select(c => _mapper.Map<CareerDto>(c)).ToList();
+            var dtos = careers.Select(_mapper.Map<CareerDto>).ToList();
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -185,6 +182,7 @@ public class CareerController : ControllerBase
                 return Problem(ex.Message);
             }
         }
+
         return BadRequest("You must provide a faculty id.");
     }
 
@@ -207,6 +205,7 @@ public class CareerController : ControllerBase
                 return Problem(ex.Message);
             }
         }
+
         return BadRequest("You must provide a career id.");
     }
 }

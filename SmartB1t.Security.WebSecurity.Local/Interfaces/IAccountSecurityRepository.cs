@@ -80,6 +80,11 @@ namespace SmartB1t.Security.WebSecurity.Local.Interfaces
         /// <returns></returns>
         Task SetUserPasswordAsync(User user, string newPassword);
 
+        /// <summary>
+        /// Defines if any user registered in the system.
+        /// </summary>
+        Task<bool> AnyUserAsync();
+
         #endregion
 
         #region User oprations

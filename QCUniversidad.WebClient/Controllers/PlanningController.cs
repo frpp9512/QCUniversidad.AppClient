@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using QCUniversidad.WebClient.Models.Configuration;
-using QCUniversidad.WebClient.Models.Courses;
+using QCUniversidad.WebClient.Models.Course;
 using QCUniversidad.WebClient.Models.Planning;
 using QCUniversidad.WebClient.Models.Subjects;
 using QCUniversidad.WebClient.Services.Data;
@@ -34,6 +34,7 @@ public class PlanningController : Controller
         {
             return RedirectToAction("SelectFaculty");
         }
+
         try
         {
             var faculty = await _dataProvider.GetFacultyAsync((User.IsAdmin() && facultyId is not null) ? facultyId.Value : User.GetFacultyId());
@@ -70,6 +71,7 @@ public class PlanningController : Controller
         {
             return RedirectToAction("Index", new { facultyId = faculties.First().Id });
         }
+
         ViewData["returnUrl"] = returnUrl ?? "Index";
         return View(faculties);
     }
@@ -105,10 +107,12 @@ public class PlanningController : Controller
             {
                 return RedirectToAction("Error", "Home");
             }
+
             if (!await _dataProvider.ExistsPeriodAsync(periodId))
             {
                 return RedirectToAction("Error", "Home");
             }
+
             var viewModel = await GetCreateViewModel(periodId, courseId);
             viewModel.ReturnTo = returnTo;
             return View(viewModel);
@@ -124,11 +128,12 @@ public class PlanningController : Controller
         var periodModel = await _dataProvider.GetPeriodAsync(periodId);
         var courses = await _dataProvider.GetCoursesAsync(periodModel.SchoolYearId);
         var careerId = courses.FirstOrDefault(c => c.Id == courseId)?.CareerId;
-        CourseModel course = null;
+        CourseModel? course = null;
         if (courseId is not null)
         {
             course = await _dataProvider.GetCourseAsync(courseId.Value);
         }
+
         var viewModel = new CreateTeachingPlanItemModel
         {
             PeriodId = periodId,
@@ -148,10 +153,12 @@ public class PlanningController : Controller
         {
             return NotFound();
         }
+
         if (!await _dataProvider.ExistsPeriodAsync(periodId))
         {
             return NotFound();
         }
+
         try
         {
             var result = await _dataProvider.GetSubjectsForCourseInPeriodAsync(courseId, periodId);
@@ -179,12 +186,12 @@ public class PlanningController : Controller
                     return model.ReturnTo is not null
                         ? Redirect(model.ReturnTo)
                         : RedirectToAction("Index", new
-                          {
-                              periodSelected = model.PeriodId,
-                              courseSelected = model.CourseId,
-                              careerSelected = model.CareerId,
-                              tab = "planning"
-                          });
+                        {
+                            periodSelected = model.PeriodId,
+                            courseSelected = model.CourseId,
+                            careerSelected = model.CareerId,
+                            tab = "planning"
+                        });
                 }
             }
             else
@@ -192,6 +199,7 @@ public class PlanningController : Controller
                 ModelState.AddModelError("GroupsAmount", "Debe de definir al menos un grupo.");
             }
         }
+
         model.Period = await _dataProvider.GetPeriodAsync(model.PeriodId);
         return View(model);
     }
@@ -203,6 +211,7 @@ public class PlanningController : Controller
         {
             return RedirectToAction("Error", "Home");
         }
+
         var editModel = await GetEditViewModel(id);
         return View(editModel);
     }
@@ -243,6 +252,7 @@ public class PlanningController : Controller
                 ModelState.AddModelError("GroupsAmount", "Debe de definir al menos un grupo.");
             }
         }
+
         model.Subjects = await _dataProvider.GetSubjectsForCourseAsync(model.CourseId);
         model.Period = await _dataProvider.GetPeriodAsync(model.PeriodId);
         model.Course = await _dataProvider.GetCourseAsync(model.CourseId);
@@ -265,6 +275,7 @@ public class PlanningController : Controller
                 return Problem();
             }
         }
+
         return BadRequest("El id debe de ser correcto.");
     }
 
@@ -305,18 +316,22 @@ public class PlanningController : Controller
             {
                 return BadRequest();
             }
+
             if (!await _dataProvider.ExistsPeriodAsync(model.PeriodId))
             {
                 return NotFound("El período seleccionado no existe.");
             }
+
             if (!await _dataProvider.ExistsCourseAsync(model.CourseId))
             {
                 return NotFound("El curso seleccionado no existe.");
             }
+
             if (!await _dataProvider.ExistsSubjectAsync(model.SubjectId))
             {
                 return NotFound("La asignatura seleccionada no existe.");
             }
+
             var result = await _dataProvider.CreatePeriodSubjectAsync(_mapper.Map<PeriodSubjectModel>(model));
             return result ? Ok(result) : Problem();
         }
@@ -347,6 +362,7 @@ public class PlanningController : Controller
         {
             return BadRequest();
         }
+
         try
         {
             var result = await _dataProvider.GetPeriodSubjectAsync(periodSubjectId);
@@ -364,6 +380,7 @@ public class PlanningController : Controller
         {
             return BadRequest();
         }
+
         try
         {
             var model = await _dataProvider.GetCoursePeriodPlanningInfoAsync(courseId, periodId);
@@ -382,6 +399,7 @@ public class PlanningController : Controller
         {
             return BadRequest();
         }
+
         try
         {
             var result = await _dataProvider.GetPeriodAsync(periodId);
@@ -400,6 +418,7 @@ public class PlanningController : Controller
         {
             return BadRequest();
         }
+
         try
         {
             var result = await _dataProvider.GetSubjectAsync(subjectId);
@@ -418,6 +437,7 @@ public class PlanningController : Controller
         {
             return BadRequest();
         }
+
         try
         {
             var result = await _dataProvider.DeletePeriodSubjectAsync(id);

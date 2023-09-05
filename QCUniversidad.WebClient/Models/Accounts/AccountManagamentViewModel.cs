@@ -1,26 +1,18 @@
-﻿using SmartB1t.Security.WebSecurity.Local;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace QCUniversidad.WebClient.Models.Accounts;
 
-namespace QCUniversidad.WebClient.Models.Accounts
+public class AccountManagamentViewModel
 {
-    public class AccountManagamentViewModel
-    {
-        public IEnumerable<UserViewModel> Users { get; set; }
+    public required IEnumerable<UserViewModel> Users { get; set; }
 
-        public int PagesCount { get; set; }
+    public int PagesCount { get; set; }
 
-        public int CurrentPage { get; set; }
+    public int CurrentPage { get; set; }
 
-        public int UsersPerPage { get; set; }
+    public int UsersPerPage { get; set; }
 
-        public int UsersCount { get; set; }
+    public int UsersCount { get; set; }
 
-        public bool FirstPage => CurrentPage == 1;
+    public bool FirstPage => CurrentPage == 1;
 
-        public bool LastPage => CurrentPage == PagesCount;
-    }
+    public bool LastPage => CurrentPage == PagesCount;
 }

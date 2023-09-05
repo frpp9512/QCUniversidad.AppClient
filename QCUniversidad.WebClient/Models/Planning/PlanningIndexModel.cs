@@ -1,5 +1,4 @@
 ﻿using QCUniversidad.WebClient.Models.Careers;
-using QCUniversidad.WebClient.Models.Courses;
 using QCUniversidad.WebClient.Models.Faculties;
 using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.SchoolYears;
@@ -11,7 +10,7 @@ public class PlanningIndexModel
     public Guid SchoolYearId { get; set; }
     public FacultyModel? Faculty { get; set; }
     public SchoolYearModel? SchoolYear { get; set; }
-    public IList<CareerModel> Careers { get; set; }
+    public required IList<CareerModel> Careers { get; set; }
     public IList<PeriodModel>? Periods { get; set; }
     public Guid? PeriodSelected { get; set; }
     public Guid? CourseSelected { get; set; }

@@ -3,8 +3,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Drawing;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Reflection.Emit;
-using System.Security.Cryptography.Xml;
 
 namespace QCUniversidad.WebClient.Models.Shared;
 
@@ -22,6 +20,7 @@ public static class ModelListCharter
                 typeName = cDisplayAttr.Name;
             }
         }
+
         return typeName;
     }
 
@@ -40,12 +39,14 @@ public static class ModelListCharter
                     name = pDisplayAttr.Name;
                 }
             }
+
             return name;
         }
+
         return null;
     }
 
-    public readonly static Color[] BackColors = new[]
+    public static readonly Color[] BackColors = new[]
         {
             Color.FromArgb(180, 81, 43, 212),
             Color.FromArgb(180, Color.FromKnownColor(KnownColor.MediumVioletRed)),
@@ -58,7 +59,7 @@ public static class ModelListCharter
             Color.FromArgb(180, Color.FromKnownColor(KnownColor.Thistle)),
         };
 
-    public readonly static Color[] BorderColors = new[]
+    public static readonly Color[] BorderColors = new[]
         {
             Color.FromArgb(255, 81, 43, 212),
             Color.FromArgb(255, Color.FromKnownColor(KnownColor.MediumVioletRed)),
@@ -99,15 +100,16 @@ public static class ModelListCharter
         var label = GetExpressionMemberName(valueSelector) ?? typeName;
 
         var currentColor = 0;
-        var nextColor = () =>
+        (Color, Color) nextColor()
         {
             currentColor++;
             if (currentColor >= BackColors.Length)
             {
                 currentColor = 0;
             }
+
             return (BackColors[currentColor], BorderColors[currentColor]);
-        };
+        }
 
         var data = new ChartData
         {
@@ -164,8 +166,8 @@ public static class ModelListCharter
                                                  IList<U> modelList2,
                                                  Expression<Func<U, double>> valueSelector2,
                                                  string[] labels,
-                                                 string title = null,
-                                                 string subtitle = null,
+                                                 string? title = null,
+                                                 string? subtitle = null,
                                                  bool showXScale = true,
                                                  bool showYScale = true,
                                                  string? xScaleTitle = null,
@@ -188,15 +190,16 @@ public static class ModelListCharter
         var label2 = GetExpressionMemberName(valueSelector2) ?? typeName2;
 
         var currentColor = 0;
-        var nextColor = () =>
+        (Color, Color) nextColor()
         {
             currentColor++;
             if (currentColor >= BackColors.Length)
             {
                 currentColor = 0;
             }
+
             return (BackColors[currentColor], BorderColors[currentColor]);
-        };
+        }
 
         var data = new ChartData
         {
@@ -272,10 +275,10 @@ public static class ModelListCharter
 public record ChartModel
 {
     public ChartType Type { get; set; }
-    public string Title { get; set; }
+    public required string Title { get; set; }
     public string? Subtitle { get; set; }
     public ChartLegendPosition LegendPosition { get; set; }
-    public ChartData Data { get; set; }
+    public required ChartData Data { get; set; }
     public bool Responsive { get; set; } = true;
     public bool ShowTitle { get; set; } = true;
     public bool ShowSubtitle { get; set; }
@@ -287,7 +290,7 @@ public record ChartModel
     public bool ShowYGrid { get; set; } = true;
     public bool Stacked { get; set; } = false;
 
-    public string ElementId { get; set; }
+    public required string ElementId { get; set; }
 
     public object GetDataObject()
     {
@@ -422,14 +425,14 @@ public record ChartModel
 
 public record ChartData
 {
-    public string[] Labels { get; set; }
-    public ChartDataEntry[] DataSets { get; set; }
+    public required string[] Labels { get; set; }
+    public required ChartDataEntry[] DataSets { get; set; }
 }
 
 public record ChartDataEntry
 {
-    public string Label { get; set; }
-    public ChartDataValue[] DataValues { get; set; }
+    public required string Label { get; set; }
+    public required ChartDataValue[] DataValues { get; set; }
     public double[] Data => DataValues.Select(dv => dv.Value).ToArray();
     public string[] BorderColor => DataValues.Select(dv => $"rgba({dv.BorderColor.R}, {dv.BorderColor.G}, {dv.BorderColor.B}, {Math.Round((double)dv.BorderColor.A / 255, 1)})").ToArray();
     public string[] BackgroudColor => DataValues.Select(dv => $"rgba({dv.BackgroundColor.R},{dv.BackgroundColor.G},{dv.BackgroundColor.B},{Math.Round((double)dv.BackgroundColor.A / 255, 1)})").ToArray();

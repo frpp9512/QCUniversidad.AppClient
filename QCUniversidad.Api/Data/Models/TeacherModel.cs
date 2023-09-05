@@ -36,7 +36,7 @@ public record TeacherModel
             if (!string.IsNullOrEmpty(PersonalId))
             {
                 var currentYearSection = DateTime.Now.Year.ToString().Substring(2, 2);
-                var yearSection = PersonalId.Substring(0, 2);
+                var yearSection = PersonalId[..2];
                 var monthSection = PersonalId.Substring(2, 2);
                 var daySection = PersonalId.Substring(4, 2);
                 var currentYearSectionValue = int.Parse(currentYearSection);
@@ -46,6 +46,7 @@ public record TeacherModel
                 var daySectionValue = int.Parse(daySection);
                 return new DateTime(birthDayYear, monthSectionValue, daySectionValue);
             }
+
             return null;
         }
     }
@@ -56,7 +57,7 @@ public record TeacherModel
     [NotMapped]
     public int Age
     {
-        get 
+        get
         {
             if (Birthday is not null)
             {
@@ -64,6 +65,7 @@ public record TeacherModel
                 var years = diff.TotalDays / 365;
                 return (int)years;
             }
+
             return -1;
         }
     }

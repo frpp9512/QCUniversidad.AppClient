@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using QCUniversidad.WebClient.Models.Careers;
 using QCUniversidad.WebClient.Models.Configuration;
-using QCUniversidad.WebClient.Models.Courses;
+using QCUniversidad.WebClient.Models.Course;
 using QCUniversidad.WebClient.Models.Curriculums;
 using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.Shared;
@@ -46,6 +46,7 @@ public class CoursesController : Controller
             {
                 startingItemIndex = 0;
             }
+
             _logger.LogModelSetLoading<CoursesController, CourseModel>(HttpContext, startingItemIndex, _navigationSettings.ItemsPerPage);
             var courses = await _dataProvider.GetCoursesAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             _logger.LogInformation($"Loaded {courses.Count} school years.");
@@ -78,6 +79,7 @@ public class CoursesController : Controller
             var model = await _dataProvider.GetCourseAsync(id);
             return View(model);
         }
+
         return RedirectToAction("Error", "Home");
     }
 
@@ -129,6 +131,7 @@ public class CoursesController : Controller
                 }
             }
         }
+
         await LoadCreateViewModel(model);
         return View(model);
     }
@@ -146,6 +149,7 @@ public class CoursesController : Controller
             await LoadEditViewModel(editModel);
             return View(editModel);
         }
+
         _logger.LogModelNotExist<CoursesController, CourseModel>(HttpContext, id);
         return RedirectToAction("Error", "Home");
     }
@@ -208,11 +212,13 @@ public class CoursesController : Controller
                             TempData["course-edited"] = true;
                             return RedirectToAction("Index");
                         }
+
                         ModelState.AddModelError("Error", "Error actualizando el curso");
                     }
                 }
             }
         }
+
         await LoadEditViewModel(model);
         return View(model);
     }
@@ -234,6 +240,7 @@ public class CoursesController : Controller
                 return Ok(result);
             }
         }
+
         return NotFound(id);
     }
 
@@ -248,16 +255,19 @@ public class CoursesController : Controller
             {
                 return NotFound("El año escolar no existe.");
             }
+
             if (model.Starts >= model.Ends)
             {
                 return BadRequest(new { responseText = "La fecha de culminación debe de suceder a la de inicio." });
             }
+
             var result = await _dataProvider.CreatePeriodAsync(_mapper.Map<PeriodModel>(model));
             if (result)
             {
                 TempData["period-created"] = true;
                 return Ok(new { responseText = result });
             }
+
             return Problem("Ha ocurrido un problema creando el período.");
         }
         catch (Exception ex)
@@ -285,20 +295,24 @@ public class CoursesController : Controller
             {
                 return NotFound(new { responseText = "El periodo no existe." });
             }
+
             if (!await _dataProvider.ExistSchoolYearAsync(model.SchoolYearId))
             {
                 return NotFound(new { responseText = "El año escolar no existe." });
             }
+
             if (model.Starts >= model.Ends)
             {
                 return BadRequest(new { responseText = "La fecha de culminación debe de suceder a la de inicio." });
             }
+
             var result = await _dataProvider.UpdatePeriodAsync(model);
             if (result)
             {
                 TempData["period-updated"] = true;
                 return Ok(new { responseText = result });
             }
+
             return Problem("Ha ocurrido un problema actualizando el período.");
         }
         catch (Exception ex)
@@ -320,8 +334,10 @@ public class CoursesController : Controller
                 TempData["period-deleted"] = true;
                 return Ok(new { responseText = "ok" });
             }
+
             return Problem("Ha ocurrido un problema eliminando el período.");
         }
+
         return NotFound(new { responseText = $"No existe el período con id {id}" });
     }
 }

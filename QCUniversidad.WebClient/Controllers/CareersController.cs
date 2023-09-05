@@ -41,6 +41,7 @@ public class CareersController : Controller
             {
                 startingItemIndex = 0;
             }
+
             var careers = await _dataProvider.GetCareersAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             var totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
             var viewModel = new NavigationListViewModel<CareerModel>
@@ -65,6 +66,7 @@ public class CareersController : Controller
         {
             return RedirectToAction("Error", "Home");
         }
+
         try
         {
             var career = await _dataProvider.GetCareerAsync(id);
@@ -132,6 +134,7 @@ public class CareersController : Controller
                 ModelState.AddModelError("Error de facultad", "La facultad seleccionada no existe en el servidor.");
             }
         }
+
         await LoadFacultiesIntoCreateModel(model);
         return View(model);
     }
@@ -183,6 +186,7 @@ public class CareersController : Controller
                 return RedirectToAction("Error", "Home");
             }
         }
+
         return View(model);
     }
 
@@ -205,6 +209,7 @@ public class CareersController : Controller
                     return Ok($"Se ha eliminado correctamente la carrera con id {id}.");
                 }
             }
+
             return NotFound($"No se ha encontrado el departamento con id {id}.");
         }
         catch (Exception ex)

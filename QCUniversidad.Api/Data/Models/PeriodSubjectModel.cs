@@ -17,7 +17,7 @@ public record PeriodSubjectModel
     /// <summary>
     /// The period when the subject will be teached.
     /// </summary>
-    public PeriodModel Period { get; set; }
+    public required PeriodModel Period { get; set; }
 
     /// <summary>
     /// The id of the subject that will be teached in the period.
@@ -27,7 +27,7 @@ public record PeriodSubjectModel
     /// <summary>
     /// The subject that will be teached in the period.
     /// </summary>
-    public SubjectModel Subject { get; set; }
+    public required SubjectModel Subject { get; set; }
 
     /// <summary>
     /// The id of the course will recieve the subject in the period.
@@ -37,7 +37,7 @@ public record PeriodSubjectModel
     /// <summary>
     /// The course will recieve the subject in the period.
     /// </summary>
-    public CourseModel Course { get; set; }
+    public required CourseModel Course { get; set; }
 
     /// <summary>
     /// The amount of midterms exams that the subject have in the period.
