@@ -5,7 +5,7 @@ using QCUniversidad.WebClient.Models.SchoolYears;
 namespace QCUniversidad.WebClient.Models.Index;
 public class IndexViewModel
 {
-    public required SchoolYearModel SchoolYear { get; set; }
-    public required DepartmentModel Department { get; set; }
-    public required FacultyModel Faculty { get; set; }
+    public SchoolYearModel? SchoolYear { get; set; }
+    public DepartmentModel? Department { get; set; }
+    public FacultyModel? Faculty { get; set; }
 }

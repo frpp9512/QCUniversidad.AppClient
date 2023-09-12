@@ -15,7 +15,7 @@ public record LoadItemModel
     /// <summary>
     /// The planning item related.
     /// </summary>
-    public required TeachingPlanItemModel PlanningItem { get; set; }
+    public TeachingPlanItemModel? PlanningItem { get; set; }
 
     /// <summary>
     /// The id of the teacher assigned to the load.
@@ -25,7 +25,7 @@ public record LoadItemModel
     /// <summary>
     /// The teacher assigned to the load.
     /// </summary>
-    public required TeacherModel Teacher { get; set; }
+    public TeacherModel? Teacher { get; set; }
 
     /// <summary>
     /// The amount of hours the teacher covers for the plan item.

@@ -6,7 +6,7 @@
 public record CurriculumDiscipline
 {
     public Guid CurriculumId { get; set; }
-    public required CurriculumModel Curriculum { get; set; }
+    public CurriculumModel? Curriculum { get; set; }
     public Guid DisciplineId { get; set; }
-    public required DisciplineModel Discipline { get; set; }
+    public DisciplineModel? Discipline { get; set; }
 }

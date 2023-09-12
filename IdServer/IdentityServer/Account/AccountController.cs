@@ -11,10 +11,10 @@ using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using IdentityServer4.Test;
 using IdServer.Extensions;
-using IdServer.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
@@ -31,27 +31,29 @@ namespace IdentityServerHost.Quickstart.UI
     [AllowAnonymous]
     public class AccountController : Controller
     {
-        private readonly IUserStore _users;
         private readonly IIdentityServerInteractionService _interaction;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
 
         public AccountController(
             IIdentityServerInteractionService interaction,
+            UserManager<IdentityUser> userManager,
+            SignInManager<IdentityUser> signInManager,
             IClientStore clientStore,
             IAuthenticationSchemeProvider schemeProvider,
-            IEventService events,
-            IUserStore users = null)
+            IEventService events)
         {
             // if the TestUserStore is not in DI, then we'll just use the global users collection
             // this is where you would plug in your own custom identity management library (e.g. ASP.NET Identity)
-            _users = users;
             _interaction = interaction;
+            _userManager = userManager;
+            _signInManager = signInManager;
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
             _events = events;
-            clientStore.FindClientByIdAsync("");
         }
 
         /// <summary>
@@ -112,10 +114,11 @@ namespace IdentityServerHost.Quickstart.UI
             if (ModelState.IsValid)
             {
                 // validate username/password against in-memory store
-                if (_users.ValidateCredentials(model.Username, model.Password))
+                var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, false, false);
+                if (result.Succeeded)
                 {
-                    var user = _users.FindByUsername(model.Username);
-                    await _events.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.Id.ToString(), user.Username, clientId: context?.Client.ClientId));
+                    var user = await _userManager.FindByNameAsync(model.Username);
+                    await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id.ToString(), user.UserName, clientId: context?.Client.ClientId));
 
                     // only set explicit expiration here if user chooses "remember me". 
                     // otherwise we rely upon expiration configured in cookie middleware.
@@ -128,13 +131,10 @@ namespace IdentityServerHost.Quickstart.UI
                             ExpiresUtc = DateTimeOffset.UtcNow.Add(AccountOptions.RememberMeLoginDuration)
                         };
                     };
-                    var client = context is not null ? await _clientStore.FindClientByIdAsync(context.Client.ClientId) : null;
-                    var roles = context is not null ? _users.GetRoles(user.Id, new Guid(client.Claims.FirstOrDefault(c => c.Type == "stored_id").Value)) : null;
                     // issue authentication cookie with subject ID and username
                     var isuser = new IdentityServerUser(user.Id.ToString())
                     {
-                        DisplayName = user.DisplayName,
-                        AdditionalClaims = user.GetProfileClaims(roles.Select(r => r.GetRoleClaim()).ToList()).ToList()
+                        DisplayName = user.Email
                     };
 
                     await HttpContext.SignInAsync(isuser, props);
@@ -211,6 +211,8 @@ namespace IdentityServerHost.Quickstart.UI
             {
                 // delete local authentication cookie
                 await HttpContext.SignOutAsync();
+
+                await _signInManager.SignOutAsync();
 
                 // raise the logout event
                 await _events.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
@@ -335,15 +337,20 @@ namespace IdentityServerHost.Quickstart.UI
         {
             // get context information (client name, post logout redirect URI and iframe for federated signout)
             var logout = await _interaction.GetLogoutContextAsync(logoutId);
-            var client = await _clientStore.FindClientByIdAsync(logout.ClientIds.FirstOrDefault());
+            
             var vm = new LoggedOutViewModel
             {
                 AutomaticRedirectAfterSignOut = AccountOptions.AutomaticRedirectAfterSignOut,
-                PostLogoutRedirectUri = client?.PostLogoutRedirectUris.FirstOrDefault(),
                 ClientName = string.IsNullOrEmpty(logout?.ClientName) ? logout?.ClientId : logout?.ClientName,
                 SignOutIframeUrl = logout?.SignOutIFrameUrl,
                 LogoutId = logoutId
             };
+
+            if (logout.ClientIds?.Any() is true)
+            {
+                var client = await _clientStore.FindClientByIdAsync(logout.ClientIds.FirstOrDefault());
+                vm.PostLogoutRedirectUri = client?.PostLogoutRedirectUris.FirstOrDefault();
+            }
 
             if (User?.Identity.IsAuthenticated == true)
             {

@@ -6,7 +6,7 @@
 public class TeacherDiscipline
 {
     public Guid TeacherId { get; set; }
-    public required TeacherModel Teacher { get; set; }
+    public TeacherModel? Teacher { get; set; }
     public Guid DisciplineId { get; set; }
-    public required DisciplineModel Discipline { get; set; }
+    public DisciplineModel? Discipline { get; set; }
 }

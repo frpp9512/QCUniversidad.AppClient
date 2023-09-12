@@ -10,7 +10,7 @@ public class DepartmentModel
 
     [Required]
     [Display(Name = "Nombre", Prompt = "Nombre del departamento", Description = "El nombre del departamento")]
-    public required string Name { get; set; }
+    public string Name { get; set; }
 
     [Display(Name = "Descripción", Prompt = "Descripción del departamento", Description = "La descripción del departamento.")]
     public string? Description { get; set; }

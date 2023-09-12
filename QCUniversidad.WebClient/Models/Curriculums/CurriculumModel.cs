@@ -10,7 +10,7 @@ public class CurriculumModel
 
     [Required(ErrorMessage = "Debe de especificar una denominación para el curriculum.")]
     [Display(Name = "Denominación", Prompt = "Ej. Plan E", Description = "La denominación que recibe el curriculum.")]
-    public required string Denomination { get; set; }
+    public string Denomination { get; set; }
 
     [Display(Name = "Descripción", Prompt = "Ej. Plan de estudio acelerado para ingeniería industrial", Description = "La denominación que recibe el curriculum.")]
     public string? Description { get; set; }

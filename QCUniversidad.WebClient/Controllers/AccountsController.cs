@@ -168,20 +168,14 @@ public class AccountsController : Controller
                 await fileStream.WriteAsync(user.ProfilePicture);
             }
 
-            if (user.ExtraClaims?.Any(c => c.Type == "DepartmentId") == true)
+            if (user.ExtraClaims?.Any(c => c.Type == "DepartmentId") is true && Guid.TryParse(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value, out var departmentId) && await _dataProvider.ExistsDepartmentAsync(departmentId))
             {
-                if (await _dataProvider.ExistsDepartmentAsync(new Guid(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value)))
-                {
-                    user.DepartmentModel = await _dataProvider.GetDepartmentAsync(new Guid(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value));
-                }
+                user.DepartmentModel = await _dataProvider.GetDepartmentAsync(new Guid(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value));
             }
 
-            if (user.ExtraClaims?.Any(c => c.Type == "FacultyId") == true)
+            if (user.ExtraClaims?.Any(c => c.Type == "FacultyId") is true && Guid.TryParse(user.ExtraClaims.First(c => c.Type == "FacultyId").Value, out var facultyId) && await _dataProvider.ExistFacultyAsync(facultyId))
             {
-                if (await _dataProvider.ExistFacultyAsync(new Guid(user.ExtraClaims.First(c => c.Type == "FacultyId").Value)))
-                {
-                    user.FacultyModel = await _dataProvider.GetFacultyAsync(new Guid(user.ExtraClaims.First(c => c.Type == "FacultyId").Value));
-                }
+                user.FacultyModel = await _dataProvider.GetFacultyAsync(facultyId);
             }
         }
 
@@ -347,6 +341,11 @@ public class AccountsController : Controller
 
     private void RemoveTempDirectory()
     {
+        if (!Directory.Exists(_profileTmpFolder))
+        {
+            Directory.CreateDirectory(_profileTmpFolder);
+            return;
+        }
         var files = Directory.EnumerateFiles(_profileTmpFolder);
         foreach (var file in files)
         {

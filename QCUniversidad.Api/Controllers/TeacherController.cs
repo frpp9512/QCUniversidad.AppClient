@@ -126,7 +126,7 @@ public class TeacherController : ControllerBase
             var result = await _dataManager.GetTeacherAsync(id);
             var dto = _mapper.Map<TeacherDto>(result);
             dto.Disciplines ??= new List<PopulatedDisciplineDto>();
-            dto.Disciplines = result.TeacherDisciplines
+            dto.Disciplines = result.TeacherDisciplines?
                                            .Select(td => _mapper.Map<PopulatedDisciplineDto>(td.Discipline))
                                            .ToList();
             return Ok(dto);
@@ -151,7 +151,7 @@ public class TeacherController : ControllerBase
             var result = await _dataManager.GetTeacherAsync(personalId);
             var dto = _mapper.Map<TeacherDto>(result);
             dto.Disciplines ??= new List<PopulatedDisciplineDto>();
-            dto.Disciplines = result.TeacherDisciplines
+            dto.Disciplines = result.TeacherDisciplines?
                                            .Select(td => _mapper.Map<PopulatedDisciplineDto>(td.Discipline))
                                            .ToList();
             return Ok(dto);

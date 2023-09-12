@@ -18,7 +18,7 @@ public record DepartmentCareer
     /// <summary>
     /// The department related with the career.
     /// </summary>
-    public required DepartmentModel Department { get; set; }
+    public DepartmentModel? Department { get; set; }
 
     /// <summary>
     /// The id of the career related with the department.
@@ -28,5 +28,5 @@ public record DepartmentCareer
     /// <summary>
     /// The career related with the department.
     /// </summary>
-    public required CareerModel Career { get; set; }
+    public CareerModel? Career { get; set; }
 }

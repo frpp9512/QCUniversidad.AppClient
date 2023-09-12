@@ -30,7 +30,7 @@ public record CourseModel
 
     [Required(ErrorMessage = "Debe de especificar una denominación para el curso")]
     [Display(Name = "Denominación del curso", Description = "Como se va a denominar el curso.", Prompt = "Ej. '2022-2023'")]
-    public required string Denomination { get; set; }
+    public string? Denomination { get; set; }
 
     [Required(ErrorMessage = "Debe de especificar la modalidad de estudio del curso.")]
     [Display(Name = "Modalidad de estudio", Description = "La modalidad de estudio que cursan los estudiantes en el curso", Prompt = "Ej. 'Presencial'")]
