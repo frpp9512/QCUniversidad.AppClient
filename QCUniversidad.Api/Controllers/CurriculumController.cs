@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Curriculum;
@@ -10,7 +10,6 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize]
 public class CurriculumController : ControllerBase
 {
     private readonly IDataManager _dataManager;
@@ -82,21 +81,21 @@ public class CurriculumController : ControllerBase
     [HttpPut]
     public async Task<IActionResult> CreateAsync(NewCurriculumDto curriculumDto)
     {
-        if (curriculumDto is not null)
+        if (curriculumDto is null)
         {
-            try
-            {
-                var model = _mapper.Map<CurriculumModel>(curriculumDto);
-                var result = await _dataManager.CreateCurriculumAsync(_mapper.Map<CurriculumModel>(curriculumDto));
-                return result ? Ok() : Problem("An error has occured creating the curriculum.");
-            }
-            catch (Exception ex)
-            {
-                return Problem(ex.Message);
-            }
+            return BadRequest("The teacher cannot be null.");
         }
 
-        return BadRequest("The teacher cannot be null.");
+        try
+        {
+            var model = _mapper.Map<CurriculumModel>(curriculumDto);
+            var result = await _dataManager.CreateCurriculumAsync(_mapper.Map<CurriculumModel>(curriculumDto));
+            return result ? Ok() : Problem("An error has occured creating the curriculum.");
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
     }
 
     [HttpGet]
@@ -126,14 +125,14 @@ public class CurriculumController : ControllerBase
     [HttpPost("update")]
     public async Task<IActionResult> UpdateAsync(EditCurriculumDto curriculum)
     {
-        if (curriculum is not null)
+        if (curriculum is null)
         {
-            var model = _mapper.Map<CurriculumModel>(curriculum);
-            var result = await _dataManager.UpdateCurriculumAsync(model);
-            return Ok(result);
+            return BadRequest("The curriculum cannot be null.");
         }
 
-        return BadRequest("The curriculum cannot be null.");
+        var model = _mapper.Map<CurriculumModel>(curriculum);
+        var result = await _dataManager.UpdateCurriculumAsync(model);
+        return Ok(result);
     }
 
     [HttpDelete]

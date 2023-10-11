@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Course;
@@ -11,7 +11,6 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize]
 public class CourseController : ControllerBase
 {
     private readonly IDataManager _dataManager;
@@ -158,33 +157,33 @@ public class CourseController : ControllerBase
     [Route("existsbycareeryearandmodality")]
     public async Task<IActionResult> ExistsByCareerYearAndModality(Guid careerId, int careerYear, int modality)
     {
-        if (careerId != Guid.Empty || careerYear >= 0 || modality >= 0)
+        if (careerId == Guid.Empty && careerYear < 0 && modality < 0)
         {
-            var result = await _dataManager.CheckCourseExistenceByCareerYearAndModality(careerId, careerYear, (TeachingModality)modality);
-            return Ok(result);
+            return BadRequest("The parameters should not be null.");
         }
 
-        return BadRequest("The parameters should not be null.");
+        var result = await _dataManager.CheckCourseExistenceByCareerYearAndModality(careerId, careerYear, (TeachingModality)modality);
+        return Ok(result);
     }
 
     [HttpPut]
     public async Task<IActionResult> CreateAsync(NewCourseDto course)
     {
-        if (course is not null)
+        if (course is null)
         {
-            try
-            {
-                var model = _mapper.Map<CourseModel>(course);
-                var result = await _dataManager.CreateCourseAsync(model);
-                return result ? Ok(model.Id) : Problem("An error has occured creating the discipline.");
-            }
-            catch (Exception ex)
-            {
-                return Problem(ex.Message);
-            }
+            return BadRequest("The discipline cannot be null.");
         }
 
-        return BadRequest("The discipline cannot be null.");
+        try
+        {
+            var model = _mapper.Map<CourseModel>(course);
+            var result = await _dataManager.CreateCourseAsync(model);
+            return result ? Ok(model.Id) : Problem("An error has occured creating the discipline.");
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
     }
 
     [HttpGet]

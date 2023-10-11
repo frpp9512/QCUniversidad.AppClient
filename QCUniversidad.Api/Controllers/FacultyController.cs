@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Faculty;
@@ -9,7 +9,6 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize]
 public class FacultyController : ControllerBase
 {
     private readonly IDataManager _dataManager;
@@ -93,13 +92,13 @@ public class FacultyController : ControllerBase
     [HttpPost("update")]
     public async Task<IActionResult> UpdateAsync(FacultyDto faculty)
     {
-        if (faculty is not null)
+        if (faculty is null)
         {
-            var result = await _dataManager.UpdateFacultyAsync(_mapper.Map<FacultyModel>(faculty));
-            return Ok(result);
+            return BadRequest("The faculty cannot be null.");
         }
 
-        return BadRequest("The faculty cannot be null.");
+        var result = await _dataManager.UpdateFacultyAsync(_mapper.Map<FacultyModel>(faculty));
+        return Ok(result);
     }
 
     [HttpDelete]

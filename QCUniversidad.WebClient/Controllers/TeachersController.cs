@@ -236,7 +236,7 @@ public class TeachersController : Controller
                     if (model.SelectedDisciplines is null || await CheckDisciplinesExistence(model.SelectedDisciplines))
                     {
                         _logger.LogInformation($"Requesting create new teacher.");
-                        model.Disciplines ??= new List<DisciplineModel>(model.SelectedDisciplines?.Select(id => new DisciplineModel { Id = id }) ?? new List<DisciplineModel>());
+                        model.Disciplines ??= new List<DisciplineModel>(model.SelectedDisciplines?.Select(id => new DisciplineModel { Id = id, Name = "" }) ?? new List<DisciplineModel>());
                         var result = await _dataProvider.CreateTeacherAsync(model);
                         if (result)
                         {

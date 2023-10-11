@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Discipline;
@@ -9,7 +9,6 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize]
 public class DisciplineController : ControllerBase
 {
     private readonly IDataManager _dataManager;
@@ -39,27 +38,27 @@ public class DisciplineController : ControllerBase
     [Route("listofdepartment")]
     public async Task<IActionResult> GetListOfDepartmentAsync(Guid departmentId)
     {
-        if (departmentId != Guid.Empty)
+        if (departmentId == Guid.Empty)
         {
-            try
-            {
-                var disciplines = await _dataManager.GetDisciplinesAsync(departmentId);
-                var dtos = disciplines.Select(_mapper.Map<PopulatedDisciplineDto>).ToList();
-                foreach (var dto in dtos)
-                {
-                    dto.TeachersCount = await _dataManager.GetDisciplineTeachersCountAsync(dto.Id);
-                    dto.SubjectsCount = await _dataManager.GetDisciplineSubjectsCountAsync(dto.Id);
-                }
-
-                return Ok(dtos);
-            }
-            catch (Exception ex)
-            {
-                return Problem(ex.Message);
-            }
+            return BadRequest();
         }
 
-        return BadRequest();
+        try
+        {
+            var disciplines = await _dataManager.GetDisciplinesAsync(departmentId);
+            var dtos = disciplines.Select(_mapper.Map<PopulatedDisciplineDto>).ToList();
+            foreach (var dto in dtos)
+            {
+                dto.TeachersCount = await _dataManager.GetDisciplineTeachersCountAsync(dto.Id);
+                dto.SubjectsCount = await _dataManager.GetDisciplineSubjectsCountAsync(dto.Id);
+            }
+
+            return Ok(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
     }
 
     [HttpGet]
@@ -110,13 +109,13 @@ public class DisciplineController : ControllerBase
     [HttpPut]
     public async Task<IActionResult> CreateAsync(NewDisciplineDto disciplineDto)
     {
-        if (disciplineDto is not null)
+        if (disciplineDto is null)
         {
-            var result = await _dataManager.CreateDisciplineAsync(_mapper.Map<DisciplineModel>(disciplineDto));
-            return result ? Ok() : Problem("An error has occured creating the discipline.");
+            return BadRequest("The discipline cannot be null.");
         }
 
-        return BadRequest("The discipline cannot be null.");
+        var result = await _dataManager.CreateDisciplineAsync(_mapper.Map<DisciplineModel>(disciplineDto));
+        return result ? Ok() : Problem("An error has occured creating the discipline.");
     }
 
     [HttpGet]

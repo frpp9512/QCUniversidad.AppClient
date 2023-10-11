@@ -1,4 +1,4 @@
-﻿namespace QCUniversidad.Api.Services;
+﻿namespace QCUniversidad.Api.Contracts;
 
 public interface ICoefficientCalculator<T>
 {

@@ -1,6 +1,6 @@
 ﻿using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Faculties;
-using SmartB1t.Security.WebSecurity.Local;
+using SmartB1t.Security.WebSecurity.Local.Models;
 
 namespace QCUniversidad.WebClient.Models.Accounts;
 

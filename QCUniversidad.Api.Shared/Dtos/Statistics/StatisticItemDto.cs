@@ -4,10 +4,10 @@ namespace QCUniversidad.Api.Shared.Dtos.Statistics;
 
 public class StatisticItemDto
 {
-    public string Name { get; set; }
+    public required string Name { get; set; }
     public double Value { get; set; }
     public double? RefValue { get; set; }
-    public string Mu { get; set; }
+    public string? Mu { get; set; }
     public StatisticState State { get; set; } = StatisticState.Ok;
-    public string Description { get; set; }
+    public string? Description { get; set; }
 }

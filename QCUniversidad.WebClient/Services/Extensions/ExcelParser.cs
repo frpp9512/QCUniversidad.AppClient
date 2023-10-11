@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace QCUniversidad.WebClient.Services.Extensions;
 
-public class ExcelParser<T> : IExcelParser<T> where T : class, new()
+public partial class ExcelParser<T> : IExcelParser<T> where T : class, new()
 {
     private readonly IDictionary<string, Expression<Func<T, object>>> _columnsMembers;
     private readonly IDictionary<string, Func<string, object>> _columnValueConverters;
@@ -32,25 +32,27 @@ public class ExcelParser<T> : IExcelParser<T> where T : class, new()
             var obj = new T();
             for (var i = 0; i < items.Length; i++)
             {
-                var columnName = Regex.Replace(columnNames[i], @"[^\u0000-\u007F]", string.Empty);
-                if (_columnsMembers.ContainsKey(columnName))
+                var columnName = ColumnPattern().Replace(columnNames[i], string.Empty);
+                if (!_columnsMembers.ContainsKey(columnName))
                 {
-                    object value = items[i];
-                    if (_columnValueConverters.ContainsKey(columnName))
-                    {
-                        value = _columnValueConverters[columnName].Invoke(items[i]);
-                    }
-
-                    var expressionBody = _columnsMembers[columnName].Body;
-                    var memberExpression = expressionBody.NodeType switch
-                    {
-                        ExpressionType.Convert => (MemberExpression)((UnaryExpression)expressionBody).Operand,
-                        ExpressionType.MemberAccess => (MemberExpression)expressionBody,
-                        _ => (MemberExpression)expressionBody
-                    };
-                    var memberName = memberExpression.Member.Name;
-                    typeof(T).GetProperty(memberName)?.SetValue(obj, value is not string ? value : IsFullUppercase(value.ToString()) ? MakeCamelCase(value.ToString()) : value.ToString());
+                    continue;
                 }
+
+                object value = items[i];
+                if (_columnValueConverters.ContainsKey(columnName))
+                {
+                    value = _columnValueConverters[columnName].Invoke(items[i]);
+                }
+
+                var expressionBody = _columnsMembers[columnName].Body;
+                var memberExpression = expressionBody.NodeType switch
+                {
+                    ExpressionType.Convert => (MemberExpression)((UnaryExpression)expressionBody).Operand,
+                    ExpressionType.MemberAccess => (MemberExpression)expressionBody,
+                    _ => (MemberExpression)expressionBody
+                };
+                var memberName = memberExpression.Member.Name;
+                typeof(T).GetProperty(memberName)?.SetValue(obj, value is string ? IsFullUppercase(value.ToString()) ? MakeCamelCase(value.ToString()) : value.ToString() : value);
             }
 
             result.Add(obj);
@@ -72,7 +74,7 @@ public class ExcelParser<T> : IExcelParser<T> where T : class, new()
     private async Task<string> GetContentDataAsync(Stream fileStream)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Definier el tipo de licencia, sino da error a la hora de crear el Excel
-        using var excel = new ExcelPackage(); // Utilizar un using para no tener que hacer dispose al final de las operaciones
+        using var excel = new ExcelPackage();
         excel.Load(fileStream);
         using var memStream = new MemoryStream();
         var workSheet = excel.Workbook.Worksheets[_worksheet];
@@ -87,4 +89,7 @@ public class ExcelParser<T> : IExcelParser<T> where T : class, new()
         var result = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
         return result;
     }
+
+    [GeneratedRegex("[^\\u0000-\\u007F]")]
+    private static partial Regex ColumnPattern();
 }

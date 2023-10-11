@@ -87,7 +87,7 @@ public class CareersController : Controller
         _logger.LogRequest(HttpContext);
         try
         {
-            var model = new CreateCareerModel();
+            var model = new CreateCareerModel { Name = "" };
             await LoadFacultiesIntoCreateModel(model);
             return View(model);
         }

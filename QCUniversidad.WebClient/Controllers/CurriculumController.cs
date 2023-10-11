@@ -73,7 +73,7 @@ public class CurriculumsController : Controller
     public async Task<IActionResult> CreateAsync()
     {
         _logger.LogRequest(HttpContext);
-        var viewmodel = new CreateCurriculumModel();
+        var viewmodel = new CreateCurriculumModel { Denomination = "" };
         await LoadCreateViewModel(viewmodel);
         return View(viewmodel);
     }

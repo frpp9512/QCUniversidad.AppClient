@@ -2,12 +2,11 @@
 using System;
 using System.Collections.Generic;
 
-namespace IdServer.Services
+namespace IdServer.Services;
+
+public interface IUserStore
 {
-    public interface IUserStore
-    {
-        StoredUser FindByUsername(string username);
-        bool ValidateCredentials(string username, string password);
-        List<StoredUserClientRoles> GetRoles(Guid userId, Guid storedClientId);
-    }
+    StoredUser FindByUsername(string username);
+    bool ValidateCredentials(string username, string password);
+    List<StoredUserClientRoles> GetRoles(Guid userId, Guid storedClientId);
 }

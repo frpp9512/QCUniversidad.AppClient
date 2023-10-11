@@ -10,7 +10,6 @@ using QCUniversidad.WebClient.Models.Faculties;
 using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Services.Data;
 using SmartB1t.Security.Extensions.AspNetCore;
-using SmartB1t.Security.WebSecurity.Local;
 using SmartB1t.Security.WebSecurity.Local.Interfaces;
 using SmartB1t.Security.WebSecurity.Local.Models;
 using SmartB1t.Web.Extensions;
@@ -55,24 +54,27 @@ public class AccountsController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> Login(string returnUrl = "/")
     {
-        if (!(await _repository.AnyUserAsync()))
+        if (await _repository.AnyUserAsync())
         {
-            var roles = new List<Role>
-            {
-                new Role { Name = "Administrador", Description = "Administrador del sistema", Active = true },
-                new Role { Name = "Planificador", Description = "Planificador de carga docente", Active = true },
-                new Role { Name = "Jefe de departamento", Description = "Distribuidor de carga docente", Active = true }
-            };
-            foreach (var role in roles)
-            {
-                await _repository.CreateRoleAsync(role);
-            }
-            var user = new User { Email = "admin@fis.cu", Fullname = "Default administrator", Active = true };
-            await _repository.CreateUserAsync(user, "admin.123");
-            var adminRole = roles.First();
-            await _repository.AssignRoleToUserAsync(user, adminRole);
+            return View(model: new LoginViewModel { Email = "", Password = "", RememberSession = false, ReturnUrl = returnUrl });
         }
-        return View(model: new LoginViewModel { ReturnUrl = returnUrl });
+
+        var roles = new List<Role>
+        {
+            new Role { Name = "Administrador", Description = "Administrador del sistema", Active = true },
+            new Role { Name = "Planificador", Description = "Planificador de carga docente", Active = true },
+            new Role { Name = "Jefe de departamento", Description = "Distribuidor de carga docente", Active = true }
+        };
+        foreach (var role in roles)
+        {
+            await _repository.CreateRoleAsync(role);
+        }
+
+        var user = new User { Email = "admin@fis.cu", Fullname = "Default administrator", Active = true };
+        await _repository.CreateUserAsync(user, "admin.123");
+        var adminRole = roles.First();
+        await _repository.AssignRoleToUserAsync(user, adminRole);
+        return View(model: new LoginViewModel { Email = "", Password = "", ReturnUrl = returnUrl });
     }
 
     [HttpPost]
@@ -80,42 +82,40 @@ public class AccountsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> LoginAsync(LoginViewModel viewModel)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            var user = await _repository.GetUserAsync(viewModel.Email, true);
-            if (user != null)
-            {
-                if (user.Active)
-                {
-                    if (await _repository.AuthenticateUser(user, viewModel.Password))
-                    {
-                        await user.SignInAsync(HttpContext, Constants.AUTH_SCHEME, viewModel.RememberSession);
-                        RemoveProfilePictureFile();
-                        if (user.ProfilePicture is not null)
-                        {
-                            using FileStream fileStream = new(_profilePictureFileName, FileMode.Create);
-                            await fileStream.WriteAsync(user.ProfilePicture);
-                        }
-
-                        return !string.IsNullOrEmpty(viewModel.ReturnUrl) ? Redirect(viewModel.ReturnUrl) : Redirect("/");
-                    }
-                    else
-                    {
-                        ModelState.AddModelError("Contraseña incorrecta", "La contraseña es incorrecta.");
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError("Usuario desactivado", $"El usuario {user.Email} se encuentra desactivado. Contacte al administrador de la web para más información.");
-                }
-            }
-            else
-            {
-                ModelState.AddModelError("Usuario desconocido", "El usuario no existe.");
-            }
+            return View(viewModel);
         }
 
-        return View(viewModel);
+        var user = await _repository.GetUserAsync(viewModel.Email, true);
+
+        if (user == null)
+        {
+            ModelState.AddModelError("Usuario desconocido", "El usuario no existe.");
+            return View(viewModel);
+        }
+
+        if (!user.Active)
+        {
+            ModelState.AddModelError("Usuario desactivado", $"El usuario {user.Email} se encuentra desactivado. Contacte al administrador de la web para más información.");
+            return View(viewModel);
+        }
+
+        if (!await _repository.AuthenticateUser(user, viewModel.Password))
+        {
+            ModelState.AddModelError("Contraseña incorrecta", "La contraseña es incorrecta.");
+            return View(viewModel);
+        }
+
+        await user.SignInAsync(HttpContext, Constants.AUTH_SCHEME, viewModel.RememberSession);
+        RemoveProfilePictureFile();
+        if (user.ProfilePicture is not null)
+        {
+            using FileStream fileStream = new(_profilePictureFileName, FileMode.Create);
+            await fileStream.WriteAsync(user.ProfilePicture);
+        }
+
+        return !string.IsNullOrEmpty(viewModel.ReturnUrl) ? Redirect(viewModel.ReturnUrl) : Redirect("/");
     }
 
     [Authorize]
@@ -243,70 +243,72 @@ public class AccountsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateAsync(CreateUserViewModel viewModel)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            var user = viewModel.GetModel();
+            viewModel.RoleList = await GetRoleViewModelsAsync();
+            viewModel.Departments = await GetDeparmentsModels();
+            return View(viewModel);
+        }
 
-            if (!string.IsNullOrEmpty(viewModel.ProfilePictureId) && ExistsTempPhoto(viewModel.ProfilePictureId))
+        var user = viewModel.GetModel();
+
+        if (!string.IsNullOrEmpty(viewModel.ProfilePictureId) && ExistsTempPhoto(viewModel.ProfilePictureId))
+        {
+            using FileStream stream = new(GetTempPhotoPath(viewModel.ProfilePictureId), FileMode.Open);
+            using MemoryStream memStream = new();
+            stream.CopyTo(memStream);
+            user.ProfilePicture = memStream.ToArray();
+        }
+
+        if (!(viewModel.RolesSelected?.Length > 0))
+        {
+            ModelState.AddModelError("NoRolesSelected", "No se ha seleccionado ningún rol a desempeñar por el usuario.");
+            viewModel.RoleList = await GetRoleViewModelsAsync();
+            viewModel.Departments = await GetDeparmentsModels();
+            return View(viewModel);
+        }
+        List<UserRole> userRoles = new();
+        foreach (var selectedRole in viewModel.RolesSelected)
+        {
+            var role = await _repository.GetRoleAsync(new Guid(selectedRole));
+            if (role is not null)
             {
-                using FileStream stream = new(GetTempPhotoPath(viewModel.ProfilePictureId), FileMode.Open);
-                using MemoryStream memStream = new();
-                stream.CopyTo(memStream);
-                user.ProfilePicture = memStream.ToArray();
-            }
-
-            if (viewModel.RolesSelected?.Length > 0)
-            {
-                List<UserRole> userRoles = new();
-                foreach (var selectedRole in viewModel.RolesSelected)
+                userRoles.Add(new UserRole
                 {
-                    var role = await _repository.GetRoleAsync(new Guid(selectedRole));
-                    if (role is not null)
-                    {
-                        userRoles.Add(new UserRole
-                        {
-                            Role = role
-                        });
-                    }
-                }
-
-                if (userRoles.Any(r => r.Role.Name == "Jefe de departamento") && (viewModel.SelectedDepartment is null || viewModel.SelectedDepartment == Guid.Empty))
-                {
-                    ModelState.AddModelError("Jefe de departamento sin departamento", "Un usuario Jefe de departamento debe de gestionar un departamento.");
-                }
-                else
-                {
-                    if (userRoles.Any(r => r.Role.Name == "Planificador") && (viewModel.SelectedFaculty is null || viewModel.SelectedFaculty == Guid.Empty))
-                    {
-                        ModelState.AddModelError("Planficador sin facultad.", "Un usuario Planificador debe de gestionar una facultad.");
-                    }
-                    else
-                    {
-                        user.ExtraClaims = new List<ExtraClaim>
-                        {
-                            new ExtraClaim
-                            {
-                                Type = "FacultyId",
-                                Value = viewModel.SelectedFaculty.ToString()
-                            }
-                        };
-                    }
-                }
-
-                user.Roles = userRoles;
-                await _repository.CreateUserAsync(user, viewModel.Password);
-                TempData.SetModelCreated<User, Guid>(user.Id);
-                return RedirectToActionPermanent("Index");
-            }
-            else
-            {
-                ModelState.AddModelError("NoRolesSelected", "No se ha seleccionado ningún rol a desempeñar por el usuario.");
+                    Role = role
+                });
             }
         }
 
-        viewModel.RoleList = await GetRoleViewModelsAsync();
-        viewModel.Departments = await GetDeparmentsModels();
-        return View(viewModel);
+        if (userRoles.Any(r => r.Role.Name == "Jefe de departamento") && (viewModel.SelectedDepartment is null || viewModel.SelectedDepartment == Guid.Empty))
+        {
+            ModelState.AddModelError("Jefe de departamento sin departamento", "Un usuario Jefe de departamento debe de gestionar un departamento.");
+            viewModel.RoleList = await GetRoleViewModelsAsync();
+            viewModel.Departments = await GetDeparmentsModels();
+            return View(viewModel);
+        }
+
+        if (userRoles.Any(r => r.Role.Name == "Planificador") && (viewModel.SelectedFaculty is null || viewModel.SelectedFaculty == Guid.Empty))
+        {
+            ModelState.AddModelError("Planficador sin facultad.", "Un usuario Planificador debe de gestionar una facultad.");
+            viewModel.RoleList = await GetRoleViewModelsAsync();
+            viewModel.Departments = await GetDeparmentsModels();
+            return View(viewModel);
+        }
+
+        user.ExtraClaims = new List<ExtraClaim>
+        {
+            new ExtraClaim
+            {
+                Type = "FacultyId",
+                Value = viewModel.SelectedFaculty.ToString()
+            }
+        };
+
+        user.Roles = userRoles;
+        await _repository.CreateUserAsync(user, viewModel.Password);
+        TempData.SetModelCreated<User, Guid>(user.Id);
+        return RedirectToActionPermanent("Index");
     }
 
     private bool ExistsTempPhoto(string fileId) => System.IO.File.Exists(GetTempPhotoPath(fileId));
@@ -343,9 +345,10 @@ public class AccountsController : Controller
     {
         if (!Directory.Exists(_profileTmpFolder))
         {
-            Directory.CreateDirectory(_profileTmpFolder);
+            _ = Directory.CreateDirectory(_profileTmpFolder);
             return;
         }
+
         var files = Directory.EnumerateFiles(_profileTmpFolder);
         foreach (var file in files)
         {

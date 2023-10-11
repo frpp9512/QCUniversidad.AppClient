@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Period;
@@ -10,7 +10,6 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize]
 public class PeriodController : ControllerBase
 {
     private readonly IDataManager _dataManager;
@@ -119,20 +118,20 @@ public class PeriodController : ControllerBase
     [HttpPost("update")]
     public async Task<IActionResult> UpdateAsync(EditPeriodDto period)
     {
-        if (period is not null)
+        if (period is null)
         {
-            try
-            {
-                var result = await _dataManager.UpdatePeriodAsync(_mapper.Map<PeriodModel>(period));
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return Problem(ex.Message);
-            }
+            return BadRequest("The period cannot be null.");
         }
 
-        return BadRequest("The period cannot be null.");
+        try
+        {
+            var result = await _dataManager.UpdatePeriodAsync(_mapper.Map<PeriodModel>(period));
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
     }
 
     [HttpDelete]

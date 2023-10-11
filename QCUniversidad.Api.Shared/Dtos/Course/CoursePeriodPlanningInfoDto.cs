@@ -13,7 +13,7 @@ public record CoursePeriodPlanningInfoDto
 
     public double TotalHoursPlannedCourseByMeetingPercent => Math.Round(TotalHoursPlanned / CourseByMeetingTimeFund, 2);
 
-    public double CourseByMeetingTimeFund => (CourseByMeetingsCount * 2) * 8;
+    public double CourseByMeetingTimeFund => CourseByMeetingsCount * 2 * 8;
 
     public double CourseByMeetingsCount
     {

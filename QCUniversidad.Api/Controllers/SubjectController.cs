@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Subject;
@@ -9,7 +9,6 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize]
 public class SubjectController : ControllerBase
 {
     private readonly IDataManager _dataManager;
@@ -164,13 +163,13 @@ public class SubjectController : ControllerBase
     [HttpPut]
     public async Task<IActionResult> CreateAsync(NewSubjectDto subjectDto)
     {
-        if (subjectDto is not null)
+        if (subjectDto is null)
         {
-            var result = await _dataManager.CreateSubjectAsync(_mapper.Map<SubjectModel>(subjectDto));
-            return result ? Ok() : Problem("An error has occured creating the subject.");
+            return BadRequest("The subject cannot be null.");
         }
 
-        return BadRequest("The subject cannot be null.");
+        var result = await _dataManager.CreateSubjectAsync(_mapper.Map<SubjectModel>(subjectDto));
+        return result ? Ok() : Problem("An error has occured creating the subject.");
     }
 
     [HttpGet]
@@ -217,14 +216,14 @@ public class SubjectController : ControllerBase
     [HttpPost("update")]
     public async Task<IActionResult> UpdateAsync(EditSubjectDto subject)
     {
-        if (subject is not null)
+        if (subject is null)
         {
-            var model = _mapper.Map<SubjectModel>(subject);
-            var result = await _dataManager.UpdateSubjectAsync(model);
-            return Ok(result);
+            return BadRequest("The subject cannot be null.");
         }
 
-        return BadRequest("The subject cannot be null.");
+        var model = _mapper.Map<SubjectModel>(subject);
+        var result = await _dataManager.UpdateSubjectAsync(model);
+        return Ok(result);
     }
 
     [HttpDelete]

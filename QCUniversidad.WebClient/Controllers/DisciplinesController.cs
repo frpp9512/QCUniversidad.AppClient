@@ -211,7 +211,7 @@ public class DisciplinesController : Controller
         _logger.LogRequest(HttpContext);
         try
         {
-            var model = new CreateDisciplineModel();
+            var model = new CreateDisciplineModel { Name = "" };
             await LoadDepartmentsIntoViewModel(model);
             _logger.LogInformation("Returning view with {0} departments list.", model.Departments.Count);
             return View(model);

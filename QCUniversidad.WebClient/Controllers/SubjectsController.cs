@@ -188,7 +188,7 @@ public class SubjectsController : Controller
     public async Task<IActionResult> CreateAsync(string returnTo = "Index")
     {
         _logger.LogRequest(HttpContext);
-        var viewmodel = new CreateSubjectModel();
+        var viewmodel = new CreateSubjectModel { Name = "" };
         await LoadCreateViewModel(viewmodel);
         viewmodel.ReturnTo = returnTo;
         return View(viewmodel);

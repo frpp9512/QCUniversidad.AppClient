@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SmartB1t.Security.WebSecurity.Local;
 using SmartB1t.Security.WebSecurity.Local.Models;
 
 namespace QCUniversidad.WebClient.Data.Contexts;

@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using QCUniversidad.Api.ConfigurationModels;
+using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Models;
-using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Statistics;
 using QCUniversidad.Api.Shared.Dtos.Teacher;
 using QCUniversidad.Api.Shared.Enums;

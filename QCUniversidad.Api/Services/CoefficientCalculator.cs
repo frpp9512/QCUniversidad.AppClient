@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using QCUniversidad.Api.Contracts;
 
 namespace QCUniversidad.Api.Services;
 

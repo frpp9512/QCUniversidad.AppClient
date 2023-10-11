@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.SchoolYear;
@@ -56,21 +57,21 @@ public class SchoolYearController : ControllerBase
     [HttpPut]
     public async Task<IActionResult> CreateAsync(NewSchoolYearDto dto)
     {
-        if (dto is not null)
+        if (dto is null)
         {
-            try
-            {
-                var model = _mapper.Map<SchoolYearModel>(dto);
-                var result = await _dataManager.CreateSchoolYearAsync(model);
-                return result ? Ok() : BadRequest("An error has occured creating the school year.");
-            }
-            catch (Exception ex)
-            {
-                return Problem(ex.Message);
-            }
+            return BadRequest("The school year cannot be null.");
         }
 
-        return BadRequest("The school year cannot be null.");
+        try
+        {
+            var model = _mapper.Map<SchoolYearModel>(dto);
+            var result = await _dataManager.CreateSchoolYearAsync(model);
+            return result ? Ok() : BadRequest("An error has occured creating the school year.");
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
     }
 
     [HttpGet]
@@ -117,13 +118,13 @@ public class SchoolYearController : ControllerBase
     [HttpPost("update")]
     public async Task<IActionResult> UpdateAsync(EditSchoolYearDto dto)
     {
-        if (dto is not null)
+        if (dto is null)
         {
-            var result = await _dataManager.UpdateSchoolYearAsync(_mapper.Map<SchoolYearModel>(dto));
-            return Ok(result);
+            return BadRequest("The school year cannot be null.");
         }
 
-        return BadRequest("The school year cannot be null.");
+        var result = await _dataManager.UpdateSchoolYearAsync(_mapper.Map<SchoolYearModel>(dto));
+        return Ok(result);
     }
 
     [HttpDelete]

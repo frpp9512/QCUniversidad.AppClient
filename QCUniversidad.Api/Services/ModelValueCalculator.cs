@@ -1,4 +1,5 @@
 ﻿using QCUniversidad.Api.ConfigurationModels;
+using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Models;
 
 namespace QCUniversidad.Api.Services;

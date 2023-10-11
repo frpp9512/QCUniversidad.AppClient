@@ -159,7 +159,7 @@ public class DepartmentsController : Controller
     {
         try
         {
-            var model = new CreateDepartmentModel();
+            var model = new CreateDepartmentModel { Name = "" };
             await LoadFacultiesIntoViewModel(model);
             return View(model);
         }

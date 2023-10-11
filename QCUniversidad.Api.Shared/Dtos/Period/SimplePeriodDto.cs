@@ -11,5 +11,5 @@ public record SimplePeriodDto
     public double MonthsCount { get; set; }
     public double TimeFund { get; set; }
     public Guid SchoolYearId { get; set; }
-    public SimpleSchoolYearDto SchoolYear { get; set; }
+    public required SimpleSchoolYearDto SchoolYear { get; set; }
 }

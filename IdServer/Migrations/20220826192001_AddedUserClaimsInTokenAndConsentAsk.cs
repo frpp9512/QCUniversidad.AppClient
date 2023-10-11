@@ -1,37 +1,35 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-#nullable disable
 
-namespace IdServer.Migrations
+namespace IdServer.Migrations;
+
+public partial class AddedUserClaimsInTokenAndConsentAsk : Migration
 {
-    public partial class AddedUserClaimsInTokenAndConsentAsk : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<bool>(
-                name: "AlwaysIncludeUserClaimsInIdToken",
-                table: "Clients",
-                type: "INTEGER",
-                nullable: false,
-                defaultValue: false);
+        _ = migrationBuilder.AddColumn<bool>(
+            name: "AlwaysIncludeUserClaimsInIdToken",
+            table: "Clients",
+            type: "INTEGER",
+            nullable: false,
+            defaultValue: false);
 
-            migrationBuilder.AddColumn<bool>(
-                name: "RequireConsent",
-                table: "Clients",
-                type: "INTEGER",
-                nullable: false,
-                defaultValue: false);
-        }
+        _ = migrationBuilder.AddColumn<bool>(
+            name: "RequireConsent",
+            table: "Clients",
+            type: "INTEGER",
+            nullable: false,
+            defaultValue: false);
+    }
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "AlwaysIncludeUserClaimsInIdToken",
-                table: "Clients");
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.DropColumn(
+            name: "AlwaysIncludeUserClaimsInIdToken",
+            table: "Clients");
 
-            migrationBuilder.DropColumn(
-                name: "RequireConsent",
-                table: "Clients");
-        }
+        _ = migrationBuilder.DropColumn(
+            name: "RequireConsent",
+            table: "Clients");
     }
 }

@@ -21,8 +21,8 @@ public record TeachingPlanItemDto
     public double LoadCoveredPercent => Math.Round(TotalLoadCovered / TotalHoursPlanned * 100, 1);
     public bool AllowLoad { get; set; }
     public Guid CourseId { get; set; }
-    public SimpleCourseDto Course { get; set; }
+    public required SimpleCourseDto Course { get; set; }
     public Guid PeriodId { get; set; }
-    public SimplePeriodDto Period { get; set; }
-    public IList<SimpleLoadItemDto> LoadItems { get; set; }
+    public required SimplePeriodDto Period { get; set; }
+    public required IList<SimpleLoadItemDto> LoadItems { get; set; }
 }

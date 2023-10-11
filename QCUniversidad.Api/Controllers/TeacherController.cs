@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Discipline;
@@ -13,7 +13,6 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize]
 public class TeacherController : ControllerBase
 {
     private readonly IDataManager _dataManager;
@@ -33,13 +32,15 @@ public class TeacherController : ControllerBase
         foreach (var dto in dtos)
         {
             var teacher = teachers.First(t => t.Id == dto.Id);
-            if (teacher.TeacherDisciplines?.Any() == true)
+            if ((teacher.TeacherDisciplines?.Any()) != true)
             {
-                dto.Disciplines ??= new List<PopulatedDisciplineDto>();
-                foreach (var td in teacher.TeacherDisciplines)
-                {
-                    dto.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
-                }
+                continue;
+            }
+
+            dto.Disciplines ??= new List<PopulatedDisciplineDto>();
+            foreach (var td in teacher.TeacherDisciplines)
+            {
+                dto.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
             }
         }
 
@@ -94,23 +95,26 @@ public class TeacherController : ControllerBase
     [HttpPut]
     public async Task<IActionResult> CreateAsync(NewTeacherDto teacherDto)
     {
-        if (teacherDto is not null)
+        if (teacherDto is null)
         {
-            var result = await _dataManager.CreateTeacherAsync(_mapper.Map<TeacherModel>(teacherDto, opts => opts.AfterMap((o, t) =>
-            {
-                if (teacherDto.SelectedDisciplines?.Any() == true)
-                {
-                    t.TeacherDisciplines ??= new List<TeacherDiscipline>();
-                    foreach (var d in teacherDto.SelectedDisciplines)
-                    {
-                        t.TeacherDisciplines.Add(new TeacherDiscipline { DisciplineId = d });
-                    }
-                }
-            })));
-            return result ? Ok() : Problem("An error has occured creating the teacher.");
+            return BadRequest("The teacher cannot be null.");
         }
 
-        return BadRequest("The teacher cannot be null.");
+        var result = await _dataManager.CreateTeacherAsync(_mapper.Map<TeacherModel>(teacherDto, opts => opts.AfterMap((o, t) =>
+        {
+            if ((teacherDto.SelectedDisciplines?.Any()) != true)
+            {
+                return;
+            }
+
+            t.TeacherDisciplines ??= new List<TeacherDiscipline>();
+            foreach (var d in teacherDto.SelectedDisciplines)
+            {
+                t.TeacherDisciplines.Add(new TeacherDiscipline { DisciplineId = d });
+            }
+        })));
+
+        return result ? Ok() : Problem("An error has occured creating the teacher.");
     }
 
     [HttpGet]
@@ -165,24 +169,26 @@ public class TeacherController : ControllerBase
     [HttpPost("update")]
     public async Task<IActionResult> UpdateAsync(EditTeacherDto teacher)
     {
-        if (teacher is not null)
+        if (teacher is null)
         {
-            var model = _mapper.Map<TeacherModel>(teacher, opts => opts.AfterMap((o, t) =>
-            {
-                if (teacher.SelectedDisciplines?.Any() == true)
-                {
-                    t.TeacherDisciplines ??= new List<TeacherDiscipline>();
-                    foreach (var d in teacher.SelectedDisciplines)
-                    {
-                        t.TeacherDisciplines.Add(new TeacherDiscipline { DisciplineId = d, TeacherId = teacher.Id });
-                    }
-                }
-            }));
-            var result = await _dataManager.UpdateTeacherAsync(model);
-            return Ok(result);
+            return BadRequest("The teacher cannot be null.");
         }
 
-        return BadRequest("The teacher cannot be null.");
+        var model = _mapper.Map<TeacherModel>(teacher, opts => opts.AfterMap((o, t) =>
+        {
+            if ((teacher.SelectedDisciplines?.Any()) != true)
+            {
+                return;
+            }
+
+            t.TeacherDisciplines ??= new List<TeacherDiscipline>();
+            foreach (var d in teacher.SelectedDisciplines)
+            {
+                t.TeacherDisciplines.Add(new TeacherDiscipline { DisciplineId = d, TeacherId = teacher.Id });
+            }
+        }));
+        var result = await _dataManager.UpdateTeacherAsync(model);
+        return Ok(result);
     }
 
     [HttpDelete]
@@ -584,48 +590,45 @@ public class TeacherController : ControllerBase
             return BadRequest("No model provided.");
         }
 
-        if (Enum.TryParse(typeof(NonTeachingLoadType), model.Type, out var parsedType))
+        if (!Enum.TryParse(typeof(NonTeachingLoadType), model.Type, out var parsedType) || parsedType is null)
         {
-            if (parsedType is not null)
-            {
-                var type = (NonTeachingLoadType)parsedType;
-                try
-                {
-                    var result = await _dataManager.SetNonTeachingLoadAsync(type, model.BaseValue, model.TeacherId, model.PeriodId);
-                    return result ? Ok(result) : Problem();
-                }
-                catch (TeacherNotFoundException)
-                {
-                    return NotFound("The teacher was not found");
-                }
-                catch (PeriodNotFoundException)
-                {
-                    return NotFound("The period was not found");
-                }
-                catch (ArgumentNullException ex)
-                {
-                    return BadRequest(ex.Message);
-                }
-                catch (NonTeachingLoadUnsettableException)
-                {
-                    return BadRequest("The provided load type cannot be setted, it is autocalculated.");
-                }
-                catch (ArgumentException ex)
-                {
-                    return BadRequest(ex.Message);
-                }
-                catch (ConfigurationException)
-                {
-                    return Problem("Error accessing the configuration values.");
-                }
-                catch (Exception ex)
-                {
-                    return Problem(ex.Message);
-                }
-            }
+            return BadRequest("The provided type is invalid.");
         }
 
-        return BadRequest("The provided type is invalid.");
+        var type = (NonTeachingLoadType)parsedType;
+        try
+        {
+            var result = await _dataManager.SetNonTeachingLoadAsync(type, model.BaseValue, model.TeacherId, model.PeriodId);
+            return result ? Ok(result) : Problem();
+        }
+        catch (TeacherNotFoundException)
+        {
+            return NotFound("The teacher was not found");
+        }
+        catch (PeriodNotFoundException)
+        {
+            return NotFound("The period was not found");
+        }
+        catch (ArgumentNullException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (NonTeachingLoadUnsettableException)
+        {
+            return BadRequest("The provided load type cannot be setted, it is autocalculated.");
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (ConfigurationException)
+        {
+            return Problem("Error accessing the configuration values.");
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
     }
 
     [HttpPost]

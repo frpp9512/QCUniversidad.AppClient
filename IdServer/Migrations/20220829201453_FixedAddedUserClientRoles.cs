@@ -1,19 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-#nullable disable
 
-namespace IdServer.Migrations
+namespace IdServer.Migrations;
+
+public partial class FixedAddedUserClientRoles : Migration
 {
-    public partial class FixedAddedUserClientRoles : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
 
-        }
+    }
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
 
-        }
     }
 }

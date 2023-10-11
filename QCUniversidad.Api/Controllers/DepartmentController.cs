@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using QCUniversidad.Api.ConfigurationModels;
+using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Services;
 using QCUniversidad.Api.Shared.Dtos.Department;
@@ -14,7 +14,6 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-[Authorize]
 public class DepartmentController : ControllerBase
 {
     private readonly IDataManager _dataManager;
@@ -46,19 +45,19 @@ public class DepartmentController : ControllerBase
     [Route("list")]
     public async Task<IActionResult> GetList(Guid facultyId)
     {
-        if (facultyId != Guid.Empty)
+        if (facultyId == Guid.Empty)
         {
-            var deparments = await _dataManager.GetDepartmentsAsync(facultyId);
-            var dtos = deparments.Select(_mapper.Map<DepartmentDto>).ToList();
-            foreach (var dto in dtos)
-            {
-                dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
-            }
-
-            return Ok(dtos);
+            return BadRequest("You should provide a faculty id to load the departments from.");
         }
 
-        return BadRequest("You should provide a faculty id to load the departments from.");
+        var deparments = await _dataManager.GetDepartmentsAsync(facultyId);
+        var dtos = deparments.Select(_mapper.Map<DepartmentDto>).ToList();
+        foreach (var dto in dtos)
+        {
+            dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
+        }
+
+        return Ok(dtos);
     }
 
     [HttpGet]
@@ -152,71 +151,71 @@ public class DepartmentController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetById(Guid id)
     {
-        if (id != Guid.Empty)
+        if (id == Guid.Empty)
         {
-            try
-            {
-                var department = await _dataManager.GetDepartmentAsync(id);
-                var dto = _mapper.Map<DepartmentDto>(department);
-                return Ok(dto);
-            }
-            catch (FacultyNotFoundException)
-            {
-                return NotFound($"The department with id '{id}' was not found.");
-            }
-            catch (Exception ex)
-            {
-                return Problem(ex.Message);
-            }
+            return BadRequest("You should provide a department id.");
         }
 
-        return BadRequest("You should provide a department id.");
+        try
+        {
+            var department = await _dataManager.GetDepartmentAsync(id);
+            var dto = _mapper.Map<DepartmentDto>(department);
+            return Ok(dto);
+        }
+        catch (FacultyNotFoundException)
+        {
+            return NotFound($"The department with id '{id}' was not found.");
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
     }
 
     [HttpPut]
     public async Task<IActionResult> CreateDeparment(NewDepartmentDto department)
     {
-        if (department is not null)
+        if (department is null)
         {
-            try
-            {
-                var model = _mapper.Map<DepartmentModel>(department);
-                var result = await _dataManager.CreateDepartmentAsync(model);
-                return result ? Ok(result) : (IActionResult)Problem("Error while adding department to database.");
-            }
-            catch (Exception ex)
-            {
-                return Problem(ex.Message);
-            }
+            return BadRequest("You should provide a department.");
         }
 
-        return BadRequest("You should provide a department.");
+        try
+        {
+            var model = _mapper.Map<DepartmentModel>(department);
+            var result = await _dataManager.CreateDepartmentAsync(model);
+            return result ? Ok(result) : (IActionResult)Problem("Error while adding department to database.");
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
     }
 
     [HttpPost]
     [Route("update")]
     public async Task<IActionResult> UpdateDepartment(EditDepartmentDto department)
     {
-        if (department is not null)
+        if (department is null)
         {
-            var model = _mapper.Map<DepartmentModel>(department);
-            var result = await _dataManager.UpdateDeparmentAsync(model);
-            return result ? Ok(result) : (IActionResult)Problem("Error while updating department in database.");
+            return BadRequest("You should provide a department.");
         }
 
-        return BadRequest("You should provide a department.");
+        var model = _mapper.Map<DepartmentModel>(department);
+        var result = await _dataManager.UpdateDeparmentAsync(model);
+        return result ? Ok(result) : (IActionResult)Problem("Error while updating department in database.");
     }
 
     [HttpDelete]
     public async Task<IActionResult> DeleteDepartment(Guid id)
     {
-        if (id != Guid.Empty)
+        if (id == Guid.Empty)
         {
-            var result = await _dataManager.DeleteDeparmentAsync(id);
-            return result ? Ok(result) : (IActionResult)Problem("Error while deleting department from database.");
+            return BadRequest("You should provide a department id.");
         }
 
-        return BadRequest("You should provide a department id.");
+        var result = await _dataManager.DeleteDeparmentAsync(id);
+        return result ? Ok(result) : (IActionResult)Problem("Error while deleting department from database.");
     }
 
     [HttpGet]
@@ -230,23 +229,27 @@ public class DepartmentController : ControllerBase
             var dtos = result.Select(_mapper.Map<TeachingPlanItemDto>).ToList();
             foreach (var dto in dtos)
             {
-                if (dto.LoadItems is not null)
+                if (dto.LoadItems is null)
                 {
-                    foreach (var loadItem in dto.LoadItems)
+                    continue;
+                }
+
+                foreach (var loadItem in dto.LoadItems)
+                {
+                    if (loadItem.Teacher is null)
                     {
-                        if (loadItem.Teacher is not null)
-                        {
-                            var load = await _dataManager.GetTeacherLoadInPeriodAsync(loadItem.Teacher.Id, periodId);
-                            loadItem.Teacher.Load = new TeacherLoadDto
-                            {
-                                TeacherId = loadItem.Teacher.Id,
-                                TimeFund = periodTimeFund,
-                                Load = load,
-                                LoadPercent = Math.Round(load / periodTimeFund * 100, 2),
-                                PeriodId = periodId
-                            };
-                        }
+                        continue;
                     }
+
+                    var load = await _dataManager.GetTeacherLoadInPeriodAsync(loadItem.Teacher.Id, periodId);
+                    loadItem.Teacher.Load = new TeacherLoadDto
+                    {
+                        TeacherId = loadItem.Teacher.Id,
+                        TimeFund = periodTimeFund,
+                        Load = load,
+                        LoadPercent = Math.Round(load / periodTimeFund * 100, 2),
+                        PeriodId = periodId
+                    };
                 }
             }
 

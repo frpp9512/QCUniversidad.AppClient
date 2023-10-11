@@ -16,16 +16,16 @@ public class ApiCallerHttpClientFactory : IApiCallerHttpClientFactory
         _apiConfiguration = options.Value;
     }
 
-    public async Task<HttpClient> CreateApiCallerHttpClientAsync()
+    public Task<HttpClient> CreateApiCallerHttpClientAsync()
     {
-        if (!_tokenManager.IsAccessTokenSetted || _tokenManager.IsExpired)
-        {
-            await _tokenManager.RefreshTokensAsync();
-        }
+        //if (!_tokenManager.IsAccessTokenSetted || _tokenManager.IsExpired)
+        //{
+        //    await _tokenManager.RefreshTokensAsync();
+        //}
 
         var client = _clientFactory.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenManager.AccessToken);
+        //client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokenManager.AccessToken);
         client.BaseAddress = new Uri(_apiConfiguration.BaseAddress);
-        return client;
+        return Task.FromResult(client);
     }
 }

@@ -1,7 +1,7 @@
 ﻿using QCUniversidad.Api.Data.Models;
 using QCUniversidad.Api.Shared.Enums;
 
-namespace QCUniversidad.Api.Services;
+namespace QCUniversidad.Api.Contracts;
 
 public interface IDataManager
 {

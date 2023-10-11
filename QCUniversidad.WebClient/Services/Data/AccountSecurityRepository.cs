@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using QCUniversidad.WebClient.Data.Contexts;
 using SmartB1t.Security;
-using SmartB1t.Security.WebSecurity.Local;
 using SmartB1t.Security.WebSecurity.Local.Interfaces;
 using SmartB1t.Security.WebSecurity.Local.Models;
 
@@ -17,27 +16,29 @@ public class AccountSecurityRepository : IAccountSecurityRepository
 
     public async Task AssignRoleToUserAsync(User user, Role role)
     {
-        if (!await CheckIfUserHasRole(user, role))
+        if (await CheckIfUserHasRole(user, role))
         {
-            var userRole = new UserRole { RoleId = role.Id, UserId = user.Id };
-            _ = await _dataContext.AddAsync(userRole);
-            _ = await _dataContext.SaveChangesAsync();
+            return;
         }
+
+        var userRole = new UserRole { RoleId = role.Id, UserId = user.Id };
+        _ = await _dataContext.AddAsync(userRole);
+        _ = await _dataContext.SaveChangesAsync();
     }
 
     public async Task<bool> AnyUserAsync() => await _dataContext.Users.AnyAsync();
 
     public async Task<bool> AuthenticateUser(User user, string password)
     {
-        if (user.Active && !user.PermanentDeactivation)
+        if (!user.Active || user.PermanentDeactivation)
         {
-            var userSecret = await _dataContext.Secrets
-                    .Where(us => us.UserId == user.Id)
-                    .FirstOrDefaultAsync();
-            return AuthUtil.TryAuth(user.Email, ref password, SecurityUtil.SecureString(userSecret.Password));
+            return false;
         }
 
-        return false;
+        var userSecret = await _dataContext.Secrets
+                    .Where(us => us.UserId == user.Id)
+                    .FirstOrDefaultAsync();
+        return AuthUtil.TryAuth(user.Email, ref password, SecurityUtil.SecureString(userSecret.Password));
     }
 
     public async Task<bool> CheckIfUserHasRole(User user, Role role)
@@ -47,25 +48,29 @@ public class AccountSecurityRepository : IAccountSecurityRepository
 
     public async Task CreateRoleAsync(Role role)
     {
-        if (role is not null)
+        if (role is null)
         {
-            _ = await _dataContext.AddAsync(role);
-            _ = await _dataContext.SaveChangesAsync();
+            return;
         }
+
+        _ = await _dataContext.AddAsync(role);
+        _ = await _dataContext.SaveChangesAsync();
     }
 
     public async Task CreateUserAsync(User user, string password)
     {
-        if (user is not null)
+        if (user is null)
         {
-            var secrets = new UserSecrets
-            {
-                Password = SecurityUtil.B64HashEncrypt(user.Email, password)
-            };
-            user.Secrets = secrets;
-            _ = await _dataContext.AddAsync(user);
-            _ = await _dataContext.SaveChangesAsync();
+            return;
         }
+
+        var secrets = new UserSecrets
+        {
+            Password = SecurityUtil.B64HashEncrypt(user.Email, password)
+        };
+        user.Secrets = secrets;
+        _ = await _dataContext.AddAsync(user);
+        _ = await _dataContext.SaveChangesAsync();
     }
 
     public async Task<Role> GetRoleAsync(Guid id)
@@ -125,7 +130,7 @@ public class AccountSecurityRepository : IAccountSecurityRepository
         return await usersQuery.ToListAsync();
     }
 
-    public async Task<IEnumerable<User>> GetUsersAsync(int startIndex, int count, bool loadUserRoles = false)
+    public Task<IEnumerable<User>> GetUsersAsync(int startIndex, int count, bool loadUserRoles = false)
     {
         var usersQuery = _dataContext.Users.Where(u => !u.PermanentDeactivation)
                                            .Skip(startIndex)
@@ -137,45 +142,46 @@ public class AccountSecurityRepository : IAccountSecurityRepository
         }
 
         usersQuery = usersQuery.OrderByDescending(u => u.Roles.Count());
-        return usersQuery;
+        return Task.FromResult(usersQuery.AsEnumerable());
     }
-
-    private async Task<IEnumerable<UserRole>> GetUserRolesAsync(User user) => user is null ? null : await _dataContext.UserRoles
-                                                       .Where(ur => ur.UserId == user.Id)
-                                                       .Include(ur => ur.Role)
-                                                       .ToListAsync();
 
     public async Task RemoveRoleAsync(Role role)
     {
-        if (role is not null)
+        if (role is null)
         {
-            _ = _dataContext.Remove(role);
-            _ = await _dataContext.SaveChangesAsync();
+            return;
         }
+
+        _ = _dataContext.Remove(role);
+        _ = await _dataContext.SaveChangesAsync();
     }
 
     public async Task RemoveRoleFromUserAsync(User user, Role role)
     {
-        if (user is not null && role is not null)
+        if (user is null || role is null)
         {
-            var userRole = await _dataContext.UserRoles.Where(ur => ur.UserId == user.Id && ur.RoleId == role.Id)
-                                                       .FirstOrDefaultAsync();
+            return;
+        }
 
-            if (userRole is not null)
-            {
-                _ = _dataContext.Remove(userRole);
-                _ = await _dataContext.SaveChangesAsync();
-            }
+        var userRole = await _dataContext.UserRoles.Where(ur => ur.UserId == user.Id && ur.RoleId == role.Id)
+                                                   .FirstOrDefaultAsync();
+
+        if (userRole is not null)
+        {
+            _ = _dataContext.Remove(userRole);
+            _ = await _dataContext.SaveChangesAsync();
         }
     }
 
     public async Task RemoveUserAsync(User user)
     {
-        if (user is not null)
+        if (user is null)
         {
-            _ = _dataContext.Remove(user);
-            _ = await _dataContext.SaveChangesAsync();
+            return;
         }
+
+        _ = _dataContext.Remove(user);
+        _ = await _dataContext.SaveChangesAsync();
     }
 
     public async Task RemoveExtraClaimAsync(ExtraClaim extraClaim)
@@ -191,34 +197,37 @@ public class AccountSecurityRepository : IAccountSecurityRepository
         {
             secrets.Password = newPassword;
             _ = _dataContext.Update(secrets);
+            return;
         }
-        else
+
+        secrets = new UserSecrets
         {
-            secrets = new UserSecrets
-            {
-                Password = SecurityUtil.B64HashEncrypt(user.Email, newPassword),
-                User = user
-            };
-            _ = _dataContext.Add(secrets);
-        }
+            Password = SecurityUtil.B64HashEncrypt(user.Email, newPassword),
+            User = user
+        };
+        _ = _dataContext.Add(secrets);
     }
 
     public async Task UpdateRoleAsync(Role role)
     {
-        if (role is not null)
+        if (role is null)
         {
-            _ = _dataContext.Update(role);
-            _ = await _dataContext.SaveChangesAsync();
+            return;
         }
+
+        _ = _dataContext.Update(role);
+        _ = await _dataContext.SaveChangesAsync();
     }
 
     public async Task UpdateUserAsync(User user)
     {
-        if (user is not null)
+        if (user is null)
         {
-            _ = _dataContext.Update(user);
-            _ = await _dataContext.SaveChangesAsync();
+            return;
         }
+
+        _ = _dataContext.Update(user);
+        _ = await _dataContext.SaveChangesAsync();
     }
 
     public async Task<int> GetUsersCount(bool includeInactive = true)

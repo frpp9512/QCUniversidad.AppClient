@@ -76,6 +76,7 @@ public static class EnumExtensions
             var value = ((LoadCategoryAttribute)attributes.First()).Category;
             return value;
         }
+
         return null;
     }
 
@@ -90,6 +91,7 @@ public static class EnumExtensions
             var value = ((LoadCategoryAttribute)attributes.First()).PromtName;
             return value;
         }
+
         return null;
     }
 
@@ -104,6 +106,7 @@ public static class EnumExtensions
             var value = ((LoadCategoryAttribute)attributes.First()).Description;
             return value;
         }
+
         return null;
     }
 

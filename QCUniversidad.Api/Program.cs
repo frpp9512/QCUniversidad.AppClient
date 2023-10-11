@@ -1,9 +1,8 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using QCUniversidad.Api.ConfigurationModels;
+using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Services;
-using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,20 +22,22 @@ builder.Services.AddDbContext<QCUniversidadContext>(options => options.UseNpgsql
 builder.Services.AddTransient<IDataManager, DataManager>();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.Configure<CalculationOptions>(builder.Configuration.GetSection("CalculationOptions"));
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-    .AddJwtBearer(config =>
-    {
-        config.Authority = "https://localhost:5001/";
-        config.Audience = "qcuniversidad.api";
-        config.TokenValidationParameters.ValidIssuers = new string[] { "https://10.0.2.2:5001" };
-        config.TokenValidationParameters.ValidAudiences = new string[] { "QCUniversidad.AppClient" };
-        config.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
-    });
+
+//builder.Services.AddAuthentication(options =>
+//{
+//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//})
+//    .AddJwtBearer(config =>
+//    {
+//        config.Authority = "https://localhost:5001/";
+//        config.Audience = "qcuniversidad.api";
+//        config.TokenValidationParameters.ValidIssuers = new string[] { "https://10.0.2.2:5001" };
+//        config.TokenValidationParameters.ValidAudiences = new string[] { "QCUniversidad.AppClient" };
+//        config.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
+//    });
+
 builder.Services.AddCoefficientCalculators(builder.Configuration.GetSection("CalculationOptions"));
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -55,8 +56,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
-app.UseAuthorization();
+//app.UseAuthentication();
+//app.UseAuthorization();
 
 app.MapControllers();
 

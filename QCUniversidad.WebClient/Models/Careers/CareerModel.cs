@@ -10,7 +10,7 @@ public class CareerModel
 
     [Required]
     [Display(Name = "Nombre", Prompt = "Nombre de la carrera", Description = "El nombre de la carrera")]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     [Display(Name = "Descripción", Prompt = "Descripción de la carrera", Description = "La descripción de la carrera.")]
     public string? Description { get; set; }
