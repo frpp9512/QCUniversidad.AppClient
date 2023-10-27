@@ -12,27 +12,27 @@ function RiseDeleteModal(id) {
 }
 
 function SendDeleteSchoolYearRequest(id) {
-    if (!requestingDelete) {
-        requestingDelete = true;
-        HideDeleteModalButtons();
-        ShowDeleteModalSpinner();
-        var xhttp = new XMLHttpRequest();
-        xhttp.open("DELETE", "/schoolyears/delete?id=" + id, true);
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                // Response
-                var response = this.responseText;
-                console.log(response);
-                deleteModal.hide();
-                location.reload();
-            }
-            requestingDelete = false;
-            ShowDeleteModalButtons();
-            HideDeleteModalSpinner();
-        };
-        xhttp.send();
-    }
+    if (requestingDelete) return;
+
+    requestingDelete = true;
+    HideDeleteModalButtons();
+    ShowDeleteModalSpinner();
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("DELETE", "/schoolyears/delete?id=" + id, true);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            // Response
+            var response = this.responseText;
+            console.log(response);
+            deleteModal.hide();
+            location.reload();
+        }
+        requestingDelete = false;
+        ShowDeleteModalButtons();
+        HideDeleteModalSpinner();
+    };
+    xhttp.send();
 }
 
 function GetSchoolYearName(id) {

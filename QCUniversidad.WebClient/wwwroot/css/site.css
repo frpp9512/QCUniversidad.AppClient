@@ -1612,6 +1612,14 @@ footer {
         color: white;
     }
 
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 60px;
+}
+
 .footer-logo {
     display: flex;
     flex-direction: column;

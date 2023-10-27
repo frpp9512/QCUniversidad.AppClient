@@ -3,7 +3,7 @@ requestingDelete = false;
 
 function RiseDeleteModal(id) {
     var course = GetPeriodDenomination(id);
-    SetDeleteModalTextContent("¿Esta seguro que desea eliminar el curso '" + course + "'?");
+    SetDeleteModalTextContent(`¿Esta seguro que desea eliminar el curso '${course}'?`);
     var button = document.getElementById("modal-delete-primarybutton");
     button.onclick = function () {
         SendDeletePeriodRequest(id);
@@ -12,27 +12,27 @@ function RiseDeleteModal(id) {
 }
 
 function SendDeletePeriodRequest(id) {
-    if (!requestingDelete) {
-        requestingDelete = true;
-        HideDeleteModalButtons();
-        ShowDeleteModalSpinner();
-        var xhttp = new XMLHttpRequest();
-        xhttp.open("DELETE", "/courses/delete?id=" + id, true);
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                // Response
-                var response = this.responseText;
-                console.log(response);
-                deleteModal.hide();
-                location.reload();
-            }
-            requestingDelete = false;
-            ShowDeleteModalButtons();
-            HideDeleteModalSpinner();
-        };
-        xhttp.send();
-    }
+    if (requestingDelete) return;
+
+    requestingDelete = true;
+    HideDeleteModalButtons();
+    ShowDeleteModalSpinner();
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("DELETE", "/courses/delete?id=" + id, true);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            // Response
+            var response = this.responseText;
+            console.log(response);
+            deleteModal.hide();
+            location.reload();
+        }
+        requestingDelete = false;
+        ShowDeleteModalButtons();
+        HideDeleteModalSpinner();
+    };
+    xhttp.send();
 }
 
 function GetPeriodDenomination(id) {

@@ -19,7 +19,6 @@ builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddEventSourceLogger();
-builder.Logging.AddEventLog();
 
 // Add services to the container.
 

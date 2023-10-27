@@ -3,7 +3,7 @@ requesting = false;
 
 function RiseDeleteModal(id) {
     var faculty = GetDepartmentName(id);
-    SetDeleteModalTextContent("¿Esta seguro que desea eliminar el departamento '" + faculty + "'?");
+    SetDeleteModalTextContent(`¿Esta seguro que desea eliminar el departamento '${faculty}'?`);
     var button = document.getElementById("modal-delete-primarybutton");
     button.onclick = function () {
         SendDeleteDepartmentRequest(id);
@@ -12,27 +12,27 @@ function RiseDeleteModal(id) {
 }
 
 function SendDeleteDepartmentRequest(id) {
-    if (!requesting) {
-        requesting = true;
-        HideDeleteModalButtons();
-        ShowDeleteModalSpinner();
-        var xhttp = new XMLHttpRequest();
-        xhttp.open("DELETE", "/departments/delete?id=" + id, true);
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                // Response
-                var response = this.responseText;
-                console.log(response);
-                deleteModal.hide();
-                location.reload();
-            }
-            requesting = false;
-            ShowDeleteModalButtons();
-            HideDeleteModalSpinner();
-        };
-        xhttp.send();
-    }
+    if (requesting) return;
+
+    requesting = true;
+    HideDeleteModalButtons();
+    ShowDeleteModalSpinner();
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("DELETE", `/departments/delete?id=${id}`, true);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            // Response
+            var response = this.responseText;
+            console.log(response);
+            deleteModal.hide();
+            location.reload();
+        }
+        requesting = false;
+        ShowDeleteModalButtons();
+        HideDeleteModalSpinner();
+    };
+    xhttp.send();
 }
 
 function GetDepartmentName(id) {

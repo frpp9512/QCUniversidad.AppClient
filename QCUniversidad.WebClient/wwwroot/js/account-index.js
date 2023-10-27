@@ -47,8 +47,9 @@ function RiseActivationModal(action, userId) {
 
     // Update modal content text
     var modalContent = document.getElementById("modal-activation-content");
-    modalText = modalActivationContentTemplate.replace("{action}", action == "activation" ? "activar" : "desactivar")
-        .replace("{userName}", userFullName);
+    modalText = modalActivationContentTemplate
+                    .replace("{action}", action == "activation" ? "activar" : "desactivar")
+                    .replace("{userName}", userFullName);
     modalContent.innerHTML = modalText;
 
     var modalPrimeBtn = GetActivationModalPrimeBtn();

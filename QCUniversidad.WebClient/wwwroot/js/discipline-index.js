@@ -2,9 +2,9 @@
 requesting = false;
 
 function RiseDeleteModal(id) {
-    var faculty = GetDisciplineName(id);
-    SetDeleteModalTextContent("¿Esta seguro que desea eliminar la disciplina '" + faculty + "'?");
-    var button = document.getElementById("modal-delete-primarybutton");
+    let faculty = GetDisciplineName(id);
+    SetDeleteModalTextContent(`¿Esta seguro que desea eliminar la disciplina '${faculty}'?`);
+    const button = document.getElementById("modal-delete-primarybutton");
     button.onclick = function () {
         SendDisciplineDepartmentRequest(id);
     };
@@ -12,27 +12,27 @@ function RiseDeleteModal(id) {
 }
 
 function SendDisciplineDepartmentRequest(id) {
-    if (!requesting) {
-        requesting = true;
-        HideDeleteModalButtons();
-        ShowDeleteModalSpinner();
-        var xhttp = new XMLHttpRequest();
-        xhttp.open("DELETE", "/disciplines/delete?id=" + id, true);
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                // Response
-                var response = this.responseText;
-                console.log(response);
-                deleteModal.hide();
-                location.reload();
-            }
-            requesting = false;
-            ShowDeleteModalButtons();
-            HideDeleteModalSpinner();
-        };
-        xhttp.send();
-    }
+    if (requesting) return;
+
+    requesting = true;
+    HideDeleteModalButtons();
+    ShowDeleteModalSpinner();
+    let xhttp = new XMLHttpRequest();
+    xhttp.open("DELETE", `/disciplines/delete?id=${id}`, true);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            // Response
+            let response = this.responseText;
+            console.log(response);
+            deleteModal.hide();
+            location.reload();
+        }
+        requesting = false;
+        ShowDeleteModalButtons();
+        HideDeleteModalSpinner();
+    };
+    xhttp.send();
 }
 
 function GetDisciplineName(id) {

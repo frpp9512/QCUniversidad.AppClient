@@ -7,16 +7,16 @@ function ShowMessage(title, message) {
 }
 
 function ShowMessageModal(iconClass, colorClass, title, message) {
-    var messageModal = new bootstrap.Modal(document.getElementById('messageModal'), { keyboard: true });
-    var messageModalTitle = document.getElementById("messageModalLabel");
-    var titleChilds = messageModalTitle.children;
+    const messageModal = new bootstrap.Modal(document.getElementById('messageModal'), { keyboard: true });
+    const messageModalTitle = document.getElementById("messageModalLabel");
+    const titleChilds = messageModalTitle.children;
     for (i = 0; i < titleChilds.length; i++) {
-        var child = titleChilds[i];
+        let child = titleChilds[i];
         messageModalTitle.removeChild(child);
     }
-    var classes = messageModalTitle.classList;
+    let classes = messageModalTitle.classList;
     for (i = 0; i < classes.length; i++) {
-        var className = classes[i];
+        let className = classes[i];
         messageModalTitle.classList.remove(className);
     }
     messageModalTitle.classList.add("modal-title");
@@ -24,7 +24,7 @@ function ShowMessageModal(iconClass, colorClass, title, message) {
         messageModalTitle.classList.add(colorClass);
     }
     messageModalTitle.innerHTML = `<span class='fa ${iconClass}'></span> ${title}`;
-    var messageModalBody = document.getElementById("messageModalBody");
+    const messageModalBody = document.getElementById("messageModalBody");
     messageModalBody.innerText = message;
     messageModal.show();
 }

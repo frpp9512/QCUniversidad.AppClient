@@ -12,7 +12,6 @@ builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddEventSourceLogger();
-builder.Logging.AddEventLog();
 
 var connectionString = builder.Configuration.GetConnectionString("PostgreSql");
 //var connectionString = builder.Configuration.GetConnectionString("Sqlite");
