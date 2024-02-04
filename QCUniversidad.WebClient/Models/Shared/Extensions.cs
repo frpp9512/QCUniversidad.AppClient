@@ -6,7 +6,8 @@ namespace QCUniversidad.WebClient.Models.Shared;
 public static class Extensions
 {
     public static User GetModel(this CreateUserViewModel viewModel)
-        => new()
+    {
+        return new()
         {
             Fullname = viewModel.Fullname,
             Department = viewModel.Department,
@@ -14,9 +15,11 @@ public static class Extensions
             Email = viewModel.Email,
             Active = true
         };
+    }
 
     public static EditUserViewModel GetEditViewModel(this User user)
-        => new()
+    {
+        return new()
         {
             Id = user.Id.ToString(),
             Fullname = user.Fullname,
@@ -26,4 +29,5 @@ public static class Extensions
             RolesSelected = user.Roles.Select(ur => ur.Role.Id.ToString()).ToArray(),
             ProfilePictureId = user.Id.ToString()
         };
+    }
 }

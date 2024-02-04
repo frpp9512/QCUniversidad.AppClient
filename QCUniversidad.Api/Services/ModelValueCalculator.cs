@@ -8,7 +8,7 @@ public static class ModelValueCalculatorExtensions
 {
     public static IServiceCollection AddCoefficientCalculators(this IServiceCollection services, IConfigurationSection calculationOptSection)
     {
-        var options = calculationOptSection.Get<CalculationOptions>();
+        CalculationOptions? options = calculationOptSection.Get<CalculationOptions>();
         services = services.AddTransient<ICoefficientCalculator<TeachingPlanItemModel>>(services => new CoefficientCalculator<TeachingPlanItemModel>(
                                                                                             model => model.FromPostgraduateCourse
                                                                                                 ? options.PostgraduateTotalHoursCoefficient

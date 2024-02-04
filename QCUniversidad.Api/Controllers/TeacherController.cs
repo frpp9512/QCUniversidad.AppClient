@@ -13,32 +13,31 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class TeacherController : ControllerBase
+public class TeacherController(ITeachersManager teachersManager,
+                               IPeriodsManager periodsManager,
+                               ITeachersLoadManager teachersLoadManager,
+                               IMapper mapper) : ControllerBase
 {
-    private readonly IDataManager _dataManager;
-    private readonly IMapper _mapper;
-
-    public TeacherController(IDataManager dataManager, IMapper mapper)
-    {
-        _dataManager = dataManager;
-        _mapper = mapper;
-    }
+    private readonly ITeachersManager _teachersManager = teachersManager;
+    private readonly IPeriodsManager _periodsManager = periodsManager;
+    private readonly ITeachersLoadManager _teachersLoadManager = teachersLoadManager;
+    private readonly IMapper _mapper = mapper;
 
     [HttpGet("list")]
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
-        var teachers = await _dataManager.GetTeachersAsync(from, to);
-        var dtos = teachers.Select(_mapper.Map<TeacherDto>);
-        foreach (var dto in dtos)
+        IList<TeacherModel> teachers = await _teachersManager.GetTeachersAsync(from, to);
+        IEnumerable<TeacherDto> dtos = teachers.Select(_mapper.Map<TeacherDto>);
+        foreach (TeacherDto? dto in dtos)
         {
-            var teacher = teachers.First(t => t.Id == dto.Id);
-            if ((teacher.TeacherDisciplines?.Any()) != true)
+            TeacherModel teacher = teachers.First(t => t.Id == dto.Id);
+            if ((teacher.TeacherDisciplines?.Any()) is false)
             {
                 continue;
             }
 
             dto.Disciplines ??= new List<PopulatedDisciplineDto>();
-            foreach (var td in teacher.TeacherDisciplines)
+            foreach (TeacherDiscipline td in teacher.TeacherDisciplines)
             {
                 dto.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
             }
@@ -53,7 +52,7 @@ public class TeacherController : ControllerBase
     {
         try
         {
-            var count = await _dataManager.GetTeachersCountAsync();
+            int count = await _teachersManager.GetTeachersCountAsync();
             return Ok(count);
         }
         catch (Exception ex)
@@ -68,7 +67,7 @@ public class TeacherController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.ExistsTeacherAsync(id);
+            bool result = await _teachersManager.ExistsTeacherAsync(id);
             return Ok(result);
         }
         catch (Exception ex)
@@ -83,7 +82,7 @@ public class TeacherController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.ExistsTeacherAsync(personalId);
+            bool result = await _teachersManager.ExistsTeacherAsync(personalId);
             return Ok(result);
         }
         catch (Exception ex)
@@ -100,15 +99,15 @@ public class TeacherController : ControllerBase
             return BadRequest("The teacher cannot be null.");
         }
 
-        var result = await _dataManager.CreateTeacherAsync(_mapper.Map<TeacherModel>(teacherDto, opts => opts.AfterMap((o, t) =>
+        bool result = await _teachersManager.CreateTeacherAsync(_mapper.Map<TeacherModel>(teacherDto, opts => opts.AfterMap((o, t) =>
         {
-            if ((teacherDto.SelectedDisciplines?.Any()) != true)
+            if (teacherDto.SelectedDisciplines?.Length is 0)
             {
                 return;
             }
 
             t.TeacherDisciplines ??= new List<TeacherDiscipline>();
-            foreach (var d in teacherDto.SelectedDisciplines)
+            foreach (Guid d in teacherDto.SelectedDisciplines)
             {
                 t.TeacherDisciplines.Add(new TeacherDiscipline { DisciplineId = d });
             }
@@ -127,8 +126,8 @@ public class TeacherController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetTeacherAsync(id);
-            var dto = _mapper.Map<TeacherDto>(result);
+            TeacherModel result = await _teachersManager.GetTeacherAsync(id);
+            TeacherDto dto = _mapper.Map<TeacherDto>(result);
             dto.Disciplines ??= new List<PopulatedDisciplineDto>();
             dto.Disciplines = result.TeacherDisciplines?
                                            .Select(td => _mapper.Map<PopulatedDisciplineDto>(td.Discipline))
@@ -152,8 +151,8 @@ public class TeacherController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetTeacherAsync(personalId);
-            var dto = _mapper.Map<TeacherDto>(result);
+            TeacherModel result = await _teachersManager.GetTeacherAsync(personalId);
+            TeacherDto dto = _mapper.Map<TeacherDto>(result);
             dto.Disciplines ??= new List<PopulatedDisciplineDto>();
             dto.Disciplines = result.TeacherDisciplines?
                                            .Select(td => _mapper.Map<PopulatedDisciplineDto>(td.Discipline))
@@ -174,7 +173,7 @@ public class TeacherController : ControllerBase
             return BadRequest("The teacher cannot be null.");
         }
 
-        var model = _mapper.Map<TeacherModel>(teacher, opts => opts.AfterMap((o, t) =>
+        TeacherModel model = _mapper.Map<TeacherModel>(teacher, opts => opts.AfterMap((o, t) =>
         {
             if ((teacher.SelectedDisciplines?.Any()) != true)
             {
@@ -182,12 +181,12 @@ public class TeacherController : ControllerBase
             }
 
             t.TeacherDisciplines ??= new List<TeacherDiscipline>();
-            foreach (var d in teacher.SelectedDisciplines)
+            foreach (Guid d in teacher.SelectedDisciplines)
             {
                 t.TeacherDisciplines.Add(new TeacherDiscipline { DisciplineId = d, TeacherId = teacher.Id });
             }
         }));
-        var result = await _dataManager.UpdateTeacherAsync(model);
+        bool result = await _teachersManager.UpdateTeacherAsync(model);
         return Ok(result);
     }
 
@@ -201,7 +200,7 @@ public class TeacherController : ControllerBase
 
         try
         {
-            var result = await _dataManager.DeleteTeacherAsync(id);
+            bool result = await _teachersManager.DeleteTeacherAsync(id);
             return Ok(result);
         }
         catch (TeacherNotFoundException)
@@ -221,8 +220,8 @@ public class TeacherController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
-            var dtos = result.Select(_mapper.Map<TeacherDto>);
+            IList<TeacherModel> result = await _teachersManager.GetTeachersOfDepartmentAsync(departmentId);
+            IEnumerable<TeacherDto> dtos = result.Select(_mapper.Map<TeacherDto>);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -242,15 +241,15 @@ public class TeacherController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
-            var dtos = new List<TeacherDto>();
-            foreach (var teacher in result)
+            IList<TeacherModel> result = await _teachersManager.GetTeachersOfDepartmentAsync(departmentId);
+            List<TeacherDto> dtos = [];
+            foreach (TeacherModel teacher in result)
             {
-                var dto = _mapper.Map<TeacherDto>(teacher);
-                var teacherTimeFund = await _dataManager.GetTeacherTimeFund(dto.Id, periodId);
-                var load = await _dataManager.GetTeacherLoadInPeriodAsync(teacher.Id, periodId);
-                var loadPercent = Math.Round(load / teacherTimeFund * 100, 2);
-                var loadDto = new TeacherLoadDto
+                TeacherDto dto = _mapper.Map<TeacherDto>(teacher);
+                double teacherTimeFund = await _teachersLoadManager.GetTeacherTimeFund(dto.Id, periodId);
+                double load = await _teachersLoadManager.GetTeacherLoadInPeriodAsync(teacher.Id, periodId);
+                double loadPercent = Math.Round(load / teacherTimeFund * 100, 2);
+                TeacherLoadDto loadDto = new()
                 {
                     TeacherId = teacher.Id,
                     TimeFund = teacherTimeFund,
@@ -269,7 +268,7 @@ public class TeacherController : ControllerBase
                 if (teacher.TeacherDisciplines?.Any() == true)
                 {
                     dto.Disciplines ??= new List<PopulatedDisciplineDto>();
-                    foreach (var td in teacher.TeacherDisciplines)
+                    foreach (TeacherDiscipline td in teacher.TeacherDisciplines)
                     {
                         dto.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
                     }
@@ -297,15 +296,15 @@ public class TeacherController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
-            var dtos = new List<TeacherDto>();
-            foreach (var teacher in result)
+            IList<TeacherModel> result = await _teachersManager.GetTeachersOfDepartmentAsync(departmentId);
+            List<TeacherDto> dtos = [];
+            foreach (TeacherModel teacher in result)
             {
-                var dto = _mapper.Map<TeacherDto>(teacher);
-                var teacherTimeFund = await _dataManager.GetTeacherTimeFund(dto.Id, periodId);
-                var load = await _dataManager.GetTeacherLoadInPeriodAsync(teacher.Id, periodId);
-                var loadPercent = Math.Round(load / teacherTimeFund * 100, 2);
-                var loadDto = new TeacherLoadDto
+                TeacherDto dto = _mapper.Map<TeacherDto>(teacher);
+                double teacherTimeFund = await _teachersLoadManager.GetTeacherTimeFund(dto.Id, periodId);
+                double load = await _teachersLoadManager.GetTeacherLoadInPeriodAsync(teacher.Id, periodId);
+                double loadPercent = Math.Round(load / teacherTimeFund * 100, 2);
+                TeacherLoadDto loadDto = new()
                 {
                     TeacherId = teacher.Id,
                     TimeFund = teacherTimeFund,
@@ -324,7 +323,7 @@ public class TeacherController : ControllerBase
                 if (teacher.TeacherDisciplines?.Any() == true)
                 {
                     dto.Disciplines ??= new List<PopulatedDisciplineDto>();
-                    foreach (var td in teacher.TeacherDisciplines)
+                    foreach (TeacherDiscipline td in teacher.TeacherDisciplines)
                     {
                         dto.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
                     }
@@ -348,11 +347,11 @@ public class TeacherController : ControllerBase
     {
         try
         {
-            var teacher = await _dataManager.GetTeacherAsync(id);
-            var dto = _mapper.Map<TeacherDto>(teacher);
-            var teacherTimeFund = await _dataManager.GetTeacherTimeFund(dto.Id, periodId);
-            var load = await _dataManager.GetTeacherLoadInPeriodAsync(teacher.Id, periodId);
-            var loadPercent = Math.Round(load / teacherTimeFund * 100, 2);
+            TeacherModel teacher = await _teachersManager.GetTeacherAsync(id);
+            TeacherDto dto = _mapper.Map<TeacherDto>(teacher);
+            double teacherTimeFund = await _teachersLoadManager.GetTeacherTimeFund(dto.Id, periodId);
+            double load = await _teachersLoadManager.GetTeacherLoadInPeriodAsync(teacher.Id, periodId);
+            double loadPercent = Math.Round(load / teacherTimeFund * 100, 2);
             dto.Load = new TeacherLoadDto
             {
                 TeacherId = teacher.Id,
@@ -371,7 +370,7 @@ public class TeacherController : ControllerBase
             if (teacher.TeacherDisciplines?.Any() == true)
             {
                 dto.Disciplines ??= new List<PopulatedDisciplineDto>();
-                foreach (var td in teacher.TeacherDisciplines)
+                foreach (TeacherDiscipline td in teacher.TeacherDisciplines)
                 {
                     dto.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
                 }
@@ -396,8 +395,8 @@ public class TeacherController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetTeachersOfDepartmentNotAssignedToPlanItemAsync(departmentId, planItemId, disciplineId);
-            var dtos = result.Select(_mapper.Map<TeacherDto>);
+            IList<TeacherModel> result = await _teachersLoadManager.GetTeachersOfDepartmentNotAssignedToPlanItemAsync(departmentId, planItemId, disciplineId);
+            IEnumerable<TeacherDto> dtos = result.Select(_mapper.Map<TeacherDto>);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -422,13 +421,13 @@ public class TeacherController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetSupportTeachersAsync(departmentId, periodId);
-            var dtos = result.Select(_mapper.Map<TeacherDto>);
-            foreach (var dto in dtos)
+            IList<TeacherModel> result = await _teachersManager.GetSupportTeachersAsync(departmentId, periodId);
+            IEnumerable<TeacherDto> dtos = result.Select(_mapper.Map<TeacherDto>);
+            foreach (TeacherDto? dto in dtos)
             {
-                var t = result.First(teacher => teacher.Id == dto.Id);
-                var teacherTimeFund = await _dataManager.GetTeacherTimeFund(t.Id, periodId);
-                var load = await _dataManager.GetTeacherLoadInPeriodAsync(dto.Id, periodId);
+                TeacherModel t = result.First(teacher => teacher.Id == dto.Id);
+                double teacherTimeFund = await _teachersLoadManager.GetTeacherTimeFund(t.Id, periodId);
+                double load = await _teachersLoadManager.GetTeacherLoadInPeriodAsync(dto.Id, periodId);
                 dto.Load = new TeacherLoadDto
                 {
                     TeacherId = dto.Id,
@@ -440,7 +439,7 @@ public class TeacherController : ControllerBase
                 if (t.TeacherDisciplines?.Any() == true)
                 {
                     dto.Disciplines ??= new List<PopulatedDisciplineDto>();
-                    foreach (var td in t.TeacherDisciplines)
+                    foreach (TeacherDiscipline td in t.TeacherDisciplines)
                     {
                         dto.Disciplines.Add(_mapper.Map<PopulatedDisciplineDto>(td.Discipline));
                     }
@@ -461,7 +460,7 @@ public class TeacherController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.SetLoadToTeacher(newLoadItem.TeacherId, newLoadItem.PlanningItemId, newLoadItem.HoursCovered);
+            bool result = await _teachersLoadManager.SetLoadToTeacher(newLoadItem.TeacherId, newLoadItem.PlanningItemId, newLoadItem.HoursCovered);
             return result ? Ok(result) : Problem();
         }
         catch (ArgumentNullException ex)
@@ -496,7 +495,7 @@ public class TeacherController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.DeleteLoadFromTeacherAsync(loadItemId);
+            bool result = await _teachersLoadManager.DeleteLoadFromTeacherAsync(loadItemId);
             return result ? Ok(result) : Problem();
         }
         catch (LoadItemNotFoundException)
@@ -520,7 +519,7 @@ public class TeacherController : ControllerBase
 
         try
         {
-            var items = await GetTeacherLoadItemsAsync(id, periodId);
+            List<LoadViewItemDto> items = await GetTeacherLoadItemsAsync(id, periodId);
             return Ok(items);
         }
         catch (Exception ex)
@@ -531,8 +530,8 @@ public class TeacherController : ControllerBase
 
     private async Task<List<LoadViewItemDto>> GetTeacherLoadItemsAsync(Guid id, Guid periodId)
     {
-        var teachingLoadItems = await _dataManager.GetTeacherLoadItemsInPeriodAsync(id, periodId);
-        var teachingLoadViewItems = teachingLoadItems.Select(item => new LoadViewItemDto
+        IList<LoadItemModel> teachingLoadItems = await _teachersLoadManager.GetTeacherLoadItemsInPeriodAsync(id, periodId);
+        IEnumerable<LoadViewItemDto> teachingLoadViewItems = teachingLoadItems.Select(item => new LoadViewItemDto
         {
             LoadId = item.Id,
             Type = LoadViewItemType.Teaching,
@@ -544,9 +543,9 @@ public class TeacherController : ControllerBase
             Value = item.HoursCovered,
             PeriodId = periodId
         });
-        var nonTeachingLoadItems = await _dataManager.GetTeacherNonTeachingLoadItemsInPeriodAsync(id, periodId);
-        var recalculationAllowed = await _dataManager.IsPeriodInCurrentYear(periodId);
-        var nonTeachingLoadViewItems = nonTeachingLoadItems.Select(item => new LoadViewItemDto
+        IList<NonTeachingLoadModel> nonTeachingLoadItems = await _teachersLoadManager.GetTeacherNonTeachingLoadItemsInPeriodAsync(id, periodId);
+        bool recalculationAllowed = await _periodsManager.IsPeriodInCurrentYear(periodId);
+        IEnumerable<LoadViewItemDto> nonTeachingLoadViewItems = nonTeachingLoadItems.Select(item => new LoadViewItemDto
         {
             LoadId = item.Id,
             Type = LoadViewItemType.NonTeaching,
@@ -560,8 +559,8 @@ public class TeacherController : ControllerBase
             Value = item.Load,
             PeriodId = periodId
         });
-        var missingTypes = Enum.GetValues<NonTeachingLoadType>().Where(t => !nonTeachingLoadItems.Any(l => l.Type == t));
-        var missingNonTeachingLoadItems = missingTypes.Select(type => new LoadViewItemDto
+        IEnumerable<NonTeachingLoadType> missingTypes = Enum.GetValues<NonTeachingLoadType>().Where(t => !nonTeachingLoadItems.Any(l => l.Type == t));
+        IEnumerable<LoadViewItemDto> missingNonTeachingLoadItems = missingTypes.Select(type => new LoadViewItemDto
         {
             Type = LoadViewItemType.NonTeaching,
             Autogenerated = type.GetEnumDisplayAutogenerateValue(),
@@ -574,10 +573,7 @@ public class TeacherController : ControllerBase
             Value = 0,
             PeriodId = periodId
         });
-        var items = new List<LoadViewItemDto>();
-        items.AddRange(teachingLoadViewItems);
-        items.AddRange(nonTeachingLoadViewItems);
-        items.AddRange(missingNonTeachingLoadItems);
+        List<LoadViewItemDto> items = [.. teachingLoadViewItems, .. nonTeachingLoadViewItems, .. missingNonTeachingLoadItems];
         return items;
     }
 
@@ -590,15 +586,15 @@ public class TeacherController : ControllerBase
             return BadRequest("No model provided.");
         }
 
-        if (!Enum.TryParse(typeof(NonTeachingLoadType), model.Type, out var parsedType) || parsedType is null)
+        if (!Enum.TryParse(typeof(NonTeachingLoadType), model.Type, out object? parsedType) || parsedType is null)
         {
             return BadRequest("The provided type is invalid.");
         }
 
-        var type = (NonTeachingLoadType)parsedType;
+        NonTeachingLoadType type = (NonTeachingLoadType)parsedType;
         try
         {
-            var result = await _dataManager.SetNonTeachingLoadAsync(type, model.BaseValue, model.TeacherId, model.PeriodId);
+            bool result = await _teachersLoadManager.SetNonTeachingLoadAsync(type, model.BaseValue, model.TeacherId, model.PeriodId);
             return result ? Ok(result) : Problem();
         }
         catch (TeacherNotFoundException)
@@ -637,7 +633,7 @@ public class TeacherController : ControllerBase
     {
         try
         {
-            await _dataManager.RecalculateAllTeachersInPeriodAsync(periodId);
+            await _teachersLoadManager.RecalculateAllTeachersLoadInPeriodAsync(periodId);
             return Ok();
         }
         catch

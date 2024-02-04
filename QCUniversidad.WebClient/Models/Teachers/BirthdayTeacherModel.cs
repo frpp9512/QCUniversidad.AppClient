@@ -8,8 +8,8 @@ public record BirthdayTeacherModel
     {
         get
         {
-            var diff = DateTime.Now - Birthday;
-            var years = diff.TotalDays / 365;
+            TimeSpan diff = DateTime.Now - Birthday;
+            double years = diff.TotalDays / 365;
             return (int)years;
         }
     }

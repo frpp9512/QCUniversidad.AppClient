@@ -12,13 +12,13 @@ public static class SecurityUtil
     public static string B64HashEncrypt(string key, string toEncrypt)
     {
         byte[] keyArray;
-        var toEncryptArray = Encoding.UTF8.GetBytes(toEncrypt);
-        var hashmd5 = new MD5CryptoServiceProvider();
+        byte[] toEncryptArray = Encoding.UTF8.GetBytes(toEncrypt);
+        MD5CryptoServiceProvider hashmd5 = new();
         keyArray = hashmd5.ComputeHash(Encoding.UTF8.GetBytes(key));
         //Always release the resources and flush data
         // of the Cryptographic service provide. Best Practice
         hashmd5.Clear();
-        var tdes = new TripleDESCryptoServiceProvider
+        TripleDESCryptoServiceProvider tdes = new()
         {
             //set the secret key for the tripleDES algorithm
             Key = keyArray,
@@ -28,9 +28,9 @@ public static class SecurityUtil
             //padding mode(if any extra byte added)
             Padding = PaddingMode.PKCS7
         };
-        var cTransform = tdes.CreateEncryptor();
+        ICryptoTransform cTransform = tdes.CreateEncryptor();
         //transform the specified region of bytes array to resultArray
-        var resultArray =
+        byte[] resultArray =
           cTransform.TransformFinalBlock(toEncryptArray, 0,
           toEncryptArray.Length);
         //Release resources held by TripleDes Encryptor
@@ -43,13 +43,13 @@ public static class SecurityUtil
     {
         byte[] keyArray;
         //get the byte code of the string
-        var toEncryptArray = Convert.FromBase64String(cipherString);
+        byte[] toEncryptArray = Convert.FromBase64String(cipherString);
         //if hashing was used get the hash code with regards to your key
-        var hashmd5 = new MD5CryptoServiceProvider();
+        MD5CryptoServiceProvider hashmd5 = new();
         keyArray = hashmd5.ComputeHash(UTF8Encoding.UTF8.GetBytes(key));
         //release any resource held by the MD5CryptoServiceProvider
         hashmd5.Clear();
-        var tdes = new TripleDESCryptoServiceProvider
+        TripleDESCryptoServiceProvider tdes = new()
         {
             //set the secret key for the tripleDES algorithm
             Key = keyArray,
@@ -59,8 +59,8 @@ public static class SecurityUtil
             //padding mode(if any extra byte added)
             Padding = PaddingMode.PKCS7
         };
-        var cTransform = tdes.CreateDecryptor();
-        var resultArray = cTransform.TransformFinalBlock(
+        ICryptoTransform cTransform = tdes.CreateDecryptor();
+        byte[] resultArray = cTransform.TransformFinalBlock(
                              toEncryptArray, 0, toEncryptArray.Length);
         //Release resources held by TripleDes Encryptor                
         tdes.Clear();
@@ -70,36 +70,36 @@ public static class SecurityUtil
 
     public static string ToBase16String(string text)
     {
-        var r = new Random();
-        var key = r.Next(5000, 10000);
+        Random r = new();
+        int key = r.Next(5000, 10000);
         return IntToHex(key) + StrToHex(text, key);
     }
 
     public static string FromBase16String(string b16_text)
     {
-        var key = HexToInt(b16_text[..4]);
+        int key = HexToInt(b16_text[..4]);
         b16_text = b16_text.Remove(0, 4);
-        var text = HexToStr(b16_text, key);
+        string text = HexToStr(b16_text, key);
         return text;
     }
 
     public static string ToBase64String(string text)
     {
-        var text_bytes = new byte[text.Length];
-        for (var i = 0; i < text_bytes.Length; i++)
+        byte[] text_bytes = new byte[text.Length];
+        for (int i = 0; i < text_bytes.Length; i++)
         {
             text_bytes[i] = Convert.ToByte(text[i]);
         }
 
-        var b64_text = Convert.ToBase64String(text_bytes);
+        string b64_text = Convert.ToBase64String(text_bytes);
         return b64_text;
     }
 
     public static string FromB64String(string b64_text)
     {
-        var text_bytes = Convert.FromBase64String(b64_text);
-        var text = "";
-        for (var i = 0; i < text_bytes.Length; i++)
+        byte[] text_bytes = Convert.FromBase64String(b64_text);
+        string text = "";
+        for (int i = 0; i < text_bytes.Length; i++)
         {
             text += Convert.ToChar(text_bytes[i]);
         }
@@ -109,8 +109,8 @@ public static class SecurityUtil
 
     public static SecureString SecureString(string text)
     {
-        var ss = new SecureString();
-        for (var i = 0; i < text.Length; i++)
+        SecureString ss = new();
+        for (int i = 0; i < text.Length; i++)
         {
             ss.InsertAt(ss.Length, text[i]);
         }
@@ -120,29 +120,29 @@ public static class SecurityUtil
 
     public static string UnSecureString(SecureString protected_string)
     {
-        var ptr_ps = Marshal.SecureStringToBSTR(protected_string);
+        nint ptr_ps = Marshal.SecureStringToBSTR(protected_string);
         return Marshal.PtrToStringBSTR(ptr_ps);
     }
 
     public static string ToMd5String(string key, string text)
     {
-        var key_bytes = new byte[key.Length];
-        for (var i = 0; i < key_bytes.Length; i++)
+        byte[] key_bytes = new byte[key.Length];
+        for (int i = 0; i < key_bytes.Length; i++)
         {
             key_bytes[i] = Convert.ToByte(key[i]);
         }
 
-        var hmd5 = new HMACMD5(key_bytes);
-        var text_bytes = new byte[text.Length];
-        for (var j = 0; j < text_bytes.Length; j++)
+        HMACMD5 hmd5 = new(key_bytes);
+        byte[] text_bytes = new byte[text.Length];
+        for (int j = 0; j < text_bytes.Length; j++)
         {
             text_bytes[j] = Convert.ToByte(text[j]);
         }
 
         _ = new byte[text_bytes.Length];
-        var md5_bytes = hmd5.ComputeHash(text_bytes);
-        var md5_text = "";
-        foreach (var b in md5_bytes)
+        byte[] md5_bytes = hmd5.ComputeHash(text_bytes);
+        string md5_text = "";
+        foreach (byte b in md5_bytes)
         {
             md5_text += Convert.ToChar(b);
         }
@@ -150,21 +150,33 @@ public static class SecurityUtil
         return md5_text;
     }
 
-    public static bool AreEquals(SecureString ss1, SecureString ss2) => UnSecureString(ss1) == UnSecureString(ss2);
+    public static bool AreEquals(SecureString ss1, SecureString ss2)
+    {
+        return UnSecureString(ss1) == UnSecureString(ss2);
+    }
 
-    public static void ReleaseFromMemory(IDisposable IDisposable_obj) => IDisposable_obj.Dispose();
+    public static void ReleaseFromMemory(IDisposable IDisposable_obj)
+    {
+        IDisposable_obj.Dispose();
+    }
 
-    public static void ReleaseFromMemory(ref string str_var) => str_var = null;
+    public static void ReleaseFromMemory(ref string str_var)
+    {
+        str_var = null;
+    }
 
-    public static void ReleaseUnUsedResources() => GC.Collect();
+    public static void ReleaseUnUsedResources()
+    {
+        GC.Collect();
+    }
 
     #region Hexadecimal conversion
 
     private static string HexToStr(string hex, int key)
     {
-        var list = new List<string>();
-        var aux = "";
-        for (var i = 0; i < hex.Length; i++)
+        List<string> list = [];
+        string aux = "";
+        for (int i = 0; i < hex.Length; i++)
         {
             if ((i + 1) % 4 == 0)
             {
@@ -177,8 +189,8 @@ public static class SecurityUtil
             }
         }
 
-        var toret = "";
-        foreach (var s in list)
+        string toret = "";
+        foreach (string s in list)
         {
             toret = toret.Insert(0, Convert.ToChar(HexToInt(s) - key).ToString());
         }
@@ -188,8 +200,8 @@ public static class SecurityUtil
 
     private static int HexToInt(string hex)
     {
-        var val = IntEquivalent(hex[0].ToString());
-        for (var i = 1; i < hex.Length; i++)
+        int val = IntEquivalent(hex[0].ToString());
+        for (int i = 1; i < hex.Length; i++)
         {
             val = (val * 16) + IntEquivalent(hex[i].ToString());
         }
@@ -233,7 +245,7 @@ public static class SecurityUtil
 
     private static string IntToHex(int i)
     {
-        var hex = "";
+        string hex = "";
         while (i >= 16)
         {
             hex = hex.Insert(0, HexEquivalent(i % 16));
@@ -246,8 +258,8 @@ public static class SecurityUtil
 
     private static string StrToHex(string s, int key)
     {
-        var hexStr = "";
-        foreach (var c in s)
+        string hexStr = "";
+        foreach (char c in s)
         {
             hexStr = hexStr.Insert(0, IntToHex(int.Parse(Encoding.ASCII.GetBytes(c.ToString())[0].ToString()) + key).ToString());
         }

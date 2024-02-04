@@ -8,15 +8,21 @@ namespace QCUniversidad.Api.Migrations;
 public partial class AddedSpecificTimeFundToTeacher : Migration
 {
     /// <inheritdoc />
-    protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.AddColumn<double>(
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.AddColumn<double>(
             name: "SpecificTimeFund",
             table: "Teachers",
             type: "double precision",
             nullable: false,
             defaultValue: 0.0);
+    }
 
     /// <inheritdoc />
-    protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropColumn(
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.DropColumn(
             name: "SpecificTimeFund",
             table: "Teachers");
+    }
 }

@@ -5,8 +5,8 @@ namespace QCUniversidad.WebClient.Services.Extensions;
 
 public partial class ExcelParserConfigurator<T> where T : class, new()
 {
-    public Dictionary<string, Expression<Func<T, object>>> ConfiguredColumns { get; set; } = new();
-    public Dictionary<string, Func<string, object>> ConfiguredConverters { get; set; } = new();
+    public Dictionary<string, Expression<Func<T, object>>> ConfiguredColumns { get; set; } = [];
+    public Dictionary<string, Func<string, object>> ConfiguredConverters { get; set; } = [];
     public string? Worksheet { get; set; }
     public string? TableName { get; set; }
 

@@ -34,17 +34,17 @@ public class CareersController : Controller
         _logger.LogInformation($"Requested {HttpContext.Request.Path} - {HttpContext.Request.Method}");
         try
         {
-            var total = await _dataProvider.GetCareersCountAsync();
-            var pageIndex = page - 1 < 0 ? 0 : page - 1;
-            var startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
+            int total = await _dataProvider.GetCareersCountAsync();
+            int pageIndex = page - 1 < 0 ? 0 : page - 1;
+            int startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
             if (startingItemIndex < 0 || startingItemIndex >= total)
             {
                 startingItemIndex = 0;
             }
 
-            var careers = await _dataProvider.GetCareersAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
-            var totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
-            var viewModel = new NavigationListViewModel<CareerModel>
+            IList<CareerModel> careers = await _dataProvider.GetCareersAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
+            int totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
+            NavigationListViewModel<CareerModel> viewModel = new()
             {
                 Items = careers,
                 CurrentPage = pageIndex + 1,
@@ -69,8 +69,8 @@ public class CareersController : Controller
 
         try
         {
-            var career = await _dataProvider.GetCareerAsync(id);
-            var schoolYear = await _dataProvider.GetSchoolYearAsync(id);
+            CareerModel career = await _dataProvider.GetCareerAsync(id);
+            Models.SchoolYears.SchoolYearModel schoolYear = await _dataProvider.GetSchoolYearAsync(id);
             ViewData["schoolYear"] = schoolYear;
             return View(career);
         }
@@ -87,7 +87,7 @@ public class CareersController : Controller
         _logger.LogRequest(HttpContext);
         try
         {
-            var model = new CreateCareerModel { Name = "" };
+            CreateCareerModel model = new() { Name = "" };
             await LoadFacultiesIntoCreateModel(model);
             return View(model);
         }
@@ -100,7 +100,7 @@ public class CareersController : Controller
     private async Task LoadFacultiesIntoCreateModel(CreateCareerModel model)
     {
         _logger.LogModelSetLoading<CareersController, FacultyModel>(HttpContext);
-        var faculties = await _dataProvider.GetFacultiesAsync();
+        IList<FacultyModel> faculties = await _dataProvider.GetFacultiesAsync();
         model.Faculties = faculties;
     }
 
@@ -115,7 +115,7 @@ public class CareersController : Controller
             if (await _dataProvider.ExistFacultyAsync(model.FacultyId))
             {
                 _logger.LogCreateModelRequest<CareersController, CareerModel>(HttpContext);
-                var result = await _dataProvider.CreateCareerAsync(model);
+                bool result = await _dataProvider.CreateCareerAsync(model);
                 if (result)
                 {
                     _logger.LogModelCreated<CareersController, CareerModel>(HttpContext);
@@ -147,8 +147,8 @@ public class CareersController : Controller
         try
         {
             _logger.LogModelSetLoading<CareersController, CareerModel>(HttpContext, id);
-            var model = await _dataProvider.GetCareerAsync(id);
-            var editModel = _mapper.Map<EditCareerModel>(model);
+            CareerModel model = await _dataProvider.GetCareerAsync(id);
+            EditCareerModel editModel = _mapper.Map<EditCareerModel>(model);
             return View(editModel);
         }
         catch (Exception)
@@ -168,7 +168,7 @@ public class CareersController : Controller
             try
             {
                 _logger.LogEditModelRequest<CareersController, CareerModel>(HttpContext, model.Id);
-                var result = await _dataProvider.UpdateCareerAsync(_mapper.Map<CareerModel>(model));
+                bool result = await _dataProvider.UpdateCareerAsync(_mapper.Map<CareerModel>(model));
                 if (result)
                 {
                     _logger.LogModelEdited<CareersController, CareerModel>(HttpContext, model.Id);
@@ -201,7 +201,7 @@ public class CareersController : Controller
             if (await _dataProvider.ExistsCareerAsync(id))
             {
                 _logger.LogDeleteModelRequest<CareersController, CareerModel>(HttpContext, id);
-                var result = await _dataProvider.DeleteCareerAsync(id);
+                bool result = await _dataProvider.DeleteCareerAsync(id);
                 if (result)
                 {
                     _logger.LogDeleteModelRequest<CareersController, CareerModel>(HttpContext, id);

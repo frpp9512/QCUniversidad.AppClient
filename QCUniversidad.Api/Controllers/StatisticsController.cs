@@ -12,86 +12,95 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class StatisticsController : ControllerBase
+public class StatisticsController(ISchoolYearsManager dataManager,
+                                  IFacultiesManager facultiesManager,
+                                  IDepartmentsManager departmentsManager,
+                                  ITeachersManager teachersManager,
+                                  IDisciplinesManager disciplinesManager,
+                                  ISubjectsManager subjectsManager,
+                                  ICurriculumsManager curriculumsManager,
+                                  ICoursesManager coursesManager,
+                                  IOptions<CalculationOptions> options,
+                                  IMapper mapper) : ControllerBase
 {
-    private readonly IDataManager _dataManager;
-    private readonly IMapper _mapper;
-    private readonly CalculationOptions _calculationOptions;
-
-    public StatisticsController(IDataManager dataManager, IOptions<CalculationOptions> options, IMapper mapper)
-    {
-        _dataManager = dataManager;
-        _mapper = mapper;
-        _calculationOptions = options.Value;
-    }
+    private readonly ISchoolYearsManager _schoolsYearManager = dataManager;
+    private readonly IFacultiesManager _facultiesManager = facultiesManager;
+    private readonly IDepartmentsManager _departmentsManager = departmentsManager;
+    private readonly ITeachersManager _teachersManager = teachersManager;
+    private readonly IDisciplinesManager _disciplinesManager = disciplinesManager;
+    private readonly ISubjectsManager _subjectsManager = subjectsManager;
+    private readonly ICurriculumsManager _curriculumsManager = curriculumsManager;
+    private readonly ICoursesManager _coursesManager = coursesManager;
+    private readonly IMapper _mapper = mapper;
+    private readonly CalculationOptions _calculationOptions = options.Value;
 
     [HttpGet]
     [Route("globalstatistics")]
     public async Task<IActionResult> GlobalStatistics()
     {
-        var items = new List<StatisticItemDto>();
+        List<StatisticItemDto> items = [];
 
-        var faculties = new StatisticItemDto
+        StatisticItemDto faculties = new()
         {
             Name = "Facultades",
             Description = "Cantidad de facultades en el sistema",
-            Value = await _dataManager.GetFacultiesTotalAsync(),
+            Value = await _facultiesManager.GetFacultiesTotalAsync(),
         };
         items.Add(faculties);
 
-        var departments = new StatisticItemDto
+        StatisticItemDto departments = new()
         {
             Name = "Departamentos",
             Description = "Cantidad de departamentos en el sistema",
-            Value = await _dataManager.GetDepartmentsCountAsync(),
+            Value = await _departmentsManager.GetDepartmentsCountAsync(),
         };
         items.Add(departments);
 
-        var teachers = new StatisticItemDto
+        StatisticItemDto teachers = new()
         {
             Name = "Profesores",
             Description = "Cantidad de profesores en el sistema",
-            Value = await _dataManager.GetTeachersCountAsync(),
+            Value = await _teachersManager.GetTeachersCountAsync(),
         };
         items.Add(teachers);
 
-        var disciplines = new StatisticItemDto
+        StatisticItemDto disciplines = new()
         {
             Name = "Disciplinas",
             Description = "Cantidad de disiplinas en el sistema",
-            Value = await _dataManager.GetDisciplinesCountAsync(),
+            Value = await _disciplinesManager.GetDisciplinesCountAsync(),
         };
         items.Add(disciplines);
 
-        var subjects = new StatisticItemDto
+        StatisticItemDto subjects = new()
         {
             Name = "Asignaturas",
             Description = "Cantidad de asignaturas en el sistema",
-            Value = await _dataManager.GetSubjectsCountAsync(),
+            Value = await _subjectsManager.GetSubjectsCountAsync(),
         };
         items.Add(subjects);
 
-        var curriculums = new StatisticItemDto
+        StatisticItemDto curriculums = new()
         {
             Name = "Curriculums",
             Description = "Cantidad de curriculums en el sistema",
-            Value = await _dataManager.GetCurriculumsCountAsync(),
+            Value = await _curriculumsManager.GetCurriculumsCountAsync(),
         };
         items.Add(curriculums);
 
-        var schoolYears = new StatisticItemDto
+        StatisticItemDto schoolYears = new()
         {
             Name = "Años escolares",
             Description = "Cantidad de años escolares en el sistema",
-            Value = await _dataManager.GetSchoolYearTotalAsync(),
+            Value = await _schoolsYearManager.GetSchoolYearTotalAsync(),
         };
         items.Add(schoolYears);
 
-        var courses = new StatisticItemDto
+        StatisticItemDto courses = new()
         {
             Name = "Cursos",
             Description = "Cantidad de cursos en el sistema",
-            Value = await _dataManager.GetCoursesCountAsync(),
+            Value = await _coursesManager.GetCoursesCountAsync(),
         };
         items.Add(courses);
 
@@ -107,34 +116,34 @@ public class StatisticsController : ControllerBase
             return BadRequest();
         }
 
-        if (!await _dataManager.ExistDepartmentAsync(departmentId))
+        if (!await _departmentsManager.ExistDepartmentAsync(departmentId))
         {
             return NotFound();
         }
 
         try
         {
-            var items = new List<StatisticItemDto>();
+            List<StatisticItemDto> items = [];
 
-            var disciplines = new StatisticItemDto
+            StatisticItemDto disciplines = new()
             {
                 Name = "Disciplinas",
                 Description = "Cantidad de disciplinas que gestiona el departamento",
-                Value = await _dataManager.GetDepartmentDisciplinesCount(departmentId),
+                Value = await _departmentsManager.GetDepartmentDisciplinesCount(departmentId),
             };
             items.Add(disciplines);
 
-            var teachersCount = new StatisticItemDto
+            StatisticItemDto teachersCount = new()
             {
                 Name = "Cantidad de profesores",
-                Value = await _dataManager.GetDeparmentTeachersCountAsync(departmentId),
+                Value = await _departmentsManager.GetDeparmentTeachersCountAsync(departmentId),
                 Description = "Cantidad de profesores del departamento"
             };
             items.Add(teachersCount);
 
-            var rapValue = await _dataManager.CalculateRAPAsync(departmentId);
-            var referencePercent = rapValue / _calculationOptions.RAPReference;
-            var rap = new StatisticItemDto
+            double rapValue = await _departmentsManager.CalculateRAPAsync(departmentId);
+            double referencePercent = rapValue / _calculationOptions.RAPReference;
+            StatisticItemDto rap = new()
             {
                 Name = "Relación alumno-profesor",
                 Value = rapValue,
@@ -152,21 +161,21 @@ public class StatisticsController : ControllerBase
             };
             items.Add(rap);
 
-            var currentSchoolYear = await _dataManager.GetCurrentSchoolYearAsync();
-            var periods = currentSchoolYear.Periods;
-            foreach (var period in periods.OrderBy(p => p.Starts))
+            SchoolYearModel currentSchoolYear = await _schoolsYearManager.GetCurrentSchoolYearAsync();
+            IList<PeriodModel> periods = currentSchoolYear.Periods;
+            foreach (PeriodModel? period in periods.OrderBy(p => p.Starts))
             {
-                var periodLoad = await _dataManager.GetDepartmentTotalLoadCoveredInPeriodAsync(period.Id, departmentId);
-                var periodTotalTimeFund = teachersCount.Value * period.TimeFund;
-                var totalPercent = periodLoad / periodTotalTimeFund;
-                var totalState = totalPercent switch
+                double periodLoad = await _departmentsManager.GetDepartmentTotalLoadCoveredInPeriodAsync(period.Id, departmentId);
+                double periodTotalTimeFund = teachersCount.Value * period.TimeFund;
+                double totalPercent = periodLoad / periodTotalTimeFund;
+                StatisticState totalState = totalPercent switch
                 {
                     double i when i < 0.6 => StatisticState.TooLow,
                     double i when i is < 0.8 and >= 0.6 => StatisticState.Low,
                     double i when i is <= 1 and >= 0.8 => StatisticState.Ok,
                     _ => StatisticState.TooHigh
                 };
-                var totalDescription = totalState switch
+                string totalDescription = totalState switch
                 {
                     StatisticState.TooLow => "La fuerza de trabajo esta altamente desaprovechada",
                     StatisticState.Low => "La fuerza de trabajo esta desaprovechada",
@@ -175,7 +184,7 @@ public class StatisticsController : ControllerBase
                     StatisticState.TooHigh => "Existe sobrecarga de la fuerza de trabajo",
                     _ => "Carga del departamento referente al período."
                 };
-                var periodTotalLoadStat = new StatisticItemDto
+                StatisticItemDto periodTotalLoadStat = new()
                 {
                     Name = $"Carga total del período {period}",
                     Value = periodLoad,
@@ -185,7 +194,7 @@ public class StatisticsController : ControllerBase
                 };
                 items.Add(periodTotalLoadStat);
 
-                var workForceUtilization = new StatisticItemDto
+                StatisticItemDto workForceUtilization = new()
                 {
                     Name = $"Aprovechamiento de la FT {period}",
                     Value = Math.Round(totalPercent * 100, 2),
@@ -195,17 +204,17 @@ public class StatisticsController : ControllerBase
                 };
                 items.Add(workForceUtilization);
 
-                var averagePeriodLoad = await _dataManager.GetDepartmentAverageTotalLoadCoveredInPeriodAsync(period.Id, departmentId);
-                var periodTimeFund = period.TimeFund;
-                var percent = averagePeriodLoad / periodTimeFund;
-                var state = percent switch
+                double averagePeriodLoad = await _departmentsManager.GetDepartmentAverageTotalLoadCoveredInPeriodAsync(period.Id, departmentId);
+                double periodTimeFund = period.TimeFund;
+                double percent = averagePeriodLoad / periodTimeFund;
+                StatisticState state = percent switch
                 {
                     double i when i < 0.6 => StatisticState.TooLow,
                     double i when i is < 0.8 and >= 0.6 => StatisticState.Low,
                     double i when i is <= 1 and >= 0.8 => StatisticState.Ok,
                     _ => StatisticState.TooHigh
                 };
-                var description = state switch
+                string description = state switch
                 {
                     StatisticState.TooLow => "La fuerza de trabajo esta altamente desaprovechada",
                     StatisticState.Low => "La fuerza de trabajo esta desaprovechada",
@@ -214,7 +223,7 @@ public class StatisticsController : ControllerBase
                     StatisticState.TooHigh => "Existe sobrecarga de la fuerza de trabajo",
                     _ => "Carga del departamento referente al período."
                 };
-                var periodLoadStat = new StatisticItemDto
+                StatisticItemDto periodLoadStat = new()
                 {
                     Name = $"Carga promedio del período {period}",
                     Value = averagePeriodLoad,
@@ -237,12 +246,12 @@ public class StatisticsController : ControllerBase
     [Route("weekbirthdaysfordepartment")]
     public async Task<IActionResult> GetBirthdayTeachersForCurrentWeekAsync(Guid departmentId)
     {
-        var today = DateTime.Now;
-        var firstDayOfWeek = today.AddDays(((int)today.DayOfWeek - 1) * -1);
-        var lastDayOfWeek = today.AddDays(7 - (int)today.DayOfWeek);
-        var departmentTeachers = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
-        var birthdays = departmentTeachers.Where(teacher => teacher.Birthday?.Month >= firstDayOfWeek.Month && teacher.Birthday?.Month <= lastDayOfWeek.Month && teacher.Birthday?.Day >= firstDayOfWeek.Day && teacher.Birthday?.Day <= lastDayOfWeek.Day);
-        var dtos = birthdays.Select(_mapper.Map<BirthdayTeacherDto>);
+        DateTime today = DateTime.Now;
+        DateTime firstDayOfWeek = today.AddDays(((int)today.DayOfWeek - 1) * -1);
+        DateTime lastDayOfWeek = today.AddDays(7 - (int)today.DayOfWeek);
+        IList<TeacherModel> departmentTeachers = await _teachersManager.GetTeachersOfDepartmentAsync(departmentId);
+        IEnumerable<TeacherModel> birthdays = departmentTeachers.Where(teacher => teacher.Birthday?.Month >= firstDayOfWeek.Month && teacher.Birthday?.Month <= lastDayOfWeek.Month && teacher.Birthday?.Day >= firstDayOfWeek.Day && teacher.Birthday?.Day <= lastDayOfWeek.Day);
+        IEnumerable<BirthdayTeacherDto> dtos = birthdays.Select(_mapper.Map<BirthdayTeacherDto>);
         return Ok(dtos);
     }
 
@@ -250,12 +259,12 @@ public class StatisticsController : ControllerBase
     [Route("monthbirthdaysfordepartment")]
     public async Task<IActionResult> GetBirthdayTeachersForCurrentMonthAsync(Guid departmentId)
     {
-        var today = DateTime.Now;
-        var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
-        var lastDayOfMonth = new DateTime(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month));
-        var departmentTeachers = await _dataManager.GetTeachersOfDepartmentAsync(departmentId);
-        var birthdays = departmentTeachers.Where(teacher => teacher.Birthday?.Month >= firstDayOfMonth.Month && teacher.Birthday?.Month <= lastDayOfMonth.Month && teacher.Birthday?.Day >= firstDayOfMonth.Day && teacher.Birthday?.Day <= lastDayOfMonth.Day);
-        var dtos = birthdays.Select(_mapper.Map<BirthdayTeacherDto>).OrderBy(dtos => dtos.Birthday.Month).ThenBy(dto => dto.Birthday.Day);
+        DateTime today = DateTime.Now;
+        DateTime firstDayOfMonth = new(today.Year, today.Month, 1);
+        DateTime lastDayOfMonth = new(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month));
+        IList<TeacherModel> departmentTeachers = await _teachersManager.GetTeachersOfDepartmentAsync(departmentId);
+        IEnumerable<TeacherModel> birthdays = departmentTeachers.Where(teacher => teacher.Birthday?.Month >= firstDayOfMonth.Month && teacher.Birthday?.Month <= lastDayOfMonth.Month && teacher.Birthday?.Day >= firstDayOfMonth.Day && teacher.Birthday?.Day <= lastDayOfMonth.Day);
+        IOrderedEnumerable<BirthdayTeacherDto> dtos = birthdays.Select(_mapper.Map<BirthdayTeacherDto>).OrderBy(dtos => dtos.Birthday.Month).ThenBy(dto => dto.Birthday.Day);
         return Ok(dtos);
     }
 
@@ -263,27 +272,27 @@ public class StatisticsController : ControllerBase
     [Route("weekbirthdaysforscope")]
     public async Task<IActionResult> GetWeekBirthdayTeachersForScopeAsync(string scope, Guid scopeId)
     {
-        var today = DateTime.Now;
-        var firstDayOfWeek = today.AddDays(((int)today.DayOfWeek - 1) * -1);
-        var lastDayOfWeek = today.AddDays(7 - (int)today.DayOfWeek);
+        DateTime today = DateTime.Now;
+        DateTime firstDayOfWeek = today.AddDays(((int)today.DayOfWeek - 1) * -1);
+        DateTime lastDayOfWeek = today.AddDays(7 - (int)today.DayOfWeek);
         IList<TeacherModel> teachers;
         switch (scope)
         {
             case "department":
-                teachers = await _dataManager.GetTeachersOfDepartmentAsync(scopeId);
+                teachers = await _teachersManager.GetTeachersOfDepartmentAsync(scopeId);
                 break;
             case "faculty":
-                teachers = await _dataManager.GetTeachersOfFacultyAsync(scopeId);
+                teachers = await _teachersManager.GetTeachersOfFacultyAsync(scopeId);
                 break;
             case "global":
-                teachers = await _dataManager.GetTeachersAsync();
+                teachers = await _teachersManager.GetTeachersAsync();
                 break;
             default:
                 return BadRequest();
         }
 
-        var birthdays = teachers.Where(teacher => teacher.Birthday?.Month >= firstDayOfWeek.Month && teacher.Birthday?.Month <= lastDayOfWeek.Month && teacher.Birthday?.Day >= firstDayOfWeek.Day && teacher.Birthday?.Day <= lastDayOfWeek.Day);
-        var dtos = birthdays.Select(_mapper.Map<BirthdayTeacherDto>);
+        IEnumerable<TeacherModel> birthdays = teachers.Where(teacher => teacher.Birthday?.Month >= firstDayOfWeek.Month && teacher.Birthday?.Month <= lastDayOfWeek.Month && teacher.Birthday?.Day >= firstDayOfWeek.Day && teacher.Birthday?.Day <= lastDayOfWeek.Day);
+        IEnumerable<BirthdayTeacherDto> dtos = birthdays.Select(_mapper.Map<BirthdayTeacherDto>);
         return Ok(dtos);
     }
 
@@ -291,27 +300,27 @@ public class StatisticsController : ControllerBase
     [Route("monthbirthdaysforscope")]
     public async Task<IActionResult> GetMonthBirthdayTeachersForScopeAsync(string scope, Guid scopeId)
     {
-        var today = DateTime.Now;
-        var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
-        var lastDayOfMonth = new DateTime(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month));
+        DateTime today = DateTime.Now;
+        DateTime firstDayOfMonth = new(today.Year, today.Month, 1);
+        DateTime lastDayOfMonth = new(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month));
         IList<TeacherModel> teachers;
         switch (scope)
         {
             case "department":
-                teachers = await _dataManager.GetTeachersOfDepartmentAsync(scopeId);
+                teachers = await _teachersManager.GetTeachersOfDepartmentAsync(scopeId);
                 break;
             case "faculty":
-                teachers = await _dataManager.GetTeachersOfFacultyAsync(scopeId);
+                teachers = await _teachersManager.GetTeachersOfFacultyAsync(scopeId);
                 break;
             case "global":
-                teachers = await _dataManager.GetTeachersAsync();
+                teachers = await _teachersManager.GetTeachersAsync();
                 break;
             default:
                 return BadRequest();
         }
 
-        var birthdays = teachers.Where(teacher => teacher.Birthday?.Month >= firstDayOfMonth.Month && teacher.Birthday?.Month <= lastDayOfMonth.Month && teacher.Birthday?.Day >= firstDayOfMonth.Day && teacher.Birthday?.Day <= lastDayOfMonth.Day);
-        var dtos = birthdays.Select(_mapper.Map<BirthdayTeacherDto>).OrderBy(dtos => dtos.Birthday.Month).ThenBy(dto => dto.Birthday.Day);
+        IEnumerable<TeacherModel> birthdays = teachers.Where(teacher => teacher.Birthday?.Month >= firstDayOfMonth.Month && teacher.Birthday?.Month <= lastDayOfMonth.Month && teacher.Birthday?.Day >= firstDayOfMonth.Day && teacher.Birthday?.Day <= lastDayOfMonth.Day);
+        IOrderedEnumerable<BirthdayTeacherDto> dtos = birthdays.Select(_mapper.Map<BirthdayTeacherDto>).OrderBy(dtos => dtos.Birthday.Month).ThenBy(dto => dto.Birthday.Day);
         return Ok(dtos);
     }
 }

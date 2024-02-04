@@ -9,16 +9,10 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class CareerController : ControllerBase
+public class CareerController(ICareersManager dataManager, IMapper mapper) : ControllerBase
 {
-    private readonly IDataManager _dataManager;
-    private readonly IMapper _mapper;
-
-    public CareerController(IDataManager dataManager, IMapper mapper)
-    {
-        _dataManager = dataManager;
-        _mapper = mapper;
-    }
+    private readonly ICareersManager _dataManager = dataManager;
+    private readonly IMapper _mapper = mapper;
 
     [HttpPut]
     public async Task<IActionResult> CreateCareer(NewCareerDto career)
@@ -30,8 +24,8 @@ public class CareerController : ControllerBase
 
         try
         {
-            var model = _mapper.Map<CareerModel>(career);
-            var result = await _dataManager.CreateCareerAsync(model);
+            CareerModel model = _mapper.Map<CareerModel>(career);
+            bool result = await _dataManager.CreateCareerAsync(model);
             return result ? Ok(result) : Problem("Error while adding career to database.");
         }
         catch (Exception ex)
@@ -50,8 +44,8 @@ public class CareerController : ControllerBase
 
         try
         {
-            var career = await _dataManager.GetCareerAsync(id);
-            var dto = _mapper.Map<CareerDto>(career);
+            CareerModel career = await _dataManager.GetCareerAsync(id);
+            CareerDto dto = _mapper.Map<CareerDto>(career);
             return Ok(dto);
         }
         catch (CareerNotFoundException)
@@ -75,8 +69,8 @@ public class CareerController : ControllerBase
 
         try
         {
-            var careers = await _dataManager.GetCareersAsync(facultyId);
-            var dtos = careers.Select(_mapper.Map<CareerDto>).ToList();
+            IList<CareerModel> careers = await _dataManager.GetCareersAsync(facultyId);
+            List<CareerDto> dtos = careers.Select(_mapper.Map<CareerDto>).ToList();
             return Ok(dtos);
         }
         catch (FacultyNotFoundException)
@@ -100,8 +94,8 @@ public class CareerController : ControllerBase
 
         try
         {
-            var careers = await _dataManager.GetCareersForDepartmentAsync(departmentId);
-            var dtos = careers.Select(_mapper.Map<CareerDto>).ToList();
+            IList<CareerModel> careers = await _dataManager.GetCareersForDepartmentAsync(departmentId);
+            List<CareerDto> dtos = careers.Select(_mapper.Map<CareerDto>).ToList();
             return Ok(dtos);
         }
         catch (DepartmentNotFoundException)
@@ -120,7 +114,7 @@ public class CareerController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.ExistsCareerAsync(id);
+            bool result = await _dataManager.ExistsCareerAsync(id);
             return Ok(result);
         }
         catch (Exception ex)
@@ -135,8 +129,8 @@ public class CareerController : ControllerBase
     {
         try
         {
-            var careers = await _dataManager.GetCareersAsync(from, to);
-            var dtos = careers.Select(_mapper.Map<CareerDto>).ToList();
+            IList<CareerModel> careers = await _dataManager.GetCareersAsync(from, to);
+            List<CareerDto> dtos = careers.Select(_mapper.Map<CareerDto>).ToList();
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -151,7 +145,7 @@ public class CareerController : ControllerBase
     {
         try
         {
-            var count = await _dataManager.GetCareersCountAsync();
+            int count = await _dataManager.GetCareersCountAsync();
             return Ok(count);
         }
         catch (Exception ex)
@@ -171,8 +165,8 @@ public class CareerController : ControllerBase
 
         try
         {
-            var model = _mapper.Map<CareerModel>(career);
-            var result = await _dataManager.UpdateCareerAsync(model);
+            CareerModel model = _mapper.Map<CareerModel>(career);
+            bool result = await _dataManager.UpdateCareerAsync(model);
             return result ? Ok(result) : Problem("Error while adding career to database.");
         }
         catch (FacultyNotFoundException)
@@ -195,7 +189,7 @@ public class CareerController : ControllerBase
 
         try
         {
-            var result = await _dataManager.DeleteCareerAsync(id);
+            bool result = await _dataManager.DeleteCareerAsync(id);
             return result ? Ok(result) : Problem("Error while deleting department from database.");
         }
         catch (CareerNotFoundException)

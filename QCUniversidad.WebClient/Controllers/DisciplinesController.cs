@@ -41,20 +41,20 @@ public class DisciplinesController : Controller
         try
         {
             _logger.LogInformation($"Loading total disciplines count.");
-            var total = await _dataProvider.GetDisciplinesCountAsync();
+            int total = await _dataProvider.GetDisciplinesCountAsync();
             _logger.LogInformation("Exists {0} diciplines in total.", total);
-            var pageIndex = page - 1 < 0 ? 0 : page - 1;
-            var startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
+            int pageIndex = page - 1 < 0 ? 0 : page - 1;
+            int startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
             if (startingItemIndex < 0 || startingItemIndex >= total)
             {
                 startingItemIndex = 0;
             }
 
             _logger.LogInformation($"Loading disciplines starting in {startingItemIndex} and taking {_navigationSettings.ItemsPerPage}.");
-            var disciplines = await _dataProvider.GetDisciplinesAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
+            IList<DisciplineModel> disciplines = await _dataProvider.GetDisciplinesAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             _logger.LogInformation($"Loaded {disciplines.Count} disciplines.");
-            var totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
-            var viewModel = new NavigationListViewModel<DisciplineModel>
+            int totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
+            NavigationListViewModel<DisciplineModel> viewModel = new()
             {
                 Items = disciplines,
                 CurrentPage = pageIndex + 1,
@@ -82,8 +82,8 @@ public class DisciplinesController : Controller
 
         try
         {
-            var discipline = await _dataProvider.GetDisciplineAsync(id);
-            var schoolYear = await _dataProvider.GetCurrentSchoolYear();
+            DisciplineModel discipline = await _dataProvider.GetDisciplineAsync(id);
+            Models.SchoolYears.SchoolYearModel schoolYear = await _dataProvider.GetCurrentSchoolYear();
             ViewData["schoolYear"] = schoolYear;
             return View(discipline);
         }
@@ -105,7 +105,7 @@ public class DisciplinesController : Controller
 
         try
         {
-            var subjects = await _dataProvider.GetSubjectsForDisciplineAsync(disciplineId);
+            IList<Models.Subjects.SubjectModel> subjects = await _dataProvider.GetSubjectsForDisciplineAsync(disciplineId);
             return PartialView("_DisciplineSubjects", subjects);
         }
         catch (Exception ex)
@@ -119,7 +119,7 @@ public class DisciplinesController : Controller
     [HttpGet]
     public async Task<IActionResult> ImportAsync()
     {
-        var departments = await _dataProvider.GetDepartmentsAsync();
+        IList<DepartmentModel> departments = await _dataProvider.GetDepartmentsAsync();
         ViewData["departments-list"] = departments;
         return View();
     }
@@ -129,17 +129,17 @@ public class DisciplinesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ImportAsync(IFormFile formFile, Guid selectedDepartment)
     {
-        var fileStream = formFile.OpenReadStream();
-        var parsedModels = await GetParsedModelsAsync(fileStream);
+        Stream fileStream = formFile.OpenReadStream();
+        IList<DisciplineModel> parsedModels = await GetParsedModelsAsync(fileStream);
         if (!parsedModels.Any())
         {
             TempData["importing-error"] = "No se ha podido importar ninguna disciplina.";
         }
 
-        var created = 0;
-        var updated = 0;
-        var failed = 0;
-        foreach (var newDiscipline in parsedModels.Where(t => t.ImportAction == DisciplineImportAction.Create))
+        int created = 0;
+        int updated = 0;
+        int failed = 0;
+        foreach (DisciplineModel? newDiscipline in parsedModels.Where(t => t.ImportAction == DisciplineImportAction.Create))
         {
             try
             {
@@ -153,11 +153,11 @@ public class DisciplinesController : Controller
             }
         }
 
-        foreach (var disciplineToUpdate in parsedModels.Where(t => t.ImportAction == DisciplineImportAction.Update))
+        foreach (DisciplineModel? disciplineToUpdate in parsedModels.Where(t => t.ImportAction == DisciplineImportAction.Update))
         {
             try
             {
-                var discipline = await _dataProvider.GetDisciplineAsync(disciplineToUpdate.Name);
+                DisciplineModel discipline = await _dataProvider.GetDisciplineAsync(disciplineToUpdate.Name);
                 discipline.Description = disciplineToUpdate.Description;
                 _ = await _dataProvider.UpdateDisciplineAsync(discipline);
             }
@@ -175,18 +175,18 @@ public class DisciplinesController : Controller
     [HttpPost]
     public async Task<IActionResult> ImportFilePreviewAsync(IFormFile formFile)
     {
-        var fileStream = formFile.OpenReadStream();
-        var parsedModels = await GetParsedModelsAsync(fileStream);
+        Stream fileStream = formFile.OpenReadStream();
+        IList<DisciplineModel> parsedModels = await GetParsedModelsAsync(fileStream);
         return Json(parsedModels);
     }
 
     private async Task<IList<DisciplineModel>> GetParsedModelsAsync(Stream fileStream)
     {
-        var parsedModels = await _excelParser.ParseExcelAsync(fileStream);
-        foreach (var parsedModel in parsedModels)
+        IList<DisciplineModel> parsedModels = await _excelParser.ParseExcelAsync(fileStream);
+        foreach (DisciplineModel parsedModel in parsedModels)
         {
-            var exists = await _dataProvider.ExistsDisciplineAsync(parsedModel.Name);
-            var action = exists ? DisciplineImportAction.Update : DisciplineImportAction.Create;
+            bool exists = await _dataProvider.ExistsDisciplineAsync(parsedModel.Name);
+            DisciplineImportAction action = exists ? DisciplineImportAction.Update : DisciplineImportAction.Create;
             parsedModel.ImportAction = action;
         }
 
@@ -200,7 +200,7 @@ public class DisciplinesController : Controller
             return NotFound("The template file is missing!");
         }
 
-        var templateBytes = await System.IO.File.ReadAllBytesAsync("templates/disciplines_import.xlsx");
+        byte[] templateBytes = await System.IO.File.ReadAllBytesAsync("templates/disciplines_import.xlsx");
         return File(templateBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "QCU Plantilla para importar disciplinas.xlsx");
     }
 
@@ -211,7 +211,7 @@ public class DisciplinesController : Controller
         _logger.LogRequest(HttpContext);
         try
         {
-            var model = new CreateDisciplineModel { Name = "" };
+            CreateDisciplineModel model = new() { Name = "" };
             await LoadDepartmentsIntoViewModel(model);
             _logger.LogInformation("Returning view with {0} departments list.", model.Departments.Count);
             return View(model);
@@ -234,7 +234,7 @@ public class DisciplinesController : Controller
             _logger.LogCheckModelExistence<DisciplinesController, DepartmentModel>(HttpContext, nameof(DepartmentModel), model.DepartmentId.ToString());
             if (await _dataProvider.ExistsDepartmentAsync(model.DepartmentId))
             {
-                var result = await _dataProvider.CreateDisciplineAsync(model);
+                bool result = await _dataProvider.CreateDisciplineAsync(model);
                 if (result)
                 {
                     _logger.LogInformation($"Added discipline {model.Name} successfully.");
@@ -260,7 +260,7 @@ public class DisciplinesController : Controller
     private async Task LoadDepartmentsIntoViewModel(CreateDisciplineModel viewModel)
     {
         _logger.LogInformation("Loading list of departments");
-        var departments = await _dataProvider.GetDepartmentsAsync();
+        IList<DepartmentModel> departments = await _dataProvider.GetDepartmentsAsync();
         _logger.LogInformation("Loaded {0} departments.", departments.Count);
         viewModel.Departments = departments;
     }
@@ -273,9 +273,9 @@ public class DisciplinesController : Controller
         try
         {
             _logger.LogInformation($"Requested info for discipline with id {id}");
-            var discipline = await _dataProvider.GetDisciplineAsync(id);
+            DisciplineModel discipline = await _dataProvider.GetDisciplineAsync(id);
             _logger.LogInformation($"Loaded info for discipline {discipline.Name}");
-            var viewmodel = _mapper.Map<EditDisciplineModel>(discipline);
+            EditDisciplineModel viewmodel = _mapper.Map<EditDisciplineModel>(discipline);
             _logger.LogInformation("Returning view with discipline {0}.", viewmodel.Name);
             return View(viewmodel);
         }
@@ -294,10 +294,10 @@ public class DisciplinesController : Controller
         _logger.LogInformation($"Requested {HttpContext.Request.Path} - {HttpContext.Request.Method}");
         if (ModelState.IsValid)
         {
-            var datamodel = _mapper.Map<DisciplineModel>(model);
+            DisciplineModel datamodel = _mapper.Map<DisciplineModel>(model);
             try
             {
-                var result = await _dataProvider.UpdateDisciplineAsync(datamodel);
+                bool result = await _dataProvider.UpdateDisciplineAsync(datamodel);
                 if (result)
                 {
                     _logger.LogInformation($"Updated discipline {model.Name} successfully.");
@@ -331,7 +331,7 @@ public class DisciplinesController : Controller
             {
                 _logger.LogInformation($"The discipline with id {id} exists.");
                 _logger.LogInformation($"Requesting delete the discipline with id {id}.");
-                var result = await _dataProvider.DeleteDisciplineAsync(id);
+                bool result = await _dataProvider.DeleteDisciplineAsync(id);
                 if (result)
                 {
                     _logger.LogInformation($"The discipline with id {id} was eliminated successfully.");

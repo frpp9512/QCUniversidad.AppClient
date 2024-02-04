@@ -5,7 +5,7 @@ public static class ExcelParserExtensions
     public static IServiceCollection AddExcelParser<T>(this IServiceCollection services, Action<ExcelParserConfigurator<T>> config)
         where T : class, new()
     {
-        var configurator = new ExcelParserConfigurator<T>();
+        ExcelParserConfigurator<T> configurator = new();
         config(configurator);
         ArgumentNullException.ThrowIfNull(configurator.Worksheet, nameof(configurator.Worksheet));
         ArgumentNullException.ThrowIfNull(configurator.TableName, nameof(configurator.TableName));

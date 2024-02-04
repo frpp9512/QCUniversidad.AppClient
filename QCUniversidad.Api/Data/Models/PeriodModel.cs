@@ -60,5 +60,8 @@ public record PeriodModel
     /// </summary>
     public required IList<PeriodSubjectModel> PeriodSubjects { get; set; }
 
-    public override string ToString() => $"{Starts:dd-MM-yyyy} - {Ends:dd-MM-yyyy}";
+    public override string ToString()
+    {
+        return $"{Starts:dd-MM-yyyy} - {Ends:dd-MM-yyyy}";
+    }
 }

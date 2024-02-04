@@ -8,15 +8,21 @@ namespace QCUniversidad.Api.Migrations;
 public partial class AddedNotLoadGeneratorToPlanItem2 : Migration
 {
     /// <inheritdoc />
-    protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.AddColumn<bool>(
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.AddColumn<bool>(
             name: "IsNotLoadGenerator",
             table: "TeachingPlanItems",
             type: "boolean",
             nullable: false,
             defaultValue: false);
+    }
 
     /// <inheritdoc />
-    protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropColumn(
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.DropColumn(
             name: "IsNotLoadGenerator",
             table: "TeachingPlanItems");
+    }
 }

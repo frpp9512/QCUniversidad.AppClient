@@ -1,29 +1,17 @@
-﻿using IdentityModel.Client;
-using Microsoft.Extensions.Options;
-using QCUniversidad.WebClient.Models.Configuration;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 
 namespace QCUniversidad.WebClient.Services.Platform;
 
 public class TokenManager : ITokenManager
 {
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IdentityServerConfiguration _configuration;
-
-    public TokenManager(IHttpClientFactory httpClientFactory, IOptions<IdentityServerConfiguration> options)
-    {
-        _httpClientFactory = httpClientFactory;
-        _configuration = options.Value;
-    }
-
-    public string AccessToken { get; private set; }
+    public string? AccessToken { get; private set; }
 
     public bool IsAccessTokenSetted { get; private set; }
 
-    public string RefreshToken { get; private set; }
+    public string? RefreshToken { get; private set; }
 
-    public string IdentityToken { get; private set; }
+    public string? IdentityToken { get; private set; }
 
     public DateTimeOffset Expires { get; private set; }
 
@@ -37,41 +25,26 @@ public class TokenManager : ITokenManager
 
     private void UpdateExpiration(string token)
     {
-        var payloadEncoded = token.Split('.')[1];
-        var payload = Encoding.ASCII.GetString(Convert.FromBase64String(payloadEncoded));
-        var match = Regex.Match(payload, @"\""exp\"":(?<exp>\d+)");
-        var timeStamp = int.Parse(match.Groups["exp"].Value);
-        var expires = new DateTime(1970, 1, 1).AddSeconds(timeStamp);
+        string payloadEncoded = token.Split('.')[1];
+        string payload = Encoding.ASCII.GetString(Convert.FromBase64String(payloadEncoded));
+        Match match = Regex.Match(payload, @"\""exp\"":(?<exp>\d+)");
+        int timeStamp = int.Parse(match.Groups["exp"].Value);
+        DateTime expires = new DateTime(1970, 1, 1).AddSeconds(timeStamp);
         Expires = expires;
     }
 
-    public void SetRefreshToken(string refresh_token) => RefreshToken = refresh_token;
-
-    public void SetIdentityToken(string identity_token) => IdentityToken = identity_token;
-
-    public async Task RefreshTokensAsync()
+    public void SetRefreshToken(string refresh_token)
     {
-        var serverClient = _httpClientFactory.CreateClient();
+        RefreshToken = refresh_token;
+    }
 
-        var discoveryDocument = await serverClient.GetDiscoveryDocumentAsync(_configuration.Address);
-        var tokenReponse = await serverClient.RequestClientCredentialsTokenAsync(
-            new ClientCredentialsTokenRequest
-            {
-                Address = discoveryDocument.TokenEndpoint,
-                ClientId = _configuration.ClientId,
-                ClientSecret = _configuration.Secret,
-                Scope = _configuration.Scope
-            });
-        if (tokenReponse.HttpResponse?.IsSuccessStatusCode == true)
-        {
-            AccessToken = tokenReponse.AccessToken;
-            RefreshToken = tokenReponse.RefreshToken;
-            IdentityToken = tokenReponse.IdentityToken;
-            Expires = DateTime.UtcNow.AddSeconds(tokenReponse.ExpiresIn);
-        }
-        else
-        {
-            throw new HttpRequestException($"{tokenReponse.Error} - {tokenReponse.ErrorType} - {tokenReponse.ErrorDescription} - {tokenReponse.HttpErrorReason}");
-        }
+    public void SetIdentityToken(string identity_token)
+    {
+        IdentityToken = identity_token;
+    }
+
+    public Task RefreshTokensAsync()
+    {
+        return Task.CompletedTask;
     }
 }

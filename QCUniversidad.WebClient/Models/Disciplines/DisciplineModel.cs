@@ -9,7 +9,7 @@ public record DisciplineModel
 
     [Required]
     [Display(Name = "Nombre", Prompt = "Nombre de la disciplina", Description = "El nombre de la disciplina")]
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     [Display(Name = "Disciplina", Prompt = "Descripción de la disciplina", Description = "La descripción de la disciplina")]
     public string? Description { get; set; }

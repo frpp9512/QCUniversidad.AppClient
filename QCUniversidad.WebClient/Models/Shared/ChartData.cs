@@ -10,11 +10,11 @@ public static class ModelListCharter
 {
     private static string GetTypeName<T>()
     {
-        var typeName = typeof(T).Name;
-        var classDisplayAttr = typeof(T).GetCustomAttribute(typeof(DisplayAttribute));
+        string typeName = typeof(T).Name;
+        Attribute? classDisplayAttr = typeof(T).GetCustomAttribute(typeof(DisplayAttribute));
         if (classDisplayAttr is not null)
         {
-            var cDisplayAttr = classDisplayAttr as DisplayAttribute;
+            DisplayAttribute? cDisplayAttr = classDisplayAttr as DisplayAttribute;
             if (!string.IsNullOrEmpty(cDisplayAttr.Name))
             {
                 typeName = cDisplayAttr.Name;
@@ -28,12 +28,12 @@ public static class ModelListCharter
     {
         if (expression.Body.NodeType == ExpressionType.MemberAccess)
         {
-            var member = (MemberExpression)expression.Body;
-            var name = member.Member.Name;
-            var propDisplayAttr = member.Member.GetCustomAttribute(typeof(DisplayAttribute));
+            MemberExpression member = (MemberExpression)expression.Body;
+            string name = member.Member.Name;
+            Attribute? propDisplayAttr = member.Member.GetCustomAttribute(typeof(DisplayAttribute));
             if (propDisplayAttr is not null)
             {
-                var pDisplayAttr = propDisplayAttr as DisplayAttribute;
+                DisplayAttribute? pDisplayAttr = propDisplayAttr as DisplayAttribute;
                 if (!string.IsNullOrEmpty(pDisplayAttr.Name))
                 {
                     name = pDisplayAttr.Name;
@@ -96,10 +96,10 @@ public static class ModelListCharter
                                               Color? borderColor = null,
                                               Color? backgroundColor = null)
     {
-        var typeName = GetTypeName<T>();
-        var label = GetExpressionMemberName(valueSelector) ?? typeName;
+        string typeName = GetTypeName<T>();
+        string label = GetExpressionMemberName(valueSelector) ?? typeName;
 
-        var currentColor = 0;
+        int currentColor = 0;
         (Color, Color) nextColor()
         {
             currentColor++;
@@ -111,7 +111,7 @@ public static class ModelListCharter
             return (BackColors[currentColor], BorderColors[currentColor]);
         }
 
-        var data = new ChartData
+        ChartData data = new()
         {
             Labels = modelList.Select(m => labelSelector.Compile().Invoke(m)).ToArray(),
             DataSets = new[] {
@@ -127,7 +127,7 @@ public static class ModelListCharter
                     Tension = tension,
                     DataValues = modelList.Select(m =>
                     {
-                        var (backcolor, bordercolor) = nextColor();
+                        (Color backcolor, Color bordercolor) = nextColor();
                         return new ChartDataValue
                         {
                             Value = valueSelector.Compile().Invoke(m),
@@ -140,7 +140,7 @@ public static class ModelListCharter
             }
         };
 
-        var chartModel = new ChartModel
+        ChartModel chartModel = new()
         {
             Type = chartType,
             LegendPosition = legendPosition,
@@ -184,12 +184,12 @@ public static class ModelListCharter
                                                  bool fill = false,
                                                  double tension = 0)
     {
-        var typeName1 = GetTypeName<T>();
-        var typeName2 = GetTypeName<U>();
-        var label1 = GetExpressionMemberName(valueSelector1) ?? typeName1;
-        var label2 = GetExpressionMemberName(valueSelector2) ?? typeName2;
+        string typeName1 = GetTypeName<T>();
+        string typeName2 = GetTypeName<U>();
+        string label1 = GetExpressionMemberName(valueSelector1) ?? typeName1;
+        string label2 = GetExpressionMemberName(valueSelector2) ?? typeName2;
 
-        var currentColor = 0;
+        int currentColor = 0;
         (Color, Color) nextColor()
         {
             currentColor++;
@@ -201,7 +201,7 @@ public static class ModelListCharter
             return (BackColors[currentColor], BorderColors[currentColor]);
         }
 
-        var data = new ChartData
+        ChartData data = new()
         {
             Labels = labels,
             DataSets = new[] {
@@ -217,7 +217,7 @@ public static class ModelListCharter
                     Tension = tension,
                     DataValues = modelList1.Select(m =>
                     {
-                        var (backcolor, borderColor) = nextColor();
+                        (Color backcolor, Color borderColor) = nextColor();
                         return new ChartDataValue
                         {
                             Value = valueSelector1.Compile().Invoke(m),
@@ -238,7 +238,7 @@ public static class ModelListCharter
                     Fill = fill,
                     DataValues = modelList2.Select(m =>
                     {
-                        var (backcolor, borderColor) = nextColor();
+                        (Color backcolor, Color borderColor) = nextColor();
                         return new ChartDataValue
                         {
                             Value = valueSelector2.Compile().Invoke(m),
@@ -251,7 +251,7 @@ public static class ModelListCharter
             }
         };
 
-        var chartModel = new ChartModel
+        ChartModel chartModel = new()
         {
             Type = chartType,
             LegendPosition = legendPosition ?? ChartLegendPosition.Top,
@@ -328,7 +328,10 @@ public record ChartModel
         return dataObject;
     }
 
-    public string GetDataJson() => JsonConvert.SerializeObject(GetDataObject());
+    public string GetDataJson()
+    {
+        return JsonConvert.SerializeObject(GetDataObject());
+    }
 
     public object GetConfigObject()
     {
@@ -410,11 +413,14 @@ public record ChartModel
         return configObject;
     }
 
-    public string GetConfigJson() => JsonConvert.SerializeObject(GetConfigObject());
+    public string GetConfigJson()
+    {
+        return JsonConvert.SerializeObject(GetConfigObject());
+    }
 
     public string GetJson()
     {
-        var configObj = GetConfigObject();
+        object configObj = GetConfigObject();
         return JsonConvert.SerializeObject(new
         {
             config = configObj,

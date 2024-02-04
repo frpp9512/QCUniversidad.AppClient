@@ -8,72 +8,72 @@ public static class EnumExtensions
 {
     public static string GetPlanItemTypeDisplayValue(this TeachingActivityType type)
     {
-        var enumType = type.GetType();
-        var member = enumType.GetMember(type.ToString());
-        var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
-        var attributes = enumMember?.GetCustomAttributes(typeof(DisplayAttribute), false);
-        var display = attributes.Any() ? ((DisplayAttribute)attributes.First()).GetName() : type.ToString();
+        Type enumType = type.GetType();
+        System.Reflection.MemberInfo[] member = enumType.GetMember(type.ToString());
+        System.Reflection.MemberInfo? enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
+        object[]? attributes = enumMember?.GetCustomAttributes(typeof(DisplayAttribute), false);
+        string? display = attributes.Any() ? ((DisplayAttribute)attributes.First()).GetName() : type.ToString();
         return display;
     }
 
     public static string GetEnumDisplayNameValue<T>(this T enumValue) where T : Enum
     {
-        var enumType = enumValue.GetType();
-        var member = enumType.GetMember(enumValue.ToString());
-        var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
-        var attributes = enumMember.GetCustomAttributes(typeof(DisplayAttribute), false);
-        var display = attributes.Any() ? ((DisplayAttribute)attributes.First()).GetName() : enumValue.ToString();
+        Type enumType = enumValue.GetType();
+        System.Reflection.MemberInfo[] member = enumType.GetMember(enumValue.ToString());
+        System.Reflection.MemberInfo? enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
+        object[] attributes = enumMember.GetCustomAttributes(typeof(DisplayAttribute), false);
+        string? display = attributes.Any() ? ((DisplayAttribute)attributes.First()).GetName() : enumValue.ToString();
         return display;
     }
 
     public static string GetEnumDisplayDescriptionValue<T>(this T enumValue) where T : Enum
     {
-        var enumType = enumValue.GetType();
-        var member = enumType.GetMember(enumValue.ToString());
-        var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
-        var attributes = enumMember.GetCustomAttributes(typeof(DisplayAttribute), false);
-        var display = attributes.Any() ? ((DisplayAttribute)attributes.First()).GetDescription() : enumValue.ToString();
+        Type enumType = enumValue.GetType();
+        System.Reflection.MemberInfo[] member = enumType.GetMember(enumValue.ToString());
+        System.Reflection.MemberInfo? enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
+        object[] attributes = enumMember.GetCustomAttributes(typeof(DisplayAttribute), false);
+        string? display = attributes.Any() ? ((DisplayAttribute)attributes.First()).GetDescription() : enumValue.ToString();
         return display;
     }
 
     public static int GetEnumDisplayOrderValue<T>(this T enumValue) where T : Enum
     {
-        var enumType = enumValue.GetType();
-        var member = enumType.GetMember(enumValue.ToString());
-        var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
-        var attributes = enumMember.GetCustomAttributes(typeof(DisplayAttribute), false);
-        var order = attributes.Any() ? ((DisplayAttribute)attributes.First()).GetOrder() : 0;
+        Type enumType = enumValue.GetType();
+        System.Reflection.MemberInfo[] member = enumType.GetMember(enumValue.ToString());
+        System.Reflection.MemberInfo? enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
+        object[] attributes = enumMember.GetCustomAttributes(typeof(DisplayAttribute), false);
+        int? order = attributes.Any() ? ((DisplayAttribute)attributes.First()).GetOrder() : 0;
         return order ?? 0;
     }
 
     public static bool GetEnumDisplayAutogenerateValue<T>(this T enumValue) where T : Enum
     {
-        var enumType = enumValue.GetType();
-        var member = enumType.GetMember(enumValue.ToString());
-        var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
-        var attributes = enumMember?.GetCustomAttributes(typeof(DisplayAttribute), false);
-        var display = attributes.Any() && ((DisplayAttribute)attributes.First()).GetAutoGenerateField() == true;
+        Type enumType = enumValue.GetType();
+        System.Reflection.MemberInfo[] member = enumType.GetMember(enumValue.ToString());
+        System.Reflection.MemberInfo? enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
+        object[]? attributes = enumMember?.GetCustomAttributes(typeof(DisplayAttribute), false);
+        bool display = attributes.Any() && ((DisplayAttribute)attributes.First()).GetAutoGenerateField() == true;
         return display;
     }
 
     public static bool IsRecalculable<T>(this T enumValue) where T : Enum
     {
-        var enumType = enumValue.GetType();
-        var member = enumType.GetMember(enumValue.ToString());
-        var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
-        var attributes = enumMember?.GetCustomAttributes(typeof(RecalculateAttribute), false);
+        Type enumType = enumValue.GetType();
+        System.Reflection.MemberInfo[] member = enumType.GetMember(enumValue.ToString());
+        System.Reflection.MemberInfo? enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
+        object[]? attributes = enumMember?.GetCustomAttributes(typeof(RecalculateAttribute), false);
         return attributes.Any();
     }
 
     public static string? GetNonTeachingLoadCategory(this NonTeachingLoadType loadType)
     {
-        var enumType = loadType.GetType();
-        var member = enumType.GetMember(loadType.ToString());
-        var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
-        var attributes = enumMember?.GetCustomAttributes(typeof(LoadCategoryAttribute), false);
+        Type enumType = loadType.GetType();
+        System.Reflection.MemberInfo[] member = enumType.GetMember(loadType.ToString());
+        System.Reflection.MemberInfo? enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
+        object[]? attributes = enumMember?.GetCustomAttributes(typeof(LoadCategoryAttribute), false);
         if (attributes?.Any() is true)
         {
-            var value = ((LoadCategoryAttribute)attributes.First()).Category;
+            string value = ((LoadCategoryAttribute)attributes.First()).Category;
             return value;
         }
 
@@ -82,13 +82,13 @@ public static class EnumExtensions
 
     public static string? GetNonTeachingLoadCategoryPromtName(this NonTeachingLoadType loadType)
     {
-        var enumType = loadType.GetType();
-        var member = enumType.GetMember(loadType.ToString());
-        var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
-        var attributes = enumMember?.GetCustomAttributes(typeof(LoadCategoryAttribute), false);
+        Type enumType = loadType.GetType();
+        System.Reflection.MemberInfo[] member = enumType.GetMember(loadType.ToString());
+        System.Reflection.MemberInfo? enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
+        object[]? attributes = enumMember?.GetCustomAttributes(typeof(LoadCategoryAttribute), false);
         if (attributes?.Any() is true)
         {
-            var value = ((LoadCategoryAttribute)attributes.First()).PromtName;
+            string? value = ((LoadCategoryAttribute)attributes.First()).PromptName;
             return value;
         }
 
@@ -97,13 +97,13 @@ public static class EnumExtensions
 
     public static string? GetNonTeachingLoadCategoryDescription(this NonTeachingLoadType loadType)
     {
-        var enumType = loadType.GetType();
-        var member = enumType.GetMember(loadType.ToString());
-        var enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
-        var attributes = enumMember?.GetCustomAttributes(typeof(LoadCategoryAttribute), false);
+        Type enumType = loadType.GetType();
+        System.Reflection.MemberInfo[] member = enumType.GetMember(loadType.ToString());
+        System.Reflection.MemberInfo? enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
+        object[]? attributes = enumMember?.GetCustomAttributes(typeof(LoadCategoryAttribute), false);
         if (attributes?.Any() is true)
         {
-            var value = ((LoadCategoryAttribute)attributes.First()).Description;
+            string? value = ((LoadCategoryAttribute)attributes.First()).Description;
             return value;
         }
 
@@ -111,14 +111,22 @@ public static class EnumExtensions
     }
 
     public static bool IsResearchLoad(this NonTeachingLoadType loadType)
-        => GetNonTeachingLoadCategory(loadType) == "Research";
+    {
+        return GetNonTeachingLoadCategory(loadType) == "Research";
+    }
 
     public static bool IsOthersLoad(this NonTeachingLoadType loadType)
-        => GetNonTeachingLoadCategory(loadType) == "Others";
+    {
+        return GetNonTeachingLoadCategory(loadType) == "Others";
+    }
 
     public static bool IsUniversityExtensionLoad(this NonTeachingLoadType loadType)
-        => GetNonTeachingLoadCategory(loadType) == "UniversityExtension";
+    {
+        return GetNonTeachingLoadCategory(loadType) == "UniversityExtension";
+    }
 
     public static bool IsFormationLoad(this NonTeachingLoadType loadType)
-        => GetNonTeachingLoadCategory(loadType) == "Formation";
+    {
+        return GetNonTeachingLoadCategory(loadType) == "Formation";
+    }
 }

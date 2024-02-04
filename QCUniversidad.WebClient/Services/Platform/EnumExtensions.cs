@@ -5,7 +5,8 @@ namespace QCUniversidad.WebClient.Services.Platform;
 public static class EnumExtensions
 {
     public static string GetLabel(this TeachingModality modality)
-        => modality switch
+    {
+        return modality switch
         {
             TeachingModality.Classroom => "Diurno",
             TeachingModality.ByMeeting => "Por encuentro",
@@ -15,4 +16,5 @@ public static class EnumExtensions
             //TeachingModality.PhDDegree => "Doctorado",
             _ => "No reconocido"
         };
+    }
 }

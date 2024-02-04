@@ -35,15 +35,15 @@ public record TeacherModel
         {
             if (!string.IsNullOrEmpty(PersonalId))
             {
-                var currentYearSection = DateTime.Now.Year.ToString().Substring(2, 2);
-                var yearSection = PersonalId[..2];
-                var monthSection = PersonalId.Substring(2, 2);
-                var daySection = PersonalId.Substring(4, 2);
-                var currentYearSectionValue = int.Parse(currentYearSection);
-                var yearSectionValue = int.Parse(yearSection);
-                var birthDayYear = currentYearSectionValue < yearSectionValue ? int.Parse($"19{yearSectionValue}") : int.Parse($"20{yearSectionValue}");
-                var monthSectionValue = int.Parse(monthSection);
-                var daySectionValue = int.Parse(daySection);
+                string currentYearSection = DateTime.Now.Year.ToString().Substring(2, 2);
+                string yearSection = PersonalId[..2];
+                string monthSection = PersonalId.Substring(2, 2);
+                string daySection = PersonalId.Substring(4, 2);
+                int currentYearSectionValue = int.Parse(currentYearSection);
+                int yearSectionValue = int.Parse(yearSection);
+                int birthDayYear = currentYearSectionValue < yearSectionValue ? int.Parse($"19{yearSectionValue}") : int.Parse($"20{yearSectionValue}");
+                int monthSectionValue = int.Parse(monthSection);
+                int daySectionValue = int.Parse(daySection);
                 return new DateTime(birthDayYear, monthSectionValue, daySectionValue);
             }
 
@@ -61,8 +61,8 @@ public record TeacherModel
         {
             if (Birthday is not null)
             {
-                var diff = DateTime.Now - Birthday.Value;
-                var years = diff.TotalDays / 365;
+                TimeSpan diff = DateTime.Now - Birthday.Value;
+                double years = diff.TotalDays / 365;
                 return (int)years;
             }
 

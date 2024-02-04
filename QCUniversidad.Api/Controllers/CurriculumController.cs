@@ -10,22 +10,16 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class CurriculumController : ControllerBase
+public class CurriculumController(ICurriculumsManager dataManager, IMapper mapper) : ControllerBase
 {
-    private readonly IDataManager _dataManager;
-    private readonly IMapper _mapper;
-
-    public CurriculumController(IDataManager dataManager, IMapper mapper)
-    {
-        _dataManager = dataManager;
-        _mapper = mapper;
-    }
+    private readonly ICurriculumsManager _dataManager = dataManager;
+    private readonly IMapper _mapper = mapper;
 
     [HttpGet("list")]
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
-        var curriculums = await _dataManager.GetCurriculumsAsync(from, to);
-        var dtos = curriculums.Select(_mapper.Map<CurriculumDto>);
+        IList<CurriculumModel> curriculums = await _dataManager.GetCurriculumsAsync(from, to);
+        IEnumerable<CurriculumDto> dtos = curriculums.Select(_mapper.Map<CurriculumDto>);
         return Ok(dtos);
     }
 
@@ -34,8 +28,8 @@ public class CurriculumController : ControllerBase
     {
         try
         {
-            var curriculums = await _dataManager.GetCurriculumsForCareerAsync(careerId);
-            var dtos = curriculums.Select(_mapper.Map<CurriculumDto>);
+            IList<CurriculumModel> curriculums = await _dataManager.GetCurriculumsForCareerAsync(careerId);
+            IEnumerable<CurriculumDto> dtos = curriculums.Select(_mapper.Map<CurriculumDto>);
             return Ok(dtos);
         }
         catch (CareerNotFoundException)
@@ -54,7 +48,7 @@ public class CurriculumController : ControllerBase
     {
         try
         {
-            var count = await _dataManager.GetCurriculumsCountAsync();
+            int count = await _dataManager.GetCurriculumsCountAsync();
             return Ok(count);
         }
         catch (Exception ex)
@@ -69,7 +63,7 @@ public class CurriculumController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.ExistsCurriculumAsync(id);
+            bool result = await _dataManager.ExistsCurriculumAsync(id);
             return Ok(result);
         }
         catch (Exception ex)
@@ -88,8 +82,8 @@ public class CurriculumController : ControllerBase
 
         try
         {
-            var model = _mapper.Map<CurriculumModel>(curriculumDto);
-            var result = await _dataManager.CreateCurriculumAsync(_mapper.Map<CurriculumModel>(curriculumDto));
+            CurriculumModel model = _mapper.Map<CurriculumModel>(curriculumDto);
+            bool result = await _dataManager.CreateCurriculumAsync(_mapper.Map<CurriculumModel>(curriculumDto));
             return result ? Ok() : Problem("An error has occured creating the curriculum.");
         }
         catch (Exception ex)
@@ -108,8 +102,8 @@ public class CurriculumController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetCurriculumAsync(id);
-            var dto = _mapper.Map<CurriculumDto>(result);
+            CurriculumModel result = await _dataManager.GetCurriculumAsync(id);
+            CurriculumDto dto = _mapper.Map<CurriculumDto>(result);
             dto.CurriculumDisciplines ??= new List<SimpleDisciplineDto>();
             dto.CurriculumDisciplines = result.CurriculumDisciplines
                                            .Select(cs => _mapper.Map<SimpleDisciplineDto>(cs.Discipline))
@@ -130,8 +124,8 @@ public class CurriculumController : ControllerBase
             return BadRequest("The curriculum cannot be null.");
         }
 
-        var model = _mapper.Map<CurriculumModel>(curriculum);
-        var result = await _dataManager.UpdateCurriculumAsync(model);
+        CurriculumModel model = _mapper.Map<CurriculumModel>(curriculum);
+        bool result = await _dataManager.UpdateCurriculumAsync(model);
         return Ok(result);
     }
 
@@ -145,7 +139,7 @@ public class CurriculumController : ControllerBase
 
         try
         {
-            var result = await _dataManager.DeleteCurriculumAsync(id);
+            bool result = await _dataManager.DeleteCurriculumAsync(id);
             return Ok(result);
         }
         catch (CurriculumNotFoundException)

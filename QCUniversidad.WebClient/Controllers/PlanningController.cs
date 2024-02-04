@@ -37,12 +37,12 @@ public class PlanningController : Controller
 
         try
         {
-            var faculty = await _dataProvider.GetFacultyAsync((User.IsAdmin() && facultyId is not null) ? facultyId.Value : User.GetFacultyId());
-            var workingSchoolYear = (!User.IsAdmin() && schoolYearId is not null) || schoolYearId is null
+            Models.Faculties.FacultyModel faculty = await _dataProvider.GetFacultyAsync((User.IsAdmin() && facultyId is not null) ? facultyId.Value : User.GetFacultyId());
+            Models.SchoolYears.SchoolYearModel workingSchoolYear = (!User.IsAdmin() && schoolYearId is not null) || schoolYearId is null
                                         ? await _dataProvider.GetCurrentSchoolYear()
                                         : await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
-            var careers = await _dataProvider.GetCareersAsync(faculty.Id);
-            var model = new PlanningIndexModel
+            IList<Models.Careers.CareerModel> careers = await _dataProvider.GetCareersAsync(faculty.Id);
+            PlanningIndexModel model = new()
             {
                 Faculty = faculty,
                 SchoolYearId = workingSchoolYear.Id,
@@ -66,7 +66,7 @@ public class PlanningController : Controller
     [Authorize("Admin")]
     public async Task<IActionResult> SelectFacultyAsync(string returnUrl = "Index")
     {
-        var faculties = await _dataProvider.GetFacultiesAsync();
+        IList<Models.Faculties.FacultyModel> faculties = await _dataProvider.GetFacultiesAsync();
         if (faculties.Count == 1)
         {
             return RedirectToAction("Index", new { facultyId = faculties.First().Id });
@@ -79,8 +79,8 @@ public class PlanningController : Controller
     [HttpGet]
     public async Task<IActionResult> GetCoursesOptionSelectorsAsync(Guid careerId, Guid? facultyId = null)
     {
-        var schoolYear = await _dataProvider.GetCurrentSchoolYear();
-        var courses = await _dataProvider.GetCoursesAsync(careerId, schoolYear.Id, (User.IsAdmin() && facultyId is not null) ? facultyId.Value : User.GetFacultyId());
+        Models.SchoolYears.SchoolYearModel schoolYear = await _dataProvider.GetCurrentSchoolYear();
+        IList<CourseModel> courses = await _dataProvider.GetCoursesAsync(careerId, schoolYear.Id, (User.IsAdmin() && facultyId is not null) ? facultyId.Value : User.GetFacultyId());
         return PartialView("_CoursesOptionSelectors", courses);
     }
 
@@ -89,7 +89,7 @@ public class PlanningController : Controller
     {
         try
         {
-            var models = await _dataProvider.GetTeachingPlanItemsAsync(periodId, courseId);
+            IList<TeachingPlanItemModel> models = await _dataProvider.GetTeachingPlanItemsAsync(periodId, courseId);
             return PartialView("_PlanningListView", models);
         }
         catch (Exception)
@@ -113,7 +113,7 @@ public class PlanningController : Controller
                 return RedirectToAction("Error", "Home");
             }
 
-            var viewModel = await GetCreateViewModel(periodId, courseId);
+            CreateTeachingPlanItemModel viewModel = await GetCreateViewModel(periodId, courseId);
             viewModel.ReturnTo = returnTo;
             return View(viewModel);
         }
@@ -125,16 +125,16 @@ public class PlanningController : Controller
 
     private async Task<CreateTeachingPlanItemModel> GetCreateViewModel(Guid periodId, Guid? courseId)
     {
-        var periodModel = await _dataProvider.GetPeriodAsync(periodId);
-        var courses = await _dataProvider.GetCoursesAsync(periodModel.SchoolYearId);
-        var careerId = courses.FirstOrDefault(c => c.Id == courseId)?.CareerId;
+        Models.Periods.PeriodModel periodModel = await _dataProvider.GetPeriodAsync(periodId);
+        IList<CourseModel> courses = await _dataProvider.GetCoursesAsync(periodModel.SchoolYearId);
+        Guid? careerId = courses.FirstOrDefault(c => c.Id == courseId)?.CareerId;
         CourseModel? course = null;
         if (courseId is not null)
         {
             course = await _dataProvider.GetCourseAsync(courseId.Value);
         }
 
-        var viewModel = new CreateTeachingPlanItemModel
+        CreateTeachingPlanItemModel viewModel = new()
         {
             PeriodId = periodId,
             CourseId = courseId ?? Guid.Empty,
@@ -161,7 +161,7 @@ public class PlanningController : Controller
 
         try
         {
-            var result = await _dataProvider.GetSubjectsForCourseInPeriodAsync(courseId, periodId);
+            IList<SubjectModel> result = await _dataProvider.GetSubjectsForCourseInPeriodAsync(courseId, periodId);
             return PartialView("_SubjectsOptions", result.OrderBy(s => s.Name).ToList());
         }
         catch (Exception ex)
@@ -178,8 +178,8 @@ public class PlanningController : Controller
         {
             if (model.GroupsAmount >= 0)
             {
-                var planItem = _mapper.Map<TeachingPlanItemModel>(model);
-                var result = await _dataProvider.CreateTeachingPlanItemAsync(planItem);
+                TeachingPlanItemModel planItem = _mapper.Map<TeachingPlanItemModel>(model);
+                bool result = await _dataProvider.CreateTeachingPlanItemAsync(planItem);
                 if (result)
                 {
                     TempData["planItem-created"] = true;
@@ -212,17 +212,17 @@ public class PlanningController : Controller
             return RedirectToAction("Error", "Home");
         }
 
-        var editModel = await GetEditViewModel(id);
+        EditTeachingPlanItemModel editModel = await GetEditViewModel(id);
         return View(editModel);
     }
 
     private async Task<EditTeachingPlanItemModel> GetEditViewModel(Guid id)
     {
-        var planningItem = await _dataProvider.GetTeachingPlanItemAsync(id);
-        var periodModel = await _dataProvider.GetPeriodAsync(planningItem.PeriodId);
-        var subjects = await _dataProvider.GetSubjectsForCourseAsync(planningItem.CourseId);
-        var course = await _dataProvider.GetCourseAsync(planningItem.CourseId);
-        var viewModel = _mapper.Map<EditTeachingPlanItemModel>(planningItem);
+        TeachingPlanItemModel planningItem = await _dataProvider.GetTeachingPlanItemAsync(id);
+        Models.Periods.PeriodModel periodModel = await _dataProvider.GetPeriodAsync(planningItem.PeriodId);
+        IList<SubjectModel> subjects = await _dataProvider.GetSubjectsForCourseAsync(planningItem.CourseId);
+        CourseModel course = await _dataProvider.GetCourseAsync(planningItem.CourseId);
+        EditTeachingPlanItemModel viewModel = _mapper.Map<EditTeachingPlanItemModel>(planningItem);
         viewModel.Subjects = subjects;
         viewModel.PeriodId = planningItem.PeriodId;
         viewModel.Period = periodModel;
@@ -239,8 +239,8 @@ public class PlanningController : Controller
         {
             if (model.GroupsAmount >= 0)
             {
-                var planItem = _mapper.Map<TeachingPlanItemModel>(model);
-                var result = await _dataProvider.UpdateTeachingPlanItemAsync(planItem);
+                TeachingPlanItemModel planItem = _mapper.Map<TeachingPlanItemModel>(model);
+                bool result = await _dataProvider.UpdateTeachingPlanItemAsync(planItem);
                 if (result)
                 {
                     TempData["planItem-edited"] = true;
@@ -264,7 +264,7 @@ public class PlanningController : Controller
     {
         if (id != Guid.Empty && await _dataProvider.ExistsTeachingPlanItemAsync(id))
         {
-            var result = await _dataProvider.DeleteTeachingPlanItemAsync(id);
+            bool result = await _dataProvider.DeleteTeachingPlanItemAsync(id);
             if (result)
             {
                 TempData["planItem-edited"] = true;
@@ -284,7 +284,7 @@ public class PlanningController : Controller
     {
         try
         {
-            var periodSubjects = await _dataProvider.GetPeriodSubjectsForCourseAsync(periodId, courseId);
+            IList<PeriodSubjectModel> periodSubjects = await _dataProvider.GetPeriodSubjectsForCourseAsync(periodId, courseId);
             return PartialView("_PeriodSubjectsView", periodSubjects);
         }
         catch (Exception ex)
@@ -298,7 +298,7 @@ public class PlanningController : Controller
     {
         try
         {
-            var subjects = await _dataProvider.GetSubjectsForCourseNotAssignedInPeriodAsync(courseId, periodId);
+            IList<SubjectModel> subjects = await _dataProvider.GetSubjectsForCourseNotAssignedInPeriodAsync(courseId, periodId);
             return PartialView("_SubjectSelectOptions", subjects);
         }
         catch (Exception ex)
@@ -332,7 +332,7 @@ public class PlanningController : Controller
                 return NotFound("La asignatura seleccionada no existe.");
             }
 
-            var result = await _dataProvider.CreatePeriodSubjectAsync(_mapper.Map<PeriodSubjectModel>(model));
+            bool result = await _dataProvider.CreatePeriodSubjectAsync(_mapper.Map<PeriodSubjectModel>(model));
             return result ? Ok(result) : Problem();
         }
         catch (Exception ex)
@@ -346,7 +346,7 @@ public class PlanningController : Controller
     {
         try
         {
-            var result = await _dataProvider.UpdatePeriodSubjectAsync(model);
+            bool result = await _dataProvider.UpdatePeriodSubjectAsync(model);
             return result ? Ok(result) : Problem();
         }
         catch (Exception ex)
@@ -365,7 +365,7 @@ public class PlanningController : Controller
 
         try
         {
-            var result = await _dataProvider.GetPeriodSubjectAsync(periodSubjectId);
+            PeriodSubjectModel result = await _dataProvider.GetPeriodSubjectAsync(periodSubjectId);
             return Ok(result);
         }
         catch (Exception ex)
@@ -383,7 +383,7 @@ public class PlanningController : Controller
 
         try
         {
-            var model = await _dataProvider.GetCoursePeriodPlanningInfoAsync(courseId, periodId);
+            CoursePeriodPlanningInfoModel model = await _dataProvider.GetCoursePeriodPlanningInfoAsync(courseId, periodId);
             return PartialView("_PeriodPlanningInfo", model);
         }
         catch (Exception ex)
@@ -402,7 +402,7 @@ public class PlanningController : Controller
 
         try
         {
-            var result = await _dataProvider.GetPeriodAsync(periodId);
+            Models.Periods.PeriodModel result = await _dataProvider.GetPeriodAsync(periodId);
             return Ok(result);
         }
         catch (Exception ex)
@@ -421,7 +421,7 @@ public class PlanningController : Controller
 
         try
         {
-            var result = await _dataProvider.GetSubjectAsync(subjectId);
+            SubjectModel result = await _dataProvider.GetSubjectAsync(subjectId);
             return Ok(result);
         }
         catch (Exception ex)
@@ -440,7 +440,7 @@ public class PlanningController : Controller
 
         try
         {
-            var result = await _dataProvider.DeletePeriodSubjectAsync(id);
+            bool result = await _dataProvider.DeletePeriodSubjectAsync(id);
             return result ? Ok(result) : Problem();
         }
         catch (Exception ex)

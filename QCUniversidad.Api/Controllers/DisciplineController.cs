@@ -9,26 +9,20 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class DisciplineController : ControllerBase
+public class DisciplineController(IDisciplinesManager disciplinesManager, IMapper mapper) : ControllerBase
 {
-    private readonly IDataManager _dataManager;
-    private readonly IMapper _mapper;
-
-    public DisciplineController(IDataManager dataManager, IMapper mapper)
-    {
-        _dataManager = dataManager;
-        _mapper = mapper;
-    }
+    private readonly IDisciplinesManager _disciplinesManager = disciplinesManager;
+    private readonly IMapper _mapper = mapper;
 
     [HttpGet("list")]
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
-        var disciplines = await _dataManager.GetDisciplinesAsync(from, to);
-        var dtos = disciplines.Select(_mapper.Map<PopulatedDisciplineDto>).ToList();
-        foreach (var dto in dtos)
+        IList<DisciplineModel> disciplines = await _disciplinesManager.GetDisciplinesAsync(from, to);
+        List<PopulatedDisciplineDto> dtos = disciplines.Select(_mapper.Map<PopulatedDisciplineDto>).ToList();
+        foreach (PopulatedDisciplineDto? dto in dtos)
         {
-            dto.TeachersCount = await _dataManager.GetDisciplineTeachersCountAsync(dto.Id);
-            dto.SubjectsCount = await _dataManager.GetDisciplineSubjectsCountAsync(dto.Id);
+            dto.TeachersCount = await _disciplinesManager.GetDisciplineTeachersCountAsync(dto.Id);
+            dto.SubjectsCount = await _disciplinesManager.GetDisciplineSubjectsCountAsync(dto.Id);
         }
 
         return Ok(dtos);
@@ -45,12 +39,12 @@ public class DisciplineController : ControllerBase
 
         try
         {
-            var disciplines = await _dataManager.GetDisciplinesAsync(departmentId);
-            var dtos = disciplines.Select(_mapper.Map<PopulatedDisciplineDto>).ToList();
-            foreach (var dto in dtos)
+            IList<DisciplineModel> disciplines = await _disciplinesManager.GetDisciplinesAsync(departmentId);
+            List<PopulatedDisciplineDto> dtos = disciplines.Select(_mapper.Map<PopulatedDisciplineDto>).ToList();
+            foreach (PopulatedDisciplineDto? dto in dtos)
             {
-                dto.TeachersCount = await _dataManager.GetDisciplineTeachersCountAsync(dto.Id);
-                dto.SubjectsCount = await _dataManager.GetDisciplineSubjectsCountAsync(dto.Id);
+                dto.TeachersCount = await _disciplinesManager.GetDisciplineTeachersCountAsync(dto.Id);
+                dto.SubjectsCount = await _disciplinesManager.GetDisciplineSubjectsCountAsync(dto.Id);
             }
 
             return Ok(dtos);
@@ -67,7 +61,7 @@ public class DisciplineController : ControllerBase
     {
         try
         {
-            var count = await _dataManager.GetDisciplinesCountAsync();
+            int count = await _disciplinesManager.GetDisciplinesCountAsync();
             return Ok(count);
         }
         catch (Exception ex)
@@ -82,7 +76,7 @@ public class DisciplineController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.ExistsDisciplineAsync(id);
+            bool result = await _disciplinesManager.ExistsDisciplineAsync(id);
             return Ok(result);
         }
         catch (Exception ex)
@@ -97,7 +91,7 @@ public class DisciplineController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.ExistsDisciplineAsync(name);
+            bool result = await _disciplinesManager.ExistsDisciplineAsync(name);
             return Ok(result);
         }
         catch (Exception ex)
@@ -114,7 +108,7 @@ public class DisciplineController : ControllerBase
             return BadRequest("The discipline cannot be null.");
         }
 
-        var result = await _dataManager.CreateDisciplineAsync(_mapper.Map<DisciplineModel>(disciplineDto));
+        bool result = await _disciplinesManager.CreateDisciplineAsync(_mapper.Map<DisciplineModel>(disciplineDto));
         return result ? Ok() : Problem("An error has occured creating the discipline.");
     }
 
@@ -128,10 +122,10 @@ public class DisciplineController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetDisciplineAsync(id);
-            var dto = _mapper.Map<PopulatedDisciplineDto>(result);
-            dto.SubjectsCount = await _dataManager.GetDisciplineSubjectsCountAsync(dto.Id);
-            dto.TeachersCount = await _dataManager.GetDisciplineTeachersCountAsync(dto.Id);
+            DisciplineModel result = await _disciplinesManager.GetDisciplineAsync(id);
+            PopulatedDisciplineDto dto = _mapper.Map<PopulatedDisciplineDto>(result);
+            dto.SubjectsCount = await _disciplinesManager.GetDisciplineSubjectsCountAsync(dto.Id);
+            dto.TeachersCount = await _disciplinesManager.GetDisciplineTeachersCountAsync(dto.Id);
             return Ok(dto);
         }
         catch (DisciplineNotFoundException)
@@ -151,10 +145,10 @@ public class DisciplineController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetDisciplineAsync(name);
-            var dto = _mapper.Map<PopulatedDisciplineDto>(result);
-            dto.SubjectsCount = await _dataManager.GetDisciplineSubjectsCountAsync(dto.Id);
-            dto.TeachersCount = await _dataManager.GetDisciplineTeachersCountAsync(dto.Id);
+            DisciplineModel result = await _disciplinesManager.GetDisciplineAsync(name);
+            PopulatedDisciplineDto dto = _mapper.Map<PopulatedDisciplineDto>(result);
+            dto.SubjectsCount = await _disciplinesManager.GetDisciplineSubjectsCountAsync(dto.Id);
+            dto.TeachersCount = await _disciplinesManager.GetDisciplineTeachersCountAsync(dto.Id);
             return Ok(dto);
         }
         catch (DisciplineNotFoundException)
@@ -168,7 +162,7 @@ public class DisciplineController : ControllerBase
     {
         if (discipline is not null)
         {
-            var result = await _dataManager.UpdateDisciplineAsync(_mapper.Map<DisciplineModel>(discipline));
+            bool result = await _disciplinesManager.UpdateDisciplineAsync(_mapper.Map<DisciplineModel>(discipline));
             return Ok(result);
         }
 
@@ -185,7 +179,7 @@ public class DisciplineController : ControllerBase
 
         try
         {
-            var result = await _dataManager.DeleteDisciplineAsync(id);
+            bool result = await _disciplinesManager.DeleteDisciplineAsync(id);
             return Ok(result);
         }
         catch (DisciplineNotFoundException)

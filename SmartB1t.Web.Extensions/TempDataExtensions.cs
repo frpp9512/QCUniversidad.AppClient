@@ -17,11 +17,11 @@ public static class TempDataExtensions
     /// <param name="identifier">The identifier of the model.</param>
     private static void SetModelStatus<T, I>(this ITempDataDictionary tempData, string statusName, I identifier = default)
     {
-        var statusKey = $"{statusName}{typeof(T).Name}";
+        string statusKey = $"{statusName}{typeof(T).Name}";
         tempData[statusKey] = true;
         if (!identifier?.Equals(default(I)) == true)
         {
-            var statusIdentifierKey = $"{statusKey}Id";
+            string statusIdentifierKey = $"{statusKey}Id";
             tempData[statusIdentifierKey] = identifier;
         }
     }
@@ -37,10 +37,10 @@ public static class TempDataExtensions
     /// <returns>The identifier of the model.</returns>
     private static I ReadModelStatus<T, I>(this ITempDataDictionary tempData, string statusName)
     {
-        var statusKey = $"{statusName}{typeof(T).Name}";
+        string statusKey = $"{statusName}{typeof(T).Name}";
         if (tempData.CheckValue(statusKey, true))
         {
-            var statusIdentifierKey = $"{statusKey}Id";
+            string statusIdentifierKey = $"{statusKey}Id";
             return tempData.CheckValue<I>(statusIdentifierKey) ? tempData.GetValue<I>(statusIdentifierKey) : default;
         }
 
@@ -54,7 +54,9 @@ public static class TempDataExtensions
     /// <param name="tempData">The TempData to be set up.</param>
     /// <param name="id">The identifier of the model.</param>
     public static void SetModelCreated<T, I>(this ITempDataDictionary tempData, I id)
-        => tempData.SetModelStatus<T, I>(TempDataAlertModelState.Created, id);
+    {
+        tempData.SetModelStatus<T, I>(TempDataAlertModelState.Created, id);
+    }
 
     /// <summary>
     /// Reads if exists a 'Created' status for the specified Model.
@@ -84,7 +86,9 @@ public static class TempDataExtensions
     /// <param name="tempData">The TempData to be set up.</param>
     /// <param name="id">The identifier of the model.</param>
     public static void SetModelUpdated<T, I>(this ITempDataDictionary tempData, I id)
-        => tempData.SetModelStatus<T, I>(TempDataAlertModelState.Updated, id);
+    {
+        tempData.SetModelStatus<T, I>(TempDataAlertModelState.Updated, id);
+    }
 
     /// <summary>
     /// Reads if exists a 'Updated' status for the specified Model.
@@ -114,7 +118,9 @@ public static class TempDataExtensions
     /// <param name="tempData">The TempData to be set up.</param>
     /// <param name="id">The identifier of the model.</param>
     public static void SetModelRemoved<T>(this ITempDataDictionary tempData)
-        => tempData.SetModelStatus<T, object>(TempDataAlertModelState.Removed, null);
+    {
+        tempData.SetModelStatus<T, object>(TempDataAlertModelState.Removed, null);
+    }
 
     /// <summary>
     /// Reads if exists a 'Removed' status for the specified Model.
@@ -151,21 +157,27 @@ public static class TempDataExtensions
     /// </summary>
     /// <param name="tempData">The TempData instance to be setted up.</param>
     public static void SetUserLoggedOut(this ITempDataDictionary tempData)
-        => tempData.SetValue(TempDataAlertConstants.UserLoggedOut, true);
+    {
+        tempData.SetValue(TempDataAlertConstants.UserLoggedOut, true);
+    }
 
     /// <summary>
     /// Sets the TempData necessary key values to request an alert for: User Email Changed
     /// </summary>
     /// <param name="tempData">The TempData instance to be setted up.</param>
     public static void SetEmailChanged(this ITempDataDictionary tempData)
-        => tempData.SetValue(TempDataAlertConstants.EmailChanged, true);
+    {
+        tempData.SetValue(TempDataAlertConstants.EmailChanged, true);
+    }
 
     /// <summary>
     /// Sets the TempData necessary key values to request an alert for: User Password Changed
     /// </summary>
     /// <param name="tempData">The TempData instance to be setted up.</param>
     public static void SetPasswordChanged(this ITempDataDictionary tempData)
-        => tempData.SetValue(TempDataAlertConstants.PasswordChanged, true);
+    {
+        tempData.SetValue(TempDataAlertConstants.PasswordChanged, true);
+    }
 
     #endregion
 }

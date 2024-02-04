@@ -1,9 +1,19 @@
 ﻿@using Newtonsoft.Json
 @using QCUniversidad.Api.Shared.Enums
 @using QCUniversidad.Api.Shared.Extensions
+
 @{
     ViewData["Title"] = "Importar profesores";
     var departments = ViewData["departments-list"] is IList<DepartmentModel> ? ViewData["departments-list"] as IList<DepartmentModel> : null;
+    var importingError = TempData["importing-error"]?.ToString();
+}
+
+@if (importingError is not null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-error"></span> Importar profesores</strong> @importingError
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 }
 
 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">

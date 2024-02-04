@@ -38,20 +38,20 @@ public class CoursesController : Controller
         try
         {
             _logger.LogInformation($"Loading total school years count.");
-            var total = await _dataProvider.GetCoursesCountAsync();
+            int total = await _dataProvider.GetCoursesCountAsync();
             _logger.LogInformation("Exists {0} school years in total.", total);
-            var pageIndex = page - 1 < 0 ? 0 : page - 1;
-            var startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
+            int pageIndex = page - 1 < 0 ? 0 : page - 1;
+            int startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
             if (startingItemIndex < 0 || startingItemIndex >= total)
             {
                 startingItemIndex = 0;
             }
 
             _logger.LogModelSetLoading<CoursesController, CourseModel>(HttpContext, startingItemIndex, _navigationSettings.ItemsPerPage);
-            var courses = await _dataProvider.GetCoursesAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
+            IList<CourseModel> courses = await _dataProvider.GetCoursesAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             _logger.LogInformation($"Loaded {courses.Count} school years.");
-            var totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
-            var viewModel = new NavigationListViewModel<CourseModel>
+            int totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
+            NavigationListViewModel<CourseModel> viewModel = new()
             {
                 Items = courses,
                 CurrentPage = pageIndex + 1,
@@ -76,7 +76,7 @@ public class CoursesController : Controller
         if (await _dataProvider.ExistsCourseAsync(id))
         {
             _logger.LogModelLoading<CoursesController, CourseModel>(HttpContext, id);
-            var model = await _dataProvider.GetCourseAsync(id);
+            CourseModel model = await _dataProvider.GetCourseAsync(id);
             return View(model);
         }
 
@@ -88,18 +88,18 @@ public class CoursesController : Controller
     public async Task<IActionResult> CreateAsync()
     {
         _logger.LogRequest(HttpContext);
-        var viewmodel = new CreateCourseModel();
+        CreateCourseModel viewmodel = new();
         await LoadCreateViewModel(viewmodel);
         return View(viewmodel);
     }
 
     private async Task LoadCreateViewModel(CreateCourseModel viewmodel)
     {
-        var schoolYears = await _dataProvider.GetSchoolYearsAsync();
+        IList<Models.SchoolYears.SchoolYearModel> schoolYears = await _dataProvider.GetSchoolYearsAsync();
         viewmodel.SchoolYears = schoolYears;
-        var curriculums = await _dataProvider.GetCurriculumsAsync();
+        IList<CurriculumModel> curriculums = await _dataProvider.GetCurriculumsAsync();
         viewmodel.Curricula = curriculums;
-        var careers = await _dataProvider.GetCareersAsync();
+        IList<CareerModel> careers = await _dataProvider.GetCareersAsync();
         viewmodel.Careers = careers;
     }
 
@@ -120,7 +120,7 @@ public class CoursesController : Controller
                 try
                 {
                     _logger.LogCreateModelRequest<CoursesController, CourseModel>(HttpContext);
-                    var result = await _dataProvider.CreateCourseAsync(model);
+                    Guid result = await _dataProvider.CreateCourseAsync(model);
                     _logger.LogModelCreated<CoursesController, CourseModel>(HttpContext);
                     TempData["course-created"] = true;
                     return RedirectToAction("Details", new { id = result });
@@ -144,8 +144,8 @@ public class CoursesController : Controller
         _logger.LogCheckModelExistence<CoursesController, CourseModel>(HttpContext, id);
         if (await _dataProvider.ExistsCourseAsync(id))
         {
-            var course = await _dataProvider.GetCourseAsync(id);
-            var editModel = _mapper.Map<EditCourseModel>(course);
+            CourseModel course = await _dataProvider.GetCourseAsync(id);
+            EditCourseModel editModel = _mapper.Map<EditCourseModel>(course);
             await LoadEditViewModel(editModel);
             return View(editModel);
         }
@@ -156,7 +156,7 @@ public class CoursesController : Controller
 
     private async Task LoadEditViewModel(EditCourseModel viewmodel)
     {
-        var curriculums = await _dataProvider.GetCurriculumsForCareerAsync(viewmodel.CareerId);
+        IList<CurriculumModel> curriculums = await _dataProvider.GetCurriculumsForCareerAsync(viewmodel.CareerId);
         viewmodel.Curricula = curriculums;
     }
 
@@ -166,7 +166,7 @@ public class CoursesController : Controller
     {
         try
         {
-            var curriculums = await _dataProvider.GetCurriculumsForCareerAsync(careerId);
+            IList<CurriculumModel> curriculums = await _dataProvider.GetCurriculumsForCareerAsync(careerId);
             return PartialView("_CurriculumOptions", curriculums);
         }
         catch (Exception ex)
@@ -205,7 +205,7 @@ public class CoursesController : Controller
                     else
                     {
                         _logger.LogEditModelRequest<CoursesController, CourseModel>(HttpContext, model.Id);
-                        var result = await _dataProvider.UpdateCourseAsync(model);
+                        bool result = await _dataProvider.UpdateCourseAsync(model);
                         if (result)
                         {
                             _logger.LogModelEdited<CoursesController, CourseModel>(HttpContext, model.Id);
@@ -232,7 +232,7 @@ public class CoursesController : Controller
         if (await _dataProvider.ExistsCourseAsync(id))
         {
             _logger.LogDeleteModelRequest<CoursesController, CourseModel>(HttpContext, id);
-            var result = await _dataProvider.DeleteCourseAsync(id);
+            bool result = await _dataProvider.DeleteCourseAsync(id);
             if (result)
             {
                 _logger.LogModelDeleted<CoursesController, CourseModel>(HttpContext, id);
@@ -261,7 +261,7 @@ public class CoursesController : Controller
                 return BadRequest(new { responseText = "La fecha de culminación debe de suceder a la de inicio." });
             }
 
-            var result = await _dataProvider.CreatePeriodAsync(_mapper.Map<PeriodModel>(model));
+            bool result = await _dataProvider.CreatePeriodAsync(_mapper.Map<PeriodModel>(model));
             if (result)
             {
                 TempData["period-created"] = true;
@@ -280,7 +280,7 @@ public class CoursesController : Controller
     [HttpGet]
     public async Task<IActionResult> GetPeriodAsync(Guid id)
     {
-        var result = await _dataProvider.GetPeriodAsync(id);
+        PeriodModel result = await _dataProvider.GetPeriodAsync(id);
         return Ok(JsonConvert.SerializeObject(result));
     }
 
@@ -306,7 +306,7 @@ public class CoursesController : Controller
                 return BadRequest(new { responseText = "La fecha de culminación debe de suceder a la de inicio." });
             }
 
-            var result = await _dataProvider.UpdatePeriodAsync(model);
+            bool result = await _dataProvider.UpdatePeriodAsync(model);
             if (result)
             {
                 TempData["period-updated"] = true;
@@ -328,7 +328,7 @@ public class CoursesController : Controller
         _logger.LogRequest(HttpContext);
         if (await _dataProvider.ExistsPeriodAsync(id))
         {
-            var result = await _dataProvider.DeletePeriodAsync(id);
+            bool result = await _dataProvider.DeletePeriodAsync(id);
             if (result)
             {
                 TempData["period-deleted"] = true;

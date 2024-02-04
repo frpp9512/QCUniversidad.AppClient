@@ -30,7 +30,7 @@ public class HomeController : Controller
         IndexViewModel model;
         try
         {
-            var schoolYear = await _dataProvider.GetCurrentSchoolYear();
+            Models.SchoolYears.SchoolYearModel schoolYear = await _dataProvider.GetCurrentSchoolYear();
             if (User.IsAdmin())
             {
                 model = new IndexViewModel
@@ -69,9 +69,14 @@ public class HomeController : Controller
     }
 
     public IActionResult Fa()
-        => View();
+    {
+        return View();
+    }
 
-    public IActionResult Privacy() => View();
+    public IActionResult Privacy()
+    {
+        return View();
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetGlobalStatisticsAsync()
@@ -80,7 +85,7 @@ public class HomeController : Controller
         {
             try
             {
-                var statistics = await _dataProvider.GetGlobalStatisticsAsync();
+                IList<StatisticItemModel> statistics = await _dataProvider.GetGlobalStatisticsAsync();
                 return PartialView("_ICardSet", statistics);
             }
             catch (Exception ex)
@@ -94,14 +99,14 @@ public class HomeController : Controller
             {
                 if (User.IsDepartmentManager())
                 {
-                    var departmentId = User.GetDepartmentId();
-                    var statistics = await _dataProvider.GetGlobalStatisticsForDepartmentAsync(departmentId);
+                    Guid departmentId = User.GetDepartmentId();
+                    IList<StatisticItemModel> statistics = await _dataProvider.GetGlobalStatisticsForDepartmentAsync(departmentId);
                     return PartialView("_ICardSet", statistics);
                 }
                 else
                 {
-                    var facultyId = User.GetFacultyId();
-                    var statistics = new List<StatisticItemModel>();
+                    Guid facultyId = User.GetFacultyId();
+                    List<StatisticItemModel> statistics = [];
                     return PartialView("_ICardSet", statistics);
                 }
             }
@@ -118,13 +123,13 @@ public class HomeController : Controller
         IList<BirthdayTeacherModel> birthdays;
         if (User.IsDepartmentManager())
         {
-            var departmentId = User.GetDepartmentId();
+            Guid departmentId = User.GetDepartmentId();
             _ = await _dataProvider.GetBirthdayTeachersForCurrentMonthAsync(departmentId, "department");
         }
 
         if (User.IsPlanner())
         {
-            var facultyId = User.GetFacultyId();
+            Guid facultyId = User.GetFacultyId();
             birthdays = await _dataProvider.GetBirthdayTeachersForCurrentMonthAsync(facultyId, "faculty");
         }
         else
@@ -136,5 +141,8 @@ public class HomeController : Controller
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error() => View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    public IActionResult Error()
+    {
+        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
 }

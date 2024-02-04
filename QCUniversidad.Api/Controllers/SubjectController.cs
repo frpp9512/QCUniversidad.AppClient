@@ -9,22 +9,21 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class SubjectController : ControllerBase
+public class SubjectController(ISubjectsManager subjectsManager,
+                               ICoursesManager coursesManager,
+                               IPeriodsManager periodsManager,
+                               IMapper mapper) : ControllerBase
 {
-    private readonly IDataManager _dataManager;
-    private readonly IMapper _mapper;
-
-    public SubjectController(IDataManager dataManager, IMapper mapper)
-    {
-        _dataManager = dataManager;
-        _mapper = mapper;
-    }
+    private readonly ISubjectsManager _subjectsManager = subjectsManager;
+    private readonly ICoursesManager _coursesManager = coursesManager;
+    private readonly IPeriodsManager _periodsManager = periodsManager;
+    private readonly IMapper _mapper = mapper;
 
     [HttpGet("list")]
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
-        var subjects = await _dataManager.GetSubjectsAsync(from, to);
-        var dtos = subjects.Select(_mapper.Map<SubjectDto>);
+        IList<SubjectModel> subjects = await _subjectsManager.GetSubjectsAsync(from, to);
+        IEnumerable<SubjectDto> dtos = subjects.Select(_mapper.Map<SubjectDto>);
         return Ok(dtos);
     }
 
@@ -34,8 +33,8 @@ public class SubjectController : ControllerBase
     {
         try
         {
-            var subjects = await _dataManager.GetSubjectsForDisciplineAsync(disciplineId);
-            var dtos = subjects.Select(_mapper.Map<SubjectDto>);
+            IList<SubjectModel> subjects = await _subjectsManager.GetSubjectsForDisciplineAsync(disciplineId);
+            IEnumerable<SubjectDto> dtos = subjects.Select(_mapper.Map<SubjectDto>);
             return Ok(dtos);
         }
         catch (ArgumentNullException)
@@ -58,13 +57,13 @@ public class SubjectController : ControllerBase
     {
         try
         {
-            if (!await _dataManager.ExistsCourseAsync(courseId))
+            if (!await _coursesManager.ExistsCourseAsync(courseId))
             {
                 return BadRequest("The course do not exists.");
             }
 
-            var result = await _dataManager.GetSubjectsForCourseAsync(courseId);
-            var dtos = result.Select(_mapper.Map<SubjectDto>);
+            IList<SubjectModel> result = await _subjectsManager.GetSubjectsForCourseAsync(courseId);
+            IEnumerable<SubjectDto> dtos = result.Select(_mapper.Map<SubjectDto>);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -79,8 +78,8 @@ public class SubjectController : ControllerBase
     {
         try
         {
-            var subjects = await _dataManager.GetSubjectsForCourseInPeriodAsync(courseId, periodId);
-            var dtos = subjects.Select(_mapper.Map<SubjectDto>);
+            IList<SubjectModel> subjects = await _subjectsManager.GetSubjectsForCourseInPeriodAsync(courseId, periodId);
+            IEnumerable<SubjectDto> dtos = subjects.Select(_mapper.Map<SubjectDto>);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -95,18 +94,18 @@ public class SubjectController : ControllerBase
     {
         try
         {
-            if (!await _dataManager.ExistsCourseAsync(courseId))
+            if (!await _coursesManager.ExistsCourseAsync(courseId))
             {
                 return NotFound("The course do not exists.");
             }
 
-            if (!await _dataManager.ExistsPeriodAsync(periodId))
+            if (!await _periodsManager.ExistsPeriodAsync(periodId))
             {
                 return NotFound("The period do not exists.");
             }
 
-            var result = await _dataManager.GetSubjectsForCourseNotAssignedInPeriodAsync(courseId, periodId);
-            var dtos = result.Select(_mapper.Map<SubjectDto>);
+            IList<SubjectModel> result = await _subjectsManager.GetSubjectsForCourseNotAssignedInPeriodAsync(courseId, periodId);
+            IEnumerable<SubjectDto> dtos = result.Select(_mapper.Map<SubjectDto>);
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -121,7 +120,7 @@ public class SubjectController : ControllerBase
     {
         try
         {
-            var count = await _dataManager.GetSubjectsCountAsync();
+            int count = await _subjectsManager.GetSubjectsCountAsync();
             return Ok(count);
         }
         catch (Exception ex)
@@ -136,7 +135,7 @@ public class SubjectController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.ExistsSubjectAsync(id);
+            bool result = await _subjectsManager.ExistsSubjectAsync(id);
             return Ok(result);
         }
         catch (Exception ex)
@@ -151,7 +150,7 @@ public class SubjectController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.ExistsSubjectAsync(name);
+            bool result = await _subjectsManager.ExistsSubjectAsync(name);
             return Ok(result);
         }
         catch (Exception ex)
@@ -168,7 +167,7 @@ public class SubjectController : ControllerBase
             return BadRequest("The subject cannot be null.");
         }
 
-        var result = await _dataManager.CreateSubjectAsync(_mapper.Map<SubjectModel>(subjectDto));
+        bool result = await _subjectsManager.CreateSubjectAsync(_mapper.Map<SubjectModel>(subjectDto));
         return result ? Ok() : Problem("An error has occured creating the subject.");
     }
 
@@ -182,8 +181,8 @@ public class SubjectController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetSubjectAsync(id);
-            var dto = _mapper.Map<SubjectDto>(result);
+            SubjectModel result = await _subjectsManager.GetSubjectAsync(id);
+            SubjectDto dto = _mapper.Map<SubjectDto>(result);
             return Ok(dto);
         }
         catch (SubjectNotFoundException)
@@ -203,8 +202,8 @@ public class SubjectController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetSubjectAsync(name);
-            var dto = _mapper.Map<SubjectDto>(result);
+            SubjectModel result = await _subjectsManager.GetSubjectAsync(name);
+            SubjectDto dto = _mapper.Map<SubjectDto>(result);
             return Ok(dto);
         }
         catch (SubjectNotFoundException)
@@ -221,8 +220,8 @@ public class SubjectController : ControllerBase
             return BadRequest("The subject cannot be null.");
         }
 
-        var model = _mapper.Map<SubjectModel>(subject);
-        var result = await _dataManager.UpdateSubjectAsync(model);
+        SubjectModel model = _mapper.Map<SubjectModel>(subject);
+        bool result = await _subjectsManager.UpdateSubjectAsync(model);
         return Ok(result);
     }
 
@@ -236,7 +235,7 @@ public class SubjectController : ControllerBase
 
         try
         {
-            var result = await _dataManager.DeleteSubjectAsync(id);
+            bool result = await _subjectsManager.DeleteSubjectAsync(id);
             return Ok(result);
         }
         catch (SubjectNotFoundException)
@@ -251,8 +250,8 @@ public class SubjectController : ControllerBase
     {
         try
         {
-            var periodSubjects = await _dataManager.GetPeriodSubjectsForCourseAsync(periodId, courseId);
-            var dtos = periodSubjects.Select(_mapper.Map<SimplePeriodSubjectDto>);
+            IList<PeriodSubjectModel> periodSubjects = await _subjectsManager.GetPeriodSubjectsForCourseAsync(periodId, courseId);
+            IEnumerable<SimplePeriodSubjectDto> dtos = periodSubjects.Select(_mapper.Map<SimplePeriodSubjectDto>);
             return Ok(dtos);
         }
         catch (PeriodNotFoundException)
@@ -275,8 +274,8 @@ public class SubjectController : ControllerBase
     {
         try
         {
-            var model = _mapper.Map<PeriodSubjectModel>(dto);
-            var result = await _dataManager.CreatePeriodSubjectAsync(model);
+            PeriodSubjectModel model = _mapper.Map<PeriodSubjectModel>(dto);
+            bool result = await _subjectsManager.CreatePeriodSubjectAsync(model);
             return result ? Ok(result) : Problem();
         }
         catch (PeriodNotFoundException)
@@ -303,8 +302,8 @@ public class SubjectController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.GetPeriodSubjectAsync(id);
-            var dto = _mapper.Map<PeriodSubjectDto>(result);
+            PeriodSubjectModel result = await _subjectsManager.GetPeriodSubjectAsync(id);
+            PeriodSubjectDto dto = _mapper.Map<PeriodSubjectDto>(result);
             return Ok(dto);
         }
         catch (PeriodSubjectNotFoundException)
@@ -319,8 +318,8 @@ public class SubjectController : ControllerBase
     {
         try
         {
-            var model = _mapper.Map<PeriodSubjectModel>(periodSubject);
-            var result = await _dataManager.UpdatePeriodSubjectAsync(model);
+            PeriodSubjectModel model = _mapper.Map<PeriodSubjectModel>(periodSubject);
+            bool result = await _subjectsManager.UpdatePeriodSubjectAsync(model);
             return result ? Ok(result) : Problem();
         }
         catch (Exception ex)
@@ -340,7 +339,7 @@ public class SubjectController : ControllerBase
 
         try
         {
-            var result = await _dataManager.DeletePeriodSubjectAsync(id);
+            bool result = await _subjectsManager.DeletePeriodSubjectAsync(id);
             return result ? Ok(result) : Problem();
         }
         catch (Exception ex)

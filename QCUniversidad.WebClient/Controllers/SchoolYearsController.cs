@@ -32,16 +32,16 @@ public class SchoolYearsController : Controller
     [HttpGet]
     public async Task<IActionResult> IndexAsync(int page)
     {
-        var total = await _dataProvider.GetFacultiesTotalAsync();
-        var pageIndex = page - 1 < 0 ? 0 : page - 1;
-        var startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
+        int total = await _dataProvider.GetFacultiesTotalAsync();
+        int pageIndex = page - 1 < 0 ? 0 : page - 1;
+        int startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
         if (startingItemIndex < 0 || startingItemIndex >= total)
         {
             startingItemIndex = 0;
         }
 
-        var schoolYears = await _dataProvider.GetSchoolYearsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
-        var totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
+        IList<SchoolYearModel> schoolYears = await _dataProvider.GetSchoolYearsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
+        int totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
         NavigationListViewModel<SchoolYearModel> viewModel = new()
         {
             Items = schoolYears,
@@ -54,7 +54,10 @@ public class SchoolYearsController : Controller
 
     [Authorize("Admin")]
     [HttpGet]
-    public IActionResult Create() => View();
+    public IActionResult Create()
+    {
+        return View();
+    }
 
     [Authorize("Admin")]
     [HttpPost]
@@ -84,7 +87,7 @@ public class SchoolYearsController : Controller
     {
         try
         {
-            var schoolYear = await _dataProvider.GetSchoolYearAsync(id);
+            SchoolYearModel schoolYear = await _dataProvider.GetSchoolYearAsync(id);
             return View(schoolYear);
         }
         catch (Exception)
@@ -99,7 +102,7 @@ public class SchoolYearsController : Controller
     {
         try
         {
-            var schoolYear = await _dataProvider.GetSchoolYearAsync(id);
+            SchoolYearModel schoolYear = await _dataProvider.GetSchoolYearAsync(id);
             return View(schoolYear);
         }
         catch (Exception)
@@ -117,7 +120,7 @@ public class SchoolYearsController : Controller
         {
             try
             {
-                var result = await _dataProvider.UpdateSchoolYearAsync(model);
+                bool result = await _dataProvider.UpdateSchoolYearAsync(model);
                 if (result)
                 {
                     TempData["schoolyear-edited"] = true;
@@ -143,7 +146,7 @@ public class SchoolYearsController : Controller
         {
             if (await _dataProvider.ExistSchoolYearAsync(id))
             {
-                var result = await _dataProvider.DeleteSchoolYearAsync(id);
+                bool result = await _dataProvider.DeleteSchoolYearAsync(id);
                 if (result)
                 {
                     TempData["schoolyear-deleted"] = true;
@@ -180,7 +183,7 @@ public class SchoolYearsController : Controller
                 return BadRequest(new { responseText = "La fecha de culminación debe de suceder a la de inicio." });
             }
 
-            var result = await _dataProvider.CreatePeriodAsync(_mapper.Map<PeriodModel>(model));
+            bool result = await _dataProvider.CreatePeriodAsync(_mapper.Map<PeriodModel>(model));
             if (result)
             {
                 TempData["period-created"] = true;
@@ -199,7 +202,7 @@ public class SchoolYearsController : Controller
     [HttpGet]
     public async Task<IActionResult> GetPeriodAsync(Guid id)
     {
-        var result = await _dataProvider.GetPeriodAsync(id);
+        PeriodModel result = await _dataProvider.GetPeriodAsync(id);
         return Ok(JsonConvert.SerializeObject(result));
     }
 
@@ -225,7 +228,7 @@ public class SchoolYearsController : Controller
                 return BadRequest(new { responseText = "La fecha de culminación debe de suceder a la de inicio." });
             }
 
-            var result = await _dataProvider.UpdatePeriodAsync(model);
+            bool result = await _dataProvider.UpdatePeriodAsync(model);
             if (result)
             {
                 TempData["period-updated"] = true;
@@ -247,7 +250,7 @@ public class SchoolYearsController : Controller
         _logger.LogRequest(HttpContext);
         if (await _dataProvider.ExistsPeriodAsync(id))
         {
-            var result = await _dataProvider.DeletePeriodAsync(id);
+            bool result = await _dataProvider.DeletePeriodAsync(id);
             if (result)
             {
                 TempData["period-deleted"] = true;

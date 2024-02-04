@@ -6,5 +6,8 @@ namespace QCUniversidad.WebClient.AutoMapperProfiles;
 
 public class StatisticItemDtoProfile : Profile
 {
-    public StatisticItemDtoProfile() => CreateMap<StatisticItemDto, StatisticItemModel>();
+    public StatisticItemDtoProfile()
+    {
+        _ = CreateMap<StatisticItemDto, StatisticItemModel>();
+    }
 }

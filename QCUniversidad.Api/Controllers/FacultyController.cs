@@ -9,29 +9,24 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class FacultyController : ControllerBase
+public class FacultyController(IFacultiesManager facultiesManager,
+                               IMapper mapper) : ControllerBase
 {
-    private readonly IDataManager _dataManager;
-    private readonly IMapper _mapper;
-
-    public FacultyController(IDataManager dataManager, IMapper mapper)
-    {
-        _dataManager = dataManager;
-        _mapper = mapper;
-    }
+    private readonly IFacultiesManager _facultiesManager = facultiesManager;
+    private readonly IMapper _mapper = mapper;
 
     [HttpGet("list")]
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
-        var faculties = await _dataManager.GetFacultiesAsync(from, to);
-        var dtos = faculties.Select(f => GetFacultyDto(f).GetAwaiter().GetResult());
+        IList<FacultyModel> faculties = await _facultiesManager.GetFacultiesAsync(from, to);
+        IEnumerable<FacultyDto> dtos = faculties.Select(f => GetFacultyDto(f).GetAwaiter().GetResult());
         return Ok(dtos);
     }
 
     [HttpGet("count")]
     public async Task<IActionResult> CountAsync()
     {
-        var total = await _dataManager.GetFacultiesTotalAsync();
+        int total = await _facultiesManager.GetFacultiesTotalAsync();
         return Ok(total);
     }
 
@@ -40,7 +35,7 @@ public class FacultyController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.ExistFacultyAsync(id);
+            bool result = await _facultiesManager.ExistFacultyAsync(id);
             return Ok(result);
         }
         catch (Exception ex)
@@ -54,7 +49,7 @@ public class FacultyController : ControllerBase
     {
         if (facultyDto is not null)
         {
-            var result = await _dataManager.CreateFacultyAsync(_mapper.Map<FacultyModel>(facultyDto));
+            bool result = await _facultiesManager.CreateFacultyAsync(_mapper.Map<FacultyModel>(facultyDto));
             return result ? Ok() : BadRequest("An error has occured creating the faculty.");
         }
 
@@ -71,8 +66,8 @@ public class FacultyController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetFacultyAsync(id);
-            var dto = await GetFacultyDto(result);
+            FacultyModel result = await _facultiesManager.GetFacultyAsync(id);
+            FacultyDto dto = await GetFacultyDto(result);
             return Ok(dto);
         }
         catch (FacultyNotFoundException)
@@ -83,9 +78,9 @@ public class FacultyController : ControllerBase
 
     private async Task<FacultyDto> GetFacultyDto(FacultyModel model)
     {
-        var dto = _mapper.Map<FacultyDto>(model);
-        dto.CareersCount = await _dataManager.GetFacultyCareerCountAsync(model.Id);
-        dto.DepartmentCount = await _dataManager.GetFacultyDepartmentCountAsync(model.Id);
+        FacultyDto dto = _mapper.Map<FacultyDto>(model);
+        dto.CareersCount = await _facultiesManager.GetFacultyCareerCountAsync(model.Id);
+        dto.DepartmentCount = await _facultiesManager.GetFacultyDepartmentCountAsync(model.Id);
         return dto;
     }
 
@@ -97,7 +92,7 @@ public class FacultyController : ControllerBase
             return BadRequest("The faculty cannot be null.");
         }
 
-        var result = await _dataManager.UpdateFacultyAsync(_mapper.Map<FacultyModel>(faculty));
+        bool result = await _facultiesManager.UpdateFacultyAsync(_mapper.Map<FacultyModel>(faculty));
         return Ok(result);
     }
 
@@ -111,7 +106,7 @@ public class FacultyController : ControllerBase
 
         try
         {
-            var result = await _dataManager.DeleteFacultyAsync(id);
+            bool result = await _facultiesManager.DeleteFacultyAsync(id);
             return Ok(result);
         }
         catch (FacultyNotFoundException)

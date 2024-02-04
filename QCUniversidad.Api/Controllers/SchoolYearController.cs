@@ -9,23 +9,17 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class SchoolYearController : ControllerBase
+public class SchoolYearController(ISchoolYearsManager dataManager, IMapper mapper) : ControllerBase
 {
-    private readonly IDataManager _dataManager;
-    private readonly IMapper _mapper;
-
-    public SchoolYearController(IDataManager dataManager, IMapper mapper)
-    {
-        _dataManager = dataManager;
-        _mapper = mapper;
-    }
+    private readonly ISchoolYearsManager _dataManager = dataManager;
+    private readonly IMapper _mapper = mapper;
 
     [HttpGet("list")]
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
-        var schoolYears = await _dataManager.GetSchoolYearsAsync(from, to);
-        var dtos = schoolYears.Select(_mapper.Map<SchoolYearDto>);
-        foreach (var dto in dtos)
+        IList<SchoolYearModel> schoolYears = await _dataManager.GetSchoolYearsAsync(from, to);
+        IEnumerable<SchoolYearDto> dtos = schoolYears.Select(_mapper.Map<SchoolYearDto>);
+        foreach (SchoolYearDto? dto in dtos)
         {
             dto.CoursesCount = await _dataManager.GetSchoolYearCoursesCountAsync(dto.Id);
         }
@@ -36,7 +30,7 @@ public class SchoolYearController : ControllerBase
     [HttpGet("count")]
     public async Task<IActionResult> CountAsync()
     {
-        var total = await _dataManager.GetSchoolYearTotalAsync();
+        int total = await _dataManager.GetSchoolYearTotalAsync();
         return Ok(total);
     }
 
@@ -45,7 +39,7 @@ public class SchoolYearController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.ExistSchoolYearAsync(id);
+            bool result = await _dataManager.ExistSchoolYearAsync(id);
             return Ok(result);
         }
         catch (Exception ex)
@@ -64,8 +58,8 @@ public class SchoolYearController : ControllerBase
 
         try
         {
-            var model = _mapper.Map<SchoolYearModel>(dto);
-            var result = await _dataManager.CreateSchoolYearAsync(model);
+            SchoolYearModel model = _mapper.Map<SchoolYearModel>(dto);
+            bool result = await _dataManager.CreateSchoolYearAsync(model);
             return result ? Ok() : BadRequest("An error has occured creating the school year.");
         }
         catch (Exception ex)
@@ -84,8 +78,8 @@ public class SchoolYearController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetSchoolYearAsync(id);
-            var dto = _mapper.Map<SchoolYearDto>(result);
+            SchoolYearModel result = await _dataManager.GetSchoolYearAsync(id);
+            SchoolYearDto dto = _mapper.Map<SchoolYearDto>(result);
             dto.CoursesCount = await _dataManager.GetSchoolYearCoursesCountAsync(dto.Id);
             return Ok(dto);
         }
@@ -100,8 +94,8 @@ public class SchoolYearController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.GetCurrentSchoolYearAsync();
-            var dto = _mapper.Map<SchoolYearDto>(result);
+            SchoolYearModel result = await _dataManager.GetCurrentSchoolYearAsync();
+            SchoolYearDto dto = _mapper.Map<SchoolYearDto>(result);
             dto.CoursesCount = await _dataManager.GetSchoolYearCoursesCountAsync(dto.Id);
             return Ok(dto);
         }
@@ -123,7 +117,7 @@ public class SchoolYearController : ControllerBase
             return BadRequest("The school year cannot be null.");
         }
 
-        var result = await _dataManager.UpdateSchoolYearAsync(_mapper.Map<SchoolYearModel>(dto));
+        bool result = await _dataManager.UpdateSchoolYearAsync(_mapper.Map<SchoolYearModel>(dto));
         return Ok(result);
     }
 
@@ -137,7 +131,7 @@ public class SchoolYearController : ControllerBase
 
         try
         {
-            var result = await _dataManager.DeleteSchoolYearAsync(id);
+            bool result = await _dataManager.DeleteSchoolYearAsync(id);
             return Ok(result);
         }
         catch (SchoolYearNotFoundException)

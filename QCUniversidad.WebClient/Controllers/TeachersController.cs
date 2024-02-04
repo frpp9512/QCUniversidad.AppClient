@@ -37,20 +37,20 @@ public class TeachersController : Controller
         try
         {
             _logger.LogInformation($"Loading total teachers count.");
-            var total = await _dataProvider.GetTeachersCountAsync();
+            int total = await _dataProvider.GetTeachersCountAsync();
             _logger.LogInformation("Exists {0} teachers in total.", total);
-            var pageIndex = page - 1 < 0 ? 0 : page - 1;
-            var startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
+            int pageIndex = page - 1 < 0 ? 0 : page - 1;
+            int startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
             if (startingItemIndex < 0 || startingItemIndex >= total)
             {
                 startingItemIndex = 0;
             }
 
             _logger.LogInformation($"Loading teachers starting in {startingItemIndex} and taking {_navigationSettings.ItemsPerPage}.");
-            var teachers = await _dataProvider.GetTeachersAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
+            IList<TeacherModel> teachers = await _dataProvider.GetTeachersAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             _logger.LogInformation($"Loaded {teachers.Count} teachers.");
-            var totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
-            var viewModel = new NavigationListViewModel<TeacherModel>
+            int totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
+            NavigationListViewModel<TeacherModel> viewModel = new()
             {
                 Items = teachers,
                 CurrentPage = pageIndex + 1,
@@ -74,9 +74,9 @@ public class TeachersController : Controller
     {
         try
         {
-            var teacher = await _dataProvider.GetTeacherAsync(id);
-            var currentSchoolYear = await _dataProvider.GetCurrentSchoolYear();
-            var periods = currentSchoolYear.Periods;
+            TeacherModel teacher = await _dataProvider.GetTeacherAsync(id);
+            Models.SchoolYears.SchoolYearModel currentSchoolYear = await _dataProvider.GetCurrentSchoolYear();
+            IList<Models.Periods.PeriodModel>? periods = currentSchoolYear.Periods;
             ViewData["schoolYear"] = currentSchoolYear;
             ViewData["returnTo"] = returnTo;
             return View(teacher);
@@ -91,7 +91,7 @@ public class TeachersController : Controller
     [HttpGet]
     public async Task<IActionResult> ImportAsync()
     {
-        var departments = await _dataProvider.GetDepartmentsAsync();
+        IList<Models.Departments.DepartmentModel> departments = await _dataProvider.GetDepartmentsAsync();
         ViewData["departments-list"] = departments;
         return View();
     }
@@ -101,17 +101,22 @@ public class TeachersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ImportAsync(IFormFile formFile, Guid selectedDepartment)
     {
-        var fileStream = formFile.OpenReadStream();
-        var parsedModels = await GetParsedModelsAsync(fileStream);
+        if (formFile is null)
+        {
+            TempData["importing-error"] = "Debes de seleccionar un fichero para importar";
+            return RedirectToAction("Import");
+        }
+        Stream fileStream = formFile.OpenReadStream();
+        IList<TeacherModel> parsedModels = await GetParsedModelsAsync(fileStream);
         if (!parsedModels.Any())
         {
             TempData["importing-error"] = "No se ha podido importar ningún profesor.";
         }
 
-        var created = 0;
-        var updated = 0;
-        var failed = 0;
-        foreach (var newTeacher in parsedModels.Where(t => t.ImportAction == TeacherImportAction.Create))
+        int created = 0;
+        int updated = 0;
+        int failed = 0;
+        foreach (TeacherModel? newTeacher in parsedModels.Where(t => t.ImportAction == TeacherImportAction.Create))
         {
             try
             {
@@ -125,11 +130,11 @@ public class TeachersController : Controller
             }
         }
 
-        foreach (var teacherToUpdate in parsedModels.Where(t => t.ImportAction == TeacherImportAction.Update))
+        foreach (TeacherModel? teacherToUpdate in parsedModels.Where(t => t.ImportAction == TeacherImportAction.Update))
         {
             try
             {
-                var teacher = await _dataProvider.GetTeacherAsync(teacherToUpdate.PersonalId);
+                TeacherModel teacher = await _dataProvider.GetTeacherAsync(teacherToUpdate.PersonalId);
                 teacher.DepartmentId = selectedDepartment;
                 teacher.Fullname = teacherToUpdate.Fullname;
                 teacher.Position = teacherToUpdate.Position;
@@ -152,15 +157,15 @@ public class TeachersController : Controller
     [HttpPost]
     public async Task<IActionResult> ImportFilePreviewAsync(IFormFile formFile)
     {
-        var fileStream = formFile.OpenReadStream();
-        var parsedModels = await GetParsedModelsAsync(fileStream);
+        Stream fileStream = formFile.OpenReadStream();
+        IList<TeacherModel> parsedModels = await GetParsedModelsAsync(fileStream);
         return Json(parsedModels);
     }
 
     private async Task<IList<TeacherModel>> GetParsedModelsAsync(Stream fileStream)
     {
-        var parsedModels = await _teachersExcelParser.ParseExcelAsync(fileStream);
-        foreach (var parsedModel in parsedModels)
+        IList<TeacherModel> parsedModels = await _teachersExcelParser.ParseExcelAsync(fileStream);
+        foreach (TeacherModel parsedModel in parsedModels)
         {
             TeacherImportAction action;
             if (!ValidatePersonalId(parsedModel.PersonalId))
@@ -169,7 +174,7 @@ public class TeachersController : Controller
             }
             else
             {
-                var exists = await _dataProvider.ExistsTeacherAsync(parsedModel.PersonalId);
+                bool exists = await _dataProvider.ExistsTeacherAsync(parsedModel.PersonalId);
                 action = exists ? TeacherImportAction.Update : TeacherImportAction.Create;
             }
 
@@ -186,7 +191,7 @@ public class TeachersController : Controller
             return NotFound("The template file is missing!");
         }
 
-        var templateBytes = await System.IO.File.ReadAllBytesAsync("templates/teachers_import.xlsx");
+        byte[] templateBytes = await System.IO.File.ReadAllBytesAsync("templates/teachers_import.xlsx");
         return File(templateBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "QCU Plantilla para importar profesores.xlsx");
     }
 
@@ -195,7 +200,7 @@ public class TeachersController : Controller
     public async Task<IActionResult> CreateAsync()
     {
         _logger.LogInformation($"Requested {HttpContext.Request.Path} - {HttpContext.Request.Method}");
-        var viewmodel = new CreateTeacherModel();
+        CreateTeacherModel viewmodel = new();
         await LoadCreateViewModel(viewmodel);
         return View(viewmodel);
     }
@@ -203,13 +208,13 @@ public class TeachersController : Controller
     private async Task LoadCreateViewModel(CreateTeacherModel model)
     {
         await LoadDisciplinesIntoCreateModel(model);
-        var departments = await _dataProvider.GetDepartmentsAsync();
+        IList<Models.Departments.DepartmentModel> departments = await _dataProvider.GetDepartmentsAsync();
         model.DepartmentList = departments;
     }
 
     private async Task LoadDisciplinesIntoCreateModel(CreateTeacherModel model)
     {
-        var disciplines = await _dataProvider.GetDisciplinesAsync();
+        IList<DisciplineModel> disciplines = await _dataProvider.GetDisciplinesAsync();
         model.Disciplines = disciplines;
     }
 
@@ -237,7 +242,7 @@ public class TeachersController : Controller
                     {
                         _logger.LogInformation($"Requesting create new teacher.");
                         model.Disciplines ??= new List<DisciplineModel>(model.SelectedDisciplines?.Select(id => new DisciplineModel { Id = id, Name = "" }) ?? new List<DisciplineModel>());
-                        var result = await _dataProvider.CreateTeacherAsync(model);
+                        bool result = await _dataProvider.CreateTeacherAsync(model);
                         if (result)
                         {
                             _logger.LogInformation("The teacher was created successfully.");
@@ -268,7 +273,7 @@ public class TeachersController : Controller
 
     private async Task<bool> CheckDisciplinesExistence(Guid[] disciplinesIds)
     {
-        foreach (var id in disciplinesIds)
+        foreach (Guid id in disciplinesIds)
         {
             if (!await _dataProvider.ExistsDisciplineAsync(id))
             {
@@ -279,10 +284,13 @@ public class TeachersController : Controller
         return true;
     }
 
-    private bool ValidatePersonalId(string personalId) => (personalId.Length == 11)
+    private bool ValidatePersonalId(string personalId)
+    {
+        return (personalId.Length == 11)
             && personalId.Any(char.IsNumber)
             && (int.Parse(personalId.Substring(2, 2)) <= 12)
             && (int.Parse(personalId.Substring(4, 2)) <= 31);
+    }
 
     [Authorize("Admin")]
     [HttpGet]
@@ -292,7 +300,7 @@ public class TeachersController : Controller
         _logger.LogInformation($"Checking if the teacher with id {id} exists.");
         if (await _dataProvider.ExistsTeacherAsync(id))
         {
-            var teacher = await _dataProvider.GetTeacherAsync(id);
+            TeacherModel teacher = await _dataProvider.GetTeacherAsync(id);
             teacher.SelectedDisciplines = teacher.Disciplines?.Select(d => d.Id).ToArray();
             teacher.Disciplines?.Clear();
             await LoadEditViewModel(teacher);
@@ -320,7 +328,7 @@ public class TeachersController : Controller
                     {
                         _logger.LogInformation($"Requesting update teacher.");
                         model.Disciplines ??= new List<DisciplineModel>(model.SelectedDisciplines?.Select(id => new DisciplineModel { Id = id }) ?? new List<DisciplineModel>());
-                        var result = await _dataProvider.UpdateTeacherAsync(model);
+                        bool result = await _dataProvider.UpdateTeacherAsync(model);
                         if (result)
                         {
                             _logger.LogInformation("The teacher was updated successfully.");
@@ -356,7 +364,7 @@ public class TeachersController : Controller
 
     private async Task LoadEditViewModel(TeacherModel model)
     {
-        var disciplines = await _dataProvider.GetDisciplinesAsync();
+        IList<DisciplineModel> disciplines = await _dataProvider.GetDisciplinesAsync();
         model.Disciplines = disciplines;
     }
 
@@ -369,7 +377,7 @@ public class TeachersController : Controller
         {
             _logger.LogInformation($"The teacher with id {id} exists.");
             _logger.LogInformation($"Requesting delete the teacher with id {id}.");
-            var result = await _dataProvider.DeleteTeacherAsync(id);
+            bool result = await _dataProvider.DeleteTeacherAsync(id);
             if (result)
             {
                 _logger.LogInformation($"The teacher with id {id} was eliminated successfully.");

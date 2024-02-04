@@ -13,7 +13,7 @@ using QCUniversidad.WebClient.Services.Extensions;
 using QCUniversidad.WebClient.Services.Platform;
 using SmartB1t.Security.WebSecurity.Local.Interfaces;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
 builder.Logging.ClearProviders();
@@ -33,19 +33,19 @@ builder.Services.AddAuthentication(Constants.AUTH_SCHEME)
 
 builder.Services.AddAuthorization(config =>
 {
-    var authPolicyBuilder = new AuthorizationPolicyBuilder();
+    AuthorizationPolicyBuilder authPolicyBuilder = new();
     _ = authPolicyBuilder.RequireAuthenticatedUser();
     config.AddPolicy("Auth", authPolicyBuilder.Build());
 
-    var adminPolicyBuilder = new AuthorizationPolicyBuilder();
+    AuthorizationPolicyBuilder adminPolicyBuilder = new();
     _ = adminPolicyBuilder.RequireAuthenticatedUser().RequireRole("Administrador");
     config.AddPolicy("Admin", adminPolicyBuilder.Build());
 
-    var plannerPolicyBuilder = new AuthorizationPolicyBuilder();
+    AuthorizationPolicyBuilder plannerPolicyBuilder = new();
     _ = plannerPolicyBuilder.RequireAuthenticatedUser().RequireRole("Administrador", "Planificador");
     config.AddPolicy("Planner", plannerPolicyBuilder.Build());
 
-    var distributorPolicyBuilder = new AuthorizationPolicyBuilder();
+    AuthorizationPolicyBuilder distributorPolicyBuilder = new();
     _ = distributorPolicyBuilder.RequireAuthenticatedUser().RequireRole("Administrador", "Jefe de departamento");
     config.AddPolicy("Distributor", distributorPolicyBuilder.Build());
 });
@@ -62,7 +62,7 @@ builder.Services.AddExcelParser<TeacherModel>(config =>
     config.ConfigureColumn("Carné de identidad", teacher => teacher.PersonalId);
     config.ConfigureColumn("Tipo de contrato", teacher => teacher.ContractType, value =>
     {
-        foreach (var enumValue in Enum.GetValues<TeacherContractType>())
+        foreach (TeacherContractType enumValue in Enum.GetValues<TeacherContractType>())
         {
             if (value == enumValue.GetEnumDisplayNameValue())
             {
@@ -75,7 +75,7 @@ builder.Services.AddExcelParser<TeacherModel>(config =>
     config.ConfigureColumn("Cargo", teacher => teacher.Position);
     config.ConfigureColumn("Categoría docente", teacher => teacher.Category, value =>
     {
-        foreach (var enumValue in Enum.GetValues<TeacherCategory>())
+        foreach (TeacherCategory enumValue in Enum.GetValues<TeacherCategory>())
         {
             if (value == enumValue.GetEnumDisplayNameValue())
             {
@@ -120,7 +120,7 @@ builder.Services.AddTransient<IDataProvider, DataProvider>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddLogging();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

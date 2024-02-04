@@ -35,20 +35,20 @@ public class CurriculumsController : Controller
         try
         {
             _logger.LogInformation($"Loading total curriculums count.");
-            var total = await _dataProvider.GetCurriculumsCountAsync();
+            int total = await _dataProvider.GetCurriculumsCountAsync();
             _logger.LogInformation("Exists {0} curriculums in total.", total);
-            var pageIndex = page - 1 < 0 ? 0 : page - 1;
-            var startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
+            int pageIndex = page - 1 < 0 ? 0 : page - 1;
+            int startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
             if (startingItemIndex < 0 || startingItemIndex >= total)
             {
                 startingItemIndex = 0;
             }
 
             _logger.LogModelSetLoading<CurriculumsController, CurriculumModel>(HttpContext, startingItemIndex, _navigationSettings.ItemsPerPage);
-            var curriculums = await _dataProvider.GetCurriculumsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
+            IList<CurriculumModel> curriculums = await _dataProvider.GetCurriculumsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             _logger.LogInformation($"Loaded {curriculums.Count} curriculums.");
-            var totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
-            var viewModel = new NavigationListViewModel<CurriculumModel>
+            int totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
+            NavigationListViewModel<CurriculumModel> viewModel = new()
             {
                 Items = curriculums,
                 CurrentPage = pageIndex + 1,
@@ -66,14 +66,17 @@ public class CurriculumsController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> DetailsAsync(Guid id) => await Task.FromResult(View());
+    public async Task<IActionResult> DetailsAsync(Guid id)
+    {
+        return await Task.FromResult(View());
+    }
 
     [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> CreateAsync()
     {
         _logger.LogRequest(HttpContext);
-        var viewmodel = new CreateCurriculumModel { Denomination = "" };
+        CreateCurriculumModel viewmodel = new() { Denomination = "" };
         await LoadCreateViewModel(viewmodel);
         return View(viewmodel);
     }
@@ -86,13 +89,13 @@ public class CurriculumsController : Controller
 
     private async Task LoadCareersIntoCreateModel(CreateCurriculumModel model)
     {
-        var careers = await _dataProvider.GetCareersAsync();
+        IList<Models.Careers.CareerModel> careers = await _dataProvider.GetCareersAsync();
         model.Careers = careers;
     }
 
     private async Task LoadDisciplinesIntoCreateModel(CreateCurriculumModel model)
     {
-        var disciplines = await _dataProvider.GetDisciplinesAsync();
+        IList<DisciplineModel> disciplines = await _dataProvider.GetDisciplinesAsync();
         model.Disciplines = disciplines;
     }
 
@@ -109,7 +112,7 @@ public class CurriculumsController : Controller
             {
                 _logger.LogCreateModelRequest<CurriculumsController, CurriculumModel>(HttpContext);
                 model.Disciplines ??= new List<DisciplineModel>(model.SelectedDisciplines?.Select(id => new DisciplineModel { Id = id }) ?? new List<DisciplineModel>());
-                var result = await _dataProvider.CreateCurriculumAsync(model);
+                bool result = await _dataProvider.CreateCurriculumAsync(model);
                 if (result)
                 {
                     _logger.LogModelCreated<CurriculumsController, CurriculumModel>(HttpContext);
@@ -133,7 +136,7 @@ public class CurriculumsController : Controller
 
     private async Task<bool> CheckDisciplinesExistence(Guid[] disciplinesIds)
     {
-        foreach (var id in disciplinesIds)
+        foreach (Guid id in disciplinesIds)
         {
             if (!await _dataProvider.ExistsDisciplineAsync(id))
             {
@@ -152,7 +155,7 @@ public class CurriculumsController : Controller
         _logger.LogCheckModelExistence<CurriculumsController, CurriculumModel>(HttpContext, id);
         if (await _dataProvider.ExistsCurriculumAsync(id))
         {
-            var curriculum = await _dataProvider.GetCurriculumAsync(id);
+            CurriculumModel curriculum = await _dataProvider.GetCurriculumAsync(id);
             curriculum.SelectedDisciplines = curriculum.CurriculumDisciplines?.Select(d => d.Id).ToArray();
             curriculum.CurriculumDisciplines?.Clear();
             await LoadEditViewModel(curriculum);
@@ -178,7 +181,7 @@ public class CurriculumsController : Controller
                 {
                     _logger.LogEditModelRequest<CurriculumsController, CurriculumModel>(HttpContext);
                     model.CurriculumDisciplines ??= new List<DisciplineModel>(model.SelectedDisciplines?.Select(id => new DisciplineModel { Id = id }) ?? new List<DisciplineModel>());
-                    var result = await _dataProvider.UpdateCurriculumAsync(model);
+                    bool result = await _dataProvider.UpdateCurriculumAsync(model);
                     if (result)
                     {
                         _logger.LogModelEdited<CurriculumsController, CurriculumModel>(HttpContext);
@@ -208,7 +211,7 @@ public class CurriculumsController : Controller
 
     private async Task LoadEditViewModel(CurriculumModel model)
     {
-        var disciplines = await _dataProvider.GetDisciplinesAsync();
+        IList<DisciplineModel> disciplines = await _dataProvider.GetDisciplinesAsync();
         model.CurriculumDisciplines = disciplines;
     }
 
@@ -220,7 +223,7 @@ public class CurriculumsController : Controller
         if (await _dataProvider.ExistsCurriculumAsync(id))
         {
             _logger.LogDeleteModelRequest<CurriculumsController, CurriculumModel>(HttpContext, id);
-            var result = await _dataProvider.DeleteCurriculumAsync(id);
+            bool result = await _dataProvider.DeleteCurriculumAsync(id);
             if (result)
             {
                 _logger.LogModelDeleted<CurriculumsController, CurriculumModel>(HttpContext, id);

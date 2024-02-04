@@ -19,8 +19,8 @@ public record CoursePeriodPlanningInfoDto
     {
         get
         {
-            var dateDiff = Period.Ends - Period.Starts;
-            var weekends = Math.Floor(Math.Ceiling((double)(dateDiff.TotalDays / 7)) / 2);
+            TimeSpan dateDiff = Period.Ends - Period.Starts;
+            double weekends = Math.Floor(Math.Ceiling((double)(dateDiff.TotalDays / 7)) / 2);
             return weekends;
         }
     }

@@ -8,15 +8,21 @@ namespace QCUniversidad.Api.Migrations;
 public partial class AddedPeriodSubjectTerminationMode : Migration
 {
     /// <inheritdoc />
-    protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.AddColumn<int>(
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.AddColumn<int>(
             name: "TerminationMode",
             table: "PeriodSubjects",
             type: "integer",
             nullable: false,
             defaultValue: 0);
+    }
 
     /// <inheritdoc />
-    protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropColumn(
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.DropColumn(
             name: "TerminationMode",
             table: "PeriodSubjects");
+    }
 }

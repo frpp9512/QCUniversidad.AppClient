@@ -10,16 +10,13 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class PeriodController : ControllerBase
+public class PeriodController(IPeriodsManager periodsManager,
+                              IPlanningManager planningManager,
+                              IMapper mapper) : ControllerBase
 {
-    private readonly IDataManager _dataManager;
-    private readonly IMapper _mapper;
-
-    public PeriodController(IDataManager dataManager, IMapper mapper)
-    {
-        _dataManager = dataManager;
-        _mapper = mapper;
-    }
+    private readonly IPeriodsManager _periodsManager = periodsManager;
+    private readonly IPlanningManager _planningManager = planningManager;
+    private readonly IMapper _mapper = mapper;
 
     [HttpGet]
     public async Task<IActionResult> GetByIdAsync(Guid id)
@@ -31,8 +28,8 @@ public class PeriodController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetPeriodAsync(id);
-            var dto = _mapper.Map<PeriodDto>(result);
+            PeriodModel result = await _periodsManager.GetPeriodAsync(id);
+            PeriodDto dto = _mapper.Map<PeriodDto>(result);
             return Ok(dto);
         }
         catch (PeriodNotFoundException)
@@ -44,16 +41,16 @@ public class PeriodController : ControllerBase
     [HttpGet("list")]
     public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
     {
-        var periods = await _dataManager.GetPeriodsAsync(from, to);
-        var dtos = periods.Select(_mapper.Map<PeriodDto>);
+        IList<PeriodModel> periods = await _periodsManager.GetPeriodsAsync(from, to);
+        IEnumerable<PeriodDto> dtos = periods.Select(_mapper.Map<PeriodDto>);
         return Ok(dtos);
     }
 
     [HttpGet("listbyschoolyear")]
     public async Task<IActionResult> GetListBySchoolYearAsync(Guid schoolYearId)
     {
-        var periods = await _dataManager.GetPeriodsOfSchoolYearAsync(schoolYearId);
-        var dtos = periods.Select(_mapper.Map<PeriodDto>);
+        IList<PeriodModel> periods = await _periodsManager.GetPeriodsOfSchoolYearAsync(schoolYearId);
+        IEnumerable<PeriodDto> dtos = periods.Select(_mapper.Map<PeriodDto>);
         return Ok(dtos);
     }
 
@@ -63,7 +60,7 @@ public class PeriodController : ControllerBase
     {
         try
         {
-            var count = await _dataManager.GetPeriodsCountAsync();
+            int count = await _periodsManager.GetPeriodsCountAsync();
             return Ok(count);
         }
         catch (Exception ex)
@@ -78,7 +75,7 @@ public class PeriodController : ControllerBase
     {
         try
         {
-            var count = await _dataManager.GetSchoolYearPeriodsCountAsync(schoolYearId);
+            int count = await _periodsManager.GetSchoolYearPeriodsCountAsync(schoolYearId);
             return Ok(count);
         }
         catch (Exception ex)
@@ -93,7 +90,7 @@ public class PeriodController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.ExistsPeriodAsync(id);
+            bool result = await _periodsManager.ExistsPeriodAsync(id);
             return Ok(result);
         }
         catch (Exception ex)
@@ -107,8 +104,8 @@ public class PeriodController : ControllerBase
     {
         if (period is not null)
         {
-            var model = _mapper.Map<PeriodModel>(period);
-            var result = await _dataManager.CreatePeriodAsync(model);
+            PeriodModel model = _mapper.Map<PeriodModel>(period);
+            bool result = await _periodsManager.CreatePeriodAsync(model);
             return result ? Ok(model.Id) : Problem("An error has occured creating the period.");
         }
 
@@ -125,7 +122,7 @@ public class PeriodController : ControllerBase
 
         try
         {
-            var result = await _dataManager.UpdatePeriodAsync(_mapper.Map<PeriodModel>(period));
+            bool result = await _periodsManager.UpdatePeriodAsync(_mapper.Map<PeriodModel>(period));
             return Ok(result);
         }
         catch (Exception ex)
@@ -144,7 +141,7 @@ public class PeriodController : ControllerBase
 
         try
         {
-            var result = await _dataManager.DeletePeriodAsync(id);
+            bool result = await _periodsManager.DeletePeriodAsync(id);
             return Ok(result);
         }
         catch (PeriodNotFoundException)
@@ -164,8 +161,8 @@ public class PeriodController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetTeachingPlanItemAsync(id);
-            var dto = _mapper.Map<TeachingPlanItemDto>(result);
+            TeachingPlanItemModel result = await _planningManager.GetTeachingPlanItemAsync(id);
+            TeachingPlanItemDto dto = _mapper.Map<TeachingPlanItemDto>(result);
             return Ok(dto);
         }
         catch (Exception ex)
@@ -185,12 +182,12 @@ public class PeriodController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetTeachingPlanItemsAsync(periodId, courseId, from, to);
-            var dtos = new List<TeachingPlanItemSimpleDto>();
-            foreach (var item in result)
+            IList<TeachingPlanItemModel> result = await _planningManager.GetTeachingPlanItemsAsync(periodId, courseId, from, to);
+            List<TeachingPlanItemSimpleDto> dtos = [];
+            foreach (TeachingPlanItemModel item in result)
             {
-                var dto = _mapper.Map<TeachingPlanItemSimpleDto>(item);
-                dto.TotalLoadCovered = await _dataManager.GetPlanItemTotalCoveredAsync(item.Id);
+                TeachingPlanItemSimpleDto dto = _mapper.Map<TeachingPlanItemSimpleDto>(item);
+                dto.TotalLoadCovered = await _planningManager.GetPlanItemTotalCoveredAsync(item.Id);
                 dto.AllowLoad = dto.TotalHoursPlanned > dto.TotalLoadCovered;
                 dtos.Add(dto);
             }
@@ -217,15 +214,15 @@ public class PeriodController : ControllerBase
             return Problem("The teaching plan must have a period id.");
         }
 
-        if (!await _dataManager.ExistsPeriodAsync(teachingPlan.PeriodId))
+        if (!await _periodsManager.ExistsPeriodAsync(teachingPlan.PeriodId))
         {
             return Problem("The period of the teaching plan do not exist.");
         }
 
         try
         {
-            var model = _mapper.Map<TeachingPlanItemModel>(teachingPlan);
-            var result = await _dataManager.CreateTeachingPlanItemAsync(model);
+            TeachingPlanItemModel model = _mapper.Map<TeachingPlanItemModel>(teachingPlan);
+            bool result = await _planningManager.CreateTeachingPlanItemAsync(model);
             return result ? Ok(result) : Problem();
         }
         catch (Exception ex)
@@ -245,7 +242,7 @@ public class PeriodController : ControllerBase
 
         try
         {
-            var result = await _dataManager.ExistsTeachingPlanItemAsync(id);
+            bool result = await _planningManager.ExistsTeachingPlanItemAsync(id);
             return result ? Ok(result) : Problem();
         }
         catch (Exception ex)
@@ -265,7 +262,7 @@ public class PeriodController : ControllerBase
 
         try
         {
-            var result = await _dataManager.GetTeachingPlanItemsCountAsync(periodId);
+            int result = await _planningManager.GetTeachingPlanItemsCountAsync(periodId);
             return Ok(result);
         }
         catch (Exception ex)
@@ -283,20 +280,20 @@ public class PeriodController : ControllerBase
             return BadRequest("You must provide a plan item model.");
         }
 
-        if (!await _dataManager.ExistsTeachingPlanItemAsync(dto.Id))
+        if (!await _planningManager.ExistsTeachingPlanItemAsync(dto.Id))
         {
             return BadRequest($"The plan item with id {dto.PeriodId} do not exists.");
         }
 
-        if (!await _dataManager.ExistsPeriodAsync(dto.PeriodId))
+        if (!await _periodsManager.ExistsPeriodAsync(dto.PeriodId))
         {
             return BadRequest($"The period with id {dto.PeriodId} do not exists.");
         }
 
         try
         {
-            var model = _mapper.Map<TeachingPlanItemModel>(dto);
-            var result = await _dataManager.UpdateTeachingPlanItemAsync(model);
+            TeachingPlanItemModel model = _mapper.Map<TeachingPlanItemModel>(dto);
+            bool result = await _planningManager.UpdateTeachingPlanItemAsync(model);
             return result ? Ok(result) : Problem();
         }
         catch (Exception ex)
@@ -316,12 +313,12 @@ public class PeriodController : ControllerBase
 
         try
         {
-            if (!await _dataManager.ExistsTeachingPlanItemAsync(id))
+            if (!await _planningManager.ExistsTeachingPlanItemAsync(id))
             {
                 return BadRequest("The teaching item do not exist.");
             }
 
-            var result = await _dataManager.DeleteTeachingPlanItemAsync(id);
+            bool result = await _planningManager.DeleteTeachingPlanItemAsync(id);
             return result ? Ok(result) : Problem();
         }
         catch (Exception ex)

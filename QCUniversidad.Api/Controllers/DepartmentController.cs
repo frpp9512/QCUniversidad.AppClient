@@ -14,28 +14,31 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class DepartmentController : ControllerBase
+public class DepartmentController(IDepartmentsManager dataManager,
+                                  IPeriodsManager periodsManager,
+                                  IPlanningManager planningManager,
+                                  ITeachersManager teachersManager,
+                                  ITeachersLoadManager teachersLoadManager,
+                                  IMapper mapper,
+                                  IOptions<CalculationOptions> options) : ControllerBase
 {
-    private readonly IDataManager _dataManager;
-    private readonly IMapper _mapper;
-    private readonly CalculationOptions _calculationOptions;
-
-    public DepartmentController(IDataManager dataManager, IMapper mapper, IOptions<CalculationOptions> options)
-    {
-        _dataManager = dataManager;
-        _mapper = mapper;
-        _calculationOptions = options.Value;
-    }
+    private readonly IDepartmentsManager _departmentsManager = dataManager;
+    private readonly IPeriodsManager _periodsManager = periodsManager;
+    private readonly IPlanningManager _planningManager = planningManager;
+    private readonly ITeachersManager _teachersManager = teachersManager;
+    private readonly ITeachersLoadManager _teachersLoadManager = teachersLoadManager;
+    private readonly IMapper _mapper = mapper;
+    private readonly CalculationOptions _calculationOptions = options.Value;
 
     [HttpGet]
     [Route("listall")]
     public async Task<IActionResult> GetList(int from = 0, int to = 0)
     {
-        var deparments = await _dataManager.GetDepartmentsAsync(from, to);
-        var dtos = deparments.Select(_mapper.Map<DepartmentDto>).ToList();
-        foreach (var dto in dtos)
+        IList<DepartmentModel> deparments = await _departmentsManager.GetDepartmentsAsync(from, to);
+        List<DepartmentDto> dtos = deparments.Select(_mapper.Map<DepartmentDto>).ToList();
+        foreach (DepartmentDto? dto in dtos)
         {
-            dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
+            dto.DisciplinesCount = await _departmentsManager.GetDepartmentDisciplinesCount(dto.Id);
         }
 
         return Ok(dtos);
@@ -50,11 +53,11 @@ public class DepartmentController : ControllerBase
             return BadRequest("You should provide a faculty id to load the departments from.");
         }
 
-        var deparments = await _dataManager.GetDepartmentsAsync(facultyId);
-        var dtos = deparments.Select(_mapper.Map<DepartmentDto>).ToList();
-        foreach (var dto in dtos)
+        IList<DepartmentModel> deparments = await _departmentsManager.GetDepartmentsAsync(facultyId);
+        List<DepartmentDto> dtos = deparments.Select(_mapper.Map<DepartmentDto>).ToList();
+        foreach (DepartmentDto? dto in dtos)
         {
-            dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
+            dto.DisciplinesCount = await _departmentsManager.GetDepartmentDisciplinesCount(dto.Id);
         }
 
         return Ok(dtos);
@@ -66,17 +69,17 @@ public class DepartmentController : ControllerBase
     {
         try
         {
-            var deparments = await _dataManager.GetDepartmentsAsync();
-            var dtos = deparments.Select(_mapper.Map<DepartmentDto>).ToList();
-            foreach (var dto in dtos)
+            IList<DepartmentModel> deparments = await _departmentsManager.GetDepartmentsAsync();
+            List<DepartmentDto> dtos = deparments.Select(_mapper.Map<DepartmentDto>).ToList();
+            foreach (DepartmentDto? dto in dtos)
             {
-                dto.DisciplinesCount = await _dataManager.GetDepartmentDisciplinesCount(dto.Id);
-                var load = await _dataManager.GetDepartmentTotalLoadInPeriodAsync(periodId, dto.Id);
+                dto.DisciplinesCount = await _departmentsManager.GetDepartmentDisciplinesCount(dto.Id);
+                double load = await _departmentsManager.GetDepartmentTotalLoadInPeriodAsync(periodId, dto.Id);
                 dto.Load = load;
-                var loadCovered = await _dataManager.GetDepartmentTotalLoadCoveredInPeriodAsync(periodId, dto.Id);
+                double loadCovered = await _departmentsManager.GetDepartmentTotalLoadCoveredInPeriodAsync(periodId, dto.Id);
                 dto.LoadCovered = loadCovered;
                 dto.LoadCoveredPercent = load == 0 ? 0 : Math.Round(loadCovered / load * 100, 1);
-                var totalFund = await _dataManager.GetDepartmentTotalTimeFund(dto.Id, periodId);
+                double totalFund = await _departmentsManager.GetDepartmentTotalTimeFund(dto.Id, periodId);
                 dto.TotalTimeFund = totalFund;
                 dto.LoadPercent = totalFund == 0 ? 0 : Math.Round(load / totalFund * 100, 1);
             }
@@ -95,7 +98,7 @@ public class DepartmentController : ControllerBase
     {
         try
         {
-            var count = await _dataManager.GetDepartmentsCountAsync();
+            int count = await _departmentsManager.GetDepartmentsCountAsync();
             return Ok(count);
         }
         catch (Exception ex)
@@ -110,7 +113,7 @@ public class DepartmentController : ControllerBase
     {
         try
         {
-            var count = await _dataManager.GetDepartmentsCountAsync(departmentId);
+            int count = await _departmentsManager.GetDepartmentsCountAsync(departmentId);
             return Ok(count);
         }
         catch (Exception ex)
@@ -125,7 +128,7 @@ public class DepartmentController : ControllerBase
     {
         try
         {
-            var count = await _dataManager.GetDepartmentsCountAsync(facultyId);
+            int count = await _departmentsManager.GetDepartmentsCountAsync(facultyId);
             return Ok(count);
         }
         catch (Exception ex)
@@ -139,7 +142,7 @@ public class DepartmentController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.ExistDepartmentAsync(id);
+            bool result = await _departmentsManager.ExistDepartmentAsync(id);
             return Ok(result);
         }
         catch (Exception ex)
@@ -158,8 +161,8 @@ public class DepartmentController : ControllerBase
 
         try
         {
-            var department = await _dataManager.GetDepartmentAsync(id);
-            var dto = _mapper.Map<DepartmentDto>(department);
+            DepartmentModel department = await _departmentsManager.GetDepartmentAsync(id);
+            DepartmentDto dto = _mapper.Map<DepartmentDto>(department);
             return Ok(dto);
         }
         catch (FacultyNotFoundException)
@@ -182,8 +185,8 @@ public class DepartmentController : ControllerBase
 
         try
         {
-            var model = _mapper.Map<DepartmentModel>(department);
-            var result = await _dataManager.CreateDepartmentAsync(model);
+            DepartmentModel model = _mapper.Map<DepartmentModel>(department);
+            bool result = await _departmentsManager.CreateDepartmentAsync(model);
             return result ? Ok(result) : (IActionResult)Problem("Error while adding department to database.");
         }
         catch (Exception ex)
@@ -201,8 +204,8 @@ public class DepartmentController : ControllerBase
             return BadRequest("You should provide a department.");
         }
 
-        var model = _mapper.Map<DepartmentModel>(department);
-        var result = await _dataManager.UpdateDeparmentAsync(model);
+        DepartmentModel model = _mapper.Map<DepartmentModel>(department);
+        bool result = await _departmentsManager.UpdateDeparmentAsync(model);
         return result ? Ok(result) : (IActionResult)Problem("Error while updating department in database.");
     }
 
@@ -214,7 +217,7 @@ public class DepartmentController : ControllerBase
             return BadRequest("You should provide a department id.");
         }
 
-        var result = await _dataManager.DeleteDeparmentAsync(id);
+        bool result = await _departmentsManager.DeleteDeparmentAsync(id);
         return result ? Ok(result) : (IActionResult)Problem("Error while deleting department from database.");
     }
 
@@ -224,24 +227,24 @@ public class DepartmentController : ControllerBase
     {
         try
         {
-            var result = await _dataManager.GetTeachingPlanItemsOfDepartmentOnPeriod(id, periodId, courseId, onlyLoadItems);
-            var periodTimeFund = await _dataManager.GetPeriodTimeFund(periodId);
-            var dtos = result.Select(_mapper.Map<TeachingPlanItemDto>).ToList();
-            foreach (var dto in dtos)
+            IList<TeachingPlanItemModel> result = await _planningManager.GetTeachingPlanItemsOfDepartmentOnPeriod(id, periodId, courseId, onlyLoadItems);
+            double periodTimeFund = await _periodsManager.GetPeriodTimeFund(periodId);
+            List<TeachingPlanItemDto> dtos = result.Select(_mapper.Map<TeachingPlanItemDto>).ToList();
+            foreach (TeachingPlanItemDto? dto in dtos)
             {
                 if (dto.LoadItems is null)
                 {
                     continue;
                 }
 
-                foreach (var loadItem in dto.LoadItems)
+                foreach (Shared.Dtos.LoadItem.SimpleLoadItemDto loadItem in dto.LoadItems)
                 {
                     if (loadItem.Teacher is null)
                     {
                         continue;
                     }
 
-                    var load = await _dataManager.GetTeacherLoadInPeriodAsync(loadItem.Teacher.Id, periodId);
+                    double load = await _teachersLoadManager.GetTeacherLoadInPeriodAsync(loadItem.Teacher.Id, periodId);
                     loadItem.Teacher.Load = new TeacherLoadDto
                     {
                         TeacherId = loadItem.Teacher.Id,
@@ -277,9 +280,9 @@ public class DepartmentController : ControllerBase
 
         try
         {
-            List<StatisticItemDto> stats = new();
-            var period = await _dataManager.GetPeriodAsync(periodId);
-            var timeFund = period.TimeFund;
+            List<StatisticItemDto> stats = [];
+            PeriodModel period = await _periodsManager.GetPeriodAsync(periodId);
+            double timeFund = period.TimeFund;
 
             stats.Add(new()
             {
@@ -288,7 +291,7 @@ public class DepartmentController : ControllerBase
                 Value = timeFund
             });
 
-            var teachersCount = await _dataManager.GetTeachersCountAsync();
+            int teachersCount = await _teachersManager.GetTeachersCountAsync();
             stats.Add(new()
             {
                 Name = "Cantidad de profesores",
@@ -296,7 +299,7 @@ public class DepartmentController : ControllerBase
                 Value = teachersCount
             });
 
-            var salary = teachersCount * _calculationOptions.AverageMonthlySalary * period.MonthsCount;
+            double salary = teachersCount * _calculationOptions.AverageMonthlySalary * period.MonthsCount;
             stats.Add(new()
             {
                 Name = "Salario promedio",
@@ -304,7 +307,7 @@ public class DepartmentController : ControllerBase
                 Value = salary
             });
 
-            var depCapacity = timeFund * teachersCount;
+            double depCapacity = timeFund * teachersCount;
             stats.Add(new()
             {
                 Name = "Capacidad del departamento",
@@ -312,7 +315,7 @@ public class DepartmentController : ControllerBase
                 Value = depCapacity
             });
 
-            var depLoad = await _dataManager.GetDepartmentTotalLoadInPeriodAsync(periodId, departmentId);
+            double depLoad = await _departmentsManager.GetDepartmentTotalLoadInPeriodAsync(periodId, departmentId);
             stats.Add(new()
             {
                 Name = "Carga del departamento",
@@ -320,7 +323,7 @@ public class DepartmentController : ControllerBase
                 Value = depLoad
             });
 
-            var depLoadPercent = Math.Round(depLoad / depCapacity * 100, 2);
+            double depLoadPercent = Math.Round(depLoad / depCapacity * 100, 2);
             stats.Add(new()
             {
                 Name = "Porciento de carga",
@@ -328,8 +331,8 @@ public class DepartmentController : ControllerBase
                 Value = depLoadPercent
             });
 
-            var diff = depLoad - depCapacity;
-            var personalRequiriement = Math.Floor(diff / (_calculationOptions.MonthTimeFund * period.MonthsCount));
+            double diff = depLoad - depCapacity;
+            double personalRequiriement = Math.Floor(diff / (_calculationOptions.MonthTimeFund * period.MonthsCount));
             stats.Add(new()
             {
                 Name = "Ajustes de personal",
@@ -337,7 +340,7 @@ public class DepartmentController : ControllerBase
                 Value = personalRequiriement
             });
 
-            var salaryImpact = personalRequiriement * _calculationOptions.AverageMonthlySalary * period.MonthsCount;
+            double salaryImpact = personalRequiriement * _calculationOptions.AverageMonthlySalary * period.MonthsCount;
             stats.Add(new()
             {
                 Name = "Imacto económico luego de ajustes de personal",
@@ -345,7 +348,7 @@ public class DepartmentController : ControllerBase
                 Value = salaryImpact
             });
 
-            var rap = await _dataManager.CalculateRAPAsync(departmentId);
+            double rap = await _departmentsManager.CalculateRAPAsync(departmentId);
             stats.Add(new()
             {
                 Name = "Relación alumno-profesor",

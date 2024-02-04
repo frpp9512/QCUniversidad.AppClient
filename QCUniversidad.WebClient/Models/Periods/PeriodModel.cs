@@ -18,5 +18,8 @@ public record PeriodModel
     public required SchoolYearModel SchoolYear { get; set; }
     public IList<TeachingPlanItemModel>? PlanItems { get; set; }
 
-    public override string ToString() => $"{Starts:dd-MM-yyyy} - {Ends:dd-MM-yyyy}";
+    public override string ToString()
+    {
+        return $"{Starts:dd-MM-yyyy} - {Ends:dd-MM-yyyy}";
+    }
 }

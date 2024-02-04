@@ -1,5 +1,5 @@
-﻿using System.Linq.Expressions;
-using QCUniversidad.Api.Contracts;
+﻿using QCUniversidad.Api.Contracts;
+using System.Linq.Expressions;
 
 namespace QCUniversidad.Api.Services;
 
@@ -35,7 +35,13 @@ public class CoefficientCalculator<T> : ICoefficientCalculator<T>
         _afterCalcFunction = afterCalcFunc;
     }
 
-    public double CalculateValue(T model) => _afterCalcFunction is null ? CoeffCalculation(model) : _afterCalcFunction(CoeffCalculation(model));
+    public double CalculateValue(T model)
+    {
+        return _afterCalcFunction is null ? CoeffCalculation(model) : _afterCalcFunction(CoeffCalculation(model));
+    }
 
-    private double CoeffCalculation(T model) => _coeffFunction(model) * _memberExpression.Compile().Invoke(model);
+    private double CoeffCalculation(T model)
+    {
+        return _coeffFunction(model) * _memberExpression.Compile().Invoke(model);
+    }
 }

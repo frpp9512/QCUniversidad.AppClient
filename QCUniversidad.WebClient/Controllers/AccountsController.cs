@@ -59,20 +59,20 @@ public class AccountsController : Controller
             return View(model: new LoginViewModel { Email = "", Password = "", RememberSession = false, ReturnUrl = returnUrl });
         }
 
-        var roles = new List<Role>
-        {
+        List<Role> roles =
+        [
             new Role { Name = "Administrador", Description = "Administrador del sistema", Active = true },
             new Role { Name = "Planificador", Description = "Planificador de carga docente", Active = true },
             new Role { Name = "Jefe de departamento", Description = "Distribuidor de carga docente", Active = true }
-        };
-        foreach (var role in roles)
+        ];
+        foreach (Role role in roles)
         {
             await _repository.CreateRoleAsync(role);
         }
 
-        var user = new User { Email = "admin@fis.cu", Fullname = "Default administrator", Active = true };
+        User user = new() { Email = "admin@fis.cu", Fullname = "Default administrator", Active = true };
         await _repository.CreateUserAsync(user, "admin.123");
-        var adminRole = roles.First();
+        Role adminRole = roles.First();
         await _repository.AssignRoleToUserAsync(user, adminRole);
         return View(model: new LoginViewModel { Email = "", Password = "", ReturnUrl = returnUrl });
     }
@@ -87,7 +87,7 @@ public class AccountsController : Controller
             return View(viewModel);
         }
 
-        var user = await _repository.GetUserAsync(viewModel.Email, true);
+        User user = await _repository.GetUserAsync(viewModel.Email, true);
 
         if (user == null)
         {
@@ -136,7 +136,10 @@ public class AccountsController : Controller
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     [AllowAnonymous]
-    public IActionResult AccessDenied() => View();
+    public IActionResult AccessDenied()
+    {
+        return View();
+    }
 
     #endregion
 
@@ -149,18 +152,18 @@ public class AccountsController : Controller
         RemoveTempDirectory();
 
         Func<(int, int)> calculateIndexes = new(() => ((page - 1) * usersPerPage, ((page - 1) * usersPerPage) + usersPerPage));
-        var usersCount = await _repository.GetUsersCount(includeInactive);
+        int usersCount = await _repository.GetUsersCount(includeInactive);
 
-        var indexes = calculateIndexes();
+        (int, int) indexes = calculateIndexes();
         if (usersCount < indexes.Item1)
         {
             page = 1;
             indexes = calculateIndexes();
         }
 
-        var users = await _repository.GetUsersAsync(indexes.Item1, indexes.Item2, true);
-        var vmUsers = users.Select(_mapper.Map<UserViewModel>).ToList();
-        foreach (var user in vmUsers)
+        IEnumerable<User> users = await _repository.GetUsersAsync(indexes.Item1, indexes.Item2, true);
+        List<UserViewModel> vmUsers = users.Select(_mapper.Map<UserViewModel>).ToList();
+        foreach (UserViewModel? user in vmUsers)
         {
             if (user.ProfilePicture is not null)
             {
@@ -168,18 +171,18 @@ public class AccountsController : Controller
                 await fileStream.WriteAsync(user.ProfilePicture);
             }
 
-            if (user.ExtraClaims?.Any(c => c.Type == "DepartmentId") is true && Guid.TryParse(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value, out var departmentId) && await _dataProvider.ExistsDepartmentAsync(departmentId))
+            if (user.ExtraClaims?.Any(c => c.Type == "DepartmentId") is true && Guid.TryParse(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value, out Guid departmentId) && await _dataProvider.ExistsDepartmentAsync(departmentId))
             {
                 user.DepartmentModel = await _dataProvider.GetDepartmentAsync(new Guid(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value));
             }
 
-            if (user.ExtraClaims?.Any(c => c.Type == "FacultyId") is true && Guid.TryParse(user.ExtraClaims.First(c => c.Type == "FacultyId").Value, out var facultyId) && await _dataProvider.ExistFacultyAsync(facultyId))
+            if (user.ExtraClaims?.Any(c => c.Type == "FacultyId") is true && Guid.TryParse(user.ExtraClaims.First(c => c.Type == "FacultyId").Value, out Guid facultyId) && await _dataProvider.ExistFacultyAsync(facultyId))
             {
                 user.FacultyModel = await _dataProvider.GetFacultyAsync(facultyId);
             }
         }
 
-        var totalPages = (int)Math.Ceiling((decimal)usersCount / usersPerPage);
+        int totalPages = (int)Math.Ceiling((decimal)usersCount / usersPerPage);
         AccountManagamentViewModel vm = new()
         {
             Users = vmUsers,
@@ -205,20 +208,20 @@ public class AccountsController : Controller
 
     private async Task<IEnumerable<RoleViewModel>> GetRoleViewModelsAsync()
     {
-        var roles = await _repository.GetRolesAsync();
-        var vmRoles = GetRoleViewModels(roles);
+        IEnumerable<Role> roles = await _repository.GetRolesAsync();
+        IEnumerable<RoleViewModel> vmRoles = GetRoleViewModels(roles);
         return vmRoles;
     }
 
     private async Task<IList<DepartmentModel>> GetDeparmentsModels()
     {
-        var departments = await _dataProvider.GetDepartmentsAsync();
+        IList<DepartmentModel> departments = await _dataProvider.GetDepartmentsAsync();
         return departments;
     }
 
     private async Task<IList<FacultyModel>> GetFacultiesModels()
     {
-        var faculties = await _dataProvider.GetFacultiesAsync();
+        IList<FacultyModel> faculties = await _dataProvider.GetFacultiesAsync();
         return faculties;
     }
 
@@ -226,7 +229,7 @@ public class AccountsController : Controller
     [HttpGet]
     public async Task<IActionResult> GetDepartmentSelect()
     {
-        var departments = await GetDeparmentsModels();
+        IList<DepartmentModel> departments = await GetDeparmentsModels();
         return PartialView("_DepartmentSelect", departments);
     }
 
@@ -234,7 +237,7 @@ public class AccountsController : Controller
     [HttpGet]
     public async Task<IActionResult> GetFacultySelect()
     {
-        var faculties = await GetFacultiesModels();
+        IList<FacultyModel> faculties = await GetFacultiesModels();
         return PartialView("_FacultySelect", faculties);
     }
 
@@ -250,7 +253,7 @@ public class AccountsController : Controller
             return View(viewModel);
         }
 
-        var user = viewModel.GetModel();
+        User user = viewModel.GetModel();
 
         if (!string.IsNullOrEmpty(viewModel.ProfilePictureId) && ExistsTempPhoto(viewModel.ProfilePictureId))
         {
@@ -267,10 +270,11 @@ public class AccountsController : Controller
             viewModel.Departments = await GetDeparmentsModels();
             return View(viewModel);
         }
-        List<UserRole> userRoles = new();
-        foreach (var selectedRole in viewModel.RolesSelected)
+
+        List<UserRole> userRoles = [];
+        foreach (string selectedRole in viewModel.RolesSelected)
         {
-            var role = await _repository.GetRoleAsync(new Guid(selectedRole));
+            Role? role = await _repository.GetRoleAsync(new Guid(selectedRole));
             if (role is not null)
             {
                 userRoles.Add(new UserRole
@@ -298,8 +302,7 @@ public class AccountsController : Controller
 
         user.ExtraClaims = new List<ExtraClaim>
         {
-            new ExtraClaim
-            {
+            new() {
                 Type = "FacultyId",
                 Value = viewModel.SelectedFaculty.ToString()
             }
@@ -311,16 +314,25 @@ public class AccountsController : Controller
         return RedirectToActionPermanent("Index");
     }
 
-    private bool ExistsTempPhoto(string fileId) => System.IO.File.Exists(GetTempPhotoPath(fileId));
-
-    private string GetTempPhotoPath(string fileId) => Path.Combine(_profileTmpFolder, $"{fileId}.jpg");
-
-    private static IEnumerable<RoleViewModel> GetRoleViewModels(IEnumerable<Role> roles) => roles.Select(r => new RoleViewModel
+    private bool ExistsTempPhoto(string fileId)
     {
-        Id = r.Id,
-        Name = r.Name,
-        Description = r.Description
-    });
+        return System.IO.File.Exists(GetTempPhotoPath(fileId));
+    }
+
+    private string GetTempPhotoPath(string fileId)
+    {
+        return Path.Combine(_profileTmpFolder, $"{fileId}.jpg");
+    }
+
+    private static IEnumerable<RoleViewModel> GetRoleViewModels(IEnumerable<Role> roles)
+    {
+        return roles.Select(r => new RoleViewModel
+        {
+            Id = r.Id,
+            Name = r.Name,
+            Description = r.Description
+        });
+    }
 
     [RequestFormLimits(MultipartBodyLengthLimit = 5242880)]
     [RequestSizeLimit(5242880)]
@@ -329,8 +341,8 @@ public class AccountsController : Controller
         RemoveTempDirectory();
         if (profilephoto is not null)
         {
-            var fileId = Guid.NewGuid().ToString();
-            var fileName = Path.Combine(_profileTmpFolder, $"{fileId}.jpg");
+            string fileId = Guid.NewGuid().ToString();
+            string fileName = Path.Combine(_profileTmpFolder, $"{fileId}.jpg");
             using FileStream file = new(fileName, FileMode.Create);
             await profilephoto.CopyToAsync(file);
             return System.IO.File.Exists(fileName)
@@ -349,8 +361,8 @@ public class AccountsController : Controller
             return;
         }
 
-        var files = Directory.EnumerateFiles(_profileTmpFolder);
-        foreach (var file in files)
+        IEnumerable<string> files = Directory.EnumerateFiles(_profileTmpFolder);
+        foreach (string file in files)
         {
             System.IO.File.Delete(file);
         }
@@ -358,8 +370,8 @@ public class AccountsController : Controller
 
     public FileStreamResult ProfileTempPhoto(string fileId)
     {
-        var fileName = Path.Combine(_profileTmpFolder, $"{fileId}.jpg");
-        var pictureBytes = System.IO.File.ReadAllBytes(System.IO.File.Exists(fileName) ? fileName : _profileDefaultPath);
+        string fileName = Path.Combine(_profileTmpFolder, $"{fileId}.jpg");
+        byte[] pictureBytes = System.IO.File.ReadAllBytes(System.IO.File.Exists(fileName) ? fileName : _profileDefaultPath);
         MemoryStream ms = new(pictureBytes);
         return new FileStreamResult(ms, new MediaTypeHeaderValue("image/jpg"))
         {
@@ -386,7 +398,7 @@ public class AccountsController : Controller
         }
         else
         {
-            var user = await _repository.GetUserAsync(new Guid(id));
+            User? user = await _repository.GetUserAsync(new Guid(id));
             if (user is null)
             {
                 return BadRequest("No existe el usuario con el id específicado.");
@@ -407,8 +419,8 @@ public class AccountsController : Controller
     public async Task<IActionResult> EditAsync(string id)
     {
         RemoveTempDirectory();
-        var user = await _repository.GetUserAsync(new Guid(id), true);
-        var vm = user.GetEditViewModel();
+        User user = await _repository.GetUserAsync(new Guid(id), true);
+        EditUserViewModel vm = user.GetEditViewModel();
         vm.RoleList = await GetRoleViewModelsAsync();
         if (user.ExtraClaims?.Any(c => c.Type == "DepartmentId") == true)
         {
@@ -432,7 +444,7 @@ public class AccountsController : Controller
     {
         if (ModelState.IsValid)
         {
-            var user = await _repository.GetUserAsync(new Guid(viewModel.Id), true);
+            User user = await _repository.GetUserAsync(new Guid(viewModel.Id), true);
 
             if (viewModel.ProfilePictureId != user.Id.ToString()
                 && !string.IsNullOrEmpty(viewModel.ProfilePictureId)
@@ -450,17 +462,17 @@ public class AccountsController : Controller
 
             if (viewModel.RolesSelected.Length > 0)
             {
-                var newRoles = viewModel.RolesSelected.Select(r => _repository.GetRoleAsync(r).GetAwaiter().GetResult());
+                IEnumerable<Role> newRoles = viewModel.RolesSelected.Select(r => _repository.GetRoleAsync(r).GetAwaiter().GetResult());
                 if (newRoles.Any(r => r.Name == "Jefe de departamento") && (viewModel.SelectedDepartment is null || viewModel.SelectedDepartment == Guid.Empty))
                 {
                     ModelState.AddModelError("Jefe de departamento sin departamento", "Un usuario Jefe de departamento debe de gestionar un departamento.");
                 }
                 else
                 {
-                    List<Role> rolesToRemove = new();
-                    foreach (var userRole in user.Roles)
+                    List<Role> rolesToRemove = [];
+                    foreach (UserRole? userRole in user.Roles)
                     {
-                        var roleId = viewModel.RolesSelected.FirstOrDefault(r => userRole.Role.Id.ToString() == r);
+                        string? roleId = viewModel.RolesSelected.FirstOrDefault(r => userRole.Role.Id.ToString() == r);
                         if (string.IsNullOrEmpty(roleId))
                         {
                             rolesToRemove.Add(userRole.Role);
@@ -469,9 +481,9 @@ public class AccountsController : Controller
 
                     rolesToRemove.ForEach(r => _repository.RemoveRoleFromUserAsync(user, r).Wait());
 
-                    foreach (var selectedRole in newRoles)
+                    foreach (Role? selectedRole in newRoles)
                     {
-                        var userRole = user.Roles.FirstOrDefault(ur => ur.Role.Id == selectedRole.Id);
+                        UserRole? userRole = user.Roles.FirstOrDefault(ur => ur.Role.Id == selectedRole.Id);
                         if (userRole is null)
                         {
                             _repository.AssignRoleToUserAsync(user, selectedRole).Wait();
@@ -480,7 +492,7 @@ public class AccountsController : Controller
 
                     if (user.ExtraClaims?.Any() == true)
                     {
-                        foreach (var ec in user.ExtraClaims)
+                        foreach (ExtraClaim? ec in user.ExtraClaims)
                         {
                             await _repository.RemoveExtraClaimAsync(ec);
                         }
@@ -490,8 +502,7 @@ public class AccountsController : Controller
                     {
                         user.ExtraClaims = new List<ExtraClaim>
                         {
-                            new ExtraClaim
-                            {
+                            new() {
                                 Type = "DepartmentId",
                                 Value = viewModel.SelectedDepartment.ToString(),
                                 UserId = user.Id
@@ -519,7 +530,7 @@ public class AccountsController : Controller
     [HttpPost]
     public async Task<IActionResult> Activate(string id)
     {
-        var user = await _repository.GetUserAsync(new Guid(id));
+        User? user = await _repository.GetUserAsync(new Guid(id));
         if (user is null)
         {
             return BadRequest("El usuario no existe.");
@@ -533,7 +544,7 @@ public class AccountsController : Controller
     [HttpPost]
     public async Task<IActionResult> Deactivate(string id)
     {
-        var user = await _repository.GetUserAsync(new Guid(id));
+        User? user = await _repository.GetUserAsync(new Guid(id));
         if (user is null)
         {
             return BadRequest("El usuario no existe.");
@@ -548,7 +559,7 @@ public class AccountsController : Controller
     [HttpDelete]
     public async Task<IActionResult> Delete(string id)
     {
-        var user = await _repository.GetUserAsync(new Guid(id));
+        User? user = await _repository.GetUserAsync(new Guid(id));
         if (user is null)
         {
             return BadRequest("El usuario no existe.");

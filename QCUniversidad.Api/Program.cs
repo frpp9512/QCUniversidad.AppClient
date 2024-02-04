@@ -4,7 +4,7 @@ using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Services;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
@@ -14,37 +14,37 @@ builder.Logging.AddConsole();
 builder.Logging.AddEventSourceLogger();
 
 var connectionString = builder.Configuration.GetConnectionString("PostgreSql");
-//var connectionString = builder.Configuration.GetConnectionString("Sqlite");
-
 builder.Services.AddDbContext<QCUniversidadContext>(options => options.UseNpgsql(connectionString));
+
+// For sqlite config:
+//var connectionString = builder.Configuration.GetConnectionString("Sqlite");
 //builder.Services.AddDbContext<QCUniversidadContext>(options => options.UseSqlite(connectionString));
-builder.Services.AddTransient<IDataManager, DataManager>();
+
+builder.Services.AddTransient<IFacultiesManager, FacultiesManager>();
+builder.Services.AddTransient<IDepartmentsManager, DepartmentsManager>();
+builder.Services.AddTransient<ICareersManager, CareersManager>();
+builder.Services.AddTransient<IDisciplinesManager, DisciplinesManager>();
+builder.Services.AddTransient<ITeachersManager, TeachersManager>();
+builder.Services.AddTransient<ISubjectsManager, SubjectsManager>();
+builder.Services.AddTransient<ICurriculumsManager, CurriculumsManager>();
+builder.Services.AddTransient<ICoursesManager, CoursesManager>();
+builder.Services.AddTransient<IPeriodsManager, PeriodsManager>();
+builder.Services.AddTransient<IPlanningManager, PlanningManager>();
+builder.Services.AddTransient<ISchoolYearsManager, SchoolYearsManager>();
+builder.Services.AddScoped<ITeachersLoadManager, TeachersLoadManager>();
+
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.Configure<CalculationOptions>(builder.Configuration.GetSection("CalculationOptions"));
 
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-//    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-//})
-//    .AddJwtBearer(config =>
-//    {
-//        config.Authority = "https://localhost:5001/";
-//        config.Audience = "qcuniversidad.api";
-//        config.TokenValidationParameters.ValidIssuers = new string[] { "https://10.0.2.2:5001" };
-//        config.TokenValidationParameters.ValidAudiences = new string[] { "QCUniversidad.AppClient" };
-//        config.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
-//    });
-
 builder.Services.AddCoefficientCalculators(builder.Configuration.GetSection("CalculationOptions"));
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddLogging();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -54,9 +54,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-//app.UseAuthentication();
-//app.UseAuthorization();
 
 app.MapControllers();
 

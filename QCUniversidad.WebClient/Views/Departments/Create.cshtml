@@ -68,6 +68,7 @@
                 placeholder: "Seleccione la facultad"
             });
             LoadCareersSelect();
+            LoadTooltips();
         });
 
         function LoadCareersSelect() {
@@ -89,6 +90,13 @@
                     facultySelect.disabled = false;
                     console.log(xhr, status, error);
                 }
+            });
+        }
+
+        function LoadTooltips() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
             });
         }
     </script>

@@ -4,6 +4,6 @@
 public class LoadCategoryAttribute : Attribute
 {
     public required string Category { get; set; }
-    public string? PromtName { get; set; }
+    public string? PromptName { get; set; }
     public string? Description { get; set; }
 }

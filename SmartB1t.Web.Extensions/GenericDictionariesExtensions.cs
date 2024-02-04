@@ -18,7 +18,9 @@ public static class GenericDictionariesExtensions
     /// <returns><see langword="true"/> if exists a value with the provided key an it is of type <typeparamref name="T"/>.</returns>
     public static bool CheckValue<D, T>(this D dictionary, string key)
         where D : IDictionary<string, object>
-        => dictionary[key] is not null and T;
+    {
+        return dictionary[key] is not null and T;
+    }
 
     /// <summary>
     /// Checks if the provided key id the ViewDataDictionary exists and it is of the specified <typeparamref name="T"/> type.
@@ -28,7 +30,9 @@ public static class GenericDictionariesExtensions
     /// <param name="key">The key to check the value.</param>
     /// <returns><see langword="true"/> if exists a value with the provided key an it is of type <typeparamref name="T"/>.</returns>
     public static bool CheckValue<T>(this ViewDataDictionary viewData, string key)
-        => CheckValue<ViewDataDictionary, T>(viewData, key);
+    {
+        return CheckValue<ViewDataDictionary, T>(viewData, key);
+    }
 
     /// <summary>
     /// Checks if the provided key id the ViewDataDictionary exists and it is of the specified <typeparamref name="T"/> type.
@@ -38,7 +42,9 @@ public static class GenericDictionariesExtensions
     /// <param name="key">The key to check the value.</param>
     /// <returns><see langword="true"/> if exists a value with the provided key an it is of type <typeparamref name="T"/>.</returns>
     public static bool CheckValue<T>(this ITempDataDictionary tempData, string key)
-        => CheckValue<ITempDataDictionary, T>(tempData, key);
+    {
+        return CheckValue<ITempDataDictionary, T>(tempData, key);
+    }
 
     /// <summary>
     /// Checks if the provided key in the <typeparamref name="D"/> dictionary exists and contains the specified <typeparamref name="T"/> value.
@@ -50,7 +56,9 @@ public static class GenericDictionariesExtensions
     /// <returns><see langword="true"/> if the the provided <typeparamref name="T"/> value exists in the key of <see cref="ITempDataDictionary"/></returns>
     public static bool CheckValue<D, T>(this D dictionary, string key, T valueToCheck)
         where D : IDictionary<string, object>
-        => dictionary[key] != null && dictionary[key] is T t && t.Equals(valueToCheck);
+    {
+        return dictionary[key] != null && dictionary[key] is T t && t.Equals(valueToCheck);
+    }
 
     /// <summary>
     /// Gets a value stored in the provided key from the <typeparamref name="D"/> dictionary specified.
@@ -62,7 +70,9 @@ public static class GenericDictionariesExtensions
     /// <returns>The value stored in the key.</returns>
     public static T GetValue<D, T>(this D dictionary, string key, T defaultValue = default)
         where D : IDictionary<string, object>
-        => dictionary[key] != null ? (dictionary[key] is T ? (T)Convert.ChangeType(dictionary[key], typeof(T)) : defaultValue) : defaultValue;
+    {
+        return dictionary[key] != null ? (dictionary[key] is T ? (T)Convert.ChangeType(dictionary[key], typeof(T)) : defaultValue) : defaultValue;
+    }
 
     /// <summary>
     /// Gets a value stored in the provided key from the <see cref="ViewDataDictionary"/> specified.
@@ -73,7 +83,9 @@ public static class GenericDictionariesExtensions
     /// <param name="defaultValue">The default value to obtain in case that the value doesn't exist.</param>
     /// <returns>The value stored in the key.</returns>
     public static T GetValue<T>(this ViewDataDictionary viewData, string key, T defaultValue = default)
-        => viewData[key] != null ? (viewData[key] is T ? (T)Convert.ChangeType(viewData[key], typeof(T)) : defaultValue) : defaultValue;
+    {
+        return viewData[key] != null ? (viewData[key] is T ? (T)Convert.ChangeType(viewData[key], typeof(T)) : defaultValue) : defaultValue;
+    }
 
     /// <summary>
     /// Gets a value stored in the provided key from the <see cref="ITempDataDictionary"/> specified.
@@ -84,7 +96,9 @@ public static class GenericDictionariesExtensions
     /// <param name="defaultValue">The default value to obtain in case that the value doesn't exist.</param>
     /// <returns>The value stored in the key.</returns>
     public static T GetValue<T>(this ITempDataDictionary tempData, string key, T defaultValue = default)
-        => tempData[key] != null ? (tempData[key] is T ? (T)Convert.ChangeType(tempData[key], typeof(T)) : defaultValue) : defaultValue;
+    {
+        return tempData[key] != null ? (tempData[key] is T ? (T)Convert.ChangeType(tempData[key], typeof(T)) : defaultValue) : defaultValue;
+    }
 
     /// <summary>
     /// Sets a value in the <typeparamref name="D"/> dictionary with the spcified key.
@@ -95,7 +109,10 @@ public static class GenericDictionariesExtensions
     /// <param name="key">The key where the value will be added.</param>
     /// <param name="value">The value to be added.</param>
     public static void SetValue<D, T>(this D dictionary, string key, T value)
-        where D : IDictionary<string, object> => dictionary.Add(key, value);
+        where D : IDictionary<string, object>
+    {
+        dictionary.Add(key, value);
+    }
 
     #endregion
 

@@ -24,17 +24,17 @@ public class FacultiesController : Controller
     [HttpGet]
     public async Task<IActionResult> IndexAsync(int page = 1)
     {
-        var total = await _dataProvider.GetFacultiesTotalAsync();
-        var pageIndex = page - 1 < 0 ? 0 : page - 1;
-        var startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
+        int total = await _dataProvider.GetFacultiesTotalAsync();
+        int pageIndex = page - 1 < 0 ? 0 : page - 1;
+        int startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
         if (startingItemIndex < 0 || startingItemIndex >= total)
         {
             startingItemIndex = 0;
         }
 
-        var faculties = await _dataProvider.GetFacultiesAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
-        var totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
-        var viewModel = new NavigationListViewModel<FacultyModel>
+        IList<FacultyModel> faculties = await _dataProvider.GetFacultiesAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
+        int totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
+        NavigationListViewModel<FacultyModel> viewModel = new()
         {
             Items = faculties,
             CurrentPage = pageIndex + 1,
@@ -52,8 +52,8 @@ public class FacultiesController : Controller
             return RedirectToAction("Error", "Home");
         }
 
-        var faculty = await _dataProvider.GetFacultyAsync(id);
-        var schoolYear = await _dataProvider.GetCurrentSchoolYear();
+        FacultyModel faculty = await _dataProvider.GetFacultyAsync(id);
+        Models.SchoolYears.SchoolYearModel schoolYear = await _dataProvider.GetCurrentSchoolYear();
         ViewData["schoolYear"] = schoolYear;
 
         return View(faculty);
@@ -69,7 +69,7 @@ public class FacultiesController : Controller
 
         try
         {
-            var careers = await _dataProvider.GetCareersAsync(facultyId);
+            IList<Models.Careers.CareerModel> careers = await _dataProvider.GetCareersAsync(facultyId);
             return PartialView("_FacultyCareers", careers);
         }
         catch (Exception ex)
@@ -88,7 +88,7 @@ public class FacultiesController : Controller
 
         try
         {
-            var departments = await _dataProvider.GetDepartmentsAsync(facultyId);
+            IList<Models.Departments.DepartmentModel> departments = await _dataProvider.GetDepartmentsAsync(facultyId);
             return PartialView("_FacultyDepartments", departments);
         }
         catch (Exception ex)
@@ -99,7 +99,10 @@ public class FacultiesController : Controller
 
     [Authorize("Admin")]
     [HttpGet]
-    public IActionResult Create() => View();
+    public IActionResult Create()
+    {
+        return View();
+    }
 
     [Authorize("Admin")]
     [HttpPost]
@@ -129,7 +132,7 @@ public class FacultiesController : Controller
     {
         try
         {
-            var faculty = await _dataProvider.GetFacultyAsync(id);
+            FacultyModel faculty = await _dataProvider.GetFacultyAsync(id);
             return View(faculty);
         }
         catch (Exception)
@@ -147,7 +150,7 @@ public class FacultiesController : Controller
         {
             try
             {
-                var result = await _dataProvider.UpdateFacultyAsync(model);
+                bool result = await _dataProvider.UpdateFacultyAsync(model);
                 if (result)
                 {
                     TempData["faculty-edited"] = true;
@@ -173,7 +176,7 @@ public class FacultiesController : Controller
         {
             if (await _dataProvider.ExistFacultyAsync(id))
             {
-                var result = await _dataProvider.DeleteFacultyAsync(id);
+                bool result = await _dataProvider.DeleteFacultyAsync(id);
                 if (result)
                 {
                     TempData["faculty-deleted"] = true;

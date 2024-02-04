@@ -6,5 +6,8 @@ namespace QCUniversidad.WebClient.AutoMapperProfiles;
 
 public class AccountProfile : Profile
 {
-    public AccountProfile() => CreateMap<User, UserViewModel>();
+    public AccountProfile()
+    {
+        _ = CreateMap<User, UserViewModel>();
+    }
 }

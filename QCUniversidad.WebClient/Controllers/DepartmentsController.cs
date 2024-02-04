@@ -29,17 +29,17 @@ public class DepartmentsController : Controller
     {
         try
         {
-            var total = await _dataProvider.GetDepartmentsCountAsync();
-            var pageIndex = page - 1 < 0 ? 0 : page - 1;
-            var startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
+            int total = await _dataProvider.GetDepartmentsCountAsync();
+            int pageIndex = page - 1 < 0 ? 0 : page - 1;
+            int startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
             if (startingItemIndex < 0 || startingItemIndex >= total)
             {
                 startingItemIndex = 0;
             }
 
-            var departments = await _dataProvider.GetDepartmentsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
-            var totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
-            var viewModel = new NavigationListViewModel<DepartmentModel>
+            IList<DepartmentModel> departments = await _dataProvider.GetDepartmentsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
+            int totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
+            NavigationListViewModel<DepartmentModel> viewModel = new()
             {
                 Items = departments,
                 CurrentPage = pageIndex + 1,
@@ -64,8 +64,8 @@ public class DepartmentsController : Controller
 
         try
         {
-            var department = await _dataProvider.GetDepartmentAsync(id);
-            var schoolYear = await _dataProvider.GetCurrentSchoolYear();
+            DepartmentModel department = await _dataProvider.GetDepartmentAsync(id);
+            Models.SchoolYears.SchoolYearModel schoolYear = await _dataProvider.GetCurrentSchoolYear();
             ViewData["schoolYear"] = schoolYear;
             return View(department);
         }
@@ -85,7 +85,7 @@ public class DepartmentsController : Controller
 
         try
         {
-            var disciplines = await _dataProvider.GetDisciplinesAsync(departmentId);
+            IList<Models.Disciplines.DisciplineModel> disciplines = await _dataProvider.GetDisciplinesAsync(departmentId);
             return PartialView("_DepartmentDisciplines", disciplines);
         }
         catch (Exception ex)
@@ -104,7 +104,7 @@ public class DepartmentsController : Controller
 
         try
         {
-            var teachers = await _dataProvider.GetTeachersOfDepartmentAsync(departmentId);
+            IList<Models.Teachers.TeacherModel> teachers = await _dataProvider.GetTeachersOfDepartmentAsync(departmentId);
             return PartialView("_DepartmentTeachers", teachers);
         }
         catch (Exception ex)
@@ -123,7 +123,7 @@ public class DepartmentsController : Controller
 
         try
         {
-            var careers = await _dataProvider.GetCareersForDepartmentAsync(departmentId);
+            IList<Models.Careers.CareerModel> careers = await _dataProvider.GetCareersForDepartmentAsync(departmentId);
             return PartialView("_DepartmentCareers", careers);
         }
         catch (Exception ex) { return Problem(detail: ex.Message); }
@@ -133,7 +133,7 @@ public class DepartmentsController : Controller
     [HttpGet]
     public async Task<IActionResult> LoadViewAsync()
     {
-        var schoolYears = await _dataProvider.GetSchoolYearsAsync();
+        IList<Models.SchoolYears.SchoolYearModel> schoolYears = await _dataProvider.GetSchoolYearsAsync();
         return View(schoolYears);
     }
 
@@ -141,7 +141,7 @@ public class DepartmentsController : Controller
     [HttpGet]
     public async Task<IActionResult> GetPeriodOptionsAsync(Guid schoolYearId)
     {
-        var result = await _dataProvider.GetPeriodsAsync(schoolYearId);
+        IList<Models.Periods.PeriodModel> result = await _dataProvider.GetPeriodsAsync(schoolYearId);
         return PartialView("_PeriodOptions", result);
     }
 
@@ -149,7 +149,7 @@ public class DepartmentsController : Controller
     [HttpGet]
     public async Task<IActionResult> GetDepartmentsLoadViewAsync(Guid periodId)
     {
-        var departments = await _dataProvider.GetDepartmentsWithLoadAsync(periodId);
+        IList<DepartmentModel> departments = await _dataProvider.GetDepartmentsWithLoadAsync(periodId);
         return PartialView("_DepartmentsLoadView", departments);
     }
 
@@ -159,7 +159,7 @@ public class DepartmentsController : Controller
     {
         try
         {
-            var model = new CreateDepartmentModel { Name = "" };
+            CreateDepartmentModel model = new() { Name = "" };
             await LoadFacultiesIntoViewModel(model);
             return View(model);
         }
@@ -171,7 +171,7 @@ public class DepartmentsController : Controller
 
     private async Task LoadFacultiesIntoViewModel(CreateDepartmentModel model)
     {
-        var faculties = await _dataProvider.GetFacultiesAsync();
+        IList<Models.Faculties.FacultyModel> faculties = await _dataProvider.GetFacultiesAsync();
         model.Faculties = faculties;
     }
 
@@ -184,7 +184,7 @@ public class DepartmentsController : Controller
             return BadRequest("Debe de proveer un id de facultad válido.");
         }
 
-        var careers = await _dataProvider.GetCareersAsync(facultyId);
+        IList<Models.Careers.CareerModel> careers = await _dataProvider.GetCareersAsync(facultyId);
         return PartialView("_CareersSelect", careers);
     }
 
@@ -196,7 +196,7 @@ public class DepartmentsController : Controller
         {
             if (await _dataProvider.ExistFacultyAsync(model.FacultyId))
             {
-                var result = await _dataProvider.CreateDepartmentAsync(model);
+                bool result = await _dataProvider.CreateDepartmentAsync(model);
                 if (result)
                 {
                     TempData["department-created"] = true;
@@ -223,8 +223,8 @@ public class DepartmentsController : Controller
     {
         try
         {
-            var department = await _dataProvider.GetDepartmentAsync(id);
-            var viewmodel = _mapper.Map<EditDepartmentModel>(department);
+            DepartmentModel department = await _dataProvider.GetDepartmentAsync(id);
+            EditDepartmentModel viewmodel = _mapper.Map<EditDepartmentModel>(department);
             viewmodel.Careers = await _dataProvider.GetCareersAsync(department.FacultyId);
             return View(viewmodel);
         }
@@ -241,10 +241,10 @@ public class DepartmentsController : Controller
     {
         if (ModelState.IsValid)
         {
-            var datamodel = _mapper.Map<DepartmentModel>(model);
+            DepartmentModel datamodel = _mapper.Map<DepartmentModel>(model);
             try
             {
-                var result = await _dataProvider.UpdateDepartmentAsync(datamodel);
+                bool result = await _dataProvider.UpdateDepartmentAsync(datamodel);
                 if (result)
                 {
                     TempData["department-edited"] = true;
@@ -270,7 +270,7 @@ public class DepartmentsController : Controller
         {
             if (await _dataProvider.ExistsDepartmentAsync(id))
             {
-                var result = await _dataProvider.DeleteDepartmentAsync(id);
+                bool result = await _dataProvider.DeleteDepartmentAsync(id);
                 if (result)
                 {
                     TempData["department-deleted"] = true;

@@ -12,7 +12,10 @@ public class AccountSecurityRepository : IAccountSecurityRepository
 {
     private readonly WebDataContext _dataContext;
 
-    public AccountSecurityRepository(WebDataContext dataContext) => _dataContext = dataContext;
+    public AccountSecurityRepository(WebDataContext dataContext)
+    {
+        _dataContext = dataContext;
+    }
 
     public async Task AssignRoleToUserAsync(User user, Role role)
     {
@@ -21,12 +24,15 @@ public class AccountSecurityRepository : IAccountSecurityRepository
             return;
         }
 
-        var userRole = new UserRole { RoleId = role.Id, UserId = user.Id };
+        UserRole userRole = new() { RoleId = role.Id, UserId = user.Id };
         _ = await _dataContext.AddAsync(userRole);
         _ = await _dataContext.SaveChangesAsync();
     }
 
-    public async Task<bool> AnyUserAsync() => await _dataContext.Users.AnyAsync();
+    public async Task<bool> AnyUserAsync()
+    {
+        return await _dataContext.Users.AnyAsync();
+    }
 
     public async Task<bool> AuthenticateUser(User user, string password)
     {
@@ -35,16 +41,18 @@ public class AccountSecurityRepository : IAccountSecurityRepository
             return false;
         }
 
-        var userSecret = await _dataContext.Secrets
+        UserSecrets? userSecret = await _dataContext.Secrets
                     .Where(us => us.UserId == user.Id)
                     .FirstOrDefaultAsync();
         return AuthUtil.TryAuth(user.Email, ref password, SecurityUtil.SecureString(userSecret.Password));
     }
 
     public async Task<bool> CheckIfUserHasRole(User user, Role role)
-        => await _dataContext.UserRoles
-                             .Where(ur => ur.UserId == user.Id && ur.RoleId == role.Id)
-                             .AnyAsync();
+    {
+        return await _dataContext.UserRoles
+                                 .Where(ur => ur.UserId == user.Id && ur.RoleId == role.Id)
+                                 .AnyAsync();
+    }
 
     public async Task CreateRoleAsync(Role role)
     {
@@ -64,7 +72,7 @@ public class AccountSecurityRepository : IAccountSecurityRepository
             return;
         }
 
-        var secrets = new UserSecrets
+        UserSecrets secrets = new()
         {
             Password = SecurityUtil.B64HashEncrypt(user.Email, password)
         };
@@ -74,17 +82,23 @@ public class AccountSecurityRepository : IAccountSecurityRepository
     }
 
     public async Task<Role> GetRoleAsync(Guid id)
-        => await _dataContext.Roles.FindAsync(id);
+    {
+        return await _dataContext.Roles.FindAsync(id);
+    }
 
     public async Task<Role> GetRoleAsync(string name)
-        => await _dataContext.Roles.FirstOrDefaultAsync(r => r.Name == name);
+    {
+        return await _dataContext.Roles.FirstOrDefaultAsync(r => r.Name == name);
+    }
 
     public async Task<IEnumerable<Role>> GetRolesAsync()
-        => await _dataContext.Roles.Where(r => r.Active).ToListAsync();
+    {
+        return await _dataContext.Roles.Where(r => r.Active).ToListAsync();
+    }
 
     public async Task<User> GetUserAsync(Guid id, bool loadUserRoles = false, bool includePermanentDeactivated = false)
     {
-        var userQuery = _dataContext.Users.Where(u => u.Id == id);
+        IQueryable<User> userQuery = _dataContext.Users.Where(u => u.Id == id);
         if (!includePermanentDeactivated)
         {
             _ = userQuery.Where(u => !u.PermanentDeactivation);
@@ -101,7 +115,7 @@ public class AccountSecurityRepository : IAccountSecurityRepository
 
     public async Task<User> GetUserAsync(string email, bool loadUserRoles = false, bool includePermanentDeactivated = false)
     {
-        var userQuery = _dataContext.Users.Where(u => u.Email == email);
+        IQueryable<User> userQuery = _dataContext.Users.Where(u => u.Email == email);
         if (!includePermanentDeactivated)
         {
             _ = userQuery.Where(u => !u.PermanentDeactivation);
@@ -118,7 +132,7 @@ public class AccountSecurityRepository : IAccountSecurityRepository
 
     public async Task<IEnumerable<User>> GetUsersAsync(bool loadUserRoles = false)
     {
-        var usersQuery = _dataContext.Users.Where(u => !u.PermanentDeactivation);
+        IQueryable<User> usersQuery = _dataContext.Users.Where(u => !u.PermanentDeactivation);
 
         usersQuery = usersQuery.Include(u => u.ExtraClaims);
         if (loadUserRoles)
@@ -132,7 +146,7 @@ public class AccountSecurityRepository : IAccountSecurityRepository
 
     public Task<IEnumerable<User>> GetUsersAsync(int startIndex, int count, bool loadUserRoles = false)
     {
-        var usersQuery = _dataContext.Users.Where(u => !u.PermanentDeactivation)
+        IQueryable<User> usersQuery = _dataContext.Users.Where(u => !u.PermanentDeactivation)
                                            .Skip(startIndex)
                                            .Take(count);
         usersQuery = usersQuery.Include(u => u.ExtraClaims);
@@ -163,7 +177,7 @@ public class AccountSecurityRepository : IAccountSecurityRepository
             return;
         }
 
-        var userRole = await _dataContext.UserRoles.Where(ur => ur.UserId == user.Id && ur.RoleId == role.Id)
+        UserRole? userRole = await _dataContext.UserRoles.Where(ur => ur.UserId == user.Id && ur.RoleId == role.Id)
                                                    .FirstOrDefaultAsync();
 
         if (userRole is not null)
@@ -192,7 +206,7 @@ public class AccountSecurityRepository : IAccountSecurityRepository
 
     public async Task SetUserPasswordAsync(User user, string newPassword)
     {
-        var secrets = await _dataContext.Secrets.FirstOrDefaultAsync(s => s.UserId == user.Id);
+        UserSecrets? secrets = await _dataContext.Secrets.FirstOrDefaultAsync(s => s.UserId == user.Id);
         if (secrets is not null)
         {
             secrets.Password = newPassword;
@@ -231,5 +245,7 @@ public class AccountSecurityRepository : IAccountSecurityRepository
     }
 
     public async Task<int> GetUsersCount(bool includeInactive = true)
-        => await _dataContext.Users.CountAsync(u => !u.PermanentDeactivation && (u.Active || includeInactive));
+    {
+        return await _dataContext.Users.CountAsync(u => !u.PermanentDeactivation && (u.Active || includeInactive));
+    }
 }
