@@ -1,204 +1,103 @@
-﻿using AutoMapper;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using QCUniversidad.Api.Contracts;
-using QCUniversidad.Api.Data.Models;
-using QCUniversidad.Api.Exceptions;
+using QCUniversidad.Api.Requests.Careers.Models;
 using QCUniversidad.Api.Shared.Dtos.Career;
 
 namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class CareerController(ICareersManager dataManager, IMapper mapper) : ControllerBase
+public class CareerController(IMediator mediator) : ControllerBase
 {
-    private readonly ICareersManager _dataManager = dataManager;
-    private readonly IMapper _mapper = mapper;
+    private readonly IMediator _mediator = mediator;
 
     [HttpPut]
-    public async Task<IActionResult> CreateCareer(NewCareerDto career)
+    public async Task<IActionResult> CreateCareer(NewCareerDto career, CancellationToken cancellationToken)
     {
         if (career is null)
         {
-            return BadRequest("You must provide a career.");
+            return BadRequest("You must provide the career data.");
         }
 
-        try
-        {
-            CareerModel model = _mapper.Map<CareerModel>(career);
-            bool result = await _dataManager.CreateCareerAsync(model);
-            return result ? Ok(result) : Problem("Error while adding career to database.");
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new CreateCareerRequest { NewCareerDto = career };
+        var response = await _mediator.Send(request, cancellationToken);
+        return response.Error
+            ? StatusCode(StatusCodes.Status500InternalServerError, response.Error)
+            : (IActionResult)Created(Url.Action("GetById", response.CreatedCareer?.Id), response.CreatedCareer);
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetCareerById(Guid id, CancellationToken cancellationToken)
     {
-        if (id == Guid.Empty)
-        {
-            return BadRequest("You must provide a career id.");
-        }
-
-        try
-        {
-            CareerModel career = await _dataManager.GetCareerAsync(id);
-            CareerDto dto = _mapper.Map<CareerDto>(career);
-            return Ok(dto);
-        }
-        catch (CareerNotFoundException)
-        {
-            return NotFound($"The career with id {id} was not found.");
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetCareerByIdRequest { CareerId = id };
+        var response = await _mediator.Send(request, cancellationToken);
+        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.Career);
     }
 
     [HttpGet]
     [Route("list")]
-    public async Task<IActionResult> GetCareers(Guid facultyId)
+    public async Task<IActionResult> GetCareers(Guid facultyId, CancellationToken cancellationToken)
     {
-        if (facultyId == Guid.Empty)
-        {
-            return BadRequest("You must provide a faculty id.");
-        }
-
-        try
-        {
-            IList<CareerModel> careers = await _dataManager.GetCareersAsync(facultyId);
-            List<CareerDto> dtos = careers.Select(_mapper.Map<CareerDto>).ToList();
-            return Ok(dtos);
-        }
-        catch (FacultyNotFoundException)
-        {
-            return NotFound($"The faculty with the id {facultyId} was not found.");
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetCareersForFacultyRequest { FacultyId = facultyId };
+        var response = await _mediator.Send(request, cancellationToken);
+        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.FacultyCareers);
     }
 
     [HttpGet]
     [Route("listfordepartment")]
-    public async Task<IActionResult> GetCareersForDepartmentAsync(Guid departmentId)
+    public async Task<IActionResult> GetCareersForDepartmentAsync(Guid departmentId, CancellationToken cancellationToken)
     {
-        if (departmentId == Guid.Empty)
-        {
-            return BadRequest("You must provide a department id.");
-        }
-
-        try
-        {
-            IList<CareerModel> careers = await _dataManager.GetCareersForDepartmentAsync(departmentId);
-            List<CareerDto> dtos = careers.Select(_mapper.Map<CareerDto>).ToList();
-            return Ok(dtos);
-        }
-        catch (DepartmentNotFoundException)
-        {
-            return NotFound($"The department with the id {departmentId} was not found.");
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetCareersForDepartmentRequest { DepartmentId = departmentId };
+        var response = await _mediator.Send(request, cancellationToken);
+        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.DepartmentCareers);
     }
 
     [HttpGet]
     [Route("exists")]
-    public async Task<IActionResult> ExistsAsync(Guid id)
+    public async Task<IActionResult> ExistsAsync(Guid id, CancellationToken cancellationToken)
     {
-        try
-        {
-            bool result = await _dataManager.ExistsCareerAsync(id);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new ExistsCareerRequest { CareerId = id };
+        var response = await _mediator.Send(request, cancellationToken);
+        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.CareerExists);
     }
 
     [HttpGet]
     [Route("listall")]
-    public async Task<IActionResult> GetCareers(int from = 0, int to = 0)
+    public async Task<IActionResult> GetCareers(int from = 0, int to = 0, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            IList<CareerModel> careers = await _dataManager.GetCareersAsync(from, to);
-            List<CareerDto> dtos = careers.Select(_mapper.Map<CareerDto>).ToList();
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetCareersRangeRequest { From = from, To = to };
+        var response = await _mediator.Send(request, cancellationToken);
+        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.Careers);
     }
 
     [HttpGet]
     [Route("countall")]
-    public async Task<IActionResult> GetCount()
+    public async Task<IActionResult> GetCount(CancellationToken cancellationToken)
     {
-        try
-        {
-            int count = await _dataManager.GetCareersCountAsync();
-            return Ok(count);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetCareersCountRequest();
+        var response = await _mediator.Send(request, cancellationToken);
+        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.CareersCount);
     }
 
     [HttpPost]
     [Route("update")]
-    public async Task<IActionResult> UpdateCareer(EditCareerDto career)
+    public async Task<IActionResult> UpdateCareer(EditCareerDto career, CancellationToken cancellationToken)
     {
         if (career is null)
         {
-            return BadRequest("You must provide a faculty id.");
+            return BadRequest("You must provide a career data.");
         }
 
-        try
-        {
-            CareerModel model = _mapper.Map<CareerModel>(career);
-            bool result = await _dataManager.UpdateCareerAsync(model);
-            return result ? Ok(result) : Problem("Error while adding career to database.");
-        }
-        catch (FacultyNotFoundException)
-        {
-            return NotFound($"The career with id {career.Id} was not found in database.");
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new UpdateCareerRequest { Career = career };
+        var response = await _mediator.Send(request, cancellationToken);
+        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.CareerUpdated);
     }
 
     [HttpDelete]
-    public async Task<IActionResult> DeleteCareer(Guid id)
+    public async Task<IActionResult> DeleteCareer(Guid id, CancellationToken cancellationToken)
     {
-        if (id == Guid.Empty)
-        {
-            return BadRequest("You must provide a career id.");
-        }
-
-        try
-        {
-            bool result = await _dataManager.DeleteCareerAsync(id);
-            return result ? Ok(result) : Problem("Error while deleting department from database.");
-        }
-        catch (CareerNotFoundException)
-        {
-            return NotFound($"The career with id {id} was not found in database.");
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new DeleteCareerRequest { CareerId = id };
+        var response = await _mediator.Send(request, cancellationToken);
+        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.Deleted);
     }
 }

@@ -10,19 +10,19 @@ public class CareersManager(QCUniversidadContext context) : ICareersManager
 {
     private readonly QCUniversidadContext _context = context;
 
-    public async Task<bool> ExistsCareerAsync(Guid id)
-    {
-        bool result = await _context.Careers.AnyAsync(c => c.Id == id);
-        return result;
-    }
-
-    public async Task<bool> CreateCareerAsync(CareerModel career)
+    public async Task<CareerModel> CreateCareerAsync(CareerModel career)
     {
         ArgumentNullException.ThrowIfNull(career);
 
         _ = await _context.Careers.AddAsync(career);
-        int result = await _context.SaveChangesAsync();
-        return result > 0;
+        await _context.SaveChangesAsync();
+        return career;
+    }
+
+    public async Task<bool> ExistsCareerAsync(Guid id)
+    {
+        bool result = await _context.Careers.AnyAsync(c => c.Id == id);
+        return result;
     }
 
     public async Task<IList<CareerModel>> GetCareersAsync(int from = 0, int to = 0)
@@ -66,13 +66,13 @@ public class CareersManager(QCUniversidadContext context) : ICareersManager
         return result;
     }
 
-    public async Task<bool> UpdateCareerAsync(CareerModel career)
+    public async Task<CareerModel> UpdateCareerAsync(CareerModel career)
     {
         _ = _context.Careers.Update(career);
         int result = await _context.SaveChangesAsync();
         if (result <= 0)
         {
-            return result > 0;
+            return career;
         }
 
         IQueryable<TeachingPlanItemModel> query = from planItem in _context.TeachingPlanItems
@@ -83,7 +83,7 @@ public class CareersManager(QCUniversidadContext context) : ICareersManager
 
         if (!query.Any())
         {
-            return result > 0;
+            return career;
         }
 
         await query.ForEachAsync(i =>
@@ -93,7 +93,7 @@ public class CareersManager(QCUniversidadContext context) : ICareersManager
         });
         _ = await _context.SaveChangesAsync();
 
-        return result > 0;
+        return career;
     }
 
     public async Task<bool> DeleteCareerAsync(Guid careerId)

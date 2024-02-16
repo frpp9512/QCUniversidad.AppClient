@@ -25,4 +25,37 @@
     <ProjectReference Include="..\QCUniversidad.Api.Shared\QCUniversidad.Api.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Requests\Courses\Handlers\" />
+    <Folder Include="Requests\Courses\Models\" />
+    <Folder Include="Requests\Courses\Responses\" />
+    <Folder Include="Requests\Curriculums\Handlers\" />
+    <Folder Include="Requests\Curriculums\Models\" />
+    <Folder Include="Requests\Curriculums\Responses\" />
+    <Folder Include="Requests\Departments\Handlers\" />
+    <Folder Include="Requests\Departments\Models\" />
+    <Folder Include="Requests\Departments\Responses\" />
+    <Folder Include="Requests\Disciplines\Handlers\" />
+    <Folder Include="Requests\Disciplines\Models\" />
+    <Folder Include="Requests\Disciplines\Responses\" />
+    <Folder Include="Requests\Faculties\Handlers\" />
+    <Folder Include="Requests\Faculties\Models\" />
+    <Folder Include="Requests\Faculties\Responses\" />
+    <Folder Include="Requests\Periods\Handlers\" />
+    <Folder Include="Requests\Periods\Models\" />
+    <Folder Include="Requests\Periods\Responses\" />
+    <Folder Include="Requests\SchoolYears\Handlers\" />
+    <Folder Include="Requests\SchoolYears\Models\" />
+    <Folder Include="Requests\SchoolYears\Responses\" />
+    <Folder Include="Requests\Statistics\Handlers\" />
+    <Folder Include="Requests\Statistics\Models\" />
+    <Folder Include="Requests\Statistics\Responses\" />
+    <Folder Include="Requests\Subject\Handlers\" />
+    <Folder Include="Requests\Subject\Models\" />
+    <Folder Include="Requests\Subject\Responses\" />
+    <Folder Include="Requests\Teachers\Handlers\" />
+    <Folder Include="Requests\Teachers\Models\" />
+    <Folder Include="Requests\Teachers\Responses\" />
+  </ItemGroup>
+
 </Project>
