@@ -1,19 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Exceptions;
+using QCUniversidad.Api.Notifications.Models;
 
 namespace QCUniversidad.Api.Services;
 
 public class TeachersManager(QCUniversidadContext context,
                              ISchoolYearsManager schoolYearsManager,
-                             IDepartmentsManager departmentsManager) : ITeachersManager
+                             IDepartmentsManager departmentsManager,
+                             IMediator mediator) : ITeachersManager
 {
     private readonly QCUniversidadContext _context = context;
     private readonly ISchoolYearsManager _schoolYearsManager = schoolYearsManager;
     private readonly IDepartmentsManager _departmentsManager = departmentsManager;
-
-    public event EventHandler<(Guid departmentId, Guid periodId)> RequestLoadRecalculation = delegate { };
+    private readonly IMediator _mediator = mediator;
 
     public async Task<bool> CreateTeacherAsync(TeacherModel teacher)
     {
@@ -30,7 +33,11 @@ public class TeachersManager(QCUniversidadContext context,
         List<PeriodModel> periods = await _context.Periods.Where(p => p.SchoolYearId == schoolYear.Id).ToListAsync();
         foreach (PeriodModel? period in periods)
         {
-            RequestLoadRecalculation.Invoke(this, (teacher.DepartmentId, period.Id));
+            await _mediator.Publish(new TeachersRecalculationOfDepartmentRequested
+            {
+                DepartmentId = teacher.DepartmentId,
+                PeriodId = period.Id
+            });
         }
 
         return true;
@@ -137,7 +144,11 @@ public class TeachersManager(QCUniversidadContext context,
             List<PeriodModel> periods = await _context.Periods.Where(p => p.SchoolYearId == schoolYear.Id).ToListAsync();
             foreach (PeriodModel? period in periods)
             {
-                RequestLoadRecalculation.Invoke(this, (teacher.DepartmentId, period.Id));
+                await _mediator.Publish(new TeachersRecalculationOfDepartmentRequested
+                {
+                    DepartmentId = teacher.DepartmentId,
+                    PeriodId = period.Id
+                });
             }
 
             return true;
@@ -151,8 +162,8 @@ public class TeachersManager(QCUniversidadContext context,
     private async Task<bool> DoTeacherHaveLoad(Guid teacherId)
     {
         return !await ExistsTeacherAsync(teacherId)
-                                                                    ? throw new TeacherNotFoundException()
-                                                                    : await _context.LoadItems.AnyAsync(l => l.TeacherId == teacherId);
+                    ? throw new TeacherNotFoundException()
+                    : await _context.LoadItems.AnyAsync(l => l.TeacherId == teacherId);
     }
 
     public async Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId, bool loadInactives = false)
@@ -175,19 +186,19 @@ public class TeachersManager(QCUniversidadContext context,
         }
     }
 
-    public async Task<IList<TeacherModel>> GetTeachersOfFacultyAsync(Guid facultyId, bool loadInactives = false)
+    public async Task<IList<TeacherModel>> GetTeachersOfFacultyAsync(Guid facultyId, bool loadInactive = false)
     {
         try
         {
             if (!await _departmentsManager.ExistDepartmentAsync(facultyId))
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(facultyId));
             }
 
             IQueryable<TeacherModel> query = from t in _context.Teachers
                                              join d in _context.Departments
                                              on t.DepartmentId equals d.Id
-                                             where (loadInactives || t.Active) && d.FacultyId == facultyId
+                                             where (loadInactive || t.Active) && d.FacultyId == facultyId
                                              select t;
             return await query.Include(t => t.TeacherDisciplines).ThenInclude(td => td.Discipline).ToListAsync();
         }

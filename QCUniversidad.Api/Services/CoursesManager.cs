@@ -4,6 +4,7 @@ using QCUniversidad.Api.ConfigurationModels;
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Exceptions;
 using QCUniversidad.Api.Shared.Enums;
 
 namespace QCUniversidad.Api.Services;
@@ -207,14 +208,6 @@ public class CoursesManager(QCUniversidadContext context,
                          .Include(sy => sy.Career)
                          .Include(sy => sy.Curriculum);
         return await courses.ToListAsync();
-    }
-
-    private async Task<uint> GetCourseEnrolmentAsync(Guid courseId)
-    {
-        IQueryable<uint> query = from course in _context.Courses
-                                 where course.Id == courseId
-                                 select course.Enrolment;
-        return await query.AnyAsync() ? await query.FirstAsync() : throw new CourseNotFoundException();
     }
 
     public async Task<double> GetHoursPlannedInPeriodForCourseAsync(Guid courseId, Guid periodId)

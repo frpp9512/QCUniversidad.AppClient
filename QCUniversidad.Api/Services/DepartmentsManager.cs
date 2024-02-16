@@ -2,6 +2,7 @@
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Exceptions;
 
 namespace QCUniversidad.Api.Services;
 
@@ -15,10 +16,10 @@ public class DepartmentsManager(QCUniversidadContext context,
 
     public async Task<IList<DepartmentModel>> GetDepartmentsAsync(int from, int to)
     {
-        List<DepartmentModel> deparments = !(from == 0 && to == from)
+        List<DepartmentModel> departments = !(from == 0 && to == from)
                          ? await _context.Departments.OrderBy(d => d.Name).Skip(from).Take(to).Include(d => d.Faculty).ToListAsync()
                          : await _context.Departments.OrderBy(d => d.Name).Include(d => d.Faculty).ToListAsync();
-        return deparments;
+        return departments;
     }
 
     public async Task<int> GetDepartmentDisciplinesCount(Guid departmentId)
@@ -37,13 +38,13 @@ public class DepartmentsManager(QCUniversidadContext context,
     {
         try
         {
-            if (await _facultiesManager.ExistFacultyAsync(facultyId))
+            if (!await _facultiesManager.ExistFacultyAsync(facultyId))
             {
-                List<DepartmentModel> deparments = await _context.Departments.Where(d => d.FacultyId == facultyId).OrderBy(d => d.Name).ToListAsync();
-                return deparments;
+                throw new FacultyNotFoundException();
             }
 
-            throw new FacultyNotFoundException();
+            List<DepartmentModel> departments = await _context.Departments.Where(d => d.FacultyId == facultyId).OrderBy(d => d.Name).ToListAsync();
+            return departments;
         }
         catch
         {
@@ -73,7 +74,7 @@ public class DepartmentsManager(QCUniversidadContext context,
         return department ?? throw new DepartmentNotFoundException();
     }
 
-    public async Task<int> GetDeparmentTeachersCountAsync(Guid departmentId)
+    public async Task<int> GetDepartmentTeachersCountAsync(Guid departmentId)
     {
         if (!await ExistDepartmentAsync(departmentId))
         {
@@ -257,7 +258,7 @@ public class DepartmentsManager(QCUniversidadContext context,
         }
 
         double periodTimeFund = await _periodsManager.GetPeriodTimeFund(periodId);
-        int teachersCount = await GetDeparmentTeachersCountAsync(departmentId);
+        int teachersCount = await GetDepartmentTeachersCountAsync(departmentId);
         return periodTimeFund * teachersCount;
     }
 

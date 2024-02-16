@@ -11,7 +11,7 @@ public interface IDepartmentsManager
     Task<int> GetDepartmentsCountAsync(Guid facultyId);
     Task<int> GetDepartmentDisciplinesCount(Guid departmentId);
     Task<DepartmentModel> GetDepartmentAsync(Guid departmentId);
-    Task<int> GetDeparmentTeachersCountAsync(Guid departmentId);
+    Task<int> GetDepartmentTeachersCountAsync(Guid departmentId);
     Task<bool> CreateDepartmentAsync(DepartmentModel department);
     Task<bool> UpdateDeparmentAsync(DepartmentModel department);
     Task<bool> DeleteDepartmentAsync(Guid deparmentId);

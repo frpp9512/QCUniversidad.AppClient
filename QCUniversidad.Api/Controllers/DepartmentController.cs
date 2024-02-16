@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using QCUniversidad.Api.ConfigurationModels;
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Models;
-using QCUniversidad.Api.Services;
+using QCUniversidad.Api.Exceptions;
 using QCUniversidad.Api.Shared.Dtos.Department;
 using QCUniversidad.Api.Shared.Dtos.Statistics;
 using QCUniversidad.Api.Shared.Dtos.Teacher;

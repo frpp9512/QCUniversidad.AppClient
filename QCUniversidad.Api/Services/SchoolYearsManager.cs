@@ -2,6 +2,7 @@
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Exceptions;
 
 namespace QCUniversidad.Api.Services;
 
@@ -13,7 +14,9 @@ public class SchoolYearsManager(QCUniversidadContext context) : ISchoolYearsMana
     {
         try
         {
-            return await _context.SchoolYears.Include(sy => sy.Periods).Where(sy => sy.Current).FirstAsync() ?? throw new NotCurrentSchoolYearDefined();
+            return await _context.SchoolYears.Include(sy => sy.Periods)
+                                             .Where(sy => sy.Current)
+                                             .FirstAsync() ?? throw new NotCurrentSchoolYearDefined();
         }
         catch (NotCurrentSchoolYearDefined)
         {
@@ -33,7 +36,7 @@ public class SchoolYearsManager(QCUniversidadContext context) : ISchoolYearsMana
             (from != 0 && from == to) || (from >= 0 && to >= from && !(from == 0 && from == to))
             ? await _context.SchoolYears.Include(sy => sy.Periods).Skip(from).Take(to).ToListAsync()
             : await _context.SchoolYears.Include(sy => sy.Periods).ToListAsync();
-        return schoolYears.OrderByDescending(sy => sy.Current).ThenByDescending(sy => sy.Name).ToList();
+        return [.. schoolYears.OrderByDescending(sy => sy.Current).ThenByDescending(sy => sy.Name)];
     }
 
     public async Task<int> GetSchoolYearTotalAsync()

@@ -1,18 +1,21 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Exceptions;
 using QCUniversidad.Api.Extensions;
+using QCUniversidad.Api.Notifications.Models;
 
 namespace QCUniversidad.Api.Services;
 
 public class PeriodsManager(QCUniversidadContext context,
-                            ICoefficientCalculator<PeriodModel> periodCalculator) : IPeriodsManager
+                            ICoefficientCalculator<PeriodModel> periodCalculator,
+                            IMediator mediator) : IPeriodsManager
 {
     private readonly QCUniversidadContext _context = context;
     private readonly ICoefficientCalculator<PeriodModel> _periodCalculator = periodCalculator;
-
-    public event EventHandler<Guid> RecalculationRequested = delegate { };
+    private readonly IMediator _mediator = mediator;
 
     public async Task<bool> CreatePeriodAsync(PeriodModel period)
     {
@@ -48,15 +51,15 @@ public class PeriodsManager(QCUniversidadContext context,
 
     public async Task<PeriodModel> GetPeriodAsync(Guid id)
     {
-        if (id != Guid.Empty)
+        if (id == Guid.Empty)
         {
-            PeriodModel? result = await _context.Periods.Where(p => p.Id == id)
-                                               .Include(p => p.SchoolYear)
-                                               .FirstOrDefaultAsync();
-            return result ?? throw new PeriodNotFoundException();
+            throw new ArgumentNullException(nameof(id));
         }
 
-        throw new ArgumentNullException(nameof(id));
+        PeriodModel? result = await _context.Periods.Where(p => p.Id == id)
+                                               .Include(p => p.SchoolYear)
+                                               .FirstOrDefaultAsync();
+        return result ?? throw new PeriodNotFoundException();
     }
 
     public async Task<bool> UpdatePeriodAsync(PeriodModel period)
@@ -79,7 +82,7 @@ public class PeriodsManager(QCUniversidadContext context,
 
         if (recalculateTeachers)
         {
-            RecalculationRequested?.Invoke(this, period.Id);
+            await _mediator.Publish(new AllTeachersRecalculationRequested { PeriodId = period.Id });
         }
 
         return result > 0;

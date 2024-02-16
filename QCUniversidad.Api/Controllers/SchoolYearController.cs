@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Models;
-using QCUniversidad.Api.Services;
+using QCUniversidad.Api.Exceptions;
 using QCUniversidad.Api.Shared.Dtos.SchoolYear;
 
 namespace QCUniversidad.Api.Controllers;

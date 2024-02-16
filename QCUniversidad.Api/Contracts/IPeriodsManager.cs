@@ -4,8 +4,6 @@ namespace QCUniversidad.Api.Contracts;
 
 public interface IPeriodsManager
 {
-    event EventHandler<Guid> RecalculationRequested;
-
     Task<bool> CreatePeriodAsync(PeriodModel period);
     Task<bool> ExistsPeriodAsync(Guid id);
     Task<int> GetPeriodsCountAsync();

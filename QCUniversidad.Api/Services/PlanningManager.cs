@@ -1,22 +1,25 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Exceptions;
+using QCUniversidad.Api.Notifications.Models;
 
 namespace QCUniversidad.Api.Services;
 
 public class PlanningManager(QCUniversidadContext context,
                              ICoefficientCalculator<TeachingPlanItemModel> planItemCalculator,
                              IDepartmentsManager departmentsManager,
-                             IPeriodsManager periodsManager) : IPlanningManager
+                             IPeriodsManager periodsManager,
+                             IMediator mediator) : IPlanningManager
 {
     private readonly QCUniversidadContext _context = context;
     private readonly ICoefficientCalculator<TeachingPlanItemModel> _planItemCalculator = planItemCalculator;
     private readonly IDepartmentsManager _departmentsManager = departmentsManager;
     private readonly IPeriodsManager _periodsManager = periodsManager;
-
-    public event EventHandler<(Guid teacherId, Guid periodId)> RecalculationRequested = delegate { };
+    private readonly IMediator _mediator = mediator;
 
     public async Task<bool> CreateTeachingPlanItemAsync(TeachingPlanItemModel teachingPlanItem)
     {
@@ -81,7 +84,7 @@ public class PlanningManager(QCUniversidadContext context,
         TeachingPlanItemModel? result = await _context.TeachingPlanItems.Where(p => p.Id == id)
                                                      .Include(p => p.Subject)
                                                      .Include(p => p.LoadItems)
-                                                     .ThenInclude(li => li.Teacher)
+                                                        .ThenInclude(li => li.Teacher)
                                                      .Include(p => p.Course)
                                                      .FirstOrDefaultAsync() ?? throw new TeachingPlanItemNotFoundException();
         result.TotalHoursPlanned = _planItemCalculator.CalculateValue(result);
@@ -109,7 +112,11 @@ public class PlanningManager(QCUniversidadContext context,
             int result = await _context.SaveChangesAsync();
             foreach (var item in loadItemsAffected)
             {
-                RecalculationRequested?.Invoke(this, (item.teacherId, item.periodId));
+                await _mediator.Publish(new TeacherRecalculationRequested
+                {
+                    TeacherId = item.teacherId,
+                    PeriodId = item.periodId
+                });
             }
 
             return result > 0;

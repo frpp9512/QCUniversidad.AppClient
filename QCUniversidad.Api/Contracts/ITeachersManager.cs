@@ -4,8 +4,6 @@ namespace QCUniversidad.Api.Contracts;
 
 public interface ITeachersManager
 {
-    event EventHandler<(Guid departmentId, Guid periodId)> RequestLoadRecalculation;
-
     Task<bool> CreateTeacherAsync(TeacherModel teacher);
     Task<bool> ExistsTeacherAsync(Guid id);
     Task<bool> ExistsTeacherAsync(string personalId);

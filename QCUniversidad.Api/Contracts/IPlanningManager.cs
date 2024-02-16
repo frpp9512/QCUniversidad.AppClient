@@ -4,8 +4,6 @@ namespace QCUniversidad.Api.Contracts;
 
 public interface IPlanningManager
 {
-    event EventHandler<(Guid teacherId, Guid periodId)> RecalculationRequested;
-
     Task<bool> CreateTeachingPlanItemAsync(TeachingPlanItemModel item);
     Task<bool> ExistsTeachingPlanItemAsync(Guid id);
     Task<int> GetTeachingPlanItemsCountAsync();

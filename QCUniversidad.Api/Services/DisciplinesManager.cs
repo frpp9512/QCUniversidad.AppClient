@@ -2,6 +2,7 @@
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Exceptions;
 
 namespace QCUniversidad.Api.Services;
 
@@ -94,10 +95,7 @@ public class DisciplinesManager(QCUniversidadContext context,
 
     public async Task<bool> UpdateDisciplineAsync(DisciplineModel discipline)
     {
-        if (discipline is null)
-        {
-            throw new ArgumentNullException(nameof(discipline));
-        }
+        ArgumentNullException.ThrowIfNull(discipline);
 
         _ = _context.Disciplines.Update(discipline);
         int result = await _context.SaveChangesAsync();

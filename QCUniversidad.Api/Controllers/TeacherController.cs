@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Models;
-using QCUniversidad.Api.Services;
+using QCUniversidad.Api.Exceptions;
 using QCUniversidad.Api.Shared.Dtos.Discipline;
 using QCUniversidad.Api.Shared.Dtos.LoadItem;
 using QCUniversidad.Api.Shared.Dtos.Teacher;
@@ -609,7 +609,7 @@ public class TeacherController(ITeachersManager teachersManager,
         {
             return BadRequest(ex.Message);
         }
-        catch (NonTeachingLoadUnsettableException)
+        catch (NonTeachingLoadUnSettableException)
         {
             return BadRequest("The provided load type cannot be setted, it is autocalculated.");
         }

@@ -2,6 +2,7 @@
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Exceptions;
 
 namespace QCUniversidad.Api.Services;
 
@@ -81,10 +82,7 @@ public class CurriculumsManager(QCUniversidadContext context,
 
     public async Task<bool> UpdateCurriculumAsync(CurriculumModel curriculum)
     {
-        if (curriculum is null)
-        {
-            throw new ArgumentNullException(nameof(curriculum));
-        }
+        ArgumentNullException.ThrowIfNull(curriculum);
 
         await _context.CurriculumsDisciplines.Where(td => td.CurriculumId == curriculum.Id)
                                               .ForEachAsync(td => _context.Remove(td));

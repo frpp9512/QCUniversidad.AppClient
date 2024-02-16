@@ -2,6 +2,7 @@
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Exceptions;
 
 namespace QCUniversidad.Api.Services;
 
@@ -47,10 +48,7 @@ public class FacultiesManager(QCUniversidadContext context) : IFacultiesManager
 
     public async Task<bool> UpdateFacultyAsync(FacultyModel faculty)
     {
-        if (faculty is null)
-        {
-            throw new ArgumentNullException(nameof(faculty));
-        }
+        ArgumentNullException.ThrowIfNull(faculty);
 
         _ = _context.Update(faculty);
         int result = await _context.SaveChangesAsync();

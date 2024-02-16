@@ -32,12 +32,13 @@ builder.Services.AddTransient<ICoursesManager, CoursesManager>();
 builder.Services.AddTransient<IPeriodsManager, PeriodsManager>();
 builder.Services.AddTransient<IPlanningManager, PlanningManager>();
 builder.Services.AddTransient<ISchoolYearsManager, SchoolYearsManager>();
-builder.Services.AddScoped<ITeachersLoadManager, TeachersLoadManager>();
+builder.Services.AddTransient<ITeachersLoadManager, TeachersLoadManager>();
 
-builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.Configure<CalculationOptions>(builder.Configuration.GetSection("CalculationOptions"));
 
 builder.Services.AddCoefficientCalculators(builder.Configuration.GetSection("CalculationOptions"));
+builder.Services.AddMediatR(config => config.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

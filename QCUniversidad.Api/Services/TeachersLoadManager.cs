@@ -5,6 +5,7 @@ using QCUniversidad.Api.ConfigurationModels;
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Exceptions;
 using QCUniversidad.Api.Shared.CommonModels;
 using QCUniversidad.Api.Shared.Enums;
 using QCUniversidad.Api.Shared.Extensions;
@@ -12,50 +13,23 @@ using System.Text;
 
 namespace QCUniversidad.Api.Services;
 
-public class TeachersLoadManager : ITeachersLoadManager
+public class TeachersLoadManager(QCUniversidadContext context,
+                                 IOptions<CalculationOptions> calcOptions,
+                                 ITeachersManager teachersManager,
+                                 IPeriodsManager periodsManager,
+                                 IPlanningManager planningManager) : ITeachersLoadManager
 {
-    private readonly QCUniversidadContext _context;
-    private readonly ITeachersManager _teachersManager;
-    private readonly IPeriodsManager _periodsManager;
-    private readonly IPlanningManager _planningManager;
-    private readonly CalculationOptions _calculationOptions;
-
-    public TeachersLoadManager(QCUniversidadContext context,
-                               IOptions<CalculationOptions> calcOptions,
-                               ITeachersManager teachersManager,
-                               IPeriodsManager periodsManager,
-                               IPlanningManager planningManager)
-    {
-        _context = context;
-        _calculationOptions = calcOptions.Value;
-        _planningManager = planningManager;
-        _planningManager.RecalculationRequested += PlanningManager_RecalculationRequested;
-        _periodsManager = periodsManager;
-        _periodsManager.RecalculationRequested += PeriodsManager_RecalculationRequested;
-        _teachersManager = teachersManager;
-        _teachersManager.RequestLoadRecalculation += TeachersManager_RequestLoadRecalculation;
-    }
-
-    private async void PlanningManager_RecalculationRequested(object? sender, (Guid teacherId, Guid periodId) e)
-    {
-        await RecalculateAutogenerateTeachingLoadItemsAsync(e.teacherId, e.periodId);
-    }
-
-    private async void PeriodsManager_RecalculationRequested(object? sender, Guid e)
-    {
-        await RecalculateAllTeachersLoadInPeriodAsync(e);
-    }
-
-    private async void TeachersManager_RequestLoadRecalculation(object? sender, (Guid departmentId, Guid periodId) e)
-    {
-        await RecalculateAllTeachersLoadOfDepartmentInPeriodAsync(e.departmentId, e.periodId);
-    }
+    private readonly QCUniversidadContext _context = context;
+    private readonly ITeachersManager _teachersManager = teachersManager;
+    private readonly IPeriodsManager _periodsManager = periodsManager;
+    private readonly IPlanningManager _planningManager = planningManager;
+    private readonly CalculationOptions _calculationOptions = calcOptions.Value;
 
     public async Task<IList<LoadItemModel>> GetTeacherLoadItemsInPeriodAsync(Guid teacherId, Guid periodId)
     {
         if (!await _teachersManager.ExistsTeacherAsync(teacherId))
         {
-            throw new TeacherNotFoundException();
+            throw new Exceptions.TeacherNotFoundException();
         }
 
         if (!await _periodsManager.ExistsPeriodAsync(periodId))
@@ -842,7 +816,7 @@ public class TeachersLoadManager : ITeachersLoadManager
             NonTeachingLoadType.AdministrativeResponsibilities => await CalculateAdministrativeResponsibilities(type, baseValue, teacherId, periodId),
             NonTeachingLoadType.SyndicalAndPoliticalResposabilities => await CalculateSyndicalAndPoliticalResponsibilities(type, baseValue, teacherId, periodId, teacher),
             NonTeachingLoadType.ProcessResponsibilities => await CalculateProcessResponsibilities(type, baseValue, teacherId, periodId, teacher),
-            _ => throw new NonTeachingLoadUnsettableException(),
+            _ => throw new NonTeachingLoadUnSettableException(),
         };
     }
 

@@ -136,7 +136,7 @@ public class StatisticsController(ISchoolYearsManager dataManager,
             StatisticItemDto teachersCount = new()
             {
                 Name = "Cantidad de profesores",
-                Value = await _departmentsManager.GetDeparmentTeachersCountAsync(departmentId),
+                Value = await _departmentsManager.GetDepartmentTeachersCountAsync(departmentId),
                 Description = "Cantidad de profesores del departamento"
             };
             items.Add(teachersCount);
