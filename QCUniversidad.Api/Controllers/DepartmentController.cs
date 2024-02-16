@@ -217,7 +217,7 @@ public class DepartmentController(IDepartmentsManager dataManager,
             return BadRequest("You should provide a department id.");
         }
 
-        bool result = await _departmentsManager.DeleteDeparmentAsync(id);
+        bool result = await _departmentsManager.DeleteDepartmentAsync(id);
         return result ? Ok(result) : (IActionResult)Problem("Error while deleting department from database.");
     }
 

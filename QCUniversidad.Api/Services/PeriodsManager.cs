@@ -79,7 +79,7 @@ public class PeriodsManager(QCUniversidadContext context,
 
         if (recalculateTeachers)
         {
-            RecalculationRequested.Invoke(this, period.Id);
+            RecalculationRequested?.Invoke(this, period.Id);
         }
 
         return result > 0;

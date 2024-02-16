@@ -1,6 +1,6 @@
 ﻿namespace QCUniversidad.Api.ConfigurationModels;
 
-public class CalculationOptions
+public record CalculationOptions
 {
     public double ClassHoursToRealHoursConversionCoefficient { get; set; }
     public double PregraduateTotalHoursCoefficient { get; set; }

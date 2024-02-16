@@ -86,10 +86,7 @@ public class DepartmentsManager(QCUniversidadContext context,
 
     public async Task<bool> CreateDepartmentAsync(DepartmentModel department)
     {
-        if (department is null)
-        {
-            throw new ArgumentNullException(nameof(department));
-        }
+        ArgumentNullException.ThrowIfNull(department);
 
         _ = await _context.Departments.AddAsync(department);
         int result = await _context.SaveChangesAsync();
@@ -98,10 +95,7 @@ public class DepartmentsManager(QCUniversidadContext context,
 
     public async Task<bool> UpdateDeparmentAsync(DepartmentModel department)
     {
-        if (department is null)
-        {
-            throw new ArgumentNullException(nameof(department));
-        }
+        ArgumentNullException.ThrowIfNull(department);
 
         await _context.DepartmentsCareers.Where(dc => dc.DepartmentId == department.Id)
                                          .ForEachAsync(dc => _context.Remove(dc));
@@ -110,13 +104,8 @@ public class DepartmentsManager(QCUniversidadContext context,
         return result > 0;
     }
 
-    public async Task<bool> DeleteDeparmentAsync(Guid departmentId)
+    public async Task<bool> DeleteDepartmentAsync(Guid departmentId)
     {
-        if (departmentId == Guid.Empty)
-        {
-            throw new ArgumentNullException(nameof(departmentId));
-        }
-
         DepartmentModel department = await GetDepartmentAsync(departmentId);
         _ = _context.Departments.Remove(department);
         int result = await _context.SaveChangesAsync();
@@ -135,7 +124,6 @@ public class DepartmentsManager(QCUniversidadContext context,
                                    select planItem.TotalHoursPlanned;
 
         double result = await query.SumAsync();
-
         return result;
     }
 
@@ -218,9 +206,7 @@ public class DepartmentsManager(QCUniversidadContext context,
                                                   select ntl.Load;
 
         bool isPeriodFromCurrentYear = !await _periodsManager.IsPeriodInCurrentYear(periodId);
-
         double result = await loadItemsQuery.SumAsync() + await nonTeachingLoadQuery.SumAsync();
-
         return Math.Round(result, 2);
     }
 

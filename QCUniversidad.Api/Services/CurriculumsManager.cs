@@ -13,14 +13,14 @@ public class CurriculumsManager(QCUniversidadContext context,
 
     public async Task<bool> CreateCurriculumAsync(CurriculumModel curriculum)
     {
-        if (curriculum is not null)
+        if (curriculum is null)
         {
-            _ = await _context.Curriculums.AddAsync(curriculum);
-            int result = await _context.SaveChangesAsync();
-            return result > 0;
+            throw new ArgumentNullException(nameof(curriculum));
         }
 
-        throw new ArgumentNullException(nameof(curriculum));
+        _ = await _context.Curriculums.AddAsync(curriculum);
+        int result = await _context.SaveChangesAsync();
+        return result > 0;
     }
 
     public async Task<bool> ExistsCurriculumAsync(Guid id)
@@ -29,10 +29,7 @@ public class CurriculumsManager(QCUniversidadContext context,
         return result;
     }
 
-    public async Task<int> GetCurriculumsCountAsync()
-    {
-        return await _context.Curriculums.CountAsync();
-    }
+    public async Task<int> GetCurriculumsCountAsync() => await _context.Curriculums.CountAsync();
 
     public async Task<int> GetCurriculumDisciplinesCountAsync(Guid id)
     {
@@ -74,51 +71,41 @@ public class CurriculumsManager(QCUniversidadContext context,
 
     public async Task<CurriculumModel> GetCurriculumAsync(Guid id)
     {
-        if (id != Guid.Empty)
-        {
-            CurriculumModel? result = await _context.Curriculums.Where(t => t.Id == id)
+        CurriculumModel? result = await _context.Curriculums.Where(t => t.Id == id)
                                                    .Include(c => c.Career)
                                                    .Include(c => c.CurriculumDisciplines)
                                                    .ThenInclude(cs => cs.Discipline)
                                                    .FirstOrDefaultAsync();
-            return result ?? throw new TeacherNotFoundException();
-        }
-
-        throw new ArgumentNullException(nameof(id));
+        return result ?? throw new TeacherNotFoundException();
     }
 
     public async Task<bool> UpdateCurriculumAsync(CurriculumModel curriculum)
     {
-        if (curriculum is not null)
+        if (curriculum is null)
         {
-            await _context.CurriculumsDisciplines.Where(td => td.CurriculumId == curriculum.Id)
-                                              .ForEachAsync(td => _context.Remove(td));
-            await _context.CurriculumsDisciplines.AddRangeAsync(curriculum.CurriculumDisciplines);
-            _ = _context.Curriculums.Update(curriculum);
-            int result = await _context.SaveChangesAsync();
-            return result > 0;
+            throw new ArgumentNullException(nameof(curriculum));
         }
 
-        throw new ArgumentNullException(nameof(curriculum));
+        await _context.CurriculumsDisciplines.Where(td => td.CurriculumId == curriculum.Id)
+                                              .ForEachAsync(td => _context.Remove(td));
+        await _context.CurriculumsDisciplines.AddRangeAsync(curriculum.CurriculumDisciplines);
+        _ = _context.Curriculums.Update(curriculum);
+        int result = await _context.SaveChangesAsync();
+        return result > 0;
     }
 
     public async Task<bool> DeleteCurriculumAsync(Guid id)
     {
-        if (id != Guid.Empty)
+        try
         {
-            try
-            {
-                CurriculumModel curriculum = await GetCurriculumAsync(id);
-                _ = _context.Curriculums.Remove(curriculum);
-                int result = await _context.SaveChangesAsync();
-                return result > 0;
-            }
-            catch (CurriculumNotFoundException)
-            {
-                throw;
-            }
+            CurriculumModel curriculum = await GetCurriculumAsync(id);
+            _ = _context.Curriculums.Remove(curriculum);
+            int result = await _context.SaveChangesAsync();
+            return result > 0;
         }
-
-        throw new ArgumentNullException(nameof(id));
+        catch (CurriculumNotFoundException)
+        {
+            throw;
+        }
     }
 }

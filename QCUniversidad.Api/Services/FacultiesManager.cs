@@ -38,26 +38,23 @@ public class FacultiesManager(QCUniversidadContext context) : IFacultiesManager
 
     public async Task<bool> CreateFacultyAsync(FacultyModel faculty)
     {
-        if (faculty is not null)
-        {
-            _ = await _context.AddAsync(faculty);
-            int result = await _context.SaveChangesAsync();
-            return result > 0;
-        }
+        ArgumentNullException.ThrowIfNull(faculty);
 
-        throw new ArgumentNullException(nameof(faculty));
+        _ = await _context.AddAsync(faculty);
+        int result = await _context.SaveChangesAsync();
+        return result > 0;
     }
 
     public async Task<bool> UpdateFacultyAsync(FacultyModel faculty)
     {
-        if (faculty is not null)
+        if (faculty is null)
         {
-            _ = _context.Update(faculty);
-            int result = await _context.SaveChangesAsync();
-            return result > 0;
+            throw new ArgumentNullException(nameof(faculty));
         }
 
-        throw new ArgumentNullException(nameof(faculty));
+        _ = _context.Update(faculty);
+        int result = await _context.SaveChangesAsync();
+        return result > 0;
     }
 
     public async Task<int> GetFacultyDepartmentCountAsync(Guid facultyId)

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using QCUniversidad.Api.ConfigurationModels;
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Context;
+using QCUniversidad.Api.Extensions;
 using QCUniversidad.Api.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
@@ -76,11 +77,6 @@ public class PlanningManager(QCUniversidadContext context,
 
     public async Task<TeachingPlanItemModel> GetTeachingPlanItemAsync(Guid id)
     {
-        if (id == Guid.Empty)
-        {
-            throw new ArgumentNullException(nameof(id));
-        }
-
         IQueryable<TeachingPlanItemModel> resultQuery = _context.TeachingPlanItems.Where(p => p.Id == id);
         TeachingPlanItemModel? result = await _context.TeachingPlanItems.Where(p => p.Id == id)
                                                      .Include(p => p.Subject)
@@ -94,42 +90,34 @@ public class PlanningManager(QCUniversidadContext context,
 
     public async Task<bool> UpdateTeachingPlanItemAsync(TeachingPlanItemModel teachingPlanItem)
     {
-        if (teachingPlanItem is not null)
-        {
-            _ = _context.TeachingPlanItems.Update(teachingPlanItem);
-            int result = await _context.SaveChangesAsync();
-            return result > 0;
-        }
+        ArgumentNullException.ThrowIfNull(teachingPlanItem);
 
-        throw new ArgumentNullException(nameof(teachingPlanItem));
+        _ = _context.TeachingPlanItems.Update(teachingPlanItem);
+        int result = await _context.SaveChangesAsync();
+        return result > 0;
     }
 
     public async Task<bool> DeleteTeachingPlanItemAsync(Guid id)
     {
-        if (id != Guid.Empty)
+        try
         {
-            try
+            TeachingPlanItemModel teachingPlanItem = await GetTeachingPlanItemAsync(id);
+            var loadItemsAffected = await _context.LoadItems.Where(l => l.PlanningItemId == id)
+                                                         .Select(l => new { teacherId = l.TeacherId, periodId = teachingPlanItem.PeriodId })
+                                                         .ToListAsync();
+            _ = _context.TeachingPlanItems.Remove(teachingPlanItem);
+            int result = await _context.SaveChangesAsync();
+            foreach (var item in loadItemsAffected)
             {
-                TeachingPlanItemModel teachingPlanItem = await GetTeachingPlanItemAsync(id);
-                var loadItemsAffected = await _context.LoadItems.Where(l => l.PlanningItemId == id)
-                                                             .Select(l => new { teacherId = l.TeacherId, periodId = teachingPlanItem.PeriodId })
-                                                             .ToListAsync();
-                _ = _context.TeachingPlanItems.Remove(teachingPlanItem);
-                int result = await _context.SaveChangesAsync();
-                foreach (var item in loadItemsAffected)
-                {
-                    RecalculationRequested?.Invoke(this, (item.teacherId, item.periodId));
-                }
+                RecalculationRequested?.Invoke(this, (item.teacherId, item.periodId));
+            }
 
-                return result > 0;
-            }
-            catch (TeachingPlanItemNotFoundException)
-            {
-                throw;
-            }
+            return result > 0;
         }
-
-        throw new ArgumentNullException(nameof(id));
+        catch (TeachingPlanItemNotFoundException)
+        {
+            throw;
+        }
     }
 
     public async Task<IList<TeachingPlanItemModel>> GetTeachingPlanItemsOfDepartmentOnPeriod(Guid departmentId, Guid periodId, Guid? courseId = null, bool onlyLoadItems = false)
@@ -160,7 +148,7 @@ public class PlanningManager(QCUniversidadContext context,
                                                           where planItem.PeriodId == periodId && (!onlyLoadItems || (onlyLoadItems && !planItem.IsNotLoadGenerator))
                                                           select planItem;
 
-            Microsoft.EntityFrameworkCore.Query.IIncludableQueryable<TeachingPlanItemModel, TeacherModel?> items = planItems.Distinct().Include(i => i.Subject).Include(p => p.Course).Include(i => i.LoadItems).ThenInclude(li => li.Teacher);
+            IIncludableQueryable<TeachingPlanItemModel, TeacherModel?> items = planItems.Distinct().Include(i => i.Subject).Include(p => p.Course).Include(i => i.LoadItems).ThenInclude(li => li.Teacher);
             List<TeachingPlanItemModel> planItemsList = courseId is not null ? await items.Where(i => i.CourseId == courseId).ToListAsync() : await items.ToListAsync();
             planItemsList.ForEach(i => i.TotalHoursPlanned = _planItemCalculator.CalculateValue(i));
             return planItemsList;

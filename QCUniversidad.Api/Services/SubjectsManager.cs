@@ -21,14 +21,11 @@ public class SubjectsManager(QCUniversidadContext context,
 
     public async Task<bool> CreateSubjectAsync(SubjectModel subject)
     {
-        if (subject is not null)
-        {
-            _ = await _context.Subjects.AddAsync(subject);
-            int result = await _context.SaveChangesAsync();
-            return result > 0;
-        }
+        ArgumentNullException.ThrowIfNull(subject);
 
-        throw new ArgumentNullException(nameof(subject));
+        _ = await _context.Subjects.AddAsync(subject);
+        int result = await _context.SaveChangesAsync();
+        return result > 0;
     }
 
     public async Task<bool> ExistsSubjectAsync(Guid id)
@@ -44,9 +41,7 @@ public class SubjectsManager(QCUniversidadContext context,
     }
 
     public async Task<int> GetSubjectsCountAsync()
-    {
-        return await _context.Subjects.CountAsync();
-    }
+        => await _context.Subjects.CountAsync();
 
     public async Task<IList<SubjectModel>> GetSubjectsAsync(int from, int to)
     {
@@ -69,15 +64,8 @@ public class SubjectsManager(QCUniversidadContext context,
             throw new DisciplineNotFoundException();
         }
 
-        try
-        {
-            List<SubjectModel> subjects = await _context.Subjects.Where(s => s.DisciplineId == disciplineId).ToListAsync();
-            return subjects;
-        }
-        catch
-        {
-            throw;
-        }
+        List<SubjectModel> subjects = await _context.Subjects.Where(s => s.DisciplineId == disciplineId).ToListAsync();
+        return subjects;
     }
 
     public async Task<IList<SubjectModel>> GetSubjectsForCourseAsync(Guid courseId)
@@ -161,69 +149,49 @@ public class SubjectsManager(QCUniversidadContext context,
 
     public async Task<SubjectModel> GetSubjectAsync(Guid id)
     {
-        if (id != Guid.Empty)
-        {
-            SubjectModel? result = await _context.Subjects.Where(t => t.Id == id)
+        SubjectModel? result = await _context.Subjects.Where(t => t.Id == id)
                                                 .Include(s => s.Discipline)
                                                 .FirstOrDefaultAsync();
-            return result ?? throw new SubjectNotFoundException();
-        }
-
-        throw new ArgumentNullException(nameof(id));
+        return result ?? throw new SubjectNotFoundException();
     }
 
     public async Task<SubjectModel> GetSubjectAsync(string name)
     {
-        if (!string.IsNullOrEmpty(name))
+        if (string.IsNullOrEmpty(name))
         {
-            SubjectModel? result = await _context.Subjects.Where(t => t.Name == name)
-                                                .Include(s => s.Discipline)
-                                                .FirstOrDefaultAsync();
-            return result ?? throw new SubjectNotFoundException();
+            throw new ArgumentNullException(nameof(name));
         }
 
-        throw new ArgumentNullException(nameof(name));
+        SubjectModel? result = await _context.Subjects.Where(t => t.Name == name)
+                                                .Include(s => s.Discipline)
+                                                .FirstOrDefaultAsync();
+        return result ?? throw new SubjectNotFoundException();
     }
 
     public async Task<bool> UpdateSubjectAsync(SubjectModel subject)
     {
-        if (subject is not null)
-        {
-            _ = _context.Subjects.Update(subject);
-            int result = await _context.SaveChangesAsync();
-            return result > 0;
-        }
+        ArgumentNullException.ThrowIfNull(subject);
 
-        throw new ArgumentNullException(nameof(subject));
+        _ = _context.Subjects.Update(subject);
+        int result = await _context.SaveChangesAsync();
+        return result > 0;
     }
 
     public async Task<bool> DeleteSubjectAsync(Guid id)
     {
-        if (id != Guid.Empty)
+        SubjectModel subject = await GetSubjectAsync(id);
+        if (!await SubjectHaveLoad(id))
         {
-            try
-            {
-                SubjectModel subject = await GetSubjectAsync(id);
-                if (!await SubjectHaveLoad(id))
-                {
-                    _ = _context.Subjects.Remove(subject);
-                }
-                else
-                {
-                    subject.Active = false;
-                    _ = _context.Update(subject);
-                }
-
-                int result = await _context.SaveChangesAsync();
-                return result > 0;
-            }
-            catch (SubjectNotFoundException)
-            {
-                throw;
-            }
+            _ = _context.Subjects.Remove(subject);
+        }
+        else
+        {
+            subject.Active = false;
+            _ = _context.Update(subject);
         }
 
-        throw new ArgumentNullException(nameof(id));
+        int result = await _context.SaveChangesAsync();
+        return result > 0;
     }
 
     private async Task<bool> SubjectHaveLoad(Guid subjectId)
@@ -244,7 +212,7 @@ public class SubjectsManager(QCUniversidadContext context,
                                           where planItem.SubjectId == subjectId
                                           select loadItem;
 
-        return await query.CountAsync() > 0;
+        return await query.AnyAsync();
     }
 
     public async Task<IList<PeriodSubjectModel>> GetPeriodSubjectsForCourseAsync(Guid periodId, Guid courseId)
@@ -316,34 +284,17 @@ public class SubjectsManager(QCUniversidadContext context,
 
     public async Task<bool> ExistsPeriodSubjectAsync(Guid id)
     {
-        try
-        {
-            return await _context.PeriodSubjects.AnyAsync(ps => ps.Id == id);
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        return await _context.PeriodSubjects.AnyAsync(ps => ps.Id == id);
     }
 
     public async Task<bool> UpdatePeriodSubjectAsync(PeriodSubjectModel periodSubject)
     {
-        if (periodSubject is null)
-        {
-            throw new ArgumentNullException(nameof(periodSubject));
-        }
+        ArgumentNullException.ThrowIfNull(periodSubject);
 
-        try
-        {
-            periodSubject.TotalHours = periodSubject.HoursPlanned * _calculationOptions.ClassHoursToRealHoursConversionCoefficient;
-            _ = _context.PeriodSubjects.Update(periodSubject);
-            int result = await _context.SaveChangesAsync();
-            return result > 0;
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        periodSubject.TotalHours = periodSubject.HoursPlanned * _calculationOptions.ClassHoursToRealHoursConversionCoefficient;
+        _ = _context.PeriodSubjects.Update(periodSubject);
+        int result = await _context.SaveChangesAsync();
+        return result > 0;
     }
 
     public async Task<bool> DeletePeriodSubjectAsync(Guid id)
@@ -358,16 +309,9 @@ public class SubjectsManager(QCUniversidadContext context,
             throw new PeriodSubjectNotFoundException();
         }
 
-        try
-        {
-            PeriodSubjectModel periodSubject = await _context.PeriodSubjects.FirstAsync(ps => ps.Id == id);
-            _ = _context.PeriodSubjects.Remove(periodSubject);
-            int result = await _context.SaveChangesAsync();
-            return result > 0;
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        PeriodSubjectModel periodSubject = await _context.PeriodSubjects.FirstAsync(ps => ps.Id == id);
+        _ = _context.PeriodSubjects.Remove(periodSubject);
+        int result = await _context.SaveChangesAsync();
+        return result > 0;
     }
 }

@@ -1063,12 +1063,7 @@ public class TeachersLoadManager : ITeachersLoadManager
             throw new ArgumentException($"The base mValue supplied for {type} load type is invalid.", nameof(baseValue));
         }
 
-        double? calculationValue = _calculationOptions[$"{nameof(ParticipationInProjectsOptions)}.{ppOption}"];
-        if (calculationValue is null)
-        {
-            throw new ConfigurationException();
-        }
-
+        double? calculationValue = _calculationOptions[$"{nameof(ParticipationInProjectsOptions)}.{ppOption}"] ?? throw new ConfigurationException();
         double loadValue = calculationValue.Value * await _periodsManager.GetPeriodMonthsCountAsync(periodId);
         if (teacher.ContractType == TeacherContractType.PartTime)
         {

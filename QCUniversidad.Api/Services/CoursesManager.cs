@@ -109,23 +109,16 @@ public class CoursesManager(QCUniversidadContext context,
     }
 
     public async Task<int> GetCoursesCountAsync()
-    {
-        return await _context.Courses.CountAsync();
-    }
+        => await _context.Courses.CountAsync();
 
     public async Task<CourseModel> GetCourseAsync(Guid id)
     {
-        if (id != Guid.Empty)
-        {
-            CourseModel? result = await _context.Courses.Where(d => d.Id == id)
+        CourseModel? result = await _context.Courses.Where(d => d.Id == id)
                                                .Include(y => y.SchoolYear)
                                                .Include(y => y.Career)
                                                .Include(y => y.Curriculum)
                                                .FirstOrDefaultAsync();
-            return result ?? throw new CourseNotFoundException();
-        }
-
-        throw new ArgumentNullException(nameof(id));
+        return result ?? throw new CourseNotFoundException();
     }
 
     public async Task<bool> UpdateCourseAsync(CourseModel course)

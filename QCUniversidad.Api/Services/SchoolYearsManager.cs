@@ -50,36 +50,30 @@ public class SchoolYearsManager(QCUniversidadContext context) : ISchoolYearsMana
 
     public async Task<bool> CreateSchoolYearAsync(SchoolYearModel schoolYear)
     {
-        if (schoolYear is not null)
-        {
-            if (schoolYear.Current)
-            {
-                await RemoveCurrentSchoolYearMark();
-            }
+        ArgumentNullException.ThrowIfNull(schoolYear);
 
-            _ = await _context.AddAsync(schoolYear);
-            int result = await _context.SaveChangesAsync();
-            return result > 0;
+        if (schoolYear.Current)
+        {
+            await RemoveCurrentSchoolYearMark();
         }
 
-        throw new ArgumentNullException(nameof(schoolYear));
+        _ = await _context.AddAsync(schoolYear);
+        int result = await _context.SaveChangesAsync();
+        return result > 0;
     }
 
     public async Task<bool> UpdateSchoolYearAsync(SchoolYearModel schoolYear)
     {
-        if (schoolYear is not null)
-        {
-            if (schoolYear.Current)
-            {
-                await RemoveCurrentSchoolYearMark();
-            }
+        ArgumentNullException.ThrowIfNull(schoolYear);
 
-            _ = _context.Update(schoolYear);
-            int result = await _context.SaveChangesAsync();
-            return result > 0;
+        if (schoolYear.Current)
+        {
+            await RemoveCurrentSchoolYearMark();
         }
 
-        throw new ArgumentNullException(nameof(schoolYear));
+        _ = _context.Update(schoolYear);
+        int result = await _context.SaveChangesAsync();
+        return result > 0;
     }
 
     public async Task<int> GetSchoolYearCoursesCountAsync(Guid schoolYearId)

@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using QCUniversidad.Api.ConfigurationModels;
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Context;
 using QCUniversidad.Api.Data.Models;
@@ -100,10 +98,7 @@ public class TeachersManager(QCUniversidadContext context,
 
     public async Task<bool> UpdateTeacherAsync(TeacherModel teacher)
     {
-        if (teacher is null)
-        {
-            throw new ArgumentNullException(nameof(teacher));
-        }
+        ArgumentNullException.ThrowIfNull(teacher);
 
         await _context.TeachersDisciplines.Where(td => td.TeacherId == teacher.Id)
                                           .ForEachAsync(td => _context.Remove(td));
@@ -119,11 +114,6 @@ public class TeachersManager(QCUniversidadContext context,
 
     public async Task<bool> DeleteTeacherAsync(Guid id)
     {
-        if (id == Guid.Empty)
-        {
-            throw new ArgumentNullException(nameof(id));
-        }
-
         try
         {
             TeacherModel teacher = await GetTeacherAsync(id);
@@ -158,9 +148,12 @@ public class TeachersManager(QCUniversidadContext context,
         }
     }
 
-    private async Task<bool> DoTeacherHaveLoad(Guid teacherId) => !await ExistsTeacherAsync(teacherId)
+    private async Task<bool> DoTeacherHaveLoad(Guid teacherId)
+    {
+        return !await ExistsTeacherAsync(teacherId)
                                                                     ? throw new TeacherNotFoundException()
                                                                     : await _context.LoadItems.AnyAsync(l => l.TeacherId == teacherId);
+    }
 
     public async Task<IList<TeacherModel>> GetTeachersOfDepartmentAsync(Guid departmentId, bool loadInactives = false)
     {

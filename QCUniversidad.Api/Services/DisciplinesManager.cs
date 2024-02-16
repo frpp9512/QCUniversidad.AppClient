@@ -15,14 +15,11 @@ public class DisciplinesManager(QCUniversidadContext context,
 
     public async Task<bool> CreateDisciplineAsync(DisciplineModel discipline)
     {
-        if (discipline is not null)
-        {
-            _ = await _context.Disciplines.AddAsync(discipline);
-            int result = await _context.SaveChangesAsync();
-            return result > 0;
-        }
+        ArgumentNullException.ThrowIfNull(discipline);
 
-        throw new ArgumentNullException(nameof(discipline));
+        _ = await _context.Disciplines.AddAsync(discipline);
+        int result = await _context.SaveChangesAsync();
+        return result > 0;
     }
 
     public async Task<bool> ExistsDisciplineAsync(Guid id)
@@ -76,75 +73,65 @@ public class DisciplinesManager(QCUniversidadContext context,
 
     public async Task<DisciplineModel> GetDisciplineAsync(Guid disciplineId)
     {
-        if (disciplineId != Guid.Empty)
-        {
-            DisciplineModel? result = await _context.Disciplines.Where(d => d.Id == disciplineId)
+        DisciplineModel? result = await _context.Disciplines.Where(d => d.Id == disciplineId)
                                                    .Include(d => d.Department)
                                                    .FirstOrDefaultAsync();
-            return result ?? throw new DisciplineNotFoundException();
-        }
-
-        throw new ArgumentNullException(nameof(disciplineId));
+        return result ?? throw new DisciplineNotFoundException();
     }
 
     public async Task<DisciplineModel> GetDisciplineAsync(string name)
     {
-        if (!string.IsNullOrEmpty(name))
+        if (string.IsNullOrEmpty(name))
         {
-            DisciplineModel? result = await _context.Disciplines.Where(d => d.Name == name)
-                                                   .Include(d => d.Department)
-                                                   .FirstOrDefaultAsync();
-            return result ?? throw new DisciplineNotFoundException();
+            throw new ArgumentNullException(nameof(name));
         }
 
-        throw new ArgumentNullException(nameof(name));
+        DisciplineModel? result = await _context.Disciplines.Where(d => d.Name == name)
+                                                   .Include(d => d.Department)
+                                                   .FirstOrDefaultAsync();
+        return result ?? throw new DisciplineNotFoundException();
     }
 
     public async Task<bool> UpdateDisciplineAsync(DisciplineModel discipline)
     {
-        if (discipline is not null)
+        if (discipline is null)
         {
-            _ = _context.Disciplines.Update(discipline);
-            int result = await _context.SaveChangesAsync();
-            return result > 0;
+            throw new ArgumentNullException(nameof(discipline));
         }
 
-        throw new ArgumentNullException(nameof(discipline));
+        _ = _context.Disciplines.Update(discipline);
+        int result = await _context.SaveChangesAsync();
+        return result > 0;
     }
 
     public async Task<bool> DeleteDisciplineAsync(Guid disciplineId)
     {
-        if (disciplineId != Guid.Empty)
+        try
         {
-            try
-            {
-                DisciplineModel discipline = await GetDisciplineAsync(disciplineId);
-                _ = _context.Disciplines.Remove(discipline);
-                int result = await _context.SaveChangesAsync();
-                return result > 0;
-            }
-            catch (DisciplineNotFoundException)
-            {
-                throw;
-            }
+            DisciplineModel discipline = await GetDisciplineAsync(disciplineId);
+            _ = _context.Disciplines.Remove(discipline);
+            int result = await _context.SaveChangesAsync();
+            return result > 0;
         }
-
-        throw new ArgumentNullException(nameof(disciplineId));
+        catch (DisciplineNotFoundException)
+        {
+            throw;
+        }
     }
 
     public async Task<IList<DisciplineModel>> GetDisciplinesForTeacher(Guid teacherId)
     {
-        if (await _teachersManager.ExistsTeacherAsync(teacherId))
+        if (!await _teachersManager.ExistsTeacherAsync(teacherId))
         {
-            IQueryable<DisciplineModel> disciplines = from td in _context.TeachersDisciplines
-                                                      join discipline in _context.Disciplines
-                                                      on td.DisciplineId equals discipline.Id
-                                                      where td.TeacherId == teacherId
-                                                      select discipline;
-            disciplines = disciplines.Include(d => d.Department);
-            return await disciplines.ToListAsync();
+            throw new TeacherNotFoundException();
         }
 
-        throw new TeacherNotFoundException();
+        IQueryable<DisciplineModel> disciplines = from td in _context.TeachersDisciplines
+                                                  join discipline in _context.Disciplines
+                                                  on td.DisciplineId equals discipline.Id
+                                                  where td.TeacherId == teacherId
+                                                  select discipline;
+        disciplines = disciplines.Include(d => d.Department);
+        return await disciplines.ToListAsync();
     }
 }

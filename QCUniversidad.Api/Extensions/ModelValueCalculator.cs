@@ -1,8 +1,9 @@
 ﻿using QCUniversidad.Api.ConfigurationModels;
 using QCUniversidad.Api.Contracts;
 using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Services;
 
-namespace QCUniversidad.Api.Services;
+namespace QCUniversidad.Api.Extensions;
 
 public static class ModelValueCalculatorExtensions
 {

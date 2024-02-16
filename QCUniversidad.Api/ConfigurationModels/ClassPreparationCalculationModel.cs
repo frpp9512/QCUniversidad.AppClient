@@ -1,6 +1,6 @@
 ﻿namespace QCUniversidad.Api.ConfigurationModels;
 
-public class ClassPreparationCalculationModel
+public record ClassPreparationCalculationModel
 {
     public double MainClassesValue { get; set; }
     public double MainClassesGroupCount { get; set; }
