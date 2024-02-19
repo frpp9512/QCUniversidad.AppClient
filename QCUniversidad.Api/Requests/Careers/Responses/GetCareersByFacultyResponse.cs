@@ -7,4 +7,6 @@ namespace QCUniversidad.Api.Requests.Careers.Responses;
 public record GetCareersByFacultyResponse : ResponseBase
 {
     public List<CareerDto>? FacultyCareers { get; set; }
+
+    public override object? GetPayload() => FacultyCareers;
 }

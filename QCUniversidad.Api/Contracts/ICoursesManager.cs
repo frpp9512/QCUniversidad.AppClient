@@ -5,7 +5,7 @@ namespace QCUniversidad.Api.Contracts;
 
 public interface ICoursesManager
 {
-    Task<bool> CreateCourseAsync(CourseModel course);
+    Task<CourseModel> CreateCourseAsync(CourseModel course);
     Task<bool> ExistsCourseAsync(Guid id);
     Task<bool> CheckCourseExistenceByCareerYearAndModality(Guid careerId, int careerYear, TeachingModality modality);
     Task<int> GetCoursesCountAsync();

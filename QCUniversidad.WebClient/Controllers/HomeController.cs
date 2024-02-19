@@ -5,32 +5,31 @@ using QCUniversidad.WebClient.Models.Index;
 using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Models.Statistics;
 using QCUniversidad.WebClient.Models.Teachers;
-using QCUniversidad.WebClient.Services.Data;
+using QCUniversidad.WebClient.Services.Contracts;
 using QCUniversidad.WebClient.Services.Platform;
 using System.Diagnostics;
 
 namespace QCUniversidad.WebClient.Controllers;
 
 [Authorize("Auth")]
-public class HomeController : Controller
+public class HomeController(ISchoolYearDataProvider schoolYearDataProvider,
+                            IDepartmentsDataProvider departmentsDataProvider,
+                            IFacultiesDataProvider facultiesDataProvider,
+                            IStatisticsDataProvider statisticsDataProvider,
+                            ITeachersDataProvider teachersDataProvider) : Controller
 {
-    private readonly ILogger<HomeController> _logger;
-    private readonly WebDataContext _context;
-    private readonly IDataProvider _dataProvider;
-
-    public HomeController(ILogger<HomeController> logger, WebDataContext context, IDataProvider dataProvider)
-    {
-        _logger = logger;
-        _context = context;
-        _dataProvider = dataProvider;
-    }
+    private readonly ISchoolYearDataProvider _schoolYearDataProvider = schoolYearDataProvider;
+    private readonly IDepartmentsDataProvider _departmentsDataProvider = departmentsDataProvider;
+    private readonly IFacultiesDataProvider _facultiesDataProvider = facultiesDataProvider;
+    private readonly IStatisticsDataProvider _statisticsDataProvider = statisticsDataProvider;
+    private readonly ITeachersDataProvider _teachersDataProvider = teachersDataProvider;
 
     public async Task<IActionResult> IndexAsync()
     {
         IndexViewModel model;
         try
         {
-            Models.SchoolYears.SchoolYearModel schoolYear = await _dataProvider.GetCurrentSchoolYear();
+            Models.SchoolYears.SchoolYearModel schoolYear = await _schoolYearDataProvider.GetCurrentSchoolYear();
             if (User.IsAdmin())
             {
                 model = new IndexViewModel
@@ -44,7 +43,7 @@ public class HomeController : Controller
             {
                 model = new IndexViewModel
                 {
-                    Department = await _dataProvider.GetDepartmentAsync(User.GetDepartmentId()),
+                    Department = await _departmentsDataProvider.GetDepartmentAsync(User.GetDepartmentId()),
                     SchoolYear = schoolYear
                 };
                 return View(model);
@@ -54,7 +53,7 @@ public class HomeController : Controller
             {
                 model = new IndexViewModel
                 {
-                    Faculty = await _dataProvider.GetFacultyAsync(User.GetFacultyId()),
+                    Faculty = await _facultiesDataProvider.GetFacultyAsync(User.GetFacultyId()),
                     SchoolYear = schoolYear
                 };
                 return View(model);
@@ -85,7 +84,7 @@ public class HomeController : Controller
         {
             try
             {
-                IList<StatisticItemModel> statistics = await _dataProvider.GetGlobalStatisticsAsync();
+                IList<StatisticItemModel> statistics = await _statisticsDataProvider.GetGlobalStatisticsAsync();
                 return PartialView("_ICardSet", statistics);
             }
             catch (Exception ex)
@@ -100,7 +99,7 @@ public class HomeController : Controller
                 if (User.IsDepartmentManager())
                 {
                     Guid departmentId = User.GetDepartmentId();
-                    IList<StatisticItemModel> statistics = await _dataProvider.GetGlobalStatisticsForDepartmentAsync(departmentId);
+                    IList<StatisticItemModel> statistics = await _statisticsDataProvider.GetGlobalStatisticsForDepartmentAsync(departmentId);
                     return PartialView("_ICardSet", statistics);
                 }
                 else
@@ -124,17 +123,17 @@ public class HomeController : Controller
         if (User.IsDepartmentManager())
         {
             Guid departmentId = User.GetDepartmentId();
-            _ = await _dataProvider.GetBirthdayTeachersForCurrentMonthAsync(departmentId, "department");
+            _ = await _teachersDataProvider.GetBirthdayTeachersForCurrentMonthAsync(departmentId, "department");
         }
 
         if (User.IsPlanner())
         {
             Guid facultyId = User.GetFacultyId();
-            birthdays = await _dataProvider.GetBirthdayTeachersForCurrentMonthAsync(facultyId, "faculty");
+            birthdays = await _teachersDataProvider.GetBirthdayTeachersForCurrentMonthAsync(facultyId, "faculty");
         }
         else
         {
-            birthdays = await _dataProvider.GetBirthdayTeachersForCurrentMonthAsync(new Guid(), "global");
+            birthdays = await _teachersDataProvider.GetBirthdayTeachersForCurrentMonthAsync(new Guid(), "global");
         }
 
         return PartialView("_BirthdayCard", birthdays);

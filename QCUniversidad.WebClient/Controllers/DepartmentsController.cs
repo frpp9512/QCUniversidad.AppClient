@@ -5,23 +5,30 @@ using Microsoft.Extensions.Options;
 using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Shared;
-using QCUniversidad.WebClient.Services.Data;
+using QCUniversidad.WebClient.Services.Contracts;
 
 namespace QCUniversidad.WebClient.Controllers;
 
 [Authorize("Auth")]
-public class DepartmentsController : Controller
+public class DepartmentsController(IDepartmentsDataProvider dataProvider,
+                                   ISchoolYearDataProvider schoolYearDataProvider,
+                                   IDisciplinesDataProvider disciplinesDataProvider,
+                                   ITeachersDataProvider teachersDataProvider,
+                                   ICareersDataProvider careersDataProvider,
+                                   IPeriodsDataProvider periodsDataProvider,
+                                   IFacultiesDataProvider facultiesDataProvider,
+                                   IOptions<NavigationSettings> navSettingsOptions,
+                                   IMapper mapper) : Controller
 {
-    private readonly IDataProvider _dataProvider;
-    private readonly IMapper _mapper;
-    private readonly NavigationSettings _navigationSettings;
-
-    public DepartmentsController(IDataProvider dataProvider, IOptions<NavigationSettings> navSettingsOptions, IMapper mapper)
-    {
-        _dataProvider = dataProvider;
-        _mapper = mapper;
-        _navigationSettings = navSettingsOptions.Value;
-    }
+    private readonly IDepartmentsDataProvider _departmentsDataProvider = dataProvider;
+    private readonly ISchoolYearDataProvider _schoolYearDataProvider = schoolYearDataProvider;
+    private readonly IDisciplinesDataProvider _disciplinesDataProvider = disciplinesDataProvider;
+    private readonly ITeachersDataProvider _teachersDataProvider = teachersDataProvider;
+    private readonly ICareersDataProvider _careersDataProvider = careersDataProvider;
+    private readonly IPeriodsDataProvider _periodsDataProvider = periodsDataProvider;
+    private readonly IFacultiesDataProvider _facultiesDataProvider = facultiesDataProvider;
+    private readonly IMapper _mapper = mapper;
+    private readonly NavigationSettings _navigationSettings = navSettingsOptions.Value;
 
     [Authorize("Admin")]
     [HttpGet]
@@ -29,7 +36,7 @@ public class DepartmentsController : Controller
     {
         try
         {
-            int total = await _dataProvider.GetDepartmentsCountAsync();
+            int total = await _departmentsDataProvider.GetDepartmentsCountAsync();
             int pageIndex = page - 1 < 0 ? 0 : page - 1;
             int startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
             if (startingItemIndex < 0 || startingItemIndex >= total)
@@ -37,7 +44,7 @@ public class DepartmentsController : Controller
                 startingItemIndex = 0;
             }
 
-            IList<DepartmentModel> departments = await _dataProvider.GetDepartmentsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
+            IList<DepartmentModel> departments = await _departmentsDataProvider.GetDepartmentsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             int totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
             NavigationListViewModel<DepartmentModel> viewModel = new()
             {
@@ -64,8 +71,8 @@ public class DepartmentsController : Controller
 
         try
         {
-            DepartmentModel department = await _dataProvider.GetDepartmentAsync(id);
-            Models.SchoolYears.SchoolYearModel schoolYear = await _dataProvider.GetCurrentSchoolYear();
+            DepartmentModel department = await _departmentsDataProvider.GetDepartmentAsync(id);
+            Models.SchoolYears.SchoolYearModel schoolYear = await _schoolYearDataProvider.GetCurrentSchoolYear();
             ViewData["schoolYear"] = schoolYear;
             return View(department);
         }
@@ -85,7 +92,7 @@ public class DepartmentsController : Controller
 
         try
         {
-            IList<Models.Disciplines.DisciplineModel> disciplines = await _dataProvider.GetDisciplinesAsync(departmentId);
+            IList<Models.Disciplines.DisciplineModel> disciplines = await _disciplinesDataProvider.GetDisciplinesAsync(departmentId);
             return PartialView("_DepartmentDisciplines", disciplines);
         }
         catch (Exception ex)
@@ -104,7 +111,7 @@ public class DepartmentsController : Controller
 
         try
         {
-            IList<Models.Teachers.TeacherModel> teachers = await _dataProvider.GetTeachersOfDepartmentAsync(departmentId);
+            IList<Models.Teachers.TeacherModel> teachers = await _teachersDataProvider.GetTeachersOfDepartmentAsync(departmentId);
             return PartialView("_DepartmentTeachers", teachers);
         }
         catch (Exception ex)
@@ -123,7 +130,7 @@ public class DepartmentsController : Controller
 
         try
         {
-            IList<Models.Careers.CareerModel> careers = await _dataProvider.GetCareersForDepartmentAsync(departmentId);
+            IList<Models.Careers.CareerModel> careers = await _careersDataProvider.GetCareersForDepartmentAsync(departmentId);
             return PartialView("_DepartmentCareers", careers);
         }
         catch (Exception ex) { return Problem(detail: ex.Message); }
@@ -133,7 +140,7 @@ public class DepartmentsController : Controller
     [HttpGet]
     public async Task<IActionResult> LoadViewAsync()
     {
-        IList<Models.SchoolYears.SchoolYearModel> schoolYears = await _dataProvider.GetSchoolYearsAsync();
+        IList<Models.SchoolYears.SchoolYearModel> schoolYears = await _schoolYearDataProvider.GetSchoolYearsAsync();
         return View(schoolYears);
     }
 
@@ -141,7 +148,7 @@ public class DepartmentsController : Controller
     [HttpGet]
     public async Task<IActionResult> GetPeriodOptionsAsync(Guid schoolYearId)
     {
-        IList<Models.Periods.PeriodModel> result = await _dataProvider.GetPeriodsAsync(schoolYearId);
+        IList<Models.Periods.PeriodModel> result = await _periodsDataProvider.GetPeriodsAsync(schoolYearId);
         return PartialView("_PeriodOptions", result);
     }
 
@@ -149,7 +156,7 @@ public class DepartmentsController : Controller
     [HttpGet]
     public async Task<IActionResult> GetDepartmentsLoadViewAsync(Guid periodId)
     {
-        IList<DepartmentModel> departments = await _dataProvider.GetDepartmentsWithLoadAsync(periodId);
+        IList<DepartmentModel> departments = await _departmentsDataProvider.GetDepartmentsWithLoadAsync(periodId);
         return PartialView("_DepartmentsLoadView", departments);
     }
 
@@ -171,7 +178,7 @@ public class DepartmentsController : Controller
 
     private async Task LoadFacultiesIntoViewModel(CreateDepartmentModel model)
     {
-        IList<Models.Faculties.FacultyModel> faculties = await _dataProvider.GetFacultiesAsync();
+        IList<Models.Faculties.FacultyModel> faculties = await _facultiesDataProvider.GetFacultiesAsync();
         model.Faculties = faculties;
     }
 
@@ -184,7 +191,7 @@ public class DepartmentsController : Controller
             return BadRequest("Debe de proveer un id de facultad válido.");
         }
 
-        IList<Models.Careers.CareerModel> careers = await _dataProvider.GetCareersAsync(facultyId);
+        IList<Models.Careers.CareerModel> careers = await _careersDataProvider.GetCareersAsync(facultyId);
         return PartialView("_CareersSelect", careers);
     }
 
@@ -194,9 +201,9 @@ public class DepartmentsController : Controller
     {
         if (ModelState.IsValid)
         {
-            if (await _dataProvider.ExistFacultyAsync(model.FacultyId))
+            if (await _facultiesDataProvider.ExistFacultyAsync(model.FacultyId))
             {
-                bool result = await _dataProvider.CreateDepartmentAsync(model);
+                bool result = await _departmentsDataProvider.CreateDepartmentAsync(model);
                 if (result)
                 {
                     TempData["department-created"] = true;
@@ -223,9 +230,9 @@ public class DepartmentsController : Controller
     {
         try
         {
-            DepartmentModel department = await _dataProvider.GetDepartmentAsync(id);
+            DepartmentModel department = await _departmentsDataProvider.GetDepartmentAsync(id);
             EditDepartmentModel viewmodel = _mapper.Map<EditDepartmentModel>(department);
-            viewmodel.Careers = await _dataProvider.GetCareersAsync(department.FacultyId);
+            viewmodel.Careers = await _careersDataProvider.GetCareersAsync(department.FacultyId);
             return View(viewmodel);
         }
         catch (Exception)
@@ -244,7 +251,7 @@ public class DepartmentsController : Controller
             DepartmentModel datamodel = _mapper.Map<DepartmentModel>(model);
             try
             {
-                bool result = await _dataProvider.UpdateDepartmentAsync(datamodel);
+                bool result = await _departmentsDataProvider.UpdateDepartmentAsync(datamodel);
                 if (result)
                 {
                     TempData["department-edited"] = true;
@@ -268,21 +275,21 @@ public class DepartmentsController : Controller
     {
         try
         {
-            if (await _dataProvider.ExistsDepartmentAsync(id))
+            if (!await _departmentsDataProvider.ExistsDepartmentAsync(id))
             {
-                bool result = await _dataProvider.DeleteDepartmentAsync(id);
-                if (result)
-                {
-                    TempData["department-deleted"] = true;
-                    return Ok($"Se ha eliminado correctamente el departamento con id {id}.");
-                }
-                else
-                {
-                    return Problem($"Ha ocurrido un error eliminando el departmento con id {id}.");
-                }
+                return NotFound($"No se ha encontrado el departamento con id {id}.");
             }
 
-            return NotFound($"No se ha encontrado el departamento con id {id}.");
+            bool result = await _departmentsDataProvider.DeleteDepartmentAsync(id);
+            if (result)
+            {
+                TempData["department-deleted"] = true;
+                return Ok($"Se ha eliminado correctamente el departamento con id {id}.");
+            }
+            else
+            {
+                return Problem($"Ha ocurrido un error eliminando el departmento con id {id}.");
+            }
         }
         catch (Exception ex)
         {

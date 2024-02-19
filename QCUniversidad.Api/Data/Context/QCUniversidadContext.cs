@@ -3,7 +3,7 @@ using QCUniversidad.Api.Data.Models;
 
 namespace QCUniversidad.Api.Data.Context;
 
-public class QCUniversidadContext : DbContext
+public class QCUniversidadContext(DbContextOptions<QCUniversidadContext> options) : DbContext(options)
 {
     public DbSet<FacultyModel> Faculties { get; set; }
     public DbSet<CareerModel> Careers { get; set; }
@@ -27,12 +27,6 @@ public class QCUniversidadContext : DbContext
 
     public DbSet<LoadItemModel> LoadItems { get; set; }
     public DbSet<NonTeachingLoadModel> NonTeachingLoad { get; set; }
-
-    public QCUniversidadContext(DbContextOptions<QCUniversidadContext> options)
-        : base(options)
-    {
-
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

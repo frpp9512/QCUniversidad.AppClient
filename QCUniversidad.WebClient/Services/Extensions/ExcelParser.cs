@@ -1,4 +1,5 @@
 ﻿using OfficeOpenXml;
+using QCUniversidad.WebClient.Services.Contracts;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -39,9 +40,9 @@ public partial class ExcelParser<T> : IExcelParser<T> where T : class, new()
                 }
 
                 object value = items[i];
-                if (_columnValueConverters.ContainsKey(columnName))
+                if (_columnValueConverters.TryGetValue(columnName, out Func<string, object>? converterValue))
                 {
-                    value = _columnValueConverters[columnName].Invoke(items[i]);
+                    value = converterValue.Invoke(items[i]);
                 }
 
                 Expression expressionBody = _columnsMembers[columnName].Body;
@@ -52,7 +53,7 @@ public partial class ExcelParser<T> : IExcelParser<T> where T : class, new()
                     _ => (MemberExpression)expressionBody
                 };
                 string memberName = memberExpression.Member.Name;
-                typeof(T).GetProperty(memberName)?.SetValue(obj, value is string ? IsFullUppercase(value.ToString()) ? MakeCamelCase(value.ToString()) : value.ToString() : value);
+                typeof(T).GetProperty(memberName)?.SetValue(obj, value is string ? ExcelParser<T>.IsFullUppercase(value.ToString()) ? ExcelParser<T>.MakeCamelCase(value.ToString()) : value.ToString() : value);
             }
 
             result.Add(obj);
@@ -61,12 +62,9 @@ public partial class ExcelParser<T> : IExcelParser<T> where T : class, new()
         return result;
     }
 
-    private bool IsFullUppercase(string value)
-    {
-        return value.All(c => char.IsUpper(c) || char.IsWhiteSpace(c));
-    }
+    private static bool IsFullUppercase(string value) => value.All(c => char.IsUpper(c) || char.IsWhiteSpace(c));
 
-    private string MakeCamelCase(string value)
+    private static string MakeCamelCase(string value)
     {
         value = value.ToLower();
         string[] parts = value.Split(" ");
@@ -82,11 +80,11 @@ public partial class ExcelParser<T> : IExcelParser<T> where T : class, new()
         using MemoryStream memStream = new();
         ExcelWorksheet workSheet = excel.Workbook.Worksheets[_worksheet];
         await workSheet.Tables[_tableName].SaveToTextAsync(memStream, new ExcelOutputTextFormat { Encoding = Encoding.UTF8, Delimiter = '\t' });
-        string dataText = GetStringData(memStream);
+        string dataText = ExcelParser<T>.GetStringData(memStream);
         return dataText;
     }
 
-    private string GetStringData(MemoryStream stream)
+    private static string GetStringData(MemoryStream stream)
     {
         byte[] bytes = stream.ToArray();
         string result = Encoding.UTF8.GetString(bytes, 0, bytes.Length);

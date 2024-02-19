@@ -1,0 +1,58 @@
+﻿using AutoMapper;
+using MediatR;
+using QCUniversidad.Api.Contracts;
+using QCUniversidad.Api.Data.Models;
+using QCUniversidad.Api.Requests.Courses.Models;
+using QCUniversidad.Api.Requests.Courses.Responses;
+using QCUniversidad.Api.Shared.Dtos.Course;
+
+namespace QCUniversidad.Api.Requests.Courses.Handlers;
+
+public class GetCoursesBySchoolYearOfFacultyHandler(ICoursesManager coursesManager,
+                                                    ISchoolYearsManager schoolYearsManager,
+                                                    IFacultiesManager facultiesManager,
+                                                    IMapper mapper) : IRequestHandler<GetCoursesBySchoolYearOfFacultyRequest, GetCoursesBySchoolYearOfFacultyResponse>
+{
+    private readonly ICoursesManager _coursesManager = coursesManager;
+    private readonly ISchoolYearsManager _schoolYearsManager = schoolYearsManager;
+    private readonly IFacultiesManager _facultiesManager = facultiesManager;
+    private readonly IMapper _mapper = mapper;
+
+    public async Task<GetCoursesBySchoolYearOfFacultyResponse> Handle(GetCoursesBySchoolYearOfFacultyRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (!await _schoolYearsManager.ExistSchoolYearAsync(request.SchoolYearId))
+            {
+                return new()
+                {
+                    ErrorMessages = [$"The school year with id {request.SchoolYearId} doesn't exists."]
+                };
+            }
+
+            if (!await _facultiesManager.ExistFacultyAsync(request.FacultyId))
+            {
+                return new()
+                {
+                    ErrorMessages = [$"The faculty with id {request.FacultyId} doesn't exists."]
+                };
+            }
+
+            IList<CourseModel> result = await _coursesManager.GetCoursesAsync(request.SchoolYearId, request.FacultyId);
+            var dtos = result.Select(_mapper.Map<CourseDto>).OrderBy(dto => dto.CareerId).ThenBy(dto => dto.CareerYear).ToList();
+            return new()
+            {
+                SchoolYearId = request.SchoolYearId,
+                FacultyId = request.FacultyId,
+                Courses = dtos
+            };
+        }
+        catch (Exception ex)
+        {
+            return new()
+            {
+                ErrorMessages = [ex.Message]
+            };
+        }
+    }
+}

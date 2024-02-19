@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using QCUniversidad.WebClient.Models.Configuration;
+using QCUniversidad.WebClient.Services.Contracts;
 
 namespace QCUniversidad.WebClient.Services.Platform;
 

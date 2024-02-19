@@ -1,4 +1,4 @@
-﻿namespace QCUniversidad.WebClient.Services.Extensions;
+﻿namespace QCUniversidad.WebClient.Services.Contracts;
 
 public interface IExcelParser<T> where T : class
 {

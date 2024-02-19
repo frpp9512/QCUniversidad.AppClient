@@ -1,13 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using QCUniversidad.Api.Shared.Enums;
-using QCUniversidad.Api.Shared.Extensions;
 using QCUniversidad.WebClient.Data.Contexts;
 using QCUniversidad.WebClient.Data.Helpers;
-using QCUniversidad.WebClient.Models.Configuration;
-using QCUniversidad.WebClient.Models.Disciplines;
-using QCUniversidad.WebClient.Models.Subjects;
-using QCUniversidad.WebClient.Models.Teachers;
+using QCUniversidad.WebClient.Services.Contracts;
 using QCUniversidad.WebClient.Services.Data;
 using QCUniversidad.WebClient.Services.Extensions;
 using QCUniversidad.WebClient.Services.Platform;
@@ -54,68 +49,17 @@ builder.Services.AddAuthorization(config =>
 builder.Services.AddDbContext<WebDataContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSql")));
 builder.Services.AddScoped<IAccountSecurityRepository, AccountSecurityRepository>();
 
-builder.Services.AddExcelParser<TeacherModel>(config =>
-{
-    config.Worksheet = "Profesores";
-    config.TableName = "Profesores";
-    config.ConfigureColumn("Nombre completo", teacher => teacher.Fullname);
-    config.ConfigureColumn("Carné de identidad", teacher => teacher.PersonalId);
-    config.ConfigureColumn("Tipo de contrato", teacher => teacher.ContractType, value =>
-    {
-        foreach (TeacherContractType enumValue in Enum.GetValues<TeacherContractType>())
-        {
-            if (value == enumValue.GetEnumDisplayNameValue())
-            {
-                return enumValue;
-            }
-        }
-
-        return TeacherContractType.FullTime;
-    });
-    config.ConfigureColumn("Cargo", teacher => teacher.Position);
-    config.ConfigureColumn("Categoría docente", teacher => teacher.Category, value =>
-    {
-        foreach (TeacherCategory enumValue in Enum.GetValues<TeacherCategory>())
-        {
-            if (value == enumValue.GetEnumDisplayNameValue())
-            {
-                return enumValue;
-            }
-        }
-
-        return TeacherCategory.Assistant;
-    });
-    config.ConfigureColumn("Correo electrónico", teacher => teacher.Email);
-});
-
-builder.Services.AddExcelParser<DisciplineModel>(config =>
-{
-    config.Worksheet = "Disciplinas";
-    config.TableName = "Disciplinas";
-    config.ConfigureColumn("Nombre", d => d.Name);
-    config.ConfigureColumn("Descripción", d => d.Description);
-});
-
-builder.Services.AddExcelParser<SubjectModel>(config =>
-{
-    config.Worksheet = "Asignaturas";
-    config.TableName = "Asignaturas";
-    config.ConfigureColumn("Nombre", s => s.Name);
-    config.ConfigureColumn("Descripción", s => s.Description);
-});
+builder.Services.AddExcelParsers();
 
 builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAutoMapper(typeof(Program));
 
-builder.Services.Configure<NavigationSettings>(builder.Configuration.GetSection("NavigationSettings"));
-builder.Services.Configure<IdentityServerConfiguration>(builder.Configuration.GetSection("IdentityServerConfiguration"));
-builder.Services.Configure<ApiConfiguration>(builder.Configuration.GetSection("ApiConfiguration"));
+builder.Services.AddConfigurations();
 
-builder.Services.AddSingleton<ITokenManager, TokenManager>();
 builder.Services.AddTransient<IApiCallerHttpClientFactory, ApiCallerHttpClientFactory>();
 
-builder.Services.AddTransient<IDataProvider, DataProvider>();
+builder.Services.AddDataProviders();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddLogging();

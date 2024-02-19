@@ -1,4 +1,4 @@
-﻿namespace QCUniversidad.WebClient.Services.Platform;
+﻿namespace QCUniversidad.WebClient.Services.Contracts;
 
 public interface IApiCallerHttpClientFactory
 {

@@ -7,32 +7,31 @@ using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Periods;
 using QCUniversidad.WebClient.Models.SchoolYears;
 using QCUniversidad.WebClient.Models.Shared;
-using QCUniversidad.WebClient.Services.Data;
+using QCUniversidad.WebClient.Services.Contracts;
 using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
 
 [Authorize("Auth")]
-public class SchoolYearsController : Controller
+public class SchoolYearsController(IFacultiesDataProvider facultiesDataProvider,
+                                   ISchoolYearDataProvider schoolYearDataProvider,
+                                   IPeriodsDataProvider periodsDataProvider,
+                                   IMapper mapper,
+                                   IOptions<NavigationSettings> navOptions,
+                                   ILogger<CoursesController> logger) : Controller
 {
-    private readonly IDataProvider _dataProvider;
-    private readonly IMapper _mapper;
-    private readonly ILogger<CoursesController> _logger;
-    private readonly NavigationSettings _navigationSettings;
-
-    public SchoolYearsController(IDataProvider dataProvider, IMapper mapper, IOptions<NavigationSettings> navOptions, ILogger<CoursesController> logger)
-    {
-        _dataProvider = dataProvider;
-        _mapper = mapper;
-        _logger = logger;
-        _navigationSettings = navOptions.Value;
-    }
+    private readonly IFacultiesDataProvider _facultiesDataProvider = facultiesDataProvider;
+    private readonly ISchoolYearDataProvider _schoolYearDataProvider = schoolYearDataProvider;
+    private readonly IPeriodsDataProvider _periodsDataProvider = periodsDataProvider;
+    private readonly IMapper _mapper = mapper;
+    private readonly ILogger<CoursesController> _logger = logger;
+    private readonly NavigationSettings _navigationSettings = navOptions.Value;
 
     [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> IndexAsync(int page)
     {
-        int total = await _dataProvider.GetFacultiesTotalAsync();
+        int total = await _facultiesDataProvider.GetFacultiesTotalAsync();
         int pageIndex = page - 1 < 0 ? 0 : page - 1;
         int startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
         if (startingItemIndex < 0 || startingItemIndex >= total)
@@ -40,7 +39,7 @@ public class SchoolYearsController : Controller
             startingItemIndex = 0;
         }
 
-        IList<SchoolYearModel> schoolYears = await _dataProvider.GetSchoolYearsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
+        IList<SchoolYearModel> schoolYears = await _schoolYearDataProvider.GetSchoolYearsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
         int totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
         NavigationListViewModel<SchoolYearModel> viewModel = new()
         {
@@ -68,7 +67,7 @@ public class SchoolYearsController : Controller
         {
             try
             {
-                _ = await _dataProvider.CreateSchoolYearAsync(model);
+                _ = await _schoolYearDataProvider.CreateSchoolYearAsync(model);
                 TempData["schoolyear-created"] = true;
                 return RedirectToActionPermanent("Index");
             }
@@ -87,7 +86,7 @@ public class SchoolYearsController : Controller
     {
         try
         {
-            SchoolYearModel schoolYear = await _dataProvider.GetSchoolYearAsync(id);
+            SchoolYearModel schoolYear = await _schoolYearDataProvider.GetSchoolYearAsync(id);
             return View(schoolYear);
         }
         catch (Exception)
@@ -102,7 +101,7 @@ public class SchoolYearsController : Controller
     {
         try
         {
-            SchoolYearModel schoolYear = await _dataProvider.GetSchoolYearAsync(id);
+            SchoolYearModel schoolYear = await _schoolYearDataProvider.GetSchoolYearAsync(id);
             return View(schoolYear);
         }
         catch (Exception)
@@ -120,7 +119,7 @@ public class SchoolYearsController : Controller
         {
             try
             {
-                bool result = await _dataProvider.UpdateSchoolYearAsync(model);
+                bool result = await _schoolYearDataProvider.UpdateSchoolYearAsync(model);
                 if (result)
                 {
                     TempData["schoolyear-edited"] = true;
@@ -144,9 +143,9 @@ public class SchoolYearsController : Controller
     {
         try
         {
-            if (await _dataProvider.ExistSchoolYearAsync(id))
+            if (await _schoolYearDataProvider.ExistSchoolYearAsync(id))
             {
-                bool result = await _dataProvider.DeleteSchoolYearAsync(id);
+                bool result = await _schoolYearDataProvider.DeleteSchoolYearAsync(id);
                 if (result)
                 {
                     TempData["schoolyear-deleted"] = true;
@@ -173,7 +172,7 @@ public class SchoolYearsController : Controller
         _logger.LogRequest(HttpContext);
         try
         {
-            if (!await _dataProvider.ExistSchoolYearAsync(model.SchoolYearId))
+            if (!await _schoolYearDataProvider.ExistSchoolYearAsync(model.SchoolYearId))
             {
                 return NotFound("El año escolar no existe.");
             }
@@ -183,7 +182,7 @@ public class SchoolYearsController : Controller
                 return BadRequest(new { responseText = "La fecha de culminación debe de suceder a la de inicio." });
             }
 
-            bool result = await _dataProvider.CreatePeriodAsync(_mapper.Map<PeriodModel>(model));
+            bool result = await _periodsDataProvider.CreatePeriodAsync(_mapper.Map<PeriodModel>(model));
             if (result)
             {
                 TempData["period-created"] = true;
@@ -202,7 +201,7 @@ public class SchoolYearsController : Controller
     [HttpGet]
     public async Task<IActionResult> GetPeriodAsync(Guid id)
     {
-        PeriodModel result = await _dataProvider.GetPeriodAsync(id);
+        PeriodModel result = await _periodsDataProvider.GetPeriodAsync(id);
         return Ok(JsonConvert.SerializeObject(result));
     }
 
@@ -213,12 +212,12 @@ public class SchoolYearsController : Controller
         _logger.LogRequest(HttpContext);
         try
         {
-            if (!await _dataProvider.ExistsPeriodAsync(model.Id))
+            if (!await _periodsDataProvider.ExistsPeriodAsync(model.Id))
             {
                 return NotFound(new { responseText = "El periodo no existe." });
             }
 
-            if (!await _dataProvider.ExistSchoolYearAsync(model.SchoolYearId))
+            if (!await _schoolYearDataProvider.ExistSchoolYearAsync(model.SchoolYearId))
             {
                 return NotFound(new { responseText = "El año escolar no existe." });
             }
@@ -228,14 +227,14 @@ public class SchoolYearsController : Controller
                 return BadRequest(new { responseText = "La fecha de culminación debe de suceder a la de inicio." });
             }
 
-            bool result = await _dataProvider.UpdatePeriodAsync(model);
-            if (result)
+            bool result = await _periodsDataProvider.UpdatePeriodAsync(model);
+            if (!result)
             {
-                TempData["period-updated"] = true;
-                return Ok(new { responseText = result });
+                return Problem("Ha ocurrido un problema actualizando el período.");
             }
 
-            return Problem("Ha ocurrido un problema actualizando el período.");
+            TempData["period-updated"] = true;
+            return Ok(new { responseText = result });
         }
         catch (Exception ex)
         {
@@ -248,18 +247,18 @@ public class SchoolYearsController : Controller
     public async Task<IActionResult> DeletePeriodAsync(Guid id)
     {
         _logger.LogRequest(HttpContext);
-        if (await _dataProvider.ExistsPeriodAsync(id))
+        if (!await _periodsDataProvider.ExistsPeriodAsync(id))
         {
-            bool result = await _dataProvider.DeletePeriodAsync(id);
-            if (result)
-            {
-                TempData["period-deleted"] = true;
-                return Ok(new { responseText = "ok" });
-            }
+            return NotFound(new { responseText = $"No existe el período con id {id}" });
+        }
 
+        bool result = await _periodsDataProvider.DeletePeriodAsync(id);
+        if (!result)
+        {
             return Problem("Ha ocurrido un problema eliminando el período.");
         }
 
-        return NotFound(new { responseText = $"No existe el período con id {id}" });
+        TempData["period-deleted"] = true;
+        return Ok(new { responseText = "ok" });
     }
 }

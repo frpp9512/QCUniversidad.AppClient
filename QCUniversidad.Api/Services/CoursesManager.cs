@@ -23,25 +23,25 @@ public class CoursesManager(QCUniversidadContext context,
     private readonly IPeriodsManager _periodsManager = periodsManager;
     private readonly CalculationOptions _calculationOptions = calcOptions.Value;
 
-    public async Task<bool> CreateCourseAsync(CourseModel course)
+    public async Task<CourseModel> CreateCourseAsync(CourseModel course)
     {
         ArgumentNullException.ThrowIfNull(course);
 
-        Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<CourseModel> addedCourse = await _context.Courses.AddAsync(course);
+        await _context.Courses.AddAsync(course);
         int result = await _context.SaveChangesAsync();
 
         if (!course.LastCourse)
         {
-            return result > 0;
+            return course;
         }
 
         SchoolYearModel currentYear = await _schoolYearsManager.GetCurrentSchoolYearAsync();
         foreach (PeriodModel period in currentYear.Periods)
         {
-            await _teachersLoadManager.RecalculateAllTeachersRelatedToCourseInPeriodAsync(addedCourse.Entity.Id, period.Id);
+            await _teachersLoadManager.RecalculateAllTeachersRelatedToCourseInPeriodAsync(course.Id, period.Id);
         }
 
-        return result > 0;
+        return course;
     }
 
     public async Task<bool> ExistsCourseAsync(Guid id)

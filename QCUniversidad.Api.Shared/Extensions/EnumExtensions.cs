@@ -71,13 +71,13 @@ public static class EnumExtensions
         System.Reflection.MemberInfo[] member = enumType.GetMember(loadType.ToString());
         System.Reflection.MemberInfo? enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
         object[]? attributes = enumMember?.GetCustomAttributes(typeof(LoadCategoryAttribute), false);
-        if (attributes?.Any() is true)
+        if (attributes?.Length is 0)
         {
-            string value = ((LoadCategoryAttribute)attributes.First()).Category;
-            return value;
+            return null;
         }
 
-        return null;
+        string value = ((LoadCategoryAttribute)attributes.First()).Category;
+        return value;
     }
 
     public static string? GetNonTeachingLoadCategoryPromtName(this NonTeachingLoadType loadType)
@@ -86,13 +86,13 @@ public static class EnumExtensions
         System.Reflection.MemberInfo[] member = enumType.GetMember(loadType.ToString());
         System.Reflection.MemberInfo? enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
         object[]? attributes = enumMember?.GetCustomAttributes(typeof(LoadCategoryAttribute), false);
-        if (attributes?.Any() is true)
+        if (attributes?.Length is 0)
         {
-            string? value = ((LoadCategoryAttribute)attributes.First()).PromptName;
-            return value;
+            return null;
         }
 
-        return null;
+        string? value = ((LoadCategoryAttribute)attributes.First()).PromptName;
+        return value;
     }
 
     public static string? GetNonTeachingLoadCategoryDescription(this NonTeachingLoadType loadType)
@@ -101,32 +101,20 @@ public static class EnumExtensions
         System.Reflection.MemberInfo[] member = enumType.GetMember(loadType.ToString());
         System.Reflection.MemberInfo? enumMember = member.FirstOrDefault(m => m.DeclaringType == enumType);
         object[]? attributes = enumMember?.GetCustomAttributes(typeof(LoadCategoryAttribute), false);
-        if (attributes?.Any() is true)
+        if (attributes?.Length is 0)
         {
-            string? value = ((LoadCategoryAttribute)attributes.First()).Description;
-            return value;
+            return null;
         }
 
-        return null;
+        string? value = ((LoadCategoryAttribute)attributes.First()).Description;
+        return value;
     }
 
-    public static bool IsResearchLoad(this NonTeachingLoadType loadType)
-    {
-        return GetNonTeachingLoadCategory(loadType) == "Research";
-    }
+    public static bool IsResearchLoad(this NonTeachingLoadType loadType) => GetNonTeachingLoadCategory(loadType) == "Research";
 
-    public static bool IsOthersLoad(this NonTeachingLoadType loadType)
-    {
-        return GetNonTeachingLoadCategory(loadType) == "Others";
-    }
+    public static bool IsOthersLoad(this NonTeachingLoadType loadType) => GetNonTeachingLoadCategory(loadType) == "Others";
 
-    public static bool IsUniversityExtensionLoad(this NonTeachingLoadType loadType)
-    {
-        return GetNonTeachingLoadCategory(loadType) == "UniversityExtension";
-    }
+    public static bool IsUniversityExtensionLoad(this NonTeachingLoadType loadType) => GetNonTeachingLoadCategory(loadType) == "UniversityExtension";
 
-    public static bool IsFormationLoad(this NonTeachingLoadType loadType)
-    {
-        return GetNonTeachingLoadCategory(loadType) == "Formation";
-    }
+    public static bool IsFormationLoad(this NonTeachingLoadType loadType) => GetNonTeachingLoadCategory(loadType) == "Formation";
 }

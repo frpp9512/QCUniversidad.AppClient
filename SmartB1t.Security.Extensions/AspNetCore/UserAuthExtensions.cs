@@ -14,8 +14,8 @@ public static class UserAuthExtensions
     public static async Task SignInAsync(this User user, HttpContext context, string scheme, bool rememberSession)
     {
         await context.SignInAsync(scheme,
-                                         GenerateClaimsPrincipal(user, scheme),
-                                         new AuthenticationProperties { IsPersistent = rememberSession });
+                                  GenerateClaimsPrincipal(user, scheme),
+                                  new AuthenticationProperties { IsPersistent = rememberSession });
     }
 
     private static ClaimsPrincipal GenerateClaimsPrincipal(User user, string scheme)
@@ -26,6 +26,7 @@ public static class UserAuthExtensions
             new Claim(ClaimTypes.Name, user.Fullname),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
         ];
+
         if (user.Roles?.Any() == true)
         {
             claims.AddRange(user.Roles.Select(r => new Claim(ClaimTypes.Role, r.Role.Name)));

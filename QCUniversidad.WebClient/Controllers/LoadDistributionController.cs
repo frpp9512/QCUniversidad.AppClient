@@ -12,27 +12,32 @@ using QCUniversidad.WebClient.Models.LoadDistribution;
 using QCUniversidad.WebClient.Models.LoadItem;
 using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Models.Teachers;
-using QCUniversidad.WebClient.Services.Data;
+using QCUniversidad.WebClient.Services.Contracts;
 using QCUniversidad.WebClient.Services.Platform;
 using System.Drawing;
 
 namespace QCUniversidad.WebClient.Controllers;
 
 [Authorize("Distributor")]
-public class LoadDistributionController : Controller
+public class LoadDistributionController(IDepartmentsDataProvider departmentsDataProvider,
+                                        ISchoolYearDataProvider schoolYearDataProvider,
+                                        ICoursesDataProvider coursesDataProvider,
+                                        IPeriodsDataProvider periodsDataProvider,
+                                        IPlanningDataProvider planningDataProvider,
+                                        ITeachersDataProvider teachersDataProvider,
+                                        IMapper mapper,
+                                        IOptions<NavigationSettings> navOptions,
+                                        ILogger<PlanningController> logger) : Controller
 {
-    private readonly IDataProvider _dataProvider;
-    private readonly IMapper _mapper;
-    private readonly ILogger<PlanningController> _logger;
-    private readonly NavigationSettings _navigationSettings;
-
-    public LoadDistributionController(IDataProvider dataProvider, IMapper mapper, IOptions<NavigationSettings> navOptions, ILogger<PlanningController> logger)
-    {
-        _dataProvider = dataProvider;
-        _mapper = mapper;
-        _logger = logger;
-        _navigationSettings = navOptions.Value;
-    }
+    private readonly IDepartmentsDataProvider _departmentsDataProvider = departmentsDataProvider;
+    private readonly ISchoolYearDataProvider _schoolYearDataProvider = schoolYearDataProvider;
+    private readonly ICoursesDataProvider _coursesDataProvider = coursesDataProvider;
+    private readonly IPeriodsDataProvider _periodsDataProvider = periodsDataProvider;
+    private readonly IPlanningDataProvider _planningDataProvider = planningDataProvider;
+    private readonly ITeachersDataProvider _teachersDataProvider = teachersDataProvider;
+    private readonly IMapper _mapper = mapper;
+    private readonly ILogger<PlanningController> _logger = logger;
+    private readonly NavigationSettings _navigationSettings = navOptions.Value;
 
     [HttpGet]
     public async Task<IActionResult> IndexAsync(Guid? departmentId = null, Guid? schoolYearId = null)
@@ -48,11 +53,11 @@ public class LoadDistributionController : Controller
         }
 
         Guid workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
-        Models.SchoolYears.SchoolYearModel schoolYear = schoolYearId is null ? await _dataProvider.GetCurrentSchoolYear() : await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
-        Models.Departments.DepartmentModel department = await _dataProvider.GetDepartmentAsync(workingDepartment);
-        IList<Models.Course.CourseModel> courses = await _dataProvider.GetCoursesForDepartment(workingDepartment, schoolYear.Id);
+        Models.SchoolYears.SchoolYearModel schoolYear = schoolYearId is null ? await _schoolYearDataProvider.GetCurrentSchoolYear() : await _schoolYearDataProvider.GetSchoolYearAsync(schoolYearId.Value);
+        Models.Departments.DepartmentModel department = await _departmentsDataProvider.GetDepartmentAsync(workingDepartment);
+        IList<Models.Course.CourseModel> courses = await _coursesDataProvider.GetCoursesForDepartment(workingDepartment, schoolYear.Id);
         courses = courses.OrderBy(c => c.CareerId).ThenBy(c => c.TeachingModality).ThenBy(c => c.CareerYear).ToList();
-        IList<Models.Periods.PeriodModel> periods = await _dataProvider.GetPeriodsAsync(schoolYear.Id);
+        IList<Models.Periods.PeriodModel> periods = await _periodsDataProvider.GetPeriodsAsync(schoolYear.Id);
         LoadDistributionIndexModel model = new()
         {
             Department = department,
@@ -76,9 +81,9 @@ public class LoadDistributionController : Controller
         }
 
         Guid workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
-        Models.SchoolYears.SchoolYearModel schoolYear = schoolYearId is null ? await _dataProvider.GetCurrentSchoolYear() : await _dataProvider.GetSchoolYearAsync(schoolYearId.Value);
-        Models.Departments.DepartmentModel department = await _dataProvider.GetDepartmentAsync(workingDepartment);
-        IList<Models.Periods.PeriodModel> periods = await _dataProvider.GetPeriodsAsync(schoolYear.Id);
+        Models.SchoolYears.SchoolYearModel schoolYear = schoolYearId is null ? await _schoolYearDataProvider.GetCurrentSchoolYear() : await _schoolYearDataProvider.GetSchoolYearAsync(schoolYearId.Value);
+        Models.Departments.DepartmentModel department = await _departmentsDataProvider.GetDepartmentAsync(workingDepartment);
+        IList<Models.Periods.PeriodModel> periods = await _periodsDataProvider.GetPeriodsAsync(schoolYear.Id);
         WorkForceViewModel model = new()
         {
             Department = department,
@@ -92,8 +97,8 @@ public class LoadDistributionController : Controller
     [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> SelectDepartmentAsync(string redirectTo = "Index")
     {
-        IList<Models.SchoolYears.SchoolYearModel> schoolYears = await _dataProvider.GetSchoolYearsAsync();
-        IList<Models.Departments.DepartmentModel> departments = await _dataProvider.GetDepartmentsAsync();
+        IList<Models.SchoolYears.SchoolYearModel> schoolYears = await _schoolYearDataProvider.GetSchoolYearsAsync();
+        IList<Models.Departments.DepartmentModel> departments = await _departmentsDataProvider.GetDepartmentsAsync();
         if (schoolYears.Count == departments.Count && departments.Count == 1)
         {
             return RedirectToAction(redirectTo, new { departmentId = departments.First().Id, schoolYearId = schoolYears.First().Id });
@@ -119,7 +124,7 @@ public class LoadDistributionController : Controller
         _ = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
-            IList<Models.Periods.PeriodModel> result = await _dataProvider.GetPeriodsAsync(schoolYearId);
+            IList<Models.Periods.PeriodModel> result = await _periodsDataProvider.GetPeriodsAsync(schoolYearId);
             return PartialView("_PeriodOptions", result);
         }
         catch (Exception)
@@ -139,8 +144,8 @@ public class LoadDistributionController : Controller
         Guid workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
-            IList<Models.Planning.TeachingPlanItemModel> result = await _dataProvider.GetTeachingPlanItemsOfDepartmentOnPeriodAsync(workingDepartment, periodId, courseId, true);
-            result = result.OrderBy(item => item.SubjectId).ThenBy(item => item.Course.CareerId).ThenBy(item => item.Course.CareerYear).ToList();
+            IList<Models.Planning.TeachingPlanItemModel> result = await _planningDataProvider.GetTeachingPlanItemsOfDepartmentOnPeriodAsync(workingDepartment, periodId, courseId, true);
+            result = [.. result.OrderBy(item => item.SubjectId).ThenBy(item => item.Course.CareerId).ThenBy(item => item.Course.CareerYear)];
             return PartialView("_SimplifiedPlanningListView", result);
         }
         catch (Exception)
@@ -160,8 +165,8 @@ public class LoadDistributionController : Controller
         Guid workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
-            IList<TeacherModel> depTeachers = await _dataProvider.GetTeachersOfDepartmentForPeriodAsync(workingDepartment, periodId);
-            IList<TeacherModel> supportTeachers = await _dataProvider.GetSupportTeachersAsync(workingDepartment, periodId);
+            IList<TeacherModel> depTeachers = await _teachersDataProvider.GetTeachersOfDepartmentForPeriodAsync(workingDepartment, periodId);
+            IList<TeacherModel> supportTeachers = await _teachersDataProvider.GetSupportTeachersAsync(workingDepartment, periodId);
             TeachersViewModel model = new()
             {
                 DepartmentsTeacher = depTeachers,
@@ -189,8 +194,8 @@ public class LoadDistributionController : Controller
         }
 
         Guid workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
-        Models.Planning.TeachingPlanItemModel loadItem = await _dataProvider.GetTeachingPlanItemAsync(planItemId);
-        IList<TeacherModel> teachers = await _dataProvider.GetTeachersOfDepartmentNotAssignedToLoadItemAsync(workingDepartment, planItemId, disciplineId);
+        Models.Planning.TeachingPlanItemModel loadItem = await _planningDataProvider.GetTeachingPlanItemAsync(planItemId);
+        IList<TeacherModel> teachers = await _teachersDataProvider.GetTeachersOfDepartmentNotAssignedToLoadItemAsync(workingDepartment, planItemId, disciplineId);
 
         AddLoadModalModel viewModel = new()
         {
@@ -209,7 +214,7 @@ public class LoadDistributionController : Controller
         {
             try
             {
-                bool result = await _dataProvider.SetLoadItemAsync(model);
+                bool result = await _teachersDataProvider.SetLoadItemAsync(model);
                 return result ? Ok(result) : Problem();
             }
             catch (Exception ex)
@@ -231,7 +236,7 @@ public class LoadDistributionController : Controller
 
         try
         {
-            bool result = await _dataProvider.DeleteLoadItemAsync(loadItemId);
+            bool result = await _teachersDataProvider.DeleteLoadItemAsync(loadItemId);
             return result ? Ok(result) : Problem();
         }
         catch (Exception ex)
@@ -255,8 +260,8 @@ public class LoadDistributionController : Controller
 
         try
         {
-            TeacherModel teacher = await _dataProvider.GetTeacherAsync(teacherId, periodId);
-            IList<LoadViewItemModel> loadItems = await _dataProvider.GetTeacherLoadItemsInPeriodAsync(teacherId, periodId);
+            TeacherModel teacher = await _teachersDataProvider.GetTeacherAsync(teacherId, periodId);
+            IList<LoadViewItemModel> loadItems = await _teachersDataProvider.GetTeacherLoadItemsInPeriodAsync(teacherId, periodId);
             TeacherLoadViewModel model = new()
             {
                 Teacher = teacher,
@@ -273,16 +278,13 @@ public class LoadDistributionController : Controller
     [HttpPost]
     public async Task<IActionResult> SetNonTeachingLoadAsync(SetNonTeachingLoadModel model)
     {
-        if (model is not null)
+        if (model is null || !Enum.TryParse(typeof(NonTeachingLoadType), model.Type, out _))
         {
-            if (Enum.TryParse(typeof(NonTeachingLoadType), model.Type, out _))
-            {
-                bool result = await _dataProvider.SetNonTeachingLoadAsync(model);
-                return result ? Ok(result) : BadRequest();
-            }
+            return BadRequest();
         }
 
-        return BadRequest();
+        bool result = await _teachersDataProvider.SetNonTeachingLoadAsync(model);
+        return result ? Ok(result) : BadRequest();
     }
 
     [HttpGet]
@@ -296,7 +298,7 @@ public class LoadDistributionController : Controller
         Guid workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
-            IList<TeacherModel> depTeachers = await _dataProvider.GetTeachersOfDepartmentForPeriodAsync(workingDepartment, periodId);
+            IList<TeacherModel> depTeachers = await _teachersDataProvider.GetTeachersOfDepartmentForPeriodAsync(workingDepartment, periodId);
             ChartModel chartData = ModelListCharter.GetChartModel(ChartType.Bar, depTeachers.OrderBy(t => t.Load.LoadPercent).ToList(), t => t.Load.LoadPercent, t => t.FirstName, title: "Distribución de carga", subtitle: "Comparación de la distribución de cargas entre los profesores del departamento.", showXGrid: false, xScaleTitle: "Profesores del departamento", yScaleTitle: "Carga (%)");
             return Ok(chartData.GetJson());
         }
@@ -317,7 +319,7 @@ public class LoadDistributionController : Controller
         Guid workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
-            IList<TeacherModel> depTeachers = await _dataProvider.GetTeachersOfDepartmentForPeriodWithLoadItemsAsync(workingDepartment, periodId);
+            IList<TeacherModel> depTeachers = await _teachersDataProvider.GetTeachersOfDepartmentForPeriodWithLoadItemsAsync(workingDepartment, periodId);
             ChartModel chartData = ModelListCharter.GetChartModel(
                 ChartType.Bar,
                 depTeachers,
@@ -347,7 +349,7 @@ public class LoadDistributionController : Controller
         Guid workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
-            IList<TeacherModel> depTeachers = await _dataProvider.GetTeachersOfDepartmentForPeriodWithLoadItemsAsync(workingDepartment, periodId);
+            IList<TeacherModel> depTeachers = await _teachersDataProvider.GetTeachersOfDepartmentForPeriodWithLoadItemsAsync(workingDepartment, periodId);
             depTeachers = depTeachers.OrderBy(t => t.ContractType).ThenByDescending(t => t.SpecificTimeFund).ToList();
             List<(TeacherModel teacher, double directLoad, double indirectLoad)> data = [];
             foreach (TeacherModel teacher in depTeachers)
@@ -420,8 +422,8 @@ public class LoadDistributionController : Controller
         else
         {
             teachers = User.IsAdmin()
-                ? await _dataProvider.GetTeachersOfDepartmentAsync(departmentId.Value)
-                : await _dataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
+                ? await _teachersDataProvider.GetTeachersOfDepartmentAsync(departmentId.Value)
+                : await _teachersDataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
         }
 
         ChartModel chartModel = ModelListCharter.GetChartModel(ChartType.Doughnut,
@@ -446,8 +448,8 @@ public class LoadDistributionController : Controller
         else
         {
             teachers = User.IsAdmin()
-                ? await _dataProvider.GetTeachersOfDepartmentAsync(departmentId.Value)
-                : await _dataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
+                ? await _teachersDataProvider.GetTeachersOfDepartmentAsync(departmentId.Value)
+                : await _teachersDataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
         }
 
         ChartModel chartModel = ModelListCharter.GetChartModel(ChartType.Doughnut,
@@ -472,8 +474,8 @@ public class LoadDistributionController : Controller
         else
         {
             teachers = User.IsAdmin()
-                ? await _dataProvider.GetTeachersOfDepartmentAsync(departmentId.Value)
-                : await _dataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
+                ? await _teachersDataProvider.GetTeachersOfDepartmentAsync(departmentId.Value)
+                : await _teachersDataProvider.GetTeachersOfDepartmentAsync(User.GetDepartmentId());
         }
 
         var ageGroups = new[]
@@ -531,7 +533,7 @@ public class LoadDistributionController : Controller
         Guid workingDepartment = User.IsDepartmentManager() ? User.GetDepartmentId() : departmentId.Value;
         try
         {
-            IList<TeacherModel> depTeachers = await _dataProvider.GetTeachersOfDepartmentForPeriodWithLoadItemsAsync(workingDepartment, periodId);
+            IList<TeacherModel> depTeachers = await _teachersDataProvider.GetTeachersOfDepartmentForPeriodWithLoadItemsAsync(workingDepartment, periodId);
             double total = depTeachers.Sum(t => t.LoadViewItems?.Sum(l => l.Value)) ?? 1;
 
             List<(string loadCategory, double value)> values =
@@ -579,9 +581,9 @@ public class LoadDistributionController : Controller
 
         try
         {
-            Models.Periods.PeriodModel period = await _dataProvider.GetPeriodAsync(periodId);
-            TeacherModel teacher = await _dataProvider.GetTeacherAsync(teacherId, periodId);
-            IList<LoadViewItemModel> loadItems = await _dataProvider.GetTeacherLoadItemsInPeriodAsync(teacherId, periodId);
+            Models.Periods.PeriodModel period = await _periodsDataProvider.GetPeriodAsync(periodId);
+            TeacherModel teacher = await _teachersDataProvider.GetTeacherAsync(teacherId, periodId);
+            IList<LoadViewItemModel> loadItems = await _teachersDataProvider.GetTeacherLoadItemsInPeriodAsync(teacherId, periodId);
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Definier el tipo de licencia, sino da error a la hora de crear el Excel
             using ExcelPackage excel = new(); // Utilizar un using para no tener que hacer dispose al final de las operaciones
@@ -689,12 +691,12 @@ public class LoadDistributionController : Controller
             {
                 List<object?> row =
                 [
-                        value.Type.GetEnumDisplayNameValue(),
+                    value.Type.GetEnumDisplayNameValue(),
                     value.NonTeachingLoadType is null ? NonTeachingLoadType.ClassPreparation.GetNonTeachingLoadCategoryPromtName() : value.NonTeachingLoadType?.GetNonTeachingLoadCategoryPromtName(),
                     value.Type == LoadViewItemType.NonTeaching ? value.NonTeachingLoadType?.GetEnumDisplayNameValue() : "Docencia directa",
                     value.Description,
                     value.Value
-                    ];
+                ];
                 bodyData.Add(row.ToArray());
             }
 
@@ -759,7 +761,7 @@ public class LoadDistributionController : Controller
 
         try
         {
-            IList<Models.Statistics.StatisticItemModel> stats = await _dataProvider.GetDepartmentPeriodStatsAsync(departmentId, periodId);
+            IList<Models.Statistics.StatisticItemModel> stats = await _departmentsDataProvider.GetDepartmentPeriodStatsAsync(departmentId, periodId);
             return PartialView("_DepartmentPeriodStats", stats);
         }
         catch (Exception ex)

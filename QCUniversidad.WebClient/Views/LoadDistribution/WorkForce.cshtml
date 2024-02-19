@@ -296,6 +296,8 @@
         }
 
         function AddNonTeachingLoad(type, teacherId) {
+            console.log("Adding non teaching load!" ,type, teacherId);
+
             if (type == "UniversityExtensionActions") {
                 const ueaModalElement = document.getElementById("UniversityExtensionActionsModal");
                 let ueaModal = bootstrap.Modal.getOrCreateInstance(ueaModalElement);
@@ -610,7 +612,7 @@
                 InitializeSelectCards();
                 return;
             }
-            if (type == "ProcessResponsabilities") {
+            if (type == "ProcessResponsibilities") {
                 const arModalElement = document.getElementById("ProcessResponsabilitiesModal");
                 let arModal = bootstrap.Modal.getOrCreateInstance(arModalElement);
                 let arModalBtn = document.getElementById("ProcessResponsabilitiesModalButton");
@@ -618,7 +620,7 @@
                     arModal.hide();
                     let selected = GetSelectCardGroupSelectedValue("ProcessResponsabilitiesOptions");
                     let model = {
-                        Type: "ProcessResponsabilities",
+                        Type: "ProcessResponsibilities",
                         BaseValue: selected,
                         TeacherId: teacherId,
                         PeriodId: GetSelectedPeriod()

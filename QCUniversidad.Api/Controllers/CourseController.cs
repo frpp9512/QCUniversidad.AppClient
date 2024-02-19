@@ -1,302 +1,160 @@
-﻿using AutoMapper;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using QCUniversidad.Api.Contracts;
-using QCUniversidad.Api.Data.Models;
-using QCUniversidad.Api.Exceptions;
+using QCUniversidad.Api.Requests.Courses.Models;
+using QCUniversidad.Api.Requests.SchoolYears.Models;
 using QCUniversidad.Api.Shared.Dtos.Course;
-using QCUniversidad.Api.Shared.Dtos.Period;
 using QCUniversidad.Api.Shared.Enums;
 
 namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class CourseController(ICoursesManager courseManager,
-                              ISchoolYearsManager schoolYearsManager,
-                              IFacultiesManager facultiesManager,
-                              ICareersManager careersManager,
-                              IPeriodsManager periodsManager,
-                              IMapper mapper) : ControllerBase
+public class CourseController(IMediator mediator) : ApiControllerBase
 {
-    private readonly ICoursesManager _courseManager = courseManager;
-    private readonly ISchoolYearsManager _schoolYearsManager = schoolYearsManager;
-    private readonly IFacultiesManager _facultiesManager = facultiesManager;
-    private readonly ICareersManager _careersManager = careersManager;
-    private readonly IPeriodsManager _periodsManager = periodsManager;
-    private readonly IMapper _mapper = mapper;
+    private readonly IMediator _mediator = mediator;
 
     [HttpGet("list")]
-    public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
+    public async Task<IActionResult> GetListAsync(int from = 0, int to = 0, CancellationToken cancellationToken = default)
     {
-        IList<CourseModel> courses = await _courseManager.GetCoursesAsync(from, to);
-        IEnumerable<CourseDto> dtos = courses.Select(_mapper.Map<CourseDto>);
-        return Ok(dtos);
+        var request = new GetCoursesRangeRequest { From = from, To = to };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("listbyschoolyear")]
-    public async Task<IActionResult> GetListBySchoolYearAsync(Guid schoolYearId)
+    public async Task<IActionResult> GetListBySchoolYearAsync(Guid schoolYearId, CancellationToken cancellationToken)
     {
-        try
-        {
-            if (!await _schoolYearsManager.ExistSchoolYearAsync(schoolYearId))
-            {
-                return NotFound();
-            }
-
-            IList<CourseModel> result = await _courseManager.GetCoursesAsync(schoolYearId);
-            IOrderedEnumerable<CourseDto> dtos = result.Select(_mapper.Map<CourseDto>).OrderBy(dto => dto.CareerId).ThenBy(dto => dto.CareerYear);
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetCoursesBySchoolYearRequest { SchoolYearId = schoolYearId };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("listbyschoolyearandfaculty")]
-    public async Task<IActionResult> GetListBySchoolYearAndFacultyAsync(Guid schoolYearId, Guid facultyId)
+    public async Task<IActionResult> GetListBySchoolYearAndFacultyAsync(Guid schoolYearId, Guid facultyId, CancellationToken cancellationToken)
     {
-        try
+        var request = new GetCoursesBySchoolYearOfFacultyRequest
         {
-            if (!await _schoolYearsManager.ExistSchoolYearAsync(schoolYearId))
-            {
-                return NotFound();
-            }
-
-            if (!await _facultiesManager.ExistFacultyAsync(facultyId))
-            {
-                return NotFound();
-            }
-
-            IList<CourseModel> result = await _courseManager.GetCoursesAsync(schoolYearId, facultyId);
-            IOrderedEnumerable<CourseDto> dtos = result.Select(_mapper.Map<CourseDto>).OrderBy(dto => dto.CareerId).ThenBy(dto => dto.CareerYear);
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+            SchoolYearId = schoolYearId,
+            FacultyId = facultyId
+        };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("listbycareerschoolyearandfaculty")]
-    public async Task<IActionResult> GetListByCareerSchoolYearAndFacultyAsync(Guid careerId, Guid schoolYearId, Guid facultyId)
+    public async Task<IActionResult> GetListByCareerSchoolYearAndFacultyAsync(Guid careerId, Guid schoolYearId, Guid facultyId, CancellationToken cancellationToken)
     {
-        try
+        var request = new GetCoursesBySchoolYearAndCareerOfFacultyRequest
         {
-            if (!await _careersManager.ExistsCareerAsync(careerId))
-            {
-                return NotFound();
-            }
-
-            if (!await _schoolYearsManager.ExistSchoolYearAsync(schoolYearId))
-            {
-                return NotFound();
-            }
-
-            if (!await _facultiesManager.ExistFacultyAsync(facultyId))
-            {
-                return NotFound();
-            }
-
-            IList<CourseModel> result = await _courseManager.GetCoursesAsync(careerId, schoolYearId, facultyId);
-            IOrderedEnumerable<CourseDto> dtos = result.Select(_mapper.Map<CourseDto>).OrderBy(dto => dto.CareerId).ThenBy(dto => dto.CareerYear);
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+            SchoolYearId = schoolYearId,
+            FacultyId = facultyId,
+            CareerId = careerId
+        };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("count")]
-    public async Task<IActionResult> GetCount()
+    public async Task<IActionResult> GetCount(CancellationToken cancellationToken)
     {
-        try
-        {
-            int count = await _courseManager.GetCoursesCountAsync();
-            return Ok(count);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetCoursesCountRequest();
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("periodscount")]
-    public async Task<IActionResult> GetPeriodsCount(Guid schoolYearId)
+    public async Task<IActionResult> GetPeriodsCount(Guid schoolYearId, CancellationToken cancellationToken)
     {
-        try
-        {
-            int count = await _periodsManager.GetSchoolYearPeriodsCountAsync(schoolYearId);
-            return Ok(count);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetSchoolYearPeriodsCountRequest { SchoolYearId = schoolYearId };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("exists")]
-    public async Task<IActionResult> ExistsAsync(Guid id)
+    public async Task<IActionResult> ExistsAsync(Guid id, CancellationToken cancellationToken)
     {
-        try
-        {
-            bool result = await _courseManager.ExistsCourseAsync(id);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new ExistCourseRequest { CourseId = id };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("existsbycareeryearandmodality")]
-    public async Task<IActionResult> ExistsByCareerYearAndModality(Guid careerId, int careerYear, int modality)
+    public async Task<IActionResult> ExistsByCareerYearAndModality(Guid careerId, int careerYear, int modality, CancellationToken cancellationToken)
     {
-        if (careerId == Guid.Empty && careerYear < 0 && modality < 0)
+        var request = new ExistCourseByCareerYearAndModalityRequest
         {
-            return BadRequest("The parameters should not be null.");
-        }
-
-        bool result = await _courseManager.CheckCourseExistenceByCareerYearAndModality(careerId, careerYear, (TeachingModality)modality);
-        return Ok(result);
+            CareerId = careerId,
+            CareerYear = careerYear,
+            Modality = (TeachingModality)modality
+        };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpPut]
-    public async Task<IActionResult> CreateAsync(NewCourseDto course)
+    public async Task<IActionResult> CreateAsync(NewCourseDto course, CancellationToken cancellationToken)
     {
         if (course is null)
         {
             return BadRequest("The discipline cannot be null.");
         }
 
-        try
-        {
-            CourseModel model = _mapper.Map<CourseModel>(course);
-            bool result = await _courseManager.CreateCourseAsync(model);
-            return result ? Ok(model.Id) : Problem("An error has occured creating the discipline.");
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new CreateCourseRequest { NewCourse = course };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetCreatedResponseResult(response);
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetByIdAsync(Guid id)
+    public async Task<IActionResult> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        if (id == Guid.Empty)
-        {
-            return BadRequest("You must provide an id.");
-        }
-
-        try
-        {
-            CourseModel result = await _courseManager.GetCourseAsync(id);
-            CourseDto dto = _mapper.Map<CourseDto>(result);
-            return Ok(dto);
-        }
-        catch (CourseNotFoundException)
-        {
-            return NotFound($"The school year with id {id} was not found.");
-        }
+        var request = new GetCourseByIdRequest { CourseId = id };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpPost("update")]
-    public async Task<IActionResult> UpdateAsync(EditCourseDto course)
+    public async Task<IActionResult> UpdateAsync(EditCourseDto course, CancellationToken cancellationToken)
     {
-        if (course is not null)
+        if (course is null)
         {
-            bool result = await _courseManager.UpdateCourseAsync(_mapper.Map<CourseModel>(course));
-            return Ok(result);
+            return BadRequest("The school year cannot be null.");
         }
 
-        return BadRequest("The school year cannot be null.");
+        var request = new UpdateCourseRequest { CourseToUpdate = course };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpDelete]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        if (id == Guid.Empty)
-        {
-            return BadRequest("You must provide an id.");
-        }
-
-        try
-        {
-            bool result = await _courseManager.DeleteCourseAsync(id);
-            return Ok(result);
-        }
-        catch (CourseNotFoundException)
-        {
-            return NotFound($"The school year with id '{id}' was not found.");
-        }
+        var request = new DeleteCourseRequest { CourseId = id };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("listfordepartment")]
-    public async Task<IActionResult> GetCoursesForDepartment(Guid departmentId, Guid? schoolYearId = null)
+    public async Task<IActionResult> GetCoursesForDepartment(Guid departmentId, Guid? schoolYearId = null, CancellationToken cancellationToken = default)
     {
-        if (departmentId == Guid.Empty)
-        {
-            return BadRequest("You must provide an id.");
-        }
-
-        try
-        {
-            IList<CourseModel> result = await _courseManager.GetCoursesForDepartmentAsync(departmentId, schoolYearId);
-            IEnumerable<CourseDto> dtos = result.Select(_mapper.Map<CourseDto>);
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetCoursesForDepartmentRequest { DepartmentId = departmentId, SchoolYearId = schoolYearId };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("periodplanninginfo")]
-    public async Task<IActionResult> GetPeriodPlanningInfoAsync(Guid id, Guid periodId)
+    public async Task<IActionResult> GetPeriodPlanningInfoAsync(Guid id, Guid periodId, CancellationToken cancellationToken)
     {
-        try
-        {
-            CourseModel course = await _courseManager.GetCourseAsync(id);
-            PeriodModel period = await _periodsManager.GetPeriodAsync(periodId);
-            double totalPlanned = await _courseManager.GetTotalHoursInPeriodForCourseAsync(id, periodId);
-            double realPlanned = await _courseManager.GetRealHoursPlannedInPeriodForCourseAsync(id, periodId);
-            CoursePeriodPlanningInfoDto dto = new()
-            {
-                PeriodId = periodId,
-                Period = _mapper.Map<SimplePeriodDto>(period),
-                CourseId = id,
-                Course = _mapper.Map<SimpleCourseDto>(course),
-                RealHoursPlanned = realPlanned,
-                TotalHoursPlanned = totalPlanned
-            };
-            return Ok(dto);
-        }
-        catch (ArgumentNullException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (CourseNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (PeriodNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetCoursePlanningInfoForPeriodRequest { CourseId = id, PeriodId = periodId };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 }

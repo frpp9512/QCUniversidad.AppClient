@@ -8,7 +8,7 @@ using QCUniversidad.WebClient.Models.Accounts;
 using QCUniversidad.WebClient.Models.Departments;
 using QCUniversidad.WebClient.Models.Faculties;
 using QCUniversidad.WebClient.Models.Shared;
-using QCUniversidad.WebClient.Services.Data;
+using QCUniversidad.WebClient.Services.Contracts;
 using SmartB1t.Security.Extensions.AspNetCore;
 using SmartB1t.Security.WebSecurity.Local.Interfaces;
 using SmartB1t.Security.WebSecurity.Local.Models;
@@ -22,7 +22,8 @@ public class AccountsController : Controller
 
     private readonly IAccountSecurityRepository _repository;
     private readonly IWebHostEnvironment _hostEnvironment;
-    private readonly IDataProvider _dataProvider;
+    private readonly IFacultiesDataProvider _facultiesDataProvider;
+    private readonly IDepartmentsDataProvider _departmentsDataProvider;
     private readonly IMapper _mapper;
     private readonly string _profileTmpFolder;
     private readonly string _profileDefaultPath;
@@ -34,12 +35,14 @@ public class AccountsController : Controller
 
     public AccountsController(IAccountSecurityRepository repository,
                               IWebHostEnvironment hostEnvironment,
-                              IDataProvider dataProvider,
+                              IFacultiesDataProvider facultiesDataProvider,
+                              IDepartmentsDataProvider departmentsDataProvider,
                               IMapper mapper)
     {
         _repository = repository;
         _hostEnvironment = hostEnvironment;
-        _dataProvider = dataProvider;
+        _facultiesDataProvider = facultiesDataProvider;
+        _departmentsDataProvider = departmentsDataProvider;
         _mapper = mapper;
         _profileTmpFolder = Path.Combine(_hostEnvironment.WebRootPath, "img", "tmp");
         _profileDefaultPath = Path.Combine(_hostEnvironment.WebRootPath, "img", "layout", "default-profile-pic.jpg");
@@ -171,14 +174,14 @@ public class AccountsController : Controller
                 await fileStream.WriteAsync(user.ProfilePicture);
             }
 
-            if (user.ExtraClaims?.Any(c => c.Type == "DepartmentId") is true && Guid.TryParse(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value, out Guid departmentId) && await _dataProvider.ExistsDepartmentAsync(departmentId))
+            if (user.ExtraClaims?.Any(c => c.Type == "DepartmentId") is true && Guid.TryParse(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value, out Guid departmentId) && await _departmentsDataProvider.ExistsDepartmentAsync(departmentId))
             {
-                user.DepartmentModel = await _dataProvider.GetDepartmentAsync(new Guid(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value));
+                user.DepartmentModel = await _departmentsDataProvider.GetDepartmentAsync(new Guid(user.ExtraClaims.First(c => c.Type == "DepartmentId").Value));
             }
 
-            if (user.ExtraClaims?.Any(c => c.Type == "FacultyId") is true && Guid.TryParse(user.ExtraClaims.First(c => c.Type == "FacultyId").Value, out Guid facultyId) && await _dataProvider.ExistFacultyAsync(facultyId))
+            if (user.ExtraClaims?.Any(c => c.Type == "FacultyId") is true && Guid.TryParse(user.ExtraClaims.First(c => c.Type == "FacultyId").Value, out Guid facultyId) && await _facultiesDataProvider.ExistFacultyAsync(facultyId))
             {
-                user.FacultyModel = await _dataProvider.GetFacultyAsync(facultyId);
+                user.FacultyModel = await _facultiesDataProvider.GetFacultyAsync(facultyId);
             }
         }
 
@@ -215,13 +218,13 @@ public class AccountsController : Controller
 
     private async Task<IList<DepartmentModel>> GetDeparmentsModels()
     {
-        IList<DepartmentModel> departments = await _dataProvider.GetDepartmentsAsync();
+        IList<DepartmentModel> departments = await _departmentsDataProvider.GetDepartmentsAsync();
         return departments;
     }
 
     private async Task<IList<FacultyModel>> GetFacultiesModels()
     {
-        IList<FacultyModel> faculties = await _dataProvider.GetFacultiesAsync();
+        IList<FacultyModel> faculties = await _facultiesDataProvider.GetFacultiesAsync();
         return faculties;
     }
 

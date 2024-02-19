@@ -6,28 +6,28 @@ using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Models.Teachers;
-using QCUniversidad.WebClient.Services.Data;
-using QCUniversidad.WebClient.Services.Extensions;
+using QCUniversidad.WebClient.Services.Contracts;
 
 namespace QCUniversidad.WebClient.Controllers;
 
 [Authorize("Auth")]
-public class TeachersController : Controller
+public class TeachersController(ITeachersDataProvider teachersDataProvider,
+                                ISchoolYearDataProvider schoolYearDataProvider,
+                                IDepartmentsDataProvider departmentsDataProvider,
+                                IDisciplinesDataProvider disciplinesDataProvider,
+                                IMapper mapper,
+                                IOptions<NavigationSettings> navOptions,
+                                ILogger<TeachersController> logger,
+                                IExcelParser<TeacherModel> teachersExcelParser) : Controller
 {
-    private readonly IDataProvider _dataProvider;
-    private readonly IMapper _mapper;
-    private readonly ILogger<TeachersController> _logger;
-    private readonly IExcelParser<TeacherModel> _teachersExcelParser;
-    private readonly NavigationSettings _navigationSettings;
-
-    public TeachersController(IDataProvider dataProvider, IMapper mapper, IOptions<NavigationSettings> navOptions, ILogger<TeachersController> logger, IExcelParser<TeacherModel> teachersExcelParser)
-    {
-        _dataProvider = dataProvider;
-        _mapper = mapper;
-        _logger = logger;
-        _teachersExcelParser = teachersExcelParser;
-        _navigationSettings = navOptions.Value;
-    }
+    private readonly ITeachersDataProvider _teachersDataProvider = teachersDataProvider;
+    private readonly ISchoolYearDataProvider _schoolYearDataProvider = schoolYearDataProvider;
+    private readonly IDepartmentsDataProvider _departmentsDataProvider = departmentsDataProvider;
+    private readonly IDisciplinesDataProvider _disciplinesDataProvider = disciplinesDataProvider;
+    private readonly IMapper _mapper = mapper;
+    private readonly ILogger<TeachersController> _logger = logger;
+    private readonly IExcelParser<TeacherModel> _teachersExcelParser = teachersExcelParser;
+    private readonly NavigationSettings _navigationSettings = navOptions.Value;
 
     [Authorize("Admin")]
     [HttpGet]
@@ -37,7 +37,7 @@ public class TeachersController : Controller
         try
         {
             _logger.LogInformation($"Loading total teachers count.");
-            int total = await _dataProvider.GetTeachersCountAsync();
+            int total = await _teachersDataProvider.GetTeachersCountAsync();
             _logger.LogInformation("Exists {0} teachers in total.", total);
             int pageIndex = page - 1 < 0 ? 0 : page - 1;
             int startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
@@ -47,7 +47,7 @@ public class TeachersController : Controller
             }
 
             _logger.LogInformation($"Loading teachers starting in {startingItemIndex} and taking {_navigationSettings.ItemsPerPage}.");
-            IList<TeacherModel> teachers = await _dataProvider.GetTeachersAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
+            IList<TeacherModel> teachers = await _teachersDataProvider.GetTeachersAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             _logger.LogInformation($"Loaded {teachers.Count} teachers.");
             int totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
             NavigationListViewModel<TeacherModel> viewModel = new()
@@ -74,8 +74,8 @@ public class TeachersController : Controller
     {
         try
         {
-            TeacherModel teacher = await _dataProvider.GetTeacherAsync(id);
-            Models.SchoolYears.SchoolYearModel currentSchoolYear = await _dataProvider.GetCurrentSchoolYear();
+            TeacherModel teacher = await _teachersDataProvider.GetTeacherAsync(id);
+            Models.SchoolYears.SchoolYearModel currentSchoolYear = await _schoolYearDataProvider.GetCurrentSchoolYear();
             IList<Models.Periods.PeriodModel>? periods = currentSchoolYear.Periods;
             ViewData["schoolYear"] = currentSchoolYear;
             ViewData["returnTo"] = returnTo;
@@ -91,7 +91,7 @@ public class TeachersController : Controller
     [HttpGet]
     public async Task<IActionResult> ImportAsync()
     {
-        IList<Models.Departments.DepartmentModel> departments = await _dataProvider.GetDepartmentsAsync();
+        IList<Models.Departments.DepartmentModel> departments = await _departmentsDataProvider.GetDepartmentsAsync();
         ViewData["departments-list"] = departments;
         return View();
     }
@@ -121,7 +121,7 @@ public class TeachersController : Controller
             try
             {
                 newTeacher.DepartmentId = selectedDepartment;
-                _ = await _dataProvider.CreateTeacherAsync(newTeacher);
+                _ = await _teachersDataProvider.CreateTeacherAsync(newTeacher);
                 created++;
             }
             catch
@@ -134,14 +134,14 @@ public class TeachersController : Controller
         {
             try
             {
-                TeacherModel teacher = await _dataProvider.GetTeacherAsync(teacherToUpdate.PersonalId);
+                TeacherModel teacher = await _teachersDataProvider.GetTeacherAsync(teacherToUpdate.PersonalId);
                 teacher.DepartmentId = selectedDepartment;
                 teacher.Fullname = teacherToUpdate.Fullname;
                 teacher.Position = teacherToUpdate.Position;
                 teacher.Category = teacherToUpdate.Category;
                 teacher.Email = teacherToUpdate.Email;
                 teacher.ContractType = teacherToUpdate.ContractType;
-                _ = await _dataProvider.UpdateTeacherAsync(teacher);
+                _ = await _teachersDataProvider.UpdateTeacherAsync(teacher);
             }
             catch
             {
@@ -174,7 +174,7 @@ public class TeachersController : Controller
             }
             else
             {
-                bool exists = await _dataProvider.ExistsTeacherAsync(parsedModel.PersonalId);
+                bool exists = await _teachersDataProvider.ExistsTeacherAsync(parsedModel.PersonalId);
                 action = exists ? TeacherImportAction.Update : TeacherImportAction.Create;
             }
 
@@ -208,13 +208,13 @@ public class TeachersController : Controller
     private async Task LoadCreateViewModel(CreateTeacherModel model)
     {
         await LoadDisciplinesIntoCreateModel(model);
-        IList<Models.Departments.DepartmentModel> departments = await _dataProvider.GetDepartmentsAsync();
+        IList<Models.Departments.DepartmentModel> departments = await _departmentsDataProvider.GetDepartmentsAsync();
         model.DepartmentList = departments;
     }
 
     private async Task LoadDisciplinesIntoCreateModel(CreateTeacherModel model)
     {
-        IList<DisciplineModel> disciplines = await _dataProvider.GetDisciplinesAsync();
+        IList<DisciplineModel> disciplines = await _disciplinesDataProvider.GetDisciplinesAsync();
         model.Disciplines = disciplines;
     }
 
@@ -235,14 +235,14 @@ public class TeachersController : Controller
             else
             {
                 _logger.LogInformation($"Validating department existence with id {model.DepartmentId}.");
-                if (await _dataProvider.ExistsDepartmentAsync(model.DepartmentId))
+                if (await _departmentsDataProvider.ExistsDepartmentAsync(model.DepartmentId))
                 {
                     _logger.LogInformation($"Validating selected disciplines existence.");
                     if (model.SelectedDisciplines is null || await CheckDisciplinesExistence(model.SelectedDisciplines))
                     {
                         _logger.LogInformation($"Requesting create new teacher.");
                         model.Disciplines ??= new List<DisciplineModel>(model.SelectedDisciplines?.Select(id => new DisciplineModel { Id = id, Name = "" }) ?? new List<DisciplineModel>());
-                        bool result = await _dataProvider.CreateTeacherAsync(model);
+                        bool result = await _teachersDataProvider.CreateTeacherAsync(model);
                         if (result)
                         {
                             _logger.LogInformation("The teacher was created successfully.");
@@ -275,7 +275,7 @@ public class TeachersController : Controller
     {
         foreach (Guid id in disciplinesIds)
         {
-            if (!await _dataProvider.ExistsDisciplineAsync(id))
+            if (!await _disciplinesDataProvider.ExistsDisciplineAsync(id))
             {
                 return false;
             }
@@ -298,9 +298,9 @@ public class TeachersController : Controller
     {
         _logger.LogInformation($"Requested {HttpContext.Request.Path} - {HttpContext.Request.Method}");
         _logger.LogInformation($"Checking if the teacher with id {id} exists.");
-        if (await _dataProvider.ExistsTeacherAsync(id))
+        if (await _teachersDataProvider.ExistsTeacherAsync(id))
         {
-            TeacherModel teacher = await _dataProvider.GetTeacherAsync(id);
+            TeacherModel teacher = await _teachersDataProvider.GetTeacherAsync(id);
             teacher.SelectedDisciplines = teacher.Disciplines?.Select(d => d.Id).ToArray();
             teacher.Disciplines?.Clear();
             await LoadEditViewModel(teacher);
@@ -320,7 +320,7 @@ public class TeachersController : Controller
         if (ModelState.IsValid)
         {
             _logger.LogInformation($"Checking if the teacher with id {model.Id} exists.");
-            if (await _dataProvider.ExistsTeacherAsync(model.Id))
+            if (await _teachersDataProvider.ExistsTeacherAsync(model.Id))
             {
                 if (ValidatePersonalId(model.PersonalId))
                 {
@@ -328,7 +328,7 @@ public class TeachersController : Controller
                     {
                         _logger.LogInformation($"Requesting update teacher.");
                         model.Disciplines ??= new List<DisciplineModel>(model.SelectedDisciplines?.Select(id => new DisciplineModel { Id = id }) ?? new List<DisciplineModel>());
-                        bool result = await _dataProvider.UpdateTeacherAsync(model);
+                        bool result = await _teachersDataProvider.UpdateTeacherAsync(model);
                         if (result)
                         {
                             _logger.LogInformation("The teacher was updated successfully.");
@@ -364,7 +364,7 @@ public class TeachersController : Controller
 
     private async Task LoadEditViewModel(TeacherModel model)
     {
-        IList<DisciplineModel> disciplines = await _dataProvider.GetDisciplinesAsync();
+        IList<DisciplineModel> disciplines = await _disciplinesDataProvider.GetDisciplinesAsync();
         model.Disciplines = disciplines;
     }
 
@@ -373,19 +373,20 @@ public class TeachersController : Controller
     public async Task<IActionResult> Delete(Guid id)
     {
         _logger.LogInformation($"Requested {HttpContext.Request.Path} - {HttpContext.Request.Method}");
-        if (await _dataProvider.ExistsTeacherAsync(id))
+        if (!await _teachersDataProvider.ExistsTeacherAsync(id))
         {
-            _logger.LogInformation($"The teacher with id {id} exists.");
-            _logger.LogInformation($"Requesting delete the teacher with id {id}.");
-            bool result = await _dataProvider.DeleteTeacherAsync(id);
-            if (result)
-            {
-                _logger.LogInformation($"The teacher with id {id} was eliminated successfully.");
-                TempData["teacher-deleted"] = true;
-                return Ok();
-            }
+            return BadRequest();
+        }
+        _logger.LogInformation($"The teacher with id {id} exists.");
+        _logger.LogInformation($"Requesting delete the teacher with id {id}.");
+        bool result = await _teachersDataProvider.DeleteTeacherAsync(id);
+        if (!result)
+        {
+            return BadRequest();
         }
 
-        return BadRequest();
+        _logger.LogInformation($"The teacher with id {id} was eliminated successfully.");
+        TempData["teacher-deleted"] = true;
+        return Ok();
     }
 }

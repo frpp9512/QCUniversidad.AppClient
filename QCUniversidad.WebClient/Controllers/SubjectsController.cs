@@ -6,33 +6,27 @@ using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Shared;
 using QCUniversidad.WebClient.Models.Subjects;
-using QCUniversidad.WebClient.Services.Data;
-using QCUniversidad.WebClient.Services.Extensions;
+using QCUniversidad.WebClient.Services.Contracts;
 using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
 
 [Authorize("Auth")]
-public class SubjectsController : Controller
+public class SubjectsController(ISubjectsDataProvider dataProvider,
+                                ISchoolYearDataProvider schoolYearDataProvider,
+                                IDisciplinesDataProvider disciplinesDataProvider,
+                                IMapper mapper,
+                                IOptions<NavigationSettings> navOptions,
+                                ILogger<SubjectsController> logger,
+                                IExcelParser<SubjectModel> excelParser) : Controller
 {
-    private readonly IDataProvider _dataProvider;
-    private readonly IMapper _mapper;
-    private readonly ILogger<SubjectsController> _logger;
-    private readonly IExcelParser<SubjectModel> _excelParser;
-    private readonly NavigationSettings _navigationSettings;
-
-    public SubjectsController(IDataProvider dataProvider,
-                              IMapper mapper,
-                              IOptions<NavigationSettings> navOptions,
-                              ILogger<SubjectsController> logger,
-                              IExcelParser<SubjectModel> excelParser)
-    {
-        _dataProvider = dataProvider;
-        _mapper = mapper;
-        _logger = logger;
-        _excelParser = excelParser;
-        _navigationSettings = navOptions.Value;
-    }
+    private readonly ISubjectsDataProvider _subjectsDataProvider = dataProvider;
+    private readonly ISchoolYearDataProvider _schoolYearDataProvider = schoolYearDataProvider;
+    private readonly IDisciplinesDataProvider _disciplinesDataProvider = disciplinesDataProvider;
+    private readonly IMapper _mapper = mapper;
+    private readonly ILogger<SubjectsController> _logger = logger;
+    private readonly IExcelParser<SubjectModel> _excelParser = excelParser;
+    private readonly NavigationSettings _navigationSettings = navOptions.Value;
 
     [Authorize("Admin")]
     [HttpGet]
@@ -42,7 +36,7 @@ public class SubjectsController : Controller
         try
         {
             _logger.LogInformation($"Loading total subjects count.");
-            int total = await _dataProvider.GetSubjectsCountAsync();
+            int total = await _subjectsDataProvider.GetSubjectsCountAsync();
             _logger.LogInformation("Exists {0} subjects in total.", total);
             int pageIndex = page - 1 < 0 ? 0 : page - 1;
             int startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
@@ -52,7 +46,7 @@ public class SubjectsController : Controller
             }
 
             _logger.LogInformation($"Loading subjects starting in {startingItemIndex} and taking {_navigationSettings.ItemsPerPage}.");
-            IList<SubjectModel> subjects = await _dataProvider.GetSubjectsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
+            IList<SubjectModel> subjects = await _subjectsDataProvider.GetSubjectsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             _logger.LogInformation($"Loaded {subjects.Count} subjects.");
             int totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
             NavigationListViewModel<SubjectModel> viewModel = new()
@@ -83,8 +77,8 @@ public class SubjectsController : Controller
 
         try
         {
-            SubjectModel subject = await _dataProvider.GetSubjectAsync(id);
-            Models.SchoolYears.SchoolYearModel schoolYear = await _dataProvider.GetCurrentSchoolYear();
+            SubjectModel subject = await _subjectsDataProvider.GetSubjectAsync(id);
+            Models.SchoolYears.SchoolYearModel schoolYear = await _schoolYearDataProvider.GetCurrentSchoolYear();
             ViewData["schoolYear"] = schoolYear;
             return View(subject);
         }
@@ -98,7 +92,7 @@ public class SubjectsController : Controller
     [HttpGet]
     public async Task<IActionResult> ImportAsync()
     {
-        IList<DisciplineModel> disciplines = await _dataProvider.GetDisciplinesAsync();
+        IList<DisciplineModel> disciplines = await _disciplinesDataProvider.GetDisciplinesAsync();
         ViewData["disciplines-list"] = disciplines;
         return View();
     }
@@ -123,7 +117,7 @@ public class SubjectsController : Controller
             try
             {
                 newSubject.DisciplineId = selectedDiscipline;
-                _ = await _dataProvider.CreateSubjectAsync(newSubject);
+                _ = await _subjectsDataProvider.CreateSubjectAsync(newSubject);
                 created++;
             }
             catch
@@ -136,9 +130,9 @@ public class SubjectsController : Controller
         {
             try
             {
-                SubjectModel subject = await _dataProvider.GetSubjectAsync(subjectToUpdate.Name);
+                SubjectModel subject = await _subjectsDataProvider.GetSubjectAsync(subjectToUpdate.Name);
                 subject.Description = subjectToUpdate.Description;
-                _ = await _dataProvider.UpdateSubjectAsync(subject);
+                _ = await _subjectsDataProvider.UpdateSubjectAsync(subject);
             }
             catch
             {
@@ -164,7 +158,7 @@ public class SubjectsController : Controller
         IList<SubjectModel> parsedModels = await _excelParser.ParseExcelAsync(fileStream);
         foreach (SubjectModel parsedModel in parsedModels)
         {
-            bool exists = await _dataProvider.ExistsSubjectAsync(parsedModel.Name);
+            bool exists = await _subjectsDataProvider.ExistsSubjectAsync(parsedModel.Name);
             SubjectImportAction action = exists ? SubjectImportAction.Update : SubjectImportAction.Create;
             parsedModel.ImportAction = action;
         }
@@ -201,7 +195,7 @@ public class SubjectsController : Controller
 
     private async Task LoadDisciplinesIntoCreateModel(CreateSubjectModel model)
     {
-        IList<DisciplineModel> disciplines = await _dataProvider.GetDisciplinesAsync();
+        IList<DisciplineModel> disciplines = await _disciplinesDataProvider.GetDisciplinesAsync();
         model.Disciplines = disciplines;
     }
 
@@ -214,11 +208,11 @@ public class SubjectsController : Controller
         if (ModelState.IsValid)
         {
             _logger.LogCheckModelExistence<SubjectsController, DisciplineModel>(HttpContext, createModel.DisciplineId);
-            if (await _dataProvider.ExistsDisciplineAsync(createModel.DisciplineId))
+            if (await _disciplinesDataProvider.ExistsDisciplineAsync(createModel.DisciplineId))
             {
                 _logger.LogCreateModelRequest<SubjectsController, SubjectModel>(HttpContext);
                 SubjectModel model = _mapper.Map<SubjectModel>(createModel);
-                bool result = await _dataProvider.CreateSubjectAsync(model);
+                bool result = await _subjectsDataProvider.CreateSubjectAsync(model);
                 if (result)
                 {
                     _logger.LogModelCreated<SubjectsController, SubjectModel>(HttpContext);
@@ -246,9 +240,9 @@ public class SubjectsController : Controller
     {
         _logger.LogRequest(HttpContext);
         _logger.LogCheckModelExistence<SubjectsController, SubjectModel>(HttpContext, id);
-        if (await _dataProvider.ExistsSubjectAsync(id))
+        if (await _subjectsDataProvider.ExistsSubjectAsync(id))
         {
-            SubjectModel subject = await _dataProvider.GetSubjectAsync(id);
+            SubjectModel subject = await _subjectsDataProvider.GetSubjectAsync(id);
             EditSubjectModel model = _mapper.Map<EditSubjectModel>(subject);
             return View(model);
         }
@@ -266,11 +260,11 @@ public class SubjectsController : Controller
         if (ModelState.IsValid)
         {
             _logger.LogCheckModelExistence<SubjectsController, SubjectModel>(HttpContext, editModel.Id);
-            if (await _dataProvider.ExistsSubjectAsync(editModel.Id))
+            if (await _subjectsDataProvider.ExistsSubjectAsync(editModel.Id))
             {
                 _logger.LogEditModelRequest<SubjectsController, SubjectModel>(HttpContext, editModel.Id);
                 SubjectModel model = _mapper.Map<SubjectModel>(editModel);
-                bool result = await _dataProvider.UpdateSubjectAsync(model);
+                bool result = await _subjectsDataProvider.UpdateSubjectAsync(model);
                 if (result)
                 {
                     _logger.LogModelEdited<SubjectsController, SubjectModel>(HttpContext, editModel.Id);
@@ -298,10 +292,10 @@ public class SubjectsController : Controller
     {
         _logger.LogRequest(HttpContext);
         _logger.LogCheckModelExistence<SubjectsController, SubjectModel>(HttpContext, id);
-        if (await _dataProvider.ExistsSubjectAsync(id))
+        if (await _subjectsDataProvider.ExistsSubjectAsync(id))
         {
             _logger.LogDeleteModelRequest<SubjectsController, SubjectModel>(HttpContext, id);
-            bool result = await _dataProvider.DeleteSubjectAsync(id);
+            bool result = await _subjectsDataProvider.DeleteSubjectAsync(id);
             if (result)
             {
                 _logger.LogModelDeleted<SubjectsController, SubjectModel>(HttpContext, id);

@@ -8,4 +8,6 @@ public record GetCareersRangeResponse : ResponseBase
     public int From { get; set; }
     public int To { get; set; }
     public List<CareerDto>? Careers { get; set; }
+
+    public override object? GetPayload() => Careers;
 }

@@ -4,27 +4,28 @@ using Microsoft.Extensions.Options;
 using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Faculties;
 using QCUniversidad.WebClient.Models.Shared;
-using QCUniversidad.WebClient.Services.Data;
+using QCUniversidad.WebClient.Services.Contracts;
 
 namespace QCUniversidad.WebClient.Controllers;
 
 [Authorize("Auth")]
-public class FacultiesController : Controller
+public class FacultiesController(IFacultiesDataProvider facultiesDataProvider,
+                                 ISchoolYearDataProvider schoolYearDataProvider,
+                                 ICareersDataProvider careersDataProvider,
+                                 IDepartmentsDataProvider departmentsDataProvider,
+                                 IOptions<NavigationSettings> navSettingsOptions) : Controller
 {
-    private readonly IDataProvider _dataProvider;
-    private readonly NavigationSettings _navigationSettings;
-
-    public FacultiesController(IDataProvider dataProvider, IOptions<NavigationSettings> navSettingsOptions)
-    {
-        _dataProvider = dataProvider;
-        _navigationSettings = navSettingsOptions.Value;
-    }
+    private readonly IFacultiesDataProvider _facultiesDataProvider = facultiesDataProvider;
+    private readonly ISchoolYearDataProvider _schoolYearDataProvider = schoolYearDataProvider;
+    private readonly ICareersDataProvider _careersDataProvider = careersDataProvider;
+    private readonly IDepartmentsDataProvider _departmentsDataProvider = departmentsDataProvider;
+    private readonly NavigationSettings _navigationSettings = navSettingsOptions.Value;
 
     [Authorize("Admin")]
     [HttpGet]
     public async Task<IActionResult> IndexAsync(int page = 1)
     {
-        int total = await _dataProvider.GetFacultiesTotalAsync();
+        int total = await _facultiesDataProvider.GetFacultiesTotalAsync();
         int pageIndex = page - 1 < 0 ? 0 : page - 1;
         int startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
         if (startingItemIndex < 0 || startingItemIndex >= total)
@@ -32,7 +33,7 @@ public class FacultiesController : Controller
             startingItemIndex = 0;
         }
 
-        IList<FacultyModel> faculties = await _dataProvider.GetFacultiesAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
+        IList<FacultyModel> faculties = await _facultiesDataProvider.GetFacultiesAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
         int totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
         NavigationListViewModel<FacultyModel> viewModel = new()
         {
@@ -52,8 +53,8 @@ public class FacultiesController : Controller
             return RedirectToAction("Error", "Home");
         }
 
-        FacultyModel faculty = await _dataProvider.GetFacultyAsync(id);
-        Models.SchoolYears.SchoolYearModel schoolYear = await _dataProvider.GetCurrentSchoolYear();
+        FacultyModel faculty = await _facultiesDataProvider.GetFacultyAsync(id);
+        Models.SchoolYears.SchoolYearModel schoolYear = await _schoolYearDataProvider.GetCurrentSchoolYear();
         ViewData["schoolYear"] = schoolYear;
 
         return View(faculty);
@@ -69,7 +70,7 @@ public class FacultiesController : Controller
 
         try
         {
-            IList<Models.Careers.CareerModel> careers = await _dataProvider.GetCareersAsync(facultyId);
+            IList<Models.Careers.CareerModel> careers = await _careersDataProvider.GetCareersAsync(facultyId);
             return PartialView("_FacultyCareers", careers);
         }
         catch (Exception ex)
@@ -88,7 +89,7 @@ public class FacultiesController : Controller
 
         try
         {
-            IList<Models.Departments.DepartmentModel> departments = await _dataProvider.GetDepartmentsAsync(facultyId);
+            IList<Models.Departments.DepartmentModel> departments = await _departmentsDataProvider.GetDepartmentsAsync(facultyId);
             return PartialView("_FacultyDepartments", departments);
         }
         catch (Exception ex)
@@ -113,7 +114,7 @@ public class FacultiesController : Controller
         {
             try
             {
-                _ = await _dataProvider.CreateFacultyAsync(model);
+                _ = await _facultiesDataProvider.CreateFacultyAsync(model);
                 TempData["faculty-created"] = true;
                 return RedirectToActionPermanent("Index");
             }
@@ -132,7 +133,7 @@ public class FacultiesController : Controller
     {
         try
         {
-            FacultyModel faculty = await _dataProvider.GetFacultyAsync(id);
+            FacultyModel faculty = await _facultiesDataProvider.GetFacultyAsync(id);
             return View(faculty);
         }
         catch (Exception)
@@ -150,7 +151,7 @@ public class FacultiesController : Controller
         {
             try
             {
-                bool result = await _dataProvider.UpdateFacultyAsync(model);
+                bool result = await _facultiesDataProvider.UpdateFacultyAsync(model);
                 if (result)
                 {
                     TempData["faculty-edited"] = true;
@@ -174,9 +175,9 @@ public class FacultiesController : Controller
     {
         try
         {
-            if (await _dataProvider.ExistFacultyAsync(id))
+            if (await _facultiesDataProvider.ExistFacultyAsync(id))
             {
-                bool result = await _dataProvider.DeleteFacultyAsync(id);
+                bool result = await _facultiesDataProvider.DeleteFacultyAsync(id);
                 if (result)
                 {
                     TempData["faculty-deleted"] = true;

@@ -6,26 +6,25 @@ using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Curriculums;
 using QCUniversidad.WebClient.Models.Disciplines;
 using QCUniversidad.WebClient.Models.Shared;
-using QCUniversidad.WebClient.Services.Data;
+using QCUniversidad.WebClient.Services.Contracts;
 using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
 
 [Authorize("Auth")]
-public class CurriculumsController : Controller
+public class CurriculumsController(ICurriculumsDataProvider curriculumsDataProvider,
+                                   ICareersDataProvider careersDataProvider,
+                                   IDisciplinesDataProvider disciplinesDataProvider,
+                                   IMapper mapper,
+                                   IOptions<NavigationSettings> navOptions,
+                                   ILogger<CurriculumsController> logger) : Controller
 {
-    private readonly IDataProvider _dataProvider;
-    private readonly IMapper _mapper;
-    private readonly ILogger<CurriculumsController> _logger;
-    private readonly NavigationSettings _navigationSettings;
-
-    public CurriculumsController(IDataProvider dataProvider, IMapper mapper, IOptions<NavigationSettings> navOptions, ILogger<CurriculumsController> logger)
-    {
-        _dataProvider = dataProvider;
-        _mapper = mapper;
-        _logger = logger;
-        _navigationSettings = navOptions.Value;
-    }
+    private readonly ICurriculumsDataProvider _curriculumsDataProvider = curriculumsDataProvider;
+    private readonly ICareersDataProvider _careersDataProvider = careersDataProvider;
+    private readonly IDisciplinesDataProvider _disciplinesDataProvider = disciplinesDataProvider;
+    private readonly IMapper _mapper = mapper;
+    private readonly ILogger<CurriculumsController> _logger = logger;
+    private readonly NavigationSettings _navigationSettings = navOptions.Value;
 
     [Authorize("Admin")]
     [HttpGet]
@@ -35,7 +34,7 @@ public class CurriculumsController : Controller
         try
         {
             _logger.LogInformation($"Loading total curriculums count.");
-            int total = await _dataProvider.GetCurriculumsCountAsync();
+            int total = await _curriculumsDataProvider.GetCurriculumsCountAsync();
             _logger.LogInformation("Exists {0} curriculums in total.", total);
             int pageIndex = page - 1 < 0 ? 0 : page - 1;
             int startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
@@ -45,7 +44,7 @@ public class CurriculumsController : Controller
             }
 
             _logger.LogModelSetLoading<CurriculumsController, CurriculumModel>(HttpContext, startingItemIndex, _navigationSettings.ItemsPerPage);
-            IList<CurriculumModel> curriculums = await _dataProvider.GetCurriculumsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
+            IList<CurriculumModel> curriculums = await _curriculumsDataProvider.GetCurriculumsAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             _logger.LogInformation($"Loaded {curriculums.Count} curriculums.");
             int totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
             NavigationListViewModel<CurriculumModel> viewModel = new()
@@ -89,13 +88,13 @@ public class CurriculumsController : Controller
 
     private async Task LoadCareersIntoCreateModel(CreateCurriculumModel model)
     {
-        IList<Models.Careers.CareerModel> careers = await _dataProvider.GetCareersAsync();
+        IList<Models.Careers.CareerModel> careers = await _careersDataProvider.GetCareersAsync();
         model.Careers = careers;
     }
 
     private async Task LoadDisciplinesIntoCreateModel(CreateCurriculumModel model)
     {
-        IList<DisciplineModel> disciplines = await _dataProvider.GetDisciplinesAsync();
+        IList<DisciplineModel> disciplines = await _disciplinesDataProvider.GetDisciplinesAsync();
         model.Disciplines = disciplines;
     }
 
@@ -112,7 +111,7 @@ public class CurriculumsController : Controller
             {
                 _logger.LogCreateModelRequest<CurriculumsController, CurriculumModel>(HttpContext);
                 model.Disciplines ??= new List<DisciplineModel>(model.SelectedDisciplines?.Select(id => new DisciplineModel { Id = id }) ?? new List<DisciplineModel>());
-                bool result = await _dataProvider.CreateCurriculumAsync(model);
+                bool result = await _curriculumsDataProvider.CreateCurriculumAsync(model);
                 if (result)
                 {
                     _logger.LogModelCreated<CurriculumsController, CurriculumModel>(HttpContext);
@@ -138,7 +137,7 @@ public class CurriculumsController : Controller
     {
         foreach (Guid id in disciplinesIds)
         {
-            if (!await _dataProvider.ExistsDisciplineAsync(id))
+            if (!await _disciplinesDataProvider.ExistsDisciplineAsync(id))
             {
                 return false;
             }
@@ -153,9 +152,9 @@ public class CurriculumsController : Controller
     {
         _logger.LogRequest(HttpContext);
         _logger.LogCheckModelExistence<CurriculumsController, CurriculumModel>(HttpContext, id);
-        if (await _dataProvider.ExistsCurriculumAsync(id))
+        if (await _curriculumsDataProvider.ExistsCurriculumAsync(id))
         {
-            CurriculumModel curriculum = await _dataProvider.GetCurriculumAsync(id);
+            CurriculumModel curriculum = await _curriculumsDataProvider.GetCurriculumAsync(id);
             curriculum.SelectedDisciplines = curriculum.CurriculumDisciplines?.Select(d => d.Id).ToArray();
             curriculum.CurriculumDisciplines?.Clear();
             await LoadEditViewModel(curriculum);
@@ -175,13 +174,13 @@ public class CurriculumsController : Controller
         if (ModelState.IsValid)
         {
             _logger.LogCheckModelExistence<CurriculumsController, CurriculumModel>(HttpContext, model.Id);
-            if (await _dataProvider.ExistsCurriculumAsync(model.Id))
+            if (await _curriculumsDataProvider.ExistsCurriculumAsync(model.Id))
             {
                 if (model.SelectedDisciplines is null || await CheckDisciplinesExistence(model.SelectedDisciplines))
                 {
                     _logger.LogEditModelRequest<CurriculumsController, CurriculumModel>(HttpContext);
                     model.CurriculumDisciplines ??= new List<DisciplineModel>(model.SelectedDisciplines?.Select(id => new DisciplineModel { Id = id }) ?? new List<DisciplineModel>());
-                    bool result = await _dataProvider.UpdateCurriculumAsync(model);
+                    bool result = await _curriculumsDataProvider.UpdateCurriculumAsync(model);
                     if (result)
                     {
                         _logger.LogModelEdited<CurriculumsController, CurriculumModel>(HttpContext);
@@ -211,7 +210,7 @@ public class CurriculumsController : Controller
 
     private async Task LoadEditViewModel(CurriculumModel model)
     {
-        IList<DisciplineModel> disciplines = await _dataProvider.GetDisciplinesAsync();
+        IList<DisciplineModel> disciplines = await _disciplinesDataProvider.GetDisciplinesAsync();
         model.CurriculumDisciplines = disciplines;
     }
 
@@ -220,18 +219,20 @@ public class CurriculumsController : Controller
     public async Task<IActionResult> Delete(Guid id)
     {
         _logger.LogRequest(HttpContext);
-        if (await _dataProvider.ExistsCurriculumAsync(id))
+        if (!await _curriculumsDataProvider.ExistsCurriculumAsync(id))
         {
-            _logger.LogDeleteModelRequest<CurriculumsController, CurriculumModel>(HttpContext, id);
-            bool result = await _dataProvider.DeleteCurriculumAsync(id);
-            if (result)
-            {
-                _logger.LogModelDeleted<CurriculumsController, CurriculumModel>(HttpContext, id);
-                TempData["curriculum-deleted"] = true;
-                return Ok();
-            }
+            return BadRequest();
         }
 
-        return BadRequest();
+        _logger.LogDeleteModelRequest<CurriculumsController, CurriculumModel>(HttpContext, id);
+        bool result = await _curriculumsDataProvider.DeleteCurriculumAsync(id);
+        if (!result)
+        {
+            return BadRequest();
+        }
+
+        _logger.LogModelDeleted<CurriculumsController, CurriculumModel>(HttpContext, id);
+        TempData["curriculum-deleted"] = true;
+        return Ok();
     }
 }

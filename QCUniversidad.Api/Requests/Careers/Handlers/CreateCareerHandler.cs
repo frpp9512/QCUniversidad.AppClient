@@ -20,7 +20,12 @@ public class CreateCareerHandler(ICareersManager careersManager, IMapper mapper)
         {
             var createdCareer = await _careersManager.CreateCareerAsync(model);
             var careerDto = _mapper.Map<CareerDto>(createdCareer);
-            return new CreateCareerResponse { CreatedCareer = careerDto };
+            return new CreateCareerResponse
+            {
+                CreatedEntity = careerDto,
+                CreatedId = createdCareer.Id,
+                ApiEntityEndpointAction = "GetById"
+            };
         }
         catch (Exception ex)
         {

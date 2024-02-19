@@ -13,12 +13,12 @@ public static class SecurityUtil
     {
         byte[] keyArray;
         byte[] toEncryptArray = Encoding.UTF8.GetBytes(toEncrypt);
-        MD5CryptoServiceProvider hashmd5 = new();
+        using MD5CryptoServiceProvider hashmd5 = new();
         keyArray = hashmd5.ComputeHash(Encoding.UTF8.GetBytes(key));
         //Always release the resources and flush data
         // of the Cryptographic service provide. Best Practice
         hashmd5.Clear();
-        TripleDESCryptoServiceProvider tdes = new()
+        using TripleDESCryptoServiceProvider tdes = new()
         {
             //set the secret key for the tripleDES algorithm
             Key = keyArray,
@@ -30,9 +30,7 @@ public static class SecurityUtil
         };
         ICryptoTransform cTransform = tdes.CreateEncryptor();
         //transform the specified region of bytes array to resultArray
-        byte[] resultArray =
-          cTransform.TransformFinalBlock(toEncryptArray, 0,
-          toEncryptArray.Length);
+        byte[] resultArray = cTransform.TransformFinalBlock(toEncryptArray, 0, toEncryptArray.Length);
         //Release resources held by TripleDes Encryptor
         tdes.Clear();
         //Return the encrypted data into unreadable string format
@@ -45,7 +43,7 @@ public static class SecurityUtil
         //get the byte code of the string
         byte[] toEncryptArray = Convert.FromBase64String(cipherString);
         //if hashing was used get the hash code with regards to your key
-        MD5CryptoServiceProvider hashmd5 = new();
+        using MD5CryptoServiceProvider hashmd5 = new();
         keyArray = hashmd5.ComputeHash(UTF8Encoding.UTF8.GetBytes(key));
         //release any resource held by the MD5CryptoServiceProvider
         hashmd5.Clear();

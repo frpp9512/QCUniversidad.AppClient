@@ -7,7 +7,7 @@ namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class CareerController(IMediator mediator) : ControllerBase
+public class CareerController(IMediator mediator) : ApiControllerBase
 {
     private readonly IMediator _mediator = mediator;
 
@@ -21,9 +21,7 @@ public class CareerController(IMediator mediator) : ControllerBase
 
         var request = new CreateCareerRequest { NewCareerDto = career };
         var response = await _mediator.Send(request, cancellationToken);
-        return response.Error
-            ? StatusCode(StatusCodes.Status500InternalServerError, response.Error)
-            : (IActionResult)Created(Url.Action("GetById", response.CreatedCareer?.Id), response.CreatedCareer);
+        return GetCreatedResponseResult(response);
     }
 
     [HttpGet]
@@ -31,7 +29,7 @@ public class CareerController(IMediator mediator) : ControllerBase
     {
         var request = new GetCareerByIdRequest { CareerId = id };
         var response = await _mediator.Send(request, cancellationToken);
-        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.Career);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
@@ -40,7 +38,7 @@ public class CareerController(IMediator mediator) : ControllerBase
     {
         var request = new GetCareersForFacultyRequest { FacultyId = facultyId };
         var response = await _mediator.Send(request, cancellationToken);
-        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.FacultyCareers);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
@@ -49,7 +47,7 @@ public class CareerController(IMediator mediator) : ControllerBase
     {
         var request = new GetCareersForDepartmentRequest { DepartmentId = departmentId };
         var response = await _mediator.Send(request, cancellationToken);
-        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.DepartmentCareers);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
@@ -58,7 +56,7 @@ public class CareerController(IMediator mediator) : ControllerBase
     {
         var request = new ExistsCareerRequest { CareerId = id };
         var response = await _mediator.Send(request, cancellationToken);
-        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.CareerExists);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
@@ -67,7 +65,7 @@ public class CareerController(IMediator mediator) : ControllerBase
     {
         var request = new GetCareersRangeRequest { From = from, To = to };
         var response = await _mediator.Send(request, cancellationToken);
-        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.Careers);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
@@ -76,7 +74,7 @@ public class CareerController(IMediator mediator) : ControllerBase
     {
         var request = new GetCareersCountRequest();
         var response = await _mediator.Send(request, cancellationToken);
-        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.CareersCount);
+        return GetResponseResult(response);
     }
 
     [HttpPost]
@@ -90,7 +88,7 @@ public class CareerController(IMediator mediator) : ControllerBase
 
         var request = new UpdateCareerRequest { Career = career };
         var response = await _mediator.Send(request, cancellationToken);
-        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.CareerUpdated);
+        return GetResponseResult(response);
     }
 
     [HttpDelete]
@@ -98,6 +96,6 @@ public class CareerController(IMediator mediator) : ControllerBase
     {
         var request = new DeleteCareerRequest { CareerId = id };
         var response = await _mediator.Send(request, cancellationToken);
-        return response.Error ? StatusCode(StatusCodes.Status500InternalServerError, response.Error) : (IActionResult)Ok(response.Deleted);
+        return GetResponseResult(response);
     }
 }

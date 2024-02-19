@@ -6,26 +6,25 @@ using QCUniversidad.WebClient.Models.Careers;
 using QCUniversidad.WebClient.Models.Configuration;
 using QCUniversidad.WebClient.Models.Faculties;
 using QCUniversidad.WebClient.Models.Shared;
-using QCUniversidad.WebClient.Services.Data;
+using QCUniversidad.WebClient.Services.Contracts;
 using QCUniversidad.WebClient.Services.Platform;
 
 namespace QCUniversidad.WebClient.Controllers;
 
 [Authorize("Auth")]
-public class CareersController : Controller
+public class CareersController(ICareersDataProvider dataProvider,
+                               ISchoolYearDataProvider schoolYearDataProvider,
+                               IFacultiesDataProvider facultiesDataProvider,
+                               IMapper mapper,
+                               ILogger<CareersController> logger,
+                               IOptions<NavigationSettings> settings) : Controller
 {
-    private readonly IDataProvider _dataProvider;
-    private readonly IMapper _mapper;
-    private readonly ILogger<CareersController> _logger;
-    private readonly NavigationSettings _navigationSettings;
-
-    public CareersController(IDataProvider dataProvider, IMapper mapper, ILogger<CareersController> logger, IOptions<NavigationSettings> settings)
-    {
-        _dataProvider = dataProvider;
-        _mapper = mapper;
-        _logger = logger;
-        _navigationSettings = settings.Value;
-    }
+    private readonly ICareersDataProvider _careersDataProvider = dataProvider;
+    private readonly ISchoolYearDataProvider _schoolYearDataProvider = schoolYearDataProvider;
+    private readonly IFacultiesDataProvider _facultiesDataProvider = facultiesDataProvider;
+    private readonly IMapper _mapper = mapper;
+    private readonly ILogger<CareersController> _logger = logger;
+    private readonly NavigationSettings _navigationSettings = settings.Value;
 
     [Authorize("Admin")]
     [HttpGet]
@@ -34,7 +33,7 @@ public class CareersController : Controller
         _logger.LogInformation($"Requested {HttpContext.Request.Path} - {HttpContext.Request.Method}");
         try
         {
-            int total = await _dataProvider.GetCareersCountAsync();
+            int total = await _careersDataProvider.GetCareersCountAsync();
             int pageIndex = page - 1 < 0 ? 0 : page - 1;
             int startingItemIndex = pageIndex * _navigationSettings.ItemsPerPage;
             if (startingItemIndex < 0 || startingItemIndex >= total)
@@ -42,7 +41,7 @@ public class CareersController : Controller
                 startingItemIndex = 0;
             }
 
-            IList<CareerModel> careers = await _dataProvider.GetCareersAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
+            IList<CareerModel> careers = await _careersDataProvider.GetCareersAsync(startingItemIndex, _navigationSettings.ItemsPerPage);
             int totalPages = (int)Math.Ceiling((double)total / _navigationSettings.ItemsPerPage);
             NavigationListViewModel<CareerModel> viewModel = new()
             {
@@ -69,8 +68,8 @@ public class CareersController : Controller
 
         try
         {
-            CareerModel career = await _dataProvider.GetCareerAsync(id);
-            Models.SchoolYears.SchoolYearModel schoolYear = await _dataProvider.GetSchoolYearAsync(id);
+            CareerModel career = await _careersDataProvider.GetCareerAsync(id);
+            Models.SchoolYears.SchoolYearModel schoolYear = await _schoolYearDataProvider.GetSchoolYearAsync(id);
             ViewData["schoolYear"] = schoolYear;
             return View(career);
         }
@@ -100,7 +99,7 @@ public class CareersController : Controller
     private async Task LoadFacultiesIntoCreateModel(CreateCareerModel model)
     {
         _logger.LogModelSetLoading<CareersController, FacultyModel>(HttpContext);
-        IList<FacultyModel> faculties = await _dataProvider.GetFacultiesAsync();
+        IList<FacultyModel> faculties = await _facultiesDataProvider.GetFacultiesAsync();
         model.Faculties = faculties;
     }
 
@@ -112,10 +111,10 @@ public class CareersController : Controller
         if (ModelState.IsValid)
         {
             _logger.LogCheckModelExistence<CareersController, FacultyModel>(HttpContext, model.FacultyId.ToString());
-            if (await _dataProvider.ExistFacultyAsync(model.FacultyId))
+            if (await _facultiesDataProvider    .ExistFacultyAsync(model.FacultyId))
             {
                 _logger.LogCreateModelRequest<CareersController, CareerModel>(HttpContext);
-                bool result = await _dataProvider.CreateCareerAsync(model);
+                bool result = await _careersDataProvider.CreateCareerAsync(model);
                 if (result)
                 {
                     _logger.LogModelCreated<CareersController, CareerModel>(HttpContext);
@@ -147,7 +146,7 @@ public class CareersController : Controller
         try
         {
             _logger.LogModelSetLoading<CareersController, CareerModel>(HttpContext, id);
-            CareerModel model = await _dataProvider.GetCareerAsync(id);
+            CareerModel model = await _careersDataProvider.GetCareerAsync(id);
             EditCareerModel editModel = _mapper.Map<EditCareerModel>(model);
             return View(editModel);
         }
@@ -163,28 +162,30 @@ public class CareersController : Controller
     public async Task<IActionResult> EditAsync(EditCareerModel model)
     {
         _logger.LogRequest(HttpContext);
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            try
+            return View(model);
+        }
+
+        try
+        {
+            _logger.LogEditModelRequest<CareersController, CareerModel>(HttpContext, model.Id);
+            bool result = await _careersDataProvider.UpdateCareerAsync(_mapper.Map<CareerModel>(model));
+            if (result)
             {
-                _logger.LogEditModelRequest<CareersController, CareerModel>(HttpContext, model.Id);
-                bool result = await _dataProvider.UpdateCareerAsync(_mapper.Map<CareerModel>(model));
-                if (result)
-                {
-                    _logger.LogModelEdited<CareersController, CareerModel>(HttpContext, model.Id);
-                    TempData["career-edited"] = true;
-                    return RedirectToActionPermanent("Index");
-                }
-                else
-                {
-                    _logger.LogErrorEditingModel<CareersController, CareerModel>(HttpContext, model.Id);
-                    ModelState.AddModelError("Error", "Error editando la carrera.");
-                }
+                _logger.LogModelEdited<CareersController, CareerModel>(HttpContext, model.Id);
+                TempData["career-edited"] = true;
+                return RedirectToActionPermanent("Index");
             }
-            catch (Exception)
+            else
             {
-                return RedirectToAction("Error", "Home");
+                _logger.LogErrorEditingModel<CareersController, CareerModel>(HttpContext, model.Id);
+                ModelState.AddModelError("Error", "Error editando la carrera.");
             }
+        }
+        catch (Exception)
+        {
+            return RedirectToAction("Error", "Home");
         }
 
         return View(model);
@@ -198,19 +199,21 @@ public class CareersController : Controller
         try
         {
             _logger.LogCheckModelExistence<CareersController, CareerModel>(HttpContext, id);
-            if (await _dataProvider.ExistsCareerAsync(id))
+            if (!await _careersDataProvider.ExistsCareerAsync(id))
             {
-                _logger.LogDeleteModelRequest<CareersController, CareerModel>(HttpContext, id);
-                bool result = await _dataProvider.DeleteCareerAsync(id);
-                if (result)
-                {
-                    _logger.LogDeleteModelRequest<CareersController, CareerModel>(HttpContext, id);
-                    TempData["career-deleted"] = true;
-                    return Ok($"Se ha eliminado correctamente la carrera con id {id}.");
-                }
+                return NotFound($"No se ha encontrado el departamento con id {id}.");
             }
 
-            return NotFound($"No se ha encontrado el departamento con id {id}.");
+            _logger.LogDeleteModelRequest<CareersController, CareerModel>(HttpContext, id);
+            bool result = await _careersDataProvider.DeleteCareerAsync(id);
+            if (!result)
+            {
+                return NotFound($"No se ha encontrado el departamento con id {id}.");
+            }
+
+            _logger.LogDeleteModelRequest<CareersController, CareerModel>(HttpContext, id);
+            TempData["career-deleted"] = true;
+            return Ok($"Se ha eliminado correctamente la carrera con id {id}.");
         }
         catch (Exception ex)
         {
