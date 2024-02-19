@@ -1,150 +1,79 @@
-﻿using AutoMapper;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using QCUniversidad.Api.Contracts;
-using QCUniversidad.Api.Data.Models;
-using QCUniversidad.Api.Exceptions;
+using QCUniversidad.Api.Requests.Curriculums.Models;
 using QCUniversidad.Api.Shared.Dtos.Curriculum;
-using QCUniversidad.Api.Shared.Dtos.Discipline;
 
 namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class CurriculumController(ICurriculumsManager dataManager, IMapper mapper) : ControllerBase
+public class CurriculumController(IMediator mediator) : ApiControllerBase
 {
-    private readonly ICurriculumsManager _dataManager = dataManager;
-    private readonly IMapper _mapper = mapper;
+    private readonly IMediator _mediator = mediator;
 
     [HttpGet("list")]
-    public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
+    public async Task<IActionResult> GetListAsync(int from = 0, int to = 0, CancellationToken cancellationToken = default)
     {
-        IList<CurriculumModel> curriculums = await _dataManager.GetCurriculumsAsync(from, to);
-        IEnumerable<CurriculumDto> dtos = curriculums.Select(_mapper.Map<CurriculumDto>);
-        return Ok(dtos);
+        var request = new GetCurriculumsRangeRequest { From = from, To = to };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet("listforcareer")]
-    public async Task<IActionResult> GetListForCareerAsync(Guid careerId)
+    public async Task<IActionResult> GetListForCareerAsync(Guid careerId, CancellationToken cancellationToken)
     {
-        try
-        {
-            IList<CurriculumModel> curriculums = await _dataManager.GetCurriculumsForCareerAsync(careerId);
-            IEnumerable<CurriculumDto> dtos = curriculums.Select(_mapper.Map<CurriculumDto>);
-            return Ok(dtos);
-        }
-        catch (CareerNotFoundException)
-        {
-            return BadRequest("The career do not exists.");
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetCurriculumsForCareerRequest { CareerId = careerId };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("count")]
-    public async Task<IActionResult> GetCount()
+    public async Task<IActionResult> GetCount(CancellationToken cancellationToken)
     {
-        try
-        {
-            int count = await _dataManager.GetCurriculumsCountAsync();
-            return Ok(count);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetCurriculumsCountRequest();
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("exists")]
-    public async Task<IActionResult> ExistsAsync(Guid id)
+    public async Task<IActionResult> ExistsAsync(Guid id, CancellationToken cancellationToken)
     {
-        try
-        {
-            bool result = await _dataManager.ExistsCurriculumAsync(id);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new ExistCurriculumRequest { CurriculumId = id };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpPut]
-    public async Task<IActionResult> CreateAsync(NewCurriculumDto curriculumDto)
+    public async Task<IActionResult> CreateAsync(NewCurriculumDto curriculumDto, CancellationToken cancellationToken)
     {
-        if (curriculumDto is null)
-        {
-            return BadRequest("The teacher cannot be null.");
-        }
-
-        try
-        {
-            CurriculumModel model = _mapper.Map<CurriculumModel>(curriculumDto);
-            bool result = await _dataManager.CreateCurriculumAsync(_mapper.Map<CurriculumModel>(curriculumDto));
-            return result ? Ok() : Problem("An error has occured creating the curriculum.");
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new CreateCurriculumRequest { NewCurriculum = curriculumDto };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetCreatedResponseResult(response);
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetByIdAsync(Guid id)
+    public async Task<IActionResult> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        if (id == Guid.Empty)
-        {
-            return BadRequest("You must provide an id.");
-        }
-
-        try
-        {
-            CurriculumModel result = await _dataManager.GetCurriculumAsync(id);
-            CurriculumDto dto = _mapper.Map<CurriculumDto>(result);
-            dto.CurriculumDisciplines ??= new List<SimpleDisciplineDto>();
-            dto.CurriculumDisciplines = result.CurriculumDisciplines
-                                           .Select(cs => _mapper.Map<SimpleDisciplineDto>(cs.Discipline))
-                                           .ToList();
-            return Ok(dto);
-        }
-        catch (CurriculumNotFoundException)
-        {
-            return NotFound($"The curriculum with id {id} was not found.");
-        }
+        var request = new GetCurriculumByIdRequest { CurriculumId = id };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpPost("update")]
-    public async Task<IActionResult> UpdateAsync(EditCurriculumDto curriculum)
+    public async Task<IActionResult> UpdateAsync(EditCurriculumDto curriculum, CancellationToken cancellationToken)
     {
-        if (curriculum is null)
-        {
-            return BadRequest("The curriculum cannot be null.");
-        }
-
-        CurriculumModel model = _mapper.Map<CurriculumModel>(curriculum);
-        bool result = await _dataManager.UpdateCurriculumAsync(model);
-        return Ok(result);
+        var request = new UpdateCurriculumRequest { CurriculumToUpdate = curriculum };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpDelete]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        if (id == Guid.Empty)
-        {
-            return BadRequest("You must provide an id.");
-        }
-
-        try
-        {
-            bool result = await _dataManager.DeleteCurriculumAsync(id);
-            return Ok(result);
-        }
-        catch (CurriculumNotFoundException)
-        {
-            return NotFound($"The curriculum with id '{id}' was not found.");
-        }
+        var request = new DeleteCurriculumRequest { CurriculumId = id };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 }

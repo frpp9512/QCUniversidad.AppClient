@@ -12,16 +12,13 @@ public class CurriculumsManager(QCUniversidadContext context,
     private readonly QCUniversidadContext _context = context;
     private readonly ICareersManager _careersManager = careersManager;
 
-    public async Task<bool> CreateCurriculumAsync(CurriculumModel curriculum)
+    public async Task<CurriculumModel> CreateCurriculumAsync(CurriculumModel curriculum)
     {
-        if (curriculum is null)
-        {
-            throw new ArgumentNullException(nameof(curriculum));
-        }
+        ArgumentNullException.ThrowIfNull(curriculum);
 
         _ = await _context.Curriculums.AddAsync(curriculum);
         int result = await _context.SaveChangesAsync();
-        return result > 0;
+        return curriculum;
     }
 
     public async Task<bool> ExistsCurriculumAsync(Guid id)

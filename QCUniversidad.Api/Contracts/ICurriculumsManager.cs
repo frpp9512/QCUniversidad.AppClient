@@ -4,7 +4,7 @@ namespace QCUniversidad.Api.Contracts;
 
 public interface ICurriculumsManager
 {
-    Task<bool> CreateCurriculumAsync(CurriculumModel curriculum);
+    Task<CurriculumModel> CreateCurriculumAsync(CurriculumModel curriculum);
     Task<bool> ExistsCurriculumAsync(Guid id);
     Task<int> GetCurriculumsCountAsync();
     Task<int> GetCurriculumDisciplinesCountAsync(Guid id);
