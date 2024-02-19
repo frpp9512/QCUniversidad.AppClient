@@ -24,7 +24,8 @@ public class ExistCourseHandler(ICoursesManager coursesManager) : IRequestHandle
         {
             return new()
             {
-                ErrorMessages = [ex.Message]
+                ErrorMessages = [ex.Message],
+                StatusCode = System.Net.HttpStatusCode.InternalServerError
             };
         }
     }

@@ -20,7 +20,8 @@ public class GetCoursesCountHandler(ICoursesManager coursesManager) : IRequestHa
         {
             return new()
             {
-                ErrorMessages = [ ex.Message ]
+                ErrorMessages = [ ex.Message ],
+                StatusCode = System.Net.HttpStatusCode.InternalServerError
             };
         }
     }

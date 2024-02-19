@@ -26,7 +26,8 @@ public class GetCoursesBySchoolYearOfFacultyHandler(ICoursesManager coursesManag
             {
                 return new()
                 {
-                    ErrorMessages = [$"The school year with id {request.SchoolYearId} doesn't exists."]
+                    ErrorMessages = [$"The school year with id {request.SchoolYearId} doesn't exists."],
+                    StatusCode = System.Net.HttpStatusCode.NotFound
                 };
             }
 
@@ -34,7 +35,8 @@ public class GetCoursesBySchoolYearOfFacultyHandler(ICoursesManager coursesManag
             {
                 return new()
                 {
-                    ErrorMessages = [$"The faculty with id {request.FacultyId} doesn't exists."]
+                    ErrorMessages = [$"The faculty with id {request.FacultyId} doesn't exists."],
+                    StatusCode = System.Net.HttpStatusCode.NotFound
                 };
             }
 
@@ -51,7 +53,8 @@ public class GetCoursesBySchoolYearOfFacultyHandler(ICoursesManager coursesManag
         {
             return new()
             {
-                ErrorMessages = [ex.Message]
+                ErrorMessages = [ex.Message],
+                StatusCode = System.Net.HttpStatusCode.InternalServerError
             };
         }
     }

@@ -25,13 +25,18 @@ public class UpdateCourseHandler(ICoursesManager coursesManager, IMapper mapper)
             return !result
                 ? new()
                 {
-                    ErrorMessages = [$"The course couldn't be updated."]
+                    ErrorMessages = [$"The course couldn't be updated."],
+                    StatusCode = System.Net.HttpStatusCode.InternalServerError
                 }
                 : new() { UpdatedCourse = request.CourseToUpdate };
         }
         catch (Exception ex)
         {
-            return new() { ErrorMessages = [$"Error while updating the course. Error message: {ex.Message}"] };
+            return new()
+            {
+                ErrorMessages = [$"Error while updating the course. Error message: {ex.Message}"],
+                StatusCode = System.Net.HttpStatusCode.InternalServerError
+            };
         }
     }
 }

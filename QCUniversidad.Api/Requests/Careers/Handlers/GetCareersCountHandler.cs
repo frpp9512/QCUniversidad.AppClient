@@ -18,7 +18,11 @@ public class GetCareersCountHandler(ICareersManager careersManager) : IRequestHa
 		}
 		catch (Exception ex)
 		{
-			return new() { ErrorMessages = [ ex.Message ] };
+			return new()
+			{
+				ErrorMessages = [ ex.Message ],
+				StatusCode = System.Net.HttpStatusCode.InternalServerError
+			};
 		}
     }
 }

@@ -18,7 +18,11 @@ public class ExistsCareerHandler(ICareersManager careersManager) : IRequestHandl
         }
         catch (Exception ex)
         {
-            return new() { ErrorMessages = [ex.Message] };
+            return new()
+            {
+                ErrorMessages = [ex.Message],
+                StatusCode = System.Net.HttpStatusCode.InternalServerError
+            };
         }
     }
 }

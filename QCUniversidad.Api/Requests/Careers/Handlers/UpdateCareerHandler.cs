@@ -24,11 +24,19 @@ public class UpdateCareerHandler(ICareersManager careersManager, IMapper mapper)
         }
         catch (CareerNotFoundException)
         {
-            return new() { ErrorMessages = [$"The career with id {request.Career.Id} was not found in database."] };
+            return new()
+            {
+                ErrorMessages = [$"The career with id {request.Career.Id} was not found in database."],
+                StatusCode = System.Net.HttpStatusCode.NotFound
+            };
         }
         catch (Exception ex)
         {
-            return new() { ErrorMessages = [ex.Message] };
+            return new()
+            {
+                ErrorMessages = [ex.Message],
+                StatusCode = System.Net.HttpStatusCode.InternalServerError
+            };
         }
     }
 }

@@ -15,15 +15,27 @@ public class DeleteCareerHandler(ICareersManager careersManager) : IRequestHandl
         try
         {
             bool result = await _careersManager.DeleteCareerAsync(request.CareerId);
-            return new() { CareerId = request.CareerId, Deleted = result };
+            return new()
+            {
+                CareerId = request.CareerId,
+                Deleted = result
+            };
         }
         catch (CareerNotFoundException)
         {
-            return new() { ErrorMessages = [$"The career with id {request.CareerId} was not found in database."] };
+            return new()
+            {
+                ErrorMessages = [$"The career with id {request.CareerId} was not found in database."],
+                StatusCode = System.Net.HttpStatusCode.NotFound
+            };
         }
         catch (Exception ex)
         {
-            return new() { ErrorMessages = [ex.Message] };
+            return new()
+            {
+                ErrorMessages = [ex.Message],
+                StatusCode = System.Net.HttpStatusCode.InternalServerError
+            };
         }
     }
 }

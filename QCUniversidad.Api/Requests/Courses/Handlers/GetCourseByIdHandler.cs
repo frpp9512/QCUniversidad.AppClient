@@ -30,14 +30,16 @@ public class GetCourseByIdHandler(ICoursesManager coursesManager, IMapper mapper
         {
             return new()
             {
-                ErrorMessages = [$"The course with id: {request.CourseId} doesn't exists."]
+                ErrorMessages = [$"The course with id: {request.CourseId} doesn't exists."],
+                StatusCode = System.Net.HttpStatusCode.NotFound
             };
         }
         catch (Exception ex)
         {
             return new()
             {
-                ErrorMessages = [ex.Message]
+                ErrorMessages = [ex.Message],
+                StatusCode = System.Net.HttpStatusCode.InternalServerError
             };
         }
     }

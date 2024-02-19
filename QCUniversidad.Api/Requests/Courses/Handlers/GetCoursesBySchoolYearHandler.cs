@@ -20,7 +20,11 @@ public class GetCoursesBySchoolYearHandler(ICoursesManager coursesManager, IScho
         {
             if (!await _schoolYearsManager.ExistSchoolYearAsync(request.SchoolYearId))
             {
-                return new() { ErrorMessages = [ $"The school year with id {request.SchoolYearId} doesn't exist." ] };
+                return new()
+                {
+                    ErrorMessages = [ $"The school year with id {request.SchoolYearId} doesn't exist." ],
+                    StatusCode = System.Net.HttpStatusCode.NotFound
+                };
             }
 
             IList<CourseModel> result = await _coursesManager.GetCoursesAsync(request.SchoolYearId);
@@ -35,7 +39,8 @@ public class GetCoursesBySchoolYearHandler(ICoursesManager coursesManager, IScho
         {
             return new()
             {
-                ErrorMessages = [ ex.Message ]
+                ErrorMessages = [ ex.Message ],
+                StatusCode = System.Net.HttpStatusCode.InternalServerError
             };
         }
     }

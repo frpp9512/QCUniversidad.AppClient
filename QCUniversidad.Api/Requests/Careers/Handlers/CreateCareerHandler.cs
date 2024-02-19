@@ -31,7 +31,8 @@ public class CreateCareerHandler(ICareersManager careersManager, IMapper mapper)
         {
             return new()
             {
-                ErrorMessages = [ ex.Message ]
+                ErrorMessages = [ ex.Message ],
+                StatusCode = System.Net.HttpStatusCode.InternalServerError
             };
         }
     }

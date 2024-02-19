@@ -27,11 +27,19 @@ public class GetCareersForFacultyHandler(ICareersManager careersManager, IMapper
         }
         catch (FacultyNotFoundException)
         {
-            return new() { ErrorMessages = [$"The faculty with the id {request.FacultyId} was not found."] };
+            return new()
+            {
+                ErrorMessages = [$"The faculty with the id {request.FacultyId} was not found."],
+                StatusCode = System.Net.HttpStatusCode.NotFound
+            };
         }
         catch (Exception ex)
         {
-            return new() { ErrorMessages = [ ex.Message ] };
+            return new()
+            {
+                ErrorMessages = [ex.Message],
+                StatusCode = System.Net.HttpStatusCode.InternalServerError
+            };
         }
     }
 }

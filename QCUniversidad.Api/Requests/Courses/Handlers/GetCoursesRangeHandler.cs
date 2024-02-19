@@ -30,7 +30,8 @@ public class GetCoursesRangeHandler(ICoursesManager coursesManager, IMapper mapp
         {
             return new()
             {
-                ErrorMessages = [ ex.Message ]
+                ErrorMessages = [ ex.Message ],
+                StatusCode = System.Net.HttpStatusCode.InternalServerError
             };
         }
     }
