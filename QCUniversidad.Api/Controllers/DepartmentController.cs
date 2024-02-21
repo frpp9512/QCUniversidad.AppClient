@@ -1,366 +1,138 @@
-﻿using AutoMapper;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using QCUniversidad.Api.ConfigurationModels;
-using QCUniversidad.Api.Contracts;
-using QCUniversidad.Api.Data.Models;
-using QCUniversidad.Api.Exceptions;
+using QCUniversidad.Api.Requests.Departments.Models;
+using QCUniversidad.Api.Requests.Planning.Models;
+using QCUniversidad.Api.Requests.Statistics.Models;
 using QCUniversidad.Api.Shared.Dtos.Department;
-using QCUniversidad.Api.Shared.Dtos.Statistics;
-using QCUniversidad.Api.Shared.Dtos.Teacher;
-using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
 
 namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class DepartmentController(IDepartmentsManager dataManager,
-                                  IPeriodsManager periodsManager,
-                                  IPlanningManager planningManager,
-                                  ITeachersManager teachersManager,
-                                  ITeachersLoadManager teachersLoadManager,
-                                  IMapper mapper,
-                                  IOptions<CalculationOptions> options) : ControllerBase
+public class DepartmentController(IMediator mediator) : ApiControllerBase
 {
-    private readonly IDepartmentsManager _departmentsManager = dataManager;
-    private readonly IPeriodsManager _periodsManager = periodsManager;
-    private readonly IPlanningManager _planningManager = planningManager;
-    private readonly ITeachersManager _teachersManager = teachersManager;
-    private readonly ITeachersLoadManager _teachersLoadManager = teachersLoadManager;
-    private readonly IMapper _mapper = mapper;
-    private readonly CalculationOptions _calculationOptions = options.Value;
+    private readonly IMediator _mediator = mediator;
 
     [HttpGet]
     [Route("listall")]
-    public async Task<IActionResult> GetList(int from = 0, int to = 0)
+    public async Task<IActionResult> GetList(int from = 0, int to = 0, CancellationToken cancellationToken = default)
     {
-        IList<DepartmentModel> deparments = await _departmentsManager.GetDepartmentsAsync(from, to);
-        List<DepartmentDto> dtos = deparments.Select(_mapper.Map<DepartmentDto>).ToList();
-        foreach (DepartmentDto? dto in dtos)
-        {
-            dto.DisciplinesCount = await _departmentsManager.GetDepartmentDisciplinesCount(dto.Id);
-        }
-
-        return Ok(dtos);
+        var request = new GetDepartmentsRangeRequest { From = from, To = to };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("list")]
-    public async Task<IActionResult> GetList(Guid facultyId)
+    public async Task<IActionResult> GetList(Guid facultyId, CancellationToken cancellationToken)
     {
-        if (facultyId == Guid.Empty)
-        {
-            return BadRequest("You should provide a faculty id to load the departments from.");
-        }
-
-        IList<DepartmentModel> deparments = await _departmentsManager.GetDepartmentsAsync(facultyId);
-        List<DepartmentDto> dtos = deparments.Select(_mapper.Map<DepartmentDto>).ToList();
-        foreach (DepartmentDto? dto in dtos)
-        {
-            dto.DisciplinesCount = await _departmentsManager.GetDepartmentDisciplinesCount(dto.Id);
-        }
-
-        return Ok(dtos);
+        var request = new GetDepartmentsOfFacultyRequest { FacultyId = facultyId };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("listallwithload")]
-    public async Task<IActionResult> GetListWithLoad(Guid periodId)
+    public async Task<IActionResult> GetListWithLoad(Guid periodId, CancellationToken cancellationToken)
     {
-        try
-        {
-            IList<DepartmentModel> deparments = await _departmentsManager.GetDepartmentsAsync();
-            List<DepartmentDto> dtos = deparments.Select(_mapper.Map<DepartmentDto>).ToList();
-            foreach (DepartmentDto? dto in dtos)
-            {
-                dto.DisciplinesCount = await _departmentsManager.GetDepartmentDisciplinesCount(dto.Id);
-                double load = await _departmentsManager.GetDepartmentTotalLoadInPeriodAsync(periodId, dto.Id);
-                dto.Load = load;
-                double loadCovered = await _departmentsManager.GetDepartmentTotalLoadCoveredInPeriodAsync(periodId, dto.Id);
-                dto.LoadCovered = loadCovered;
-                dto.LoadCoveredPercent = load == 0 ? 0 : Math.Round(loadCovered / load * 100, 1);
-                double totalFund = await _departmentsManager.GetDepartmentTotalTimeFund(dto.Id, periodId);
-                dto.TotalTimeFund = totalFund;
-                dto.LoadPercent = totalFund == 0 ? 0 : Math.Round(load / totalFund * 100, 1);
-            }
-
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetDepartmentsWithLoadInfoInPeriodRequest { PeriodId = periodId };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("countall")]
-    public async Task<IActionResult> GetCount()
+    public async Task<IActionResult> GetCount(CancellationToken cancellationToken)
     {
-        try
-        {
-            int count = await _departmentsManager.GetDepartmentsCountAsync();
-            return Ok(count);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetDepartmentsCountRequest();
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("countdisciplines")]
-    public async Task<IActionResult> GetDisciplinesCount(Guid departmentId)
+    public async Task<IActionResult> GetDisciplinesCount(Guid departmentId, CancellationToken cancellationToken)
     {
-        try
-        {
-            int count = await _departmentsManager.GetDepartmentsCountAsync(departmentId);
-            return Ok(count);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetDepartmentDisciplinesCountRequest { DepartmentId = departmentId };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("count")]
-    public async Task<IActionResult> GetCount(Guid facultyId)
+    public async Task<IActionResult> GetCount(Guid facultyId, CancellationToken cancellationToken)
     {
-        try
-        {
-            int count = await _departmentsManager.GetDepartmentsCountAsync(facultyId);
-            return Ok(count);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetDepartmentsCountOfFacultyRequest { FacultyId = facultyId };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet("exists")]
-    public async Task<IActionResult> ExistsAsync(Guid id)
+    public async Task<IActionResult> ExistsAsync(Guid id, CancellationToken cancellationToken)
     {
-        try
-        {
-            bool result = await _departmentsManager.ExistDepartmentAsync(id);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new ExistDepartmentRequest { DepartmentId = id };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
-        if (id == Guid.Empty)
-        {
-            return BadRequest("You should provide a department id.");
-        }
-
-        try
-        {
-            DepartmentModel department = await _departmentsManager.GetDepartmentAsync(id);
-            DepartmentDto dto = _mapper.Map<DepartmentDto>(department);
-            return Ok(dto);
-        }
-        catch (FacultyNotFoundException)
-        {
-            return NotFound($"The department with id '{id}' was not found.");
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new GetDepartmentByIdRequest { DepartmentId = id };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpPut]
-    public async Task<IActionResult> CreateDeparment(NewDepartmentDto department)
+    public async Task<IActionResult> CreateDepartment(NewDepartmentDto department, CancellationToken cancellationToken)
     {
-        if (department is null)
-        {
-            return BadRequest("You should provide a department.");
-        }
-
-        try
-        {
-            DepartmentModel model = _mapper.Map<DepartmentModel>(department);
-            bool result = await _departmentsManager.CreateDepartmentAsync(model);
-            return result ? Ok(result) : (IActionResult)Problem("Error while adding department to database.");
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new CreateDepartmentRequest { Department = department };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetCreatedResponseResult(response);
     }
 
     [HttpPost]
     [Route("update")]
-    public async Task<IActionResult> UpdateDepartment(EditDepartmentDto department)
+    public async Task<IActionResult> UpdateDepartment(EditDepartmentDto department, CancellationToken cancellationToken)
     {
-        if (department is null)
-        {
-            return BadRequest("You should provide a department.");
-        }
-
-        DepartmentModel model = _mapper.Map<DepartmentModel>(department);
-        bool result = await _departmentsManager.UpdateDeparmentAsync(model);
-        return result ? Ok(result) : (IActionResult)Problem("Error while updating department in database.");
+        var request = new UpdateDepartmentRequest { DepartmentToUpdate = department };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpDelete]
-    public async Task<IActionResult> DeleteDepartment(Guid id)
+    public async Task<IActionResult> DeleteDepartment(Guid id, CancellationToken cancellationToken)
     {
-        if (id == Guid.Empty)
-        {
-            return BadRequest("You should provide a department id.");
-        }
-
-        bool result = await _departmentsManager.DeleteDepartmentAsync(id);
-        return result ? Ok(result) : (IActionResult)Problem("Error while deleting department from database.");
+        var request = new DeleteDepartmentRequest { DepartmentId = id };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("planningitems")]
-    public async Task<IActionResult> GetPlanningItems(Guid id, Guid periodId, bool onlyLoadItems = false, Guid? courseId = null)
+    public async Task<IActionResult> GetPlanningItems(Guid id, Guid periodId, bool onlyLoadItems = false, Guid? courseId = null, CancellationToken cancellationToken = default)
     {
-        try
+        var request = new GetPlanningForDepartmentRequest
         {
-            IList<TeachingPlanItemModel> result = await _planningManager.GetTeachingPlanItemsOfDepartmentOnPeriod(id, periodId, courseId, onlyLoadItems);
-            double periodTimeFund = await _periodsManager.GetPeriodTimeFund(periodId);
-            List<TeachingPlanItemDto> dtos = result.Select(_mapper.Map<TeachingPlanItemDto>).ToList();
-            foreach (TeachingPlanItemDto? dto in dtos)
-            {
-                if (dto.LoadItems is null)
-                {
-                    continue;
-                }
-
-                foreach (Shared.Dtos.LoadItem.SimpleLoadItemDto loadItem in dto.LoadItems)
-                {
-                    if (loadItem.Teacher is null)
-                    {
-                        continue;
-                    }
-
-                    double load = await _teachersLoadManager.GetTeacherLoadInPeriodAsync(loadItem.Teacher.Id, periodId);
-                    loadItem.Teacher.Load = new TeacherLoadDto
-                    {
-                        TeacherId = loadItem.Teacher.Id,
-                        TimeFund = periodTimeFund,
-                        Load = load,
-                        LoadPercent = Math.Round(load / periodTimeFund * 100, 2),
-                        PeriodId = periodId
-                    };
-                }
-            }
-
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+            DepartmentId = id,
+            PeriodId = periodId,
+            CourseId = courseId,
+            OnlyLoadItems = onlyLoadItems
+        };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet]
     [Route("periodstats")]
-    public async Task<IActionResult> GetPeriodStatistics(Guid departmentId, Guid periodId)
+    public async Task<IActionResult> GetPeriodStatistics(Guid departmentId, Guid periodId, CancellationToken cancellationToken)
     {
-        if (periodId == Guid.Empty)
+        var request = new GetDepartmentStatisticsRequest
         {
-            return BadRequest(new { error = "You should provide a valid period id." });
-        }
-
-        if (departmentId == Guid.Empty)
-        {
-            return BadRequest(new { error = "You should provide a valid department id." });
-        }
-
-        try
-        {
-            List<StatisticItemDto> stats = [];
-            PeriodModel period = await _periodsManager.GetPeriodAsync(periodId);
-            double timeFund = period.TimeFund;
-
-            stats.Add(new()
-            {
-                Name = "Fondo de tiempo del período",
-                Mu = "h",
-                Value = timeFund
-            });
-
-            int teachersCount = await _teachersManager.GetTeachersCountAsync();
-            stats.Add(new()
-            {
-                Name = "Cantidad de profesores",
-                Mu = "U",
-                Value = teachersCount
-            });
-
-            double salary = teachersCount * _calculationOptions.AverageMonthlySalary * period.MonthsCount;
-            stats.Add(new()
-            {
-                Name = "Salario promedio",
-                Mu = "CUP",
-                Value = salary
-            });
-
-            double depCapacity = timeFund * teachersCount;
-            stats.Add(new()
-            {
-                Name = "Capacidad del departamento",
-                Mu = "h-profesor/período",
-                Value = depCapacity
-            });
-
-            double depLoad = await _departmentsManager.GetDepartmentTotalLoadInPeriodAsync(periodId, departmentId);
-            stats.Add(new()
-            {
-                Name = "Carga del departamento",
-                Mu = "h-profesor/período",
-                Value = depLoad
-            });
-
-            double depLoadPercent = Math.Round(depLoad / depCapacity * 100, 2);
-            stats.Add(new()
-            {
-                Name = "Porciento de carga",
-                Mu = "Porciento (%)",
-                Value = depLoadPercent
-            });
-
-            double diff = depLoad - depCapacity;
-            double personalRequiriement = Math.Floor(diff / (_calculationOptions.MonthTimeFund * period.MonthsCount));
-            stats.Add(new()
-            {
-                Name = "Ajustes de personal",
-                Mu = "U",
-                Value = personalRequiriement
-            });
-
-            double salaryImpact = personalRequiriement * _calculationOptions.AverageMonthlySalary * period.MonthsCount;
-            stats.Add(new()
-            {
-                Name = "Imacto económico luego de ajustes de personal",
-                Mu = "CUP",
-                Value = salaryImpact
-            });
-
-            double rap = await _departmentsManager.CalculateRAPAsync(departmentId);
-            stats.Add(new()
-            {
-                Name = "Relación alumno-profesor",
-                Mu = "",
-                Value = rap
-            });
-
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            return Problem(detail: ex.Message);
-        }
+            DepartmentId = departmentId,
+            PeriodId = periodId
+        };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 }

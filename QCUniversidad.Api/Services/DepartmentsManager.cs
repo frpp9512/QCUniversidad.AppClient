@@ -85,13 +85,13 @@ public class DepartmentsManager(QCUniversidadContext context,
         return count;
     }
 
-    public async Task<bool> CreateDepartmentAsync(DepartmentModel department)
+    public async Task<DepartmentModel> CreateDepartmentAsync(DepartmentModel department)
     {
         ArgumentNullException.ThrowIfNull(department);
 
         _ = await _context.Departments.AddAsync(department);
-        int result = await _context.SaveChangesAsync();
-        return result > 0;
+        await _context.SaveChangesAsync();
+        return department;
     }
 
     public async Task<bool> UpdateDeparmentAsync(DepartmentModel department)

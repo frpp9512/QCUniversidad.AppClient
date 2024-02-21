@@ -26,9 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Requests\Departments\Handlers\" />
-    <Folder Include="Requests\Departments\Models\" />
-    <Folder Include="Requests\Departments\Responses\" />
     <Folder Include="Requests\Disciplines\Handlers\" />
     <Folder Include="Requests\Disciplines\Models\" />
     <Folder Include="Requests\Disciplines\Responses\" />
@@ -38,9 +35,6 @@
     <Folder Include="Requests\Periods\Handlers\" />
     <Folder Include="Requests\Periods\Models\" />
     <Folder Include="Requests\Periods\Responses\" />
-    <Folder Include="Requests\Statistics\Handlers\" />
-    <Folder Include="Requests\Statistics\Models\" />
-    <Folder Include="Requests\Statistics\Responses\" />
     <Folder Include="Requests\Subject\Handlers\" />
     <Folder Include="Requests\Subject\Models\" />
     <Folder Include="Requests\Subject\Responses\" />
