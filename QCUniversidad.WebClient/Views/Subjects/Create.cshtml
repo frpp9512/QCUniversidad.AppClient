@@ -1,0 +1,58 @@
+﻿@model CreateSubjectModel
+@{
+    ViewData["Title"] = "Crear asignatura";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-xl-4">
+            <h1>Crear asignatura</h1>
+            <p>Rellene el forumlario para crear una nueva asignatura</p>
+            <hr />
+            <form asp-action="Create" method="post">
+                <div>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+                <fieldset>
+                    <div class="mb-3">
+                        <label for="DisciplineId" class="form-label">Seleccionar disciplina</label>
+                        <select asp-for="DisciplineId" class="form-select select-discipline" aria-label="Seleccionar disciplina" autofocus>
+                            @foreach (var item in Model.Disciplines)
+                            {
+                                <option value="@item.Id">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label"></label>
+                        <input asp-for="Description" class="form-control" />
+                        <span asp-validation-for="Description" />
+                    </div>
+                </fieldset>
+                <div class="form-footer mt-3">
+                    <input asp-for="ReturnTo" type="hidden" />
+                    <a href="@Model.ReturnTo" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar</a>
+                    <button type="submit" class="btn btn-primary"><span class="fa fa-plus"></span> Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            $('.select-discipline').select2({
+                placeholder: "Seleccione la disciplina"
+            });
+        });
+    </script>
+}

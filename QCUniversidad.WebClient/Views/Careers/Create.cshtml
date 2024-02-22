@@ -1,0 +1,73 @@
+﻿@model CreateCareerModel
+@{
+    ViewData["Title"] = "Crear carrera";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-xl-4">
+            <h1>Crear carrera</h1>
+            <p>Rellene el forumlario para crear una nueva carrer</p>
+            <hr />
+            <form asp-action="Create" method="post">
+                <div>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+                <fieldset>
+                    <div class="mb-3">
+                        <label for="FacultyId" class="form-label">Seleccionar facultad</label>
+                        <select asp-for="FacultyId" class="form-select select-faculty" aria-label="Seleccionar facultad" autofocus>
+                            @foreach (var item in Model.Faculties)
+                            {
+                                <option value="@item.Id">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label"></label>
+                        <input asp-for="Description" class="form-control" />
+                        <span asp-validation-for="Description" />
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="PostgraduateCourse" class="form-check-input" type="checkbox" />
+                            <label asp-for="PostgraduateCourse" class="form-check-label"></label>
+                            <small><span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Postgrado</small></div> <div>Define si la carrera es curso de postgrado (incluye Maestrías y Doctorados)</div>"></span></small>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="form-footer mt-3">
+                    <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    <button type="submit" class="btn btn-primary"><span class="fa fa-plus"></span> Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/lib/popper/popper.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.select-faculty').select2({
+                placeholder: "Seleccione la facultad"
+            });
+            LoadTooltips();
+        });
+
+        function LoadTooltips() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+    </script>
+}

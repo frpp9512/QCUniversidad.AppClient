@@ -1,0 +1,48 @@
+﻿@model EditDisciplineModel
+@{
+    ViewData["Title"] = "Editar disciplina";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-xl-4">
+            <h1>Editar disciplina</h1>
+            <p>Actualize los datos de la disciplina en el formulario</p>
+            <hr />
+            <form asp-action="Edit" asp-controller="Disciplines" method="post">
+                <div>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+                <fieldset>
+                    <div class="mb-3">
+                        <div class="col-sm-10">
+                            <input asp-for="DepartmentName" readonly class="form-control-plaintext">
+                            <input asp-for="DepartmentId" type="hidden" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label"></label>
+                        <input asp-for="Description" class="form-control" />
+                        <span asp-validation-for="Description" />
+                    </div>
+                </fieldset>
+                <div class="form-footer mt-3">
+                    <input asp-for="Id" type="hidden" />
+                    <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    <button type="submit" class="btn btn-primary"><span class="fa fa-floppy-disk"></span> Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

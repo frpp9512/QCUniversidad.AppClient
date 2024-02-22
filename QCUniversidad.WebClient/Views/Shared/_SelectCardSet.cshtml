@@ -1,0 +1,16 @@
+﻿@model IList<SelectCardModel>
+
+<div class="select-card-set">
+    @foreach (var card in Model)
+    {
+        <div class="select-card" selection-group='@card.GroupName' id='@card.Id' value='@card.Value' @(card.Selected ? "selected" : "")>
+            <div class="select-card-indicator"></div>
+            <div class="select-card-content">
+                <div class="select-card-title">@card.Title</div>
+                <div class="select-card-description">
+                    @card.Description
+                </div>
+            </div>
+        </div>
+    }
+</div>

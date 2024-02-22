@@ -1,0 +1,36 @@
+﻿@model IList<FacultyModel>
+@{
+    ViewData["Title"] = "Seleccionar facultad";
+    var returnUrl = ViewData["returnUrl"]?.ToString();
+}
+
+<h4>Seleccionar facultad</h4>
+<p>Primero seleccione la facultad para continuar</p>
+<div class="container">
+    <div class="options-selector mb-4" id="facultySelector">
+        <div class="options-selector-label">Facultad</div>
+        <div class="options-selector-options">
+            @foreach (var faculty in Model)
+            {
+                <div class="option-selector" value="@faculty.Id" @(Model.First().Id == faculty.Id ? "selected" : "")>@faculty.Name</div>
+            }
+        </div>
+    </div>
+    <div class="col-3 mb-3 d-flex align-baseline">
+        <button class="btn btn-success" onclick="SelectFaculty()">Continuar <span class="fa fa-arrow-right"></span></button>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/options-selector.js"></script>
+    <script>
+        $(document).ready(function () {
+            InitializeSelectors();
+        });
+
+        function SelectFaculty() {
+            let selected = getSelectorOptionsSelectedValue("#facultySelector");
+            location.href = `/planning/@returnUrl?facultyId=${selected}`;
+        }
+    </script>
+}

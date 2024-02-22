@@ -1,0 +1,12 @@
+﻿@model IList<FacultyModel>
+
+<div class="mb-3">
+    <label for="SelectedFaculty" class="form-label">Seleccionar facultad</label>
+    <select id="SelectedFaculty" name="SelectedFaculty" class="form-select select-faculty" aria-label="Seleccionar facultad" autofocus>
+        <option value="@Guid.Empty">Seleccione una facultad</option>
+        @foreach (var faculty in Model)
+        {
+            <option value="@faculty.Id">@faculty.Name</option>
+        }
+    </select>
+</div>

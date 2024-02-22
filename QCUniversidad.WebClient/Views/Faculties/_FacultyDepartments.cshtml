@@ -1,0 +1,55 @@
+﻿@model IList<DepartmentModel>
+
+<h4 class="mt-3 mb-3">Departamentos de la facultad</h4>
+
+@if (Model.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-hover w-100" id="departments-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Id interno</th>
+                    <th>Disciplinas</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr id="@item.Id">
+                        <td>
+                            @item.Name
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(item.Description))
+                            {
+                                @item.Description
+                            }
+                            else
+                            {
+                                <i class="text-muted">No tiene descripción</i>
+                            }
+                        </td>
+                        <td>
+                            @item.InternalId
+                        </td>
+                        <td>
+                            @item.DisciplinesCount
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-controller="Departments" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">
+                                <span class="fa fa-info-circle"></span>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <partial name="_NoItems" model="@("No existen departamentos en la facultad.")" />
+}

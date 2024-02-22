@@ -1,0 +1,32 @@
+﻿@model IList<BirthdayTeacherModel>
+
+@{
+    var monthName = DateTime.Now.Month switch { 1 => "Enero", 2 => "Febrero", 3 => "Marzo", 4 => "Abril", 5 => "Mayo", 6 => "Junio", 7 => "Julio", 8 => "Agosto", 9 => "Septiembre", 10 => "Octubre", 11 => "Noviembre", 12 => "Diciembre", _ => "" };
+}
+
+<div class="qccard">
+    <div class="qccard-title">Cumpleaños del mes de @(monthName)</div>
+    <div class="qccard-body">
+        @if (Model.Any())
+        {
+            foreach (var bt in Model)
+            {
+                <a asp-action="Details" asp-controller="Teachers" asp-route-id="@bt.Id">
+                    <div class="qcbt @(bt.IsBirthdayToday ? "qcbt-today" : "")">
+                        <div class="qcbt-name">
+                            <span class="fa fa-birthday-cake"></span>
+                            @bt.Fullname
+                        </div>
+                        <div class="qcbt-date">@bt.Birthday.ToShortDateString() (@bt.Age años)</div>
+                    </div>
+                </a>
+            }
+        }
+        else
+        {
+            <div class="no-qcbt">
+                <span class="fa fa-birthday-cake"></span> No hay cumpleaños este mes.
+            </div>
+        }
+    </div>
+</div>

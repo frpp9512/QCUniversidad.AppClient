@@ -1,0 +1,134 @@
+﻿@using QCUniversidad.Api.Shared.Enums
+@model TeacherModel
+
+@{
+    ViewData["Title"] = "Editar profesor";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-xl-4">
+            <h1>Editar profesor</h1>
+            <p>Actualice los datos del profesor en el forumlario</p>
+            <hr />
+            <form asp-action="Edit" asp-controller="Teachers" method="post">
+                <div>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+                <fieldset>
+                    <div class="mb-3">
+                        <div class="col-sm-10">
+                            <input asp-for="Department.Name" readonly class="form-control-plaintext">
+                            <input asp-for="DepartmentId" type="hidden" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Fullname" class="form-label"></label>
+                        <input asp-for="Fullname" class="form-control" />
+                        <span asp-validation-for="Fullname" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="PersonalId" class="form-label"></label>
+                        <input asp-for="PersonalId" class="form-control" />
+                        <span asp-validation-for="PersonalId" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Position" class="form-label"></label>
+                        <input asp-for="Position" class="form-control" />
+                        <span asp-validation-for="PersonalId" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="ContractType" class="form-label"></label>
+                        <select asp-for="ContractType" asp-items="@Html.GetEnumSelectList<TeacherContractType>()" class="form-control selected-teacherContract"></select>
+                        <span asp-validation-for="ContractType" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="SpecificTimeFund" class="form-label"></label>
+                        <input asp-for="SpecificTimeFund" class="form-control" />
+                        <span asp-validation-for="SpecificTimeFund" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Category" class="form-label"></label>
+                        <select asp-for="Category" asp-items="@Html.GetEnumSelectList<TeacherCategory>()" class="form-control selected-teacherCategory"></select>
+                        <span asp-validation-for="Category" />
+                    </div>
+                    <div class="mb-3">
+                        @{
+                            var groups = Model.Disciplines.GroupBy(d => d.DepartmentId);
+                            <label for="SelectedDisciplines">Disciplinas a la que pertenece</label>
+                            <select asp-for="SelectedDisciplines" class="form-control selected-disciplines" multiple aria-label="multiple select example">
+                                @foreach (var group in groups)
+                                {
+                                    <optgroup label="@group.FirstOrDefault()?.Name">
+                                        @foreach (var d in group)
+                                        {
+                                            <option value="@d.Id">@d.Name</option>
+                                        }
+                                    </optgroup>
+                                }
+                            </select>
+                        }
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" />
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="ServiceProvider" class="form-check-input" type="checkbox" />
+                            <label asp-for="ServiceProvider" class="form-check-label"></label>
+                            <small><span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Prestador de servicios</small></div> <div>Define si el profesor presta servicios a otros departamentos, permitiendo esto que los Jefe de Departamento puedan asignarle carga de asignaturas de sus disciplinas.</div>"></span></small>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="form-footer mt-3">
+                    <input asp-for="Id" type="hidden" />
+                    <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    <button type="submit" class="btn btn-primary"><span class="fa fa-floppy-disk"></span> Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            $('.selected-disciplines').select2({
+                placeholder: "Seleccione las disciplinas"
+            });
+            $('.selected-teacherCategory').select2({
+                placeholder: "Seleccione la categoría del profesor"
+            });
+        });
+    </script>
+
+    <script src="~/lib/popper/popper.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            LoadTooltips();
+            ContractTypeChanged();
+        });
+
+        function LoadTooltips() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+
+        function ContractTypeChanged() {
+            const timeFund = document.getElementById("SpecificTimeFund");
+            timeFund.disabled = true;
+            const contractTypeSelect = document.getElementById("ContractType");
+            let contractType = contractTypeSelect.options[contractTypeSelect.selectedIndex].innerText;
+            if (contractType == "Tiempo parcial") {
+                timeFund.disabled = false;
+            }
+        }
+    </script>
+}

@@ -1,0 +1,6 @@
+﻿@model IList<PeriodModel>
+
+@foreach(var item in Model)
+{
+    <option value="@item.Id">@item.Starts.ToString("dd-MM-yyyy") - @item.Ends.ToString("dd-MM-yyyy")</option>
+}

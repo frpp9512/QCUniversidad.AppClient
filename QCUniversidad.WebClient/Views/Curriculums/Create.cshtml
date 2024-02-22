@@ -1,0 +1,85 @@
+﻿@model CreateCurriculumModel
+@{
+    ViewData["Title"] = "Crear curriculum";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-xl-4">
+            <h1>Crear curriculum</h1>
+            <p>Rellene el forumlario para crear un nuevo curriculum</p>
+            <hr />
+            <form asp-action="Create" method="post">
+                <div>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+                <fieldset>
+                    <div class="mb-3">
+                        @{
+                            var careerGroups = Model.Careers.GroupBy(d => d.FacultyId);
+                            <label for="CareerId">Carrera</label>
+                            <select asp-for="CareerId" class="form-control selected-career" aria-label="select">
+                                @foreach (var group in careerGroups)
+                                {
+                                    <optgroup label="@group.FirstOrDefault()?.Faculty?.Name">
+                                        @foreach (var c in group)
+                                        {
+                                            <option value="@c.Id">@c.Name</option>
+                                        }
+                                    </optgroup>
+                                }
+                            </select>
+                        }
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Denomination" class="form-label"></label>
+                        <input asp-for="Denomination" class="form-control" />
+                        <span asp-validation-for="Denomination" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label"></label>
+                        <input asp-for="Description" class="form-control" />
+                        <span asp-validation-for="Description" />
+                    </div>
+                    <div class="mb-3">
+                        @{
+                            var groups = Model.Disciplines.GroupBy(d => d.DepartmentId);
+                            <label for="SelectedDisciplines">Disciplinas</label>
+                            <select asp-for="SelectedDisciplines" class="form-control selected-disciplines" multiple aria-label="multiple select example">
+                                @foreach (var group in groups)
+                                {
+                                    <optgroup label="@group.FirstOrDefault()?.Department?.Name">
+                                        @foreach (var d in group)
+                                        {
+                                            <option value="@d.Id">@d.Name</option>
+                                        }
+                                    </optgroup>
+                                }
+                            </select>
+                        }
+                    </div>
+                </fieldset>
+                <div class="form-footer mt-3">
+                    <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    <button type="submit" class="btn btn-primary"><span class="fa fa-plus"></span> Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            $('.selected-career').select2({
+                placeholder: "Seleccione la carrera"
+            });
+            $('.selected-disciplines').select2({
+                placeholder: "Seleccione las disciplinas"
+            });
+        });
+    </script>
+}

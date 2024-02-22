@@ -1,0 +1,70 @@
+version: '3.4'
+
+services:
+  postgres_db:
+    image: postgres
+    container_name: postgres_db
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=mr.hyde
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/postgresql/15/bin
+      - GOSU_VERSION=1.16
+      - LANG=en_US.utf8
+      - PG_MAJOR=15
+      - PG_VERSION=15.3-1.pgdg120+1
+      - PGDATA=/var/lib/postgresql/data
+    volumes:
+      - postgres_db_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  api-migrations:
+    build:
+      context: .
+      dockerfile: ./QCUniversidad.Api/MigrationsDockerfile
+    container_name: api-migrations
+    depends_on:
+      - postgres_db
+    restart: on-failure
+
+  qc-api:
+    build:
+      context: .
+      dockerfile: ./QCUniversidad.Api/Dockerfile
+    container_name: qc-api
+    depends_on:
+      - postgres_db
+      - api-migrations
+    environment:
+      - ConnectionStrings__PostgreSql=Server=postgres_db;Port=5432;Database=QCUData;User Id=postgres;Password=mr.hyde
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - 8087:80
+
+  client-migrations:
+    build:
+      context: .
+      dockerfile: ./QCUniversidad.WebClient/MigrationsDockerfile
+    container_name: client-migrations
+    depends_on:
+      - postgres_db
+    restart: on-failure
+
+  qc-client:
+    build:
+      context: .
+      dockerfile: ./QCUniversidad.WebClient/Dockerfile
+    container_name: qc-client
+    depends_on:
+      - postgres_db
+      - client-migrations
+    environment:
+      - ConnectionStrings__PostgreSql=Server=postgres_db;Port=5432;Database=QCUWebClient;User Id=postgres;Password=mr.hyde
+      - ASPNETCORE_URLS=http://+:80
+      - ApiConfiguration__BaseAddress=http://qc-api:80/
+    ports:
+      - 8088:80
+
+volumes:
+  postgres_db_data:
+    name: postgres_db_data

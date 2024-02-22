@@ -1,0 +1,51 @@
+﻿@model CourseModel
+@using QCUniversidad.WebClient.Services.Platform;
+@using QCUniversidad.WebClient.Models.Course;
+
+@{
+    ViewData["Title"] = "Detalles del curso";
+}
+
+<p class="text-muted">Detalles del curso <a asp-action="Edit" asp-route-id="@Model.Id" class="link-warning m-2"><span class="fa fa-edit"></span> Editar</a> <a asp-action="Index" class="link-info m-2"><span class="fa fa-rectangle-list"></span> Ir al listado</a></p>
+
+<h1 class="display-4">@Model.Denomination</h1>
+
+<dl class="row">
+    <dt class="col-sm-3">Año escolar</dt>
+    <dd class="col-sm-9">@Model.SchoolYear?.Name</dd>
+
+    <dt class="col-sm-3">Carrera</dt>
+    <dd class="col-sm-9">
+        <a asp-action="Details" asp-controller="Careers" asp-route-id="@Model.CareerId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Carrera</small></div> <div><b>@Model.Career?.Name</b></div> <div><i>@Model.Career?.Description</i></div>">
+            @Model.Career?.Name <small><span class="fa fa-circle-info"></span></small>
+        </a>
+    </dd>
+
+    <dt class="col-sm-3">Modalidad</dt>
+    <dd class="col-sm-9">@Html.DisplayFor(m => m.TeachingModality)</dd>
+
+    <dt class="col-sm-3">Año de carrera</dt>
+    <dd class="col-sm-9">@Model.GetCareerYearLabel()</dd>
+
+    <dt class="col-sm-3">Año terminal</dt>
+    <dd class="col-sm-9">
+        @if (Model.LastCourse)
+        {
+            <span class="fa fa-flag-checkered text-success" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Curso terminal</small></div> <div>Este es el curso terminal de la carrera.</div>"></span>
+        }
+        else
+        {
+            <span class="fa fa-times"></span>
+        }
+    </dd>
+
+    <dt class="col-sm-3">Curriculum</dt>
+    <dd class="col-sm-9">
+        <a asp-action="Details" asp-controller="Curriculum" asp-route-id="@Model.CurriculumId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Curriculum</small></div> <div><b>@Model.Curriculum?.Denomination</b></div> <div><i>@Model.Curriculum?.Description</i></div>">
+            @Model.Curriculum?.Denomination <small><span class="fa fa-circle-info"></span></small>
+        </a>
+    </dd>
+
+    <dt class="col-sm-3">Matrícula estimada</dt>
+    <dd class="col-sm-9">@Model.Enrolment</dd>
+</dl>

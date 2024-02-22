@@ -1,0 +1,105 @@
+﻿@using QCUniversidad.Api.Shared.Enums
+@model EditTeachingPlanItemModel
+@{
+    ViewData["Title"] = "Editar elemento de planificación";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-xl-5">
+            <h1>Editar elemento de planficación</h1>
+            <p>Actualice los datos del elemento de planificación en el forumlario</p>
+            <hr />
+            <div>
+                <dl class="row">
+                    <dt class="col-sm-3">Curso</dt>
+                    <dd class="col-sm-9">@Model.Course?.Denomination</dd>
+                    <dt class="col-sm-3">Curriculum</dt>
+                    <dd class="col-sm-9">@Model.Course?.Curriculum?.Denomination</dd>
+                    <dt class="col-sm-3">Período</dt>
+                    <dd class="col-sm-9">@Model.Period?.Starts.ToString("dd-MM-yyyy") - @Model.Period?.Starts.ToString("dd-MM-yyyy")</dd>
+                </dl>
+            </div>
+            <form asp-action="EditPlanningItem" method="post">
+                <div>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+                <fieldset>
+                    <div class="mb-3">
+                        <label for="FacultyId" class="form-label">Seleccionar asignatura</label>
+                        <select asp-for="SubjectId" class="form-select select-subject" aria-label="Seleccionar asignatura" autofocus>
+                            @{
+                                var subjectGroups = Model.Subjects?.GroupBy(s => s.DisciplineId);
+                                if (subjectGroups is not null && subjectGroups.Any())
+                                {
+                                    foreach (var group in subjectGroups)
+                                    {
+                                        <optgroup label="@group.First().Discipline?.Name">
+                                            @foreach (var item in group)
+                                            {
+                                                <option value="@item.Id">@item.Name</option>
+                                            }
+                                        </optgroup>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Type" class="form-label"></label>
+                        <select asp-for="Type" asp-items="@Html.GetEnumSelectList<TeachingActivityType>()" class="form-control selected-teachingitemtype"></select>
+                        <span asp-validation-for="Type" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="HoursPlanned" class="form-label"></label>
+                        <input asp-for="HoursPlanned" class="form-control" onchange="CalculateTotalHours()" onkeydown="CalculateTotalHours()" />
+                        <span asp-validation-for="HoursPlanned" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="GroupsAmount" class="form-label"></label>
+                        <input asp-for="GroupsAmount" class="form-control" onchange="CalculateTotalHours()" onkeydown="CalculateTotalHours()" />
+                        <span asp-validation-for="GroupsAmount" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="totalHoursInput" class="form-label">Horas totales</label>
+                        <input id="totalHoursInput" type="number" min="0" class="form-control" disabled />
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="IsNotLoadGenerator" class="form-check-input" type="checkbox" />
+                            <label asp-for="IsNotLoadGenerator" class="form-check-label"></label>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="form-footer mt-3">
+                    <input asp-for="CourseId" type="hidden" />
+                    <input asp-for="PeriodId" type="hidden" />
+                    <input asp-for="Id" type="hidden" />
+                    <a asp-action="Index" asp-route-courseSelected="@Model.CourseId" asp-route-periodSelected="@Model.PeriodId" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    <button type="submit" class="btn btn-warning"><span class="fa fa-floppy-disk"></span> Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            $('.select-subject').select2({
+                placeholder: "Seleccione la asignatura"
+            });
+            CalculateTotalHours();
+        });
+
+        function CalculateTotalHours() {
+            let hoursPlanned = document.getElementById("HoursPlanned").value;
+            let groupsAmount = document.getElementById("GroupsAmount").value;
+            let totalHours = hoursPlanned * groupsAmount;
+            document.getElementById("totalHoursInput").value = totalHours;
+        }
+    </script>
+}

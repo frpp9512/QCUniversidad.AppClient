@@ -1,0 +1,20 @@
+﻿@model IList<DepartmentModel>
+
+<div class="mb-3">
+    <label for="SelectedDepartment" class="form-label">Seleccionar departamento</label>
+    <select id="SelectedDepartment" name="SelectedDepartment" class="form-select select-department" aria-label="Seleccionar departamento" autofocus>
+        <option value="@Guid.Empty">Seleccione un departamento</option>
+        @{
+            var groups = Model.GroupBy(d => d.FacultyId);
+            foreach (var group in groups)
+            {
+                <optgroup label="@group.First()?.Faculty?.Name">
+                    @foreach (var department in group)
+                    {
+                        <option value="@department.Id">@department.Name</option>
+                    }
+                </optgroup>
+            }
+        }
+    </select>
+</div>

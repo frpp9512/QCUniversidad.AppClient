@@ -1,0 +1,111 @@
+﻿@model DisciplineModel
+
+@{
+    ViewData["Title"] = "Detalles de la disciplina";
+    var schoolYear = ViewData["schoolYear"] as SchoolYearModel;
+}
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start">
+        <div class="d-flex flex-column">
+            <div class="banner-title">Detalles</div>
+             <div class="banner-subtitle">de la disciplina del departamento <a asp-action="Details" asp-controller="Departments" asp-route-id="@Model.Department?.Id" class="link-info">@Model.Department?.Name <small><span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Departamento</small></div> <div><b>@Model.Department?.Name</b></div> <div>@Model.Department?.Description</div>"></span></small></a></div>
+        </div>
+    </div>
+    <div class="d-flex flex-column align-items-center schoolyear-header">
+        <div class="index-schoolyearheader">
+            Año escolar
+        </div>
+        <div class="index-schoolyearname">
+            @schoolYear?.Name
+        </div>
+        @if (!string.IsNullOrEmpty(schoolYear?.Description))
+        {
+            <div class="index-schoolyeardesc">
+                @schoolYear.Description
+            </div>
+        }
+    </div>
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Nombre</dt>
+    <dd class="col-sm-9">@Model.Name</dd>
+
+    <dt class="col-sm-3">Descripción</dt>
+    <dd class="col-sm-9">
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            @Model.Description
+        }
+        else
+        {
+            <span class="text-muted"><i>No tiene descripción</i></span>
+        }
+    </dd>
+</dl>
+
+<ul class="nav nav-tabs" id="disciplieDetails" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="subjects-tab" data-bs-toggle="tab" data-bs-target="#subjects" type="button" role="tab" aria-controls="subjects" aria-selected="true"><span class="fa fa-book"></span> Asignaturas</button>
+    </li>
+</ul>
+<div class="tab-content" id="disciplineDetailsContent">
+    <div class="tab-pane fade show active pt-2" id="subjects" role="tabpanel" aria-labelledby="home-tab">
+        <div class="text-center m-5">
+            <div class="spinner-grow text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Cargando asignaturas...</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/datatables/datatables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            LoadSubjects();
+        });
+
+        function LoadSubjects() {
+            $.ajax({
+                url: `/disciplines/DisciplineSubjects?disciplineId=@Html.Raw($"{Model.Id}")`,
+                type: "GET",
+                success: function (data) {
+                    const subjectsDiv = document.getElementById("subjects");
+                    subjectsDiv.innerHTML = data;
+                    $('#subjects-table').DataTable({
+                        responsive: true,
+                        language: {
+                            url: '/lib/datatables/lang/datatables.spanish.json'
+                        },
+                        dom: 'Bfrtip',
+                        buttons: [
+                            'copyHtml5', 'excelHtml5', 'pdfHtml5'
+                        ]
+                    });
+                    const table = document.getElementById("subjects-table");
+                    table.style.width = "100%";
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+    </script>
+
+    <script src="~/lib/popper/popper.min.js"></script>
+        <script>
+            $(document).ready(function () {
+                LoadTooltips();
+            });
+
+            function LoadTooltips() {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            }
+        </script>
+}

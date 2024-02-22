@@ -1,0 +1,138 @@
+﻿@model NavigationListViewModel<CurriculumModel>
+@{
+    ViewData["Title"] = "Curriculums";
+    bool curriculumAdded = (bool?)TempData["curriculum-created"] ?? false;
+    bool curriculumEdited = (bool?)TempData["curriculum-edited"] ?? false;
+    bool curriculumDeleted = (bool?)TempData["curriculum-deleted"] ?? false;
+}
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start justify-content-between">
+        <div class="d-flex flex-column">
+            <div class="banner-title">Curriculums</div>
+            <div class="banner-subtitle">Listado de curriculums generales del sistema</div>
+        </div>
+    </div>
+    <div>
+        <a asp-action="Create" class="btn btn-success"><span class="fa fa-plus-circle"></span> Crear nuevo</a>
+    </div>
+</div>
+
+@if (curriculumAdded)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-info-circle"></span> Curriculum creado</strong> Se ha creado un nuevo curriculum satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (curriculumEdited)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-pencil-square"></span> Curriculum editado</strong> Se ha editado un curriculum satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (curriculumDeleted)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-trash-can"></span> Curriculum eliminado</strong> Se ha eliminado un curriculum satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (Model.ItemsCount > 0)
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Denominación</th>
+                    <th>Descripción</th>
+                    <th>Carrera</th>
+                    <th>Disciplinas</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr id="@item.Id">
+                        <td>
+                            @item.Denomination
+                        </td>
+                        <td>
+                            @item.Description
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-controller="Careers" asp-route-id="@item.CareerId" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Carrera</small></div> <div><b>@item.Career?.Name</b></div> <div><i>@item.Career?.Description</i></div>">
+                                @item.Career?.Name <small><span class="fa fa-info-circle"></span></small>
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Disciplinas</small></div> <div>@(string.Join("", item.CurriculumDisciplines?.Select(cd => $"<div>{cd.Name}</div>").ToArray() ?? new string[1] { "<i>No tiene asignado disciplinas</i>" }))</div>">
+                                <strong>@item.CurriculumDisciplines?.Count()</strong>
+                                <span class="fa fa-info-circle"></span>
+                            </span>
+                        </td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
+                                <span class="fa fa-edit" />
+                            </a>
+                            <button class="btn btn-sm btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">
+                                <span class="fa fa-trash" />
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Navigation -->
+
+    <partial name="_PageNavigation" model="Model" />
+
+    <!-- Modals -->
+
+    <div class="modal fade" id="deleteCurriculumModal" tabindex="-1" aria-labelledby="deleteCurriculumModalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteCurriculumModalTitle"><span class="fa fa-trash"></span> Eliminar curriculum</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="modal-delete-content" class="modal-body">
+                    ¿Esta seguro que desea eliminar el curriculum?
+                </div>
+                <div id="deleteModalFooter" class="modal-footer">
+                    <div id="deleteModalLoadingSpinner" class="spinner-border text-primary" role="status" hidden>
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <button id="modal-delete-primarybutton" type="button" class="btn btn-danger"><span class="fa fa-trash-can"></span> Eliminar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span class="fa fa-ban"></span> Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+    <script src="~/js/curriculum-index.js"></script>
+    <script src="~/lib/popper/popper.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            LoadTooltips();
+        });
+
+        function LoadTooltips() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+    </script>
+    }
+}
+else
+{
+    <partial name="_NoItems" model="@("No existen curriculums registrados en el sistema.")" />
+}

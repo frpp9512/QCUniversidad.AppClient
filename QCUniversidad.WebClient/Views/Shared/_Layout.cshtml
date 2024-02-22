@@ -1,0 +1,185 @@
+﻿@using System.Security.Claims
+@using QCUniversidad.WebClient.Services.Platform
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - QCUniversidad</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link href="/lib/fontawesome/css/fontawesome.css" rel="stylesheet">
+    <link href="/lib/fontawesome/css/brands.css" rel="stylesheet">
+    <link href="/lib/fontawesome/css/solid.css" rel="stylesheet">
+    <link href="/lib/select2/select2.min.css" rel="stylesheet" />
+    <link href="/lib/percentage-circle/circle.css" rel="stylesheet" />
+    @await RenderSectionAsync("PageStyles", required: false)
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-toggleable-lg navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img width="50" src="/img/site/logo.svg" />
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index"><span class="fa fa-home"></span> Inicio</a>
+                        </li>
+                        @if (User.IsInRole("Jefe de departamento") || User.IsAdmin())
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="LoadDistribution" asp-action="Index"><span class="fa fa-arrows-down-to-people"></span> Distribución</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="LoadDistribution" asp-action="WorkForce"><span class="fa fa-people-group"></span> Fuerza de trabajo</a>
+                            </li>
+                        }
+                        @if (User.IsInRole("Planificador") || User.IsAdmin())
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Planning" asp-action="Index"><span class="fa fa-calendar-check"></span> Planificación</a>
+                            </li>
+                        }
+                        @if (User.IsAdmin())
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="fa fa-circle-nodes"></span> Gestión
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Faculties" asp-action="Index"><span class="fa fa-school nav-link-icon"></span> Facultades</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Careers" asp-action="Index"><span class="fa fa-graduation-cap nav-link-icon"></span> Carreras</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Departments" asp-action="Index"><span class="fa fa-users-rectangle nav-link-icon"></span> Departamentos</a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Disciplines" asp-action="Index"><span class="fa fa-cubes-stacked nav-link-icon"></span> Disciplinas</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Teachers" asp-action="Index"><span class="fa fa-person-chalkboard nav-link-icon"></span> Profesores</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Subjects" asp-action="Index"><span class="fa fa-book nav-link-icon"></span> Asignaturas</a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Curriculums" asp-action="Index"><span class="fa fa-rectangle-list nav-link-icon"></span> Curriculums</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="SchoolYears" asp-action="Index"><span class="fa fa-calendar-week nav-link-icon"></span> Años escolares</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Courses" asp-action="Index"><span class="fa fa-people-roof nav-link-icon"></span> Cursos</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Privacy"><span class="fa fa-user-shield"></span> Privacidad</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav mr-sm-2">
+
+                        @if (!User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a href="/accounts/login?returnUrl=@Context.Request.Path" class="btn btn-outline-primary" type="submit"><span class="fa-solid fa-user"></span> Iniciar sesión</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <div class="nav-profile-picture">
+                                        <img src="/accounts/profilepicture" class="nav-profile-pic mr-2" />
+                                        <div>
+                                            @User.Claims.First(c => c.Type == ClaimTypes.Name).Value
+                                        </div>
+                                        <div>
+                                            @if (User.IsAdmin())
+                                            {
+                                                <span>Administrador</span>
+                                            }
+                                            else if (User.IsPlanner())
+                                            {
+                                                <span>Planificador</span>
+                                            }
+                                            else if (User.IsDepartmentManager())
+                                            {
+                                                <span>Jefe de departamento</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-lg-end dropdown-menu-xl-end dropdown-xxl-end" aria-labelledby="navbarDropdownMenuLink">
+                                    @if (User.IsInRole("Administrador"))
+                                    {
+                                        <a class="dropdown-item" asp-action="Index" asp-controller="Accounts"><span class="fa fa-users"></span> Usuarios</a>
+                                    }
+                                    else if (User.IsDepartmentManager())
+                                    {
+                                        <a class="dropdown-item" asp-action="Details" asp-controller="Departments" asp-route-id="@User.GetDepartmentId()">
+                                            <span class="fa fa-info-circle"></span> <partial name="_LoggedUserDepartmentName" />
+                                        </a>
+                                    }
+                                    else
+                                    {
+
+                                    }
+                                    <li><a class="dropdown-item" href="/accounts/logout"><span class="fa fa-door-open"></span> Cerrar sesión</a></li>
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container fadeInUp" id="main-container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="footer-dev-info">
+            <img src="/img/site/dev_logo.svg" />
+            <div class="footer-dev-media">
+                <a href="https://facebook.com/frankinformaticservices"><span class="fa-brands fa-facebook"></span></a>
+                <a href="https://twitter.com/frankinformaticservices"><span class="fa-brands fa-twitter"></span></a>
+                <a href="https://instagram.com/frankinformaticservices"><span class="fa-brands fa-instagram"></span></a>
+                <a href="https://wa.me/5358591754"><span class="fa-brands fa-whatsapp"></span></a>
+                <a href="https://t.me/frankinformaticservices"><span class="fa-brands fa-telegram"></span></a>
+            </div>
+        </div>
+        <div class="footer-logo">
+            <img src="~/img/site/logo_fullvertical_negative.svg" />
+            <div class="footer-logo-copyright">
+                &copy; 2022 - QCUniversidad
+            </div>
+        </div>
+        <div class="footer-client-links">
+            <a href="https://www.uho.edu.cu/">
+                <img src="/img/site/client_logo_white.png" width="100" />
+            </a>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/lib/select2/select2.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

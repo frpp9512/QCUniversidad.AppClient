@@ -1,0 +1,40 @@
+﻿@using QCUniversidad.Api.Shared.Enums
+@model StatisticItemModel
+
+<div class="icard">
+    <div class="icard-title">@Model.Name</div>
+    <div class="icard-content">
+        @{
+            var colorValue = Model.State switch 
+            { 
+                StatisticState.TooLow => "text-danger",
+                StatisticState.Low => "text-warning",
+                StatisticState.Ok => "font-main-color",
+                StatisticState.High => "text-warning", 
+                StatisticState.TooHigh => "text-danger",
+                _ => "text-dark"
+            };
+        }
+        <div class="icard-value @(colorValue)">
+            @Model.Value
+            @if (!string.IsNullOrEmpty(Model.Mu))
+            {
+                <span class="icard-value-mu">@Model.Mu</span>
+            }
+        </div>
+        @if (Model.RefValue.HasValue)
+        {
+            <div class="icard-value-ref">
+                @Model.RefValue
+                @if (!string.IsNullOrEmpty(Model.Mu))
+                {
+                    <span class="icard-value-mu">@Model.Mu</span>
+                }
+            </div>
+        }
+        <hr />
+    </div>
+    <div class="icard-footer">
+        <p>@Model.Description</p>
+    </div>
+</div>

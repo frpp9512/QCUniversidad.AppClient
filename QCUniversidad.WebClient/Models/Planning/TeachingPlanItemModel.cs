@@ -1,0 +1,52 @@
+﻿using QCUniversidad.Api.Shared.Enums;
+using QCUniversidad.WebClient.Models.Course;
+using QCUniversidad.WebClient.Models.LoadItem;
+using QCUniversidad.WebClient.Models.Periods;
+using QCUniversidad.WebClient.Models.Subjects;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace QCUniversidad.WebClient.Models.Planning;
+
+public class TeachingPlanItemModel
+{
+    public Guid Id { get; set; }
+    public Guid SubjectId { get; set; }
+
+    [Display(Name = "Asignatura", Description = "Asignatura planificada", Prompt = "Asignatura planificada")]
+    public SubjectModel? Subject { get; set; }
+
+    [Display(Name = "Actividad", Description = "Actividad planificada", Prompt = "Tipo de activdad")]
+    public TeachingActivityType Type { get; set; }
+
+    [Display(Name = "Horas clase", Description = "Horas planificadas", Prompt = "Cantidad de horas planificadas")]
+    [Range(0, 2287.2)]
+    public double HoursPlanned { get; set; }
+
+    [Display(Name = "Cantidad de grupos", Description = "Cantidad de grupos involucrados en la actividad", Prompt = "Cantidad de grupos")]
+    public uint GroupsAmount { get; set; }
+
+    [NotMapped]
+    [Display(Name = "Horas planificadas", Description = "Total de horas planificadas", Prompt = "Cantidad de horas planificadas")]
+    public double TotalHoursPlanned { get; set; }
+
+    public double? TotalLoadCovered { get; set; }
+
+    public double? LoadCoveredPercent { get; set; }
+
+    public bool? AllowLoad { get; set; }
+
+    public bool? FromPostgraduateCourse { get; set; }
+
+    [Display(Name = "Práctica profesional o trabajo de culminación de curso o carrera", Description = "Define si la actividad es una actividad que da cierre al año o carrera, o en su defecto es una activdad de práctica profesional.", Prompt = "Práctica profesional o trabajo de culminación de curso o carrera")]
+    public bool IsNotLoadGenerator { get; set; }
+
+    public IList<LoadItemModel>? LoadItems { get; set; }
+
+    public Guid CourseId { get; set; }
+    [Display(Name = "Curso", Description = "El curso planificado", Prompt = "Curso planificado")]
+    public required CourseModel Course { get; set; }
+
+    public Guid PeriodId { get; set; }
+    public required PeriodModel Period { get; set; }
+}

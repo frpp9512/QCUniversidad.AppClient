@@ -1,0 +1,46 @@
+﻿@model FacultyModel
+@{
+    ViewData["Title"] = "Editar facultad";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-xl-4">
+            <h1>Editar facultad</h1>
+            <p>Actualice los datos de la facultad en el formulario</p>
+            <form asp-action="Edit" asp-controller="Faculties" method="post">
+                <div>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+                <fieldset>
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" autofocus />
+                        <span asp-validation-for="Name" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Campus" class="form-label"></label>
+                        <input asp-for="Campus" class="form-control" />
+                        <span asp-validation-for="Campus" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="InternalId" class="form-label"></label>
+                        <input asp-for="InternalId" class="form-control" />
+                        <span asp-validation-for="InternalId" />
+                    </div>
+                </fieldset>
+                <div class="form-footer mt-3">
+                    <input asp-for="Id" type="hidden" />
+                    <a asp-action="Index" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    <button type="submit" class="btn btn-primary"><span class="fa fa-floppy-disk"></span> Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

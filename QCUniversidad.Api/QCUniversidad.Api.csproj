@@ -1,19 +1,49 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>187268cc-47e8-450d-af69-1f05e8fcad22</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.8">
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="MediatR" Version="12.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.6" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.0-Preview.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QCUniversidad.Api.Shared\QCUniversidad.Api.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Requests\Disciplines\Handlers\" />
+    <Folder Include="Requests\Disciplines\Models\" />
+    <Folder Include="Requests\Disciplines\Responses\" />
+    <Folder Include="Requests\Faculties\Handlers\" />
+    <Folder Include="Requests\Faculties\Models\" />
+    <Folder Include="Requests\Faculties\Responses\" />
+    <Folder Include="Requests\Periods\Handlers\" />
+    <Folder Include="Requests\Periods\Models\" />
+    <Folder Include="Requests\Periods\Responses\" />
+    <Folder Include="Requests\Subject\Handlers\" />
+    <Folder Include="Requests\Subject\Models\" />
+    <Folder Include="Requests\Subject\Responses\" />
+    <Folder Include="Requests\Teachers\Handlers\" />
+    <Folder Include="Requests\Teachers\Models\" />
+    <Folder Include="Requests\Teachers\Responses\" />
   </ItemGroup>
 
 </Project>

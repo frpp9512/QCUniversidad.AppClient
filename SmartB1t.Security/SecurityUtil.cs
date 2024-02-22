@@ -1,0 +1,269 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Security;
+using System.Security.Cryptography;
+using System.Text;
+
+namespace SmartB1t.Security;
+
+public static class SecurityUtil
+{
+    public static string B64HashEncrypt(string key, string toEncrypt)
+    {
+        byte[] keyArray;
+        byte[] toEncryptArray = Encoding.UTF8.GetBytes(toEncrypt);
+        using MD5CryptoServiceProvider hashmd5 = new();
+        keyArray = hashmd5.ComputeHash(Encoding.UTF8.GetBytes(key));
+        //Always release the resources and flush data
+        // of the Cryptographic service provide. Best Practice
+        hashmd5.Clear();
+        using TripleDESCryptoServiceProvider tdes = new()
+        {
+            //set the secret key for the tripleDES algorithm
+            Key = keyArray,
+            //mode of operation. there are other 4 modes.
+            //We choose ECB(Electronic code Book)
+            Mode = CipherMode.ECB,
+            //padding mode(if any extra byte added)
+            Padding = PaddingMode.PKCS7
+        };
+        ICryptoTransform cTransform = tdes.CreateEncryptor();
+        //transform the specified region of bytes array to resultArray
+        byte[] resultArray = cTransform.TransformFinalBlock(toEncryptArray, 0, toEncryptArray.Length);
+        //Release resources held by TripleDes Encryptor
+        tdes.Clear();
+        //Return the encrypted data into unreadable string format
+        return Convert.ToBase64String(resultArray, 0, resultArray.Length);
+    }
+
+    public static string B64HashDecrypt(string key, string cipherString)
+    {
+        byte[] keyArray;
+        //get the byte code of the string
+        byte[] toEncryptArray = Convert.FromBase64String(cipherString);
+        //if hashing was used get the hash code with regards to your key
+        using MD5CryptoServiceProvider hashmd5 = new();
+        keyArray = hashmd5.ComputeHash(UTF8Encoding.UTF8.GetBytes(key));
+        //release any resource held by the MD5CryptoServiceProvider
+        hashmd5.Clear();
+        TripleDESCryptoServiceProvider tdes = new()
+        {
+            //set the secret key for the tripleDES algorithm
+            Key = keyArray,
+            //mode of operation. there are other 4 modes. 
+            //We choose ECB(Electronic code Book)
+            Mode = CipherMode.ECB,
+            //padding mode(if any extra byte added)
+            Padding = PaddingMode.PKCS7
+        };
+        ICryptoTransform cTransform = tdes.CreateDecryptor();
+        byte[] resultArray = cTransform.TransformFinalBlock(
+                             toEncryptArray, 0, toEncryptArray.Length);
+        //Release resources held by TripleDes Encryptor                
+        tdes.Clear();
+        //return the Clear decrypted TEXT
+        return UTF8Encoding.UTF8.GetString(resultArray);
+    }
+
+    public static string ToBase16String(string text)
+    {
+        Random r = new();
+        int key = r.Next(5000, 10000);
+        return IntToHex(key) + StrToHex(text, key);
+    }
+
+    public static string FromBase16String(string b16_text)
+    {
+        int key = HexToInt(b16_text[..4]);
+        b16_text = b16_text.Remove(0, 4);
+        string text = HexToStr(b16_text, key);
+        return text;
+    }
+
+    public static string ToBase64String(string text)
+    {
+        byte[] text_bytes = new byte[text.Length];
+        for (int i = 0; i < text_bytes.Length; i++)
+        {
+            text_bytes[i] = Convert.ToByte(text[i]);
+        }
+
+        string b64_text = Convert.ToBase64String(text_bytes);
+        return b64_text;
+    }
+
+    public static string FromB64String(string b64_text)
+    {
+        byte[] text_bytes = Convert.FromBase64String(b64_text);
+        string text = "";
+        for (int i = 0; i < text_bytes.Length; i++)
+        {
+            text += Convert.ToChar(text_bytes[i]);
+        }
+
+        return text;
+    }
+
+    public static SecureString SecureString(string text)
+    {
+        SecureString ss = new();
+        for (int i = 0; i < text.Length; i++)
+        {
+            ss.InsertAt(ss.Length, text[i]);
+        }
+
+        return ss;
+    }
+
+    public static string UnSecureString(SecureString protected_string)
+    {
+        nint ptr_ps = Marshal.SecureStringToBSTR(protected_string);
+        return Marshal.PtrToStringBSTR(ptr_ps);
+    }
+
+    public static string ToMd5String(string key, string text)
+    {
+        byte[] key_bytes = new byte[key.Length];
+        for (int i = 0; i < key_bytes.Length; i++)
+        {
+            key_bytes[i] = Convert.ToByte(key[i]);
+        }
+
+        HMACMD5 hmd5 = new(key_bytes);
+        byte[] text_bytes = new byte[text.Length];
+        for (int j = 0; j < text_bytes.Length; j++)
+        {
+            text_bytes[j] = Convert.ToByte(text[j]);
+        }
+
+        _ = new byte[text_bytes.Length];
+        byte[] md5_bytes = hmd5.ComputeHash(text_bytes);
+        string md5_text = "";
+        foreach (byte b in md5_bytes)
+        {
+            md5_text += Convert.ToChar(b);
+        }
+
+        return md5_text;
+    }
+
+    public static bool AreEquals(SecureString ss1, SecureString ss2)
+    {
+        return UnSecureString(ss1) == UnSecureString(ss2);
+    }
+
+    public static void ReleaseFromMemory(IDisposable IDisposable_obj)
+    {
+        IDisposable_obj.Dispose();
+    }
+
+    public static void ReleaseFromMemory(ref string str_var)
+    {
+        str_var = null;
+    }
+
+    public static void ReleaseUnUsedResources()
+    {
+        GC.Collect();
+    }
+
+    #region Hexadecimal conversion
+
+    private static string HexToStr(string hex, int key)
+    {
+        List<string> list = [];
+        string aux = "";
+        for (int i = 0; i < hex.Length; i++)
+        {
+            if ((i + 1) % 4 == 0)
+            {
+                list.Add(aux + hex[i]);
+                aux = "";
+            }
+            else
+            {
+                aux += hex[i];
+            }
+        }
+
+        string toret = "";
+        foreach (string s in list)
+        {
+            toret = toret.Insert(0, Convert.ToChar(HexToInt(s) - key).ToString());
+        }
+
+        return toret;
+    }
+
+    private static int HexToInt(string hex)
+    {
+        int val = IntEquivalent(hex[0].ToString());
+        for (int i = 1; i < hex.Length; i++)
+        {
+            val = (val * 16) + IntEquivalent(hex[i].ToString());
+        }
+
+        return val;
+    }
+
+    private static int IntEquivalent(string hex)
+    {
+        return hex switch
+        {
+            "a" => 10,
+            "b" => 11,
+            "c" => 12,
+            "d" => 13,
+            "e" => 14,
+            "f" => 15,
+            _ => int.Parse(hex),
+        };
+    }
+
+    private static string HexEquivalent(int i)
+    {
+        return i switch
+        {
+            10 => "a",
+            11 => "b",
+            12 => "c",
+            13 => "d",
+            14 => "e",
+            15 => "f",
+            _ => i.ToString(),
+        };
+    }
+
+    private static int RemoveFloatingPart(int i)
+    {
+        try { return int.Parse(i.ToString().Split('.')[0]); }
+        catch { return i; }
+    }
+
+    private static string IntToHex(int i)
+    {
+        string hex = "";
+        while (i >= 16)
+        {
+            hex = hex.Insert(0, HexEquivalent(i % 16));
+            i = RemoveFloatingPart(i / 16);
+        }
+
+        hex = hex.Insert(0, HexEquivalent(i));
+        return hex.Length == 1 ? hex.Insert(0, "0") : hex;
+    }
+
+    private static string StrToHex(string s, int key)
+    {
+        string hexStr = "";
+        foreach (char c in s)
+        {
+            hexStr = hexStr.Insert(0, IntToHex(int.Parse(Encoding.ASCII.GetBytes(c.ToString())[0].ToString()) + key).ToString());
+        }
+
+        return hexStr;
+    }
+
+    #endregion
+}

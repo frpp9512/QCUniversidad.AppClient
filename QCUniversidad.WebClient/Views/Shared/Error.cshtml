@@ -1,0 +1,18 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="text-center m-5">
+    <img src="~/img/site/error_icon.svg" width="300" />
+
+    <h3 class="text-danger">Ha ocurrido un error</h3>
+    <p>Ha ocurrido un error intentando procesar su solicitud. Vuelva a intentarlo y si persiste el fallo contacte a los administradores.</p>
+
+    @if (Model.ShowRequestId)
+    {
+        <p>
+            <small><strong>Request ID:</strong> <code>@Model.RequestId</code></small>
+        </p>
+    }
+</div>

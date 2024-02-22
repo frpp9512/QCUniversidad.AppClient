@@ -1,0 +1,785 @@
+﻿@model PlanningIndexModel
+
+@section PageStyles {
+    <link href="~/lib/datatables/datatables.min.css" rel="stylesheet" />
+}
+
+@{
+    ViewData["Title"] = "Planificación";
+
+    bool planningItemCreated = (bool?)TempData["planItem-created"] ?? false;
+    bool planningItemEdited = (bool?)TempData["planItem-edited"] ?? false;
+    bool planningItemDeleted = (bool?)TempData["planItem-deleted"] ?? false;
+}
+
+@if (planningItemCreated)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-info-circle"></span> Elemento de planificación creado</strong> Se ha creado un nuevo elemento de planificación satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (planningItemEdited)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-pencil-square"></span> Elemento de planificación editado</strong> Se ha editado un elemento de planificación satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (planningItemDeleted)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-trash-can"></span> Elemento de planificación eliminado</strong> Se ha eliminado un elemento de planificación satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start">
+        <div class="d-flex flex-column">
+
+            <div class="banner-title">Planificación</div>
+            <div class="banner-subtitle">de las cargas docentes de la facultad de <a asp-action="Details" asp-controller="Faculties" asp-route-id="@Model.Faculty.Id" class="link-muted">@Model.Faculty.Name <small><span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Facultad</small></div> <div><b>@Model.Faculty.Name</b></div> <div>@Model.Faculty.Campus</div>"></span></small></a></div>
+        </div>
+    </div>
+    <div class="d-flex flex-column align-items-center schoolyear-header">
+        <div class="index-schoolyearheader">
+            Año escolar
+        </div>
+        <div class="index-schoolyearname">
+            @Model.SchoolYear?.Name
+        </div>
+        @if (!string.IsNullOrEmpty(Model.SchoolYear.Description))
+        {
+            <div class="index-schoolyeardesc">
+                @Model.SchoolYear.Description
+            </div>
+        }
+    </div>
+</div>
+
+<div class="options-selector mb-4" id="careerSelector">
+    <div class="options-selector-label"><span class="fa fa-graduation-cap"></span> Carrera</div>
+    <div class="options-selector-options">
+        @if (Model.Careers.Any() == true)
+        {
+            foreach (var career in Model.Careers)
+            {
+                <div class="option-selector" value="@career.Id" @(Model.CareerSelected is null ? (Model.Careers.First().Id == career.Id ? "selected" : "") : Model.CareerSelected == career.Id ? "selected" : "")>@career.Name</div>
+            }
+        }
+        else
+        {
+            <span class="text-muted"><i>No existen carreras en la facultad.</i></span>
+        }
+    </div>
+</div>
+
+<div class="options-selector mb-4" id="courseSelector">
+    <div class="options-selector-label"><span class="fa fa-people-roof"></span> Curso</div>
+    <div class="options-selector-options" id="course-option-selectors">
+    </div>
+</div>
+
+<div class="options-selector mb-4" id="periodSelector">
+    <div class="options-selector-label"><span class="fa fa-calendar-days"></span> Período</div>
+    <div class="options-selector-options">
+        @foreach (var period in Model.Periods)
+        {
+            <div class="option-selector" value="@period.Id" @(Model.PeriodSelected is null ? (Model.Periods.First().Id == period.Id ? "selected" : "") : ((Model.PeriodSelected is not null && period.Id == Model.PeriodSelected.Value) ? "selected" : ""))>@period.ToString()</div>
+        }
+    </div>
+</div>
+
+<div class="mb-4" id="periodInfo">
+
+</div>
+
+<div class="row">
+    <div class="container">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(Model.Tab == "planning" ? "active" : "")" id="planning-tab" data-bs-toggle="tab" data-bs-target="#planning" type="button" role="tab" aria-controls="profile" aria-selected="false"><span class="fa fa-calendar-check"></span> Planificación</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(Model.Tab == "periodsubjects" ? "active" : "")" id="periodSubjects-tab" data-bs-toggle="tab" data-bs-target="#periodSubjects" type="button" role="tab" aria-controls="periodSubjects" aria-selected="true"><span class="fa fa-book"></span> Asignaturas</button>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade @(Model.Tab == "planning" ? "show active" : "")" id="planning" role="tabpanel" aria-labelledby="profile-tab">
+                <div class="d-flex justify-content-center flex-column pt-3" id="planningContent">
+                    <div class="spinner-grow m-5" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade @(Model.Tab == "periodsubjects" ? "show active" : "")" id="periodSubjects" role="tabpanel" aria-labelledby="home-tab">
+                <div class="d-flex justify-content-center flex-column pt-3" id="periodSubjects-content">
+                    <div class="spinner-grow m-5" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="_LoadingModal" />
+<partial name="_MessageModal" />
+
+@section Scripts {
+    <script src="~/lib/popper/popper.min.js"></script>
+    <script src="~/js/loading-modal.js"></script>
+    <script src="~/js/message-modal.js"></script>
+    <script src="~/js/options-selector.js"></script>
+    <script src="~/lib/datatables/datatables.min.js"></script>
+    <script>
+        var periodToSelect = '@(Model.PeriodSelected is null ? "" : Model.PeriodSelected.ToString())';
+        var facultyId = '@(Model.Faculty.Id)';
+        var selectedCourse = @Html.Raw(Model.CourseSelected is not null ? $"'{Model.CourseSelected}'" : "null");
+        var selectedSchoolYear = '@(Html.Raw(Model.SchoolYearId))';
+        var deleteModal = null;
+        var periodSubjectDeleteModal = null;
+        var requestingDelete = false;
+
+        $(document).ready(function () {
+            InitializeSelectors();
+            const periodSelect = document.getElementById("periodSelector");
+            periodSelect.addEventListener("option-selector-changed", () => PeriodSelected());
+            const careerSelect = document.getElementById("careerSelector");
+            careerSelect.addEventListener("option-selector-changed", () => CareerSelected());
+            const coursesSelect = document.getElementById("courseSelector");
+            coursesSelect.addEventListener("option-selector-changed", () => PeriodSelected());
+            CareerSelected();
+            LoadTooltips();
+        });
+
+        function LoadTooltips() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+
+        function CallNewElementPage() {
+            let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
+            let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
+            let careerSelected = getSelectorOptionsSelectedValue("#careerSelector");
+            let returnUrl = `/planning?facultyId=${facultyId}&periodSelected=${periodSelected}&schoolYearId=${selectedSchoolYear}&courseSelected=${courseSelected}&careerSelected=${careerSelected}&tab=planning`;
+            let encodedUrl = encodeURIComponent(returnUrl);
+
+            if (periodSelected != null && periodSelected != '' && courseSelected != null && courseSelected != '') {
+                location.href = `/planning/createplanningitem?periodId=${periodSelected}&courseId=${courseSelected}&returnTo=${encodedUrl}`;
+            }
+        }
+
+        let loadingCourses = false;
+
+        function CareerSelected() {
+            let selectedCareer = getSelectorOptionsSelectedValue("#careerSelector");
+            if (!loadingCourses) {
+                loadingCourses = true;
+                const optionsDiv = document.getElementById("course-option-selectors");
+                optionsDiv.innerHTML = "<span class='fa fa-spinner rotate'></span> Cargando cursos...";
+                SetLoadingPlanning();
+                $.ajax({
+                    url: `/planning/GetCoursesOptionSelectors?careerId=${selectedCareer}&facultyId=${facultyId}`,
+                    type: "GET",
+                    success: function (data) {
+                        loadingCourses = false;
+                        optionsDiv.innerHTML = data;
+                        InitializeSelectors();
+                        DisableLoadingPlanning();
+                        console.log(selectedCareer, selectedCareer == null);
+                        if (selectedCourse != null) {
+                            SelectOption("#course-option-selectors", selectedCourse);
+                            selectedCourse = null;
+                        }
+                        PeriodSelected();
+                        LoadPeriodSubjects();
+                    },
+                    error: function (xhr, status, error) {
+                        DisableLoadingPlanning();
+                        loadingCourses = false;
+                        optionsDiv.innerHTML = "<span class='fa fa-times'></span> Error cargando los cursos";
+                        console.log(xhr, status, error);
+                    }
+                });
+            }
+        }
+
+        function PeriodSelected() {
+            LoadPeriodSubjects();
+            LoadPlanning();
+            LoadPeriodInfo();
+        }
+
+        let loadingPeriodInfo = false;
+
+        function LoadPeriodInfo() {
+            // GetPeriodPlanningInfo
+            const periodInfoDiv = document.getElementById("periodInfo");
+            if (!loadingPeriodInfo) {
+                loadingPeriodInfo = true;
+                periodInfoDiv.innerHTML = "";
+                let selectedPeriod = getSelectorOptionsSelectedValue("#periodSelector");
+                let selectedCourse = getSelectorOptionsSelectedValue("#courseSelector");
+                $.ajax({
+                    url: `/planning/GetPeriodPlanningInfo?periodId=${selectedPeriod}&courseId=${selectedCourse}`,
+                    type: "GET",
+                    success: function (data) {
+                        loadingPeriodInfo = false;
+                        periodInfoDiv.innerHTML = data;
+                    },
+                    error: function (xhr, status, error) {
+                        loadingPeriodInfo = false;
+                        periodInfoDiv.innerHTML = "<span class='fa fa-times'></span> Error cargando la información del período";
+                        console.log(xhr, status, error);
+                    }
+                });
+            }
+        }
+
+        let loadingPlanning = false;
+
+        function LoadPlanning() {
+            SetLoadingPlanning();
+
+            if (!loadingPlanning && !loadingCourses) {
+                let selectedPeriod = getSelectorOptionsSelectedValue("#periodSelector");
+                let selectedCourse = getSelectorOptionsSelectedValue("#courseSelector");
+                loadingPlanning = true;
+                $.ajax({
+                    url: `/planning/GetPlanningViewForPeriod?periodId=${selectedPeriod}&courseId=${selectedCourse}`,
+                    type: "GET",
+                    success: function (data) {
+                        DisableLoadingPlanning();
+                        loadingPlanning = false;
+                        const planningDetailsDiv = document.getElementById("planningContent");
+                        planningDetailsDiv.innerHTML = data;
+                        LoadTooltips();
+                        $('#planning-table').DataTable({
+                            responsive: true,
+                            language: {
+                                url: '/lib/datatables/lang/datatables.spanish.json'
+                            },
+                            dom: 'Bfrtip',
+                            buttons: [
+                                'copyHtml5', 'excelHtml5', 'pdfHtml5'
+                            ]
+                        });
+                        deleteModal = new bootstrap.Modal(document.getElementById('deletePlanItemModal'), { keyboard: true });
+                    },
+                    error: function (xhr, status, error) {
+                        DisableLoadingPlanning();
+                        loadingPlanning = false;
+                        console.log(xhr, status, error);
+                    }
+                });
+            }
+        }
+
+        function GetYearNumber(yearNumber) {
+            switch (yearNumber) {
+                case 1:
+                    return "1er año";
+                case 2:
+                    return "2do año";
+                case 3:
+                    return "3er año";
+                case 4:
+                    return "4to año";
+                case 5:
+                    return "5to año";
+                case 6:
+                    return "6to año";
+                case 7:
+                    return "7to año";
+                case 8:
+                    return "8vo año";
+                default:
+                    return yearNumber;
+            }
+        }
+
+        function GetTeachingModality(modality) {
+            switch (modality) {
+                case 0:
+                    return "Curso regular diurno";
+                case 1:
+                    return "Curso por encuentros";
+                case 2:
+                    return "Curso a distancia";
+                case 3:
+                    return "Postgrado";
+                case 4:
+                    return "Maestría";
+                case 5:
+                    return "Doctorado";
+                default:
+                    return modality;
+            }
+        }
+
+        function getStringDate(date) {
+            let formatedDate = `${date.getDate() < 10 ? "0" + date.getDate() : date.getDate()}-${(date.getMonth() + 1) < 10 ? "0" + (date.getMonth() + 1) : (date.getMonth() + 1)}-${date.getFullYear()}`;
+            return formatedDate;
+        }
+
+        function CreateSpinnerNode() {
+            let spinnerNode = document.createElement("div");
+            spinnerNode.classList.add("spinner-grow");
+            spinnerNode.classList.add("m-5");
+            spinnerNode.role = "status";
+            let spinnerSpan = document.createElement("span");
+            spinnerSpan.classList.add("visually-hidden");
+            spinnerSpan.innerText = "Loading...";
+            spinnerNode.appendChild(spinnerSpan);
+            return spinnerNode;
+        }
+
+        function SetLoadingPlanning() {
+            const planningDetailsDiv = document.getElementById("planningContent");
+            planningDetailsDiv.innerHTML = "";
+            planningDetailsDiv.appendChild(CreateSpinnerNode());
+            if (!loadingPeriodSubjects) {
+                const periodsSelect = document.getElementById("periodSelector");
+                periodsSelect.setAttribute("disabled", "disabled");
+                const careerSelect = document.getElementById("careerSelector");
+                careerSelect.setAttribute("disabled", "disabled");
+                const courseSelect = document.getElementById("courseSelector");
+                courseSelect.setAttribute("disabled", "disabled");
+            }
+        }
+
+        function DisableLoadingPlanning() {
+            const planningDetailsDiv = document.getElementById("planningContent");
+            planningDetailsDiv.innerHTML = "";
+            if (!loadingPeriodSubjects) {
+                const periodsSelect = document.getElementById("periodSelector");
+                periodsSelect.removeAttribute("disabled");
+                const careerSelect = document.getElementById("careerSelector");
+                careerSelect.removeAttribute("disabled");
+                const courseSelect = document.getElementById("courseSelector");
+                courseSelect.removeAttribute("disabled");
+            }
+        }
+
+        function RiseDeleteModal(id) {
+            SetDeleteModalTextContent("¿Esta seguro que desea eliminar el elemento?");
+            var button = document.getElementById("modal-delete-primarybutton");
+            button.onclick = function () {
+                SendDeletePlanItemRequest(id);
+            };
+            deleteModal.show();
+        }
+
+        function SendDeletePlanItemRequest(id) {
+            if (!requestingDelete) {
+                requestingDelete = true;
+                HideCreateModalButtons();
+                ShowCreateModalSpinner();
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("DELETE", "/planning/DeletePlanningItem?id=" + id, true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        // Response
+                        var response = this.responseText;
+                        console.log(response);
+                        deleteModal.hide();
+                        location.reload();
+                    }
+                    requestingDelete = false;
+                    ShowCreateModalButtons();
+                    HideCreateModalSpinner();
+                };
+                xhttp.send();
+            }
+        }
+
+        function SetDeleteModalTextContent(value) {
+            var content = document.getElementById('modal-delete-content');
+            content.innerHTML = value;
+        }
+
+        function HideCreateModalButtons() {
+            var footer = document.getElementById('deleteModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = true;
+            }
+        }
+
+        function ShowCreateModalButtons() {
+            var footer = document.getElementById('deleteModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = false;
+            }
+        }
+
+        function ShowCreateModalSpinner() {
+            var spinner = document.getElementById("deleteModalLoadingSpinner");
+            spinner.hidden = false;
+        }
+
+        function HideCreateModalSpinner() {
+            var spinner = document.getElementById("deleteModalLoadingSpinner");
+            spinner.hidden = true;
+        }
+
+        function SetLoadingPeriodSubjects() {
+            const planningDetailsDiv = document.getElementById("periodSubjects-content");
+            planningDetailsDiv.innerHTML = "";
+            planningDetailsDiv.appendChild(CreateSpinnerNode());
+            if (!loadingPlanning) {
+                const periodsSelect = document.getElementById("periodSelector");
+                periodsSelect.setAttribute("disabled", "disabled");
+                const careerSelect = document.getElementById("careerSelector");
+                careerSelect.setAttribute("disabled", "disabled");
+                const courseSelect = document.getElementById("courseSelector");
+                courseSelect.setAttribute("disabled", "disabled");
+            }
+        }
+
+        function DisableLoadingPeriodSubjects() {
+            const planningDetailsDiv = document.getElementById("periodSubjects-content");
+            planningDetailsDiv.innerHTML = "";
+            if (!loadingPlanning) {
+                const periodsSelect = document.getElementById("periodSelector");
+                periodsSelect.removeAttribute("disabled");
+                const careerSelect = document.getElementById("careerSelector");
+                careerSelect.removeAttribute("disabled");
+                const courseSelect = document.getElementById("courseSelector");
+                courseSelect.removeAttribute("disabled");
+            }
+        }
+
+        let loadingPeriodSubjects = false;
+
+        function LoadPeriodSubjects() {
+            SetLoadingPeriodSubjects();
+
+            if (!loadingPeriodSubjects && !loadingCourses) {
+                let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
+                let courseSelected = getSelectorOptionsSelectedValue("#course-option-selectors");
+                loadingPeriodSubjects = true;
+                $.ajax({
+                    url: `/planning/GetPeriodSubjectsView?periodId=${periodSelected}&courseId=${courseSelected}`,
+                    type: "GET",
+                    success: function (data) {
+                        DisableLoadingPeriodSubjects();
+                        loadingPeriodSubjects = false;
+                        const periodSubjectsContent = document.getElementById("periodSubjects-content");
+                        periodSubjectsContent.innerHTML = data;
+                        $('#periodsubjects-table').DataTable({
+                            language: {
+                                url: '/lib/datatables/lang/datatables.spanish.json'
+                            }
+                        });
+                        periodSubjectDeleteModal = new bootstrap.Modal(document.getElementById('deletePeriodSubjectModal'), { keyboard: true });
+                        LoadTooltips();
+                    },
+                    error: function (xhr, status, error) {
+                        DisableLoadingPeriodSubjects();
+                        loadingPeriodSubjects = false;
+                        console.log(xhr, status, error);
+                    }
+                });
+            }
+        }
+
+        function CourseSelected() {
+            LoadPeriodSubjects();
+        }
+
+        function CreateSubject() {
+            let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
+            let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
+            let careerSelected = getSelectorOptionsSelectedValue("#careerSelector");
+            let returnUrl = `/planning?facultyId=${facultyId}&periodSelected=${periodSelected}&schoolYearId=${selectedSchoolYear}&courseSelected=${courseSelected}&careerSelected=${careerSelected}&tab=periodsubjects`;
+            let encodedUrl = encodeURIComponent(returnUrl);
+            location.href = `/subjects/create?returnTo=${encodedUrl}`;
+        }
+
+        function CreatePeriodSubject() {
+            let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
+            let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
+
+            SetCreateLoading();
+
+            $.ajax({
+                url: `/planning/GetSubjectsForCourse?courseId=${courseSelected}&periodId=${periodSelected}`,
+                type: "GET",
+                success: function (data) {
+                    const subjectSelect = document.getElementById("subjectSelected");
+                    subjectSelect.innerHTML = data;
+                    if (subjectSelect.options.length == 0) {
+                        ShowMessage("Asignaturas ya asignadas", "Todas las asignaturas corresponientes a este curso ya han sido asignadas.");
+                    } else {
+                        DisableCreateLoading();
+                        $('#subjectSelected').select2({
+                            placeholder: "Seleccione la asignatura",
+                            dropdownParent: $("#addPeriodSubjectModal"),
+                            width: '100%'
+                        });
+                        InitializeSelector("#terminationModeSelector");
+                        const addModal = new bootstrap.Modal(document.getElementById('addPeriodSubjectModal'));
+                        addModal.show();
+                    }
+                },
+                error: function (xhr, status, error) {
+                    DisableCreateLoading();
+                    addModal.hide();
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function AddPeriodSubject() {
+            let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
+            let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
+            const subjectSelect = document.getElementById("subjectSelected");
+            let subjectSelected = subjectSelect.options[subjectSelect.selectedIndex].value;
+            const hoursPlannedInput = document.getElementById("hoursPlanned");
+            let hoursPlanned = hoursPlannedInput.value;
+            if (hoursPlanned <= 0) {
+                alert("Debe de especificar un valor para las horas planificadas de la asignatura.");
+                return;
+            }
+            let midTermExams = document.getElementById("midTermExamsCount").value;
+            if (midTermExams < 0 || midTermExams > 5) {
+                alert("Debe de especificar un valor válido para la cantidad de exámenes parciales.");
+                return;
+            }
+            let terminationMode = Number.parseInt(getSelectorOptionsSelectedValue("#terminationModeSelector"));
+            let createModel = {
+                PeriodId: periodSelected,
+                CourseId: courseSelected,
+                SubjectId: subjectSelected,
+                HoursPlanned: hoursPlanned,
+                MidtermExamsCount: midTermExams,
+                TerminationMode: terminationMode
+            };
+
+            console.log(createModel);
+
+            SetCreateLoading();
+
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("PUT", "/planning/CreatePeriodSubject", true);
+            xhttp.setRequestHeader("Content-Type", "application/json");
+            xhttp.onreadystatechange = function () {
+                const addModal = bootstrap.Modal.getInstance(document.getElementById('addPeriodSubjectModal'));
+                addModal.hide();
+                LoadPeriodSubjects();
+                LoadPeriodInfo();
+                DisableCreateLoading();
+            };
+            xhttp.onerror = function () {
+                const addModal = bootstrap.Modal.getInstance(document.getElementById('addPeriodSubjectModal'));
+                addModal.hide();
+                CloseLoadingModal();
+                console.log(xhr, status, error);
+            };
+            xhttp.send(JSON.stringify(createModel));
+        }
+
+        function EditPeriodSubject(periodSubjectId) {
+            if (true) {
+                $.ajax({
+                    url: `/planning/GetPeriodSubjectInfo?periodSubjectId=${periodSubjectId}`,
+                    type: "GET",
+                    success: function (data) {
+                        let periodSubjectModel = data;
+                        let subjectModel = data.subject;
+                        const periodSubjectEdited = document.getElementById("periodSubjectEdited");
+                        periodSubjectEdited.value = periodSubjectModel.id;
+                        const subjectName = document.getElementById("editedSubjectSelected");
+                        subjectName.value = subjectModel.name;
+                        const subjectId = document.getElementById("editedSubjectSelectedId");
+                        subjectId.value = subjectModel.id;
+                        const hoursPlannedInput = document.getElementById("editedHoursPlanned");
+                        hoursPlannedInput.value = periodSubjectModel.hoursPlanned;
+                        const midTermExams = document.getElementById("editedMidTermExamsCount");
+                        midTermExams.value = periodSubjectModel.midtermExamsCount;
+                        const editModal = new bootstrap.Modal(document.getElementById('editPeriodSubjectModal'));
+                        InitializeSelector("#terminationModeEditSelector");
+                        SelectOption("#terminationModeEditSelector", periodSubjectModel.terminationMode);
+                        editModal.show();
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(xhr, status, error);
+                    }
+                });
+            } else {
+                ShowError("Error", "Ha ocurrido un error a la hora de intentar editar una asignatura del período.");
+            }
+        }
+
+        function SaveChangesOfPeriodSubject() {
+            let courseSelected = getSelectorOptionsSelectedValue("#courseSelector");
+            let periodSelected = getSelectorOptionsSelectedValue("#periodSelector");
+            const subjectId = document.getElementById("editedSubjectSelectedId");
+            let subjectSelected = subjectId.value;
+            const hoursPlannedInput = document.getElementById("editedHoursPlanned");
+            let hoursPlanned = hoursPlannedInput.value;
+            if (hoursPlanned <= 0) {
+                alert("Debe de especificar un valor para el total de horas de la asignatura.");
+                return;
+            }
+            let midTermExams = document.getElementById("editedMidTermExamsCount").value;
+            if (midTermExams < 0 || midTermExams > 5) {
+                alert("Debe de especificar un valor válido para la cantidad de exámenes parciales.");
+                return;
+            }
+            const periodSubjectSelected = document.getElementById("periodSubjectEdited");
+            let periodSubjectId = periodSubjectSelected.value;
+            let terminationMode = Number.parseInt(getSelectorOptionsSelectedValue("#terminationModeEditSelector"));
+            let createModel = {
+                Id: periodSubjectId,
+                PeriodId: periodSelected,
+                CourseId: courseSelected,
+                SubjectId: subjectSelected,
+                HoursPlanned: hoursPlanned,
+                MidtermExamsCount: midTermExams,
+                TerminationMode: terminationMode
+            };
+            SetEditLoading();
+            $.ajax({
+                url: `/planning/EditPeriodSubject`,
+                type: "POST",
+                data: createModel,
+                success: function (data) {
+                    CloseLoadingModal();
+                    const editModal = bootstrap.Modal.getInstance(document.getElementById('editPeriodSubjectModal'));
+                    DisableEditLoading();
+                    editModal.hide();
+                    LoadPeriodSubjects();
+                    LoadPeriodInfo();
+                },
+                error: function (xhr, status, error) {
+                    CloseLoadingModal();
+                    DisableEditLoading();
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+
+        function SetCreateLoading() {
+            ShowCreateModalSpinner();
+            HideCreateModalButtons();
+        }
+
+        function DisableCreateLoading() {
+            HideCreateModalSpinner();
+            ShowCreateModalButtons();
+        }
+
+        function SetEditLoading() {
+            ShowEditModalSpinner();
+            HideEditModalButtons();
+        }
+
+        function DisableEditLoading() {
+            HideEditModalSpinner();
+            ShowEditModalButtons();
+        }
+
+        function ShowCreateModalSpinner() {
+            var spinner = document.getElementById("createModalLoadingSpinner");
+            spinner.hidden = false;
+        }
+
+        function HideCreateModalSpinner() {
+            var spinner = document.getElementById("createModalLoadingSpinner");
+            spinner.hidden = true;
+        }
+
+        function HideEditModalButtons() {
+            var footer = document.getElementById('editModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = true;
+            }
+        }
+
+        function ShowEditModalButtons() {
+            var footer = document.getElementById('editModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = false;
+            }
+        }
+
+        function ShowEditModalSpinner() {
+            var spinner = document.getElementById("editModalLoadingSpinner");
+            spinner.hidden = false;
+        }
+
+        function HideEditModalSpinner() {
+            var spinner = document.getElementById("editModalLoadingSpinner");
+            spinner.hidden = true;
+        }
+
+        function DeletePeriodSubject(periodSubjectId) {
+            RiseDeletePeriodSubjectModal(periodSubjectId);
+        }
+
+        function RiseDeletePeriodSubjectModal(id) {
+            SetDeletePeriodSubjectModalTextContent("¿Esta seguro que desea eliminar el elemento?");
+            var button = document.getElementById("modal-deleteperiodsubject-primarybutton");
+            button.onclick = function () {
+                SendDeletePeriodSubjectRequest(id);
+            };
+            periodSubjectDeleteModal.show();
+        }
+
+        function SendDeletePeriodSubjectRequest(id) {
+            if (!requestingDelete) {
+                requestingDelete = true;
+                HideCreatePeriodSubjectModalButtons();
+                //ShowCreatePeriodSubjectModalSpinner();
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("DELETE", "/planning/DeletePeriodSubject?id=" + id, true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        // Response
+                        var response = this.responseText;
+                        console.log(response);
+                        periodSubjectDeleteModal.hide();
+                        LoadPeriodSubjects();
+                        LoadPeriodInfo();
+                    }
+                    requestingDelete = false;
+                    HideCreatePeriodSubjectModalButtons();
+                    // HideCreateModalSpinner();
+                };
+                xhttp.send();
+            }
+        }
+
+        function SetDeletePeriodSubjectModalTextContent(value) {
+            var content = document.getElementById('modal-deleteperiodsubject-content');
+            content.innerHTML = value;
+        }
+
+        function HideCreatePeriodSubjectModalButtons() {
+            var footer = document.getElementById('deletePeriodSubjectModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = true;
+            }
+        }
+
+        function ShowCreatePeriodSubjectModalButtons() {
+            var footer = document.getElementById('deletePeriodSubjectModalFooter');
+            var buttons = footer.getElementsByTagName("button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].hidden = false;
+            }
+        }
+    </script>
+}

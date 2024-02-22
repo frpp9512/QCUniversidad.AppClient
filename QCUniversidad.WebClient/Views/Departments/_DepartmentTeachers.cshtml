@@ -1,0 +1,50 @@
+﻿@model IList<TeacherModel>
+
+<h4 class="mt-3 mb-3">Profesores del departamento</h4>
+
+@if (Model.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-hover w-100" id="teachers-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Carné de identidad</th>
+                    <th>Categoría</th>
+                    <th>Contrato</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var teacher in Model)
+                {
+                    <tr>
+                        <td>
+                            @teacher.Fullname
+                            @if (teacher.ServiceProvider)
+                            {
+                                <span class="fa fa-hand-sparkles font-main-color" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Prestador de servicios</small></div> <div>Este profesor es prestador de servicios, permitiendo esto que se le puede ser asignada carga desde otros departamentos.</div>"></span>
+                            }
+                        </td>
+                        <td>
+                            @teacher.PersonalId
+                        </td>
+                        <td>
+                            @Html.DisplayFor(m => teacher.Category)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(m => teacher.ContractType)
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-controller="Teachers" asp-route-id="@teacher.Id" class="btn btn-sm btn-outline-info"><span class="fa fa-info-circle"></span></a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <partial name="_NoItems" model="@("No existen profesores en el departamento")" />
+}

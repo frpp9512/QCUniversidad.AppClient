@@ -1,0 +1,154 @@
+﻿@using QCUniversidad.Api.Shared.Enums
+@model CreateTeachingPlanItemModel
+@{
+    ViewData["Title"] = "Nuevo elemento de planificación";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-xl-5">
+            <h1>Nuevo elemento de planficación</h1>
+            <p>Rellene el forumlario para crear un nuevo elemento de planificación</p>
+            <hr />
+            <div>
+                <dl class="row">
+                    <dt class="col-sm-3">Año escolar</dt>
+                    <dd class="col-sm-9">@Model.Period?.SchoolYear?.Name</dd>
+                    <dt class="col-sm-3">Período</dt>
+                    <dd class="col-sm-9">@Model.Period?.Starts.ToString("dd-MM-yyyy") - @Model.Period?.Ends.ToString("dd-MM-yyyy")</dd>
+                    @if (Model.Course is not null)
+                    {
+                        <dt class="col-sm-3">Curso</dt>
+                        <dd class="col-sm-9">@Model.Course.Denomination</dd>
+                    }
+                </dl>
+            </div>
+            <form asp-action="CreatePlanningItem" method="post">
+                <div>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+                <fieldset>
+                    @if (Model.Course is null)
+                    {
+                        <div class="mb-3">
+                            <label asp-for="CourseId" class="form-label">Seleccionar curso</label>
+                            <select asp-for="CourseId" class="form-select select-course" aria-label="Seleccionar asignatura" onchange="LoadSubjectsForCourse()" autofocus>
+                                @if (Model.Courses is not null && Model.Courses.Any())
+                                {
+                                    foreach (var course in Model.Courses)
+                                    {
+                                        <option value="@course.Id">@course.Denomination</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option value="none">No existen cursos</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CourseId" />
+                        </div>
+                    }
+                    <div class="mb-3">
+                        <label asp-for="SubjectId" class="form-label">Seleccionar asignatura</label>
+                        <select asp-for="SubjectId" class="form-select select-subject" aria-label="Seleccionar asignatura" autofocus>
+                        </select>
+                        <span asp-validation-for="SubjectId" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Type" class="form-label"></label>
+                        <select asp-for="Type" asp-items="@Html.GetEnumSelectList<TeachingActivityType>()" class="form-control selected-teachingitemtype"></select>
+                        <span asp-validation-for="Type" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="HoursPlanned" class="form-label"></label>
+                        <input asp-for="HoursPlanned" class="form-control" onkeydown="CalculateTotalHours()" />
+                        <span asp-validation-for="HoursPlanned" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="GroupsAmount" class="form-label"></label>
+                        <input asp-for="GroupsAmount" class="form-control" onkeydown="CalculateTotalHours()" />
+                        <span asp-validation-for="GroupsAmount" />
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="IsNotLoadGenerator" class="form-check-input" type="checkbox" />
+                            <label asp-for="IsNotLoadGenerator" class="form-check-label"></label>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="form-footer mt-3">
+                    <input asp-for="PeriodId" type="hidden" />
+                    <input asp-for="CareerId" type="hidden" />
+                    <input asp-for="ReturnTo" type="hidden" />
+                    @if (Model.Course is not null)
+                    {
+                        <input asp-for="CourseId" type="hidden" />
+                    }
+                    @if (Model.ReturnTo is not null)
+                    {
+                        <a href="@Model.ReturnTo" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    }
+                    else
+                    {
+                        <a asp-action="Index" asp-route-periodSelected="@Model.PeriodId" class="btn btn-outline-info"><span class="fa fa-arrow-alt-circle-left"></span> Regresar al listado</a>
+                    }
+                    <button type="submit" class="btn btn-primary"><span class="fa fa-plus"></span> Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<partial name="_LoadingModal" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/loading-modal.js"></script>
+    <script>
+        var subjects = [];
+
+        $(document).ready(function () {
+            $('.select-subject').select2({
+                placeholder: "Seleccione la asignatura"
+            });
+            $('.select-course').select2({
+                placeholder: "Seleccione el curso"
+            });
+            LoadSubjectsForCourse();
+        });
+
+        function LoadSubjectsForCourse() {
+            let selectedCourse = 'none';
+            if (document.querySelectorAll("input#CourseId").length > 0) {
+                const courseInput = document.querySelector("input#CourseId");
+                selectedCourse = courseInput.value;
+            } else {
+                const courseSelect = document.getElementById("CourseId");
+                selectedCourse = courseSelect.options[courseSelect.selectedIndex].value;
+            }
+            let period = document.getElementById("PeriodId").value;
+            if (selectedCourse != "none") {
+                OpenLoadingModal("Cargando asignaturas del curso seleccionado...");
+                $.ajax({
+                    url: `/planning/GetSubjectsOptionsForCourse?courseId=${selectedCourse}&periodId=${period}`,
+                    type: "GET",
+                    success: function (data) {
+                        const subjectSelect = document.getElementById("SubjectId");
+                        subjectSelect.innerHTML = data;
+                        console.log(data);
+                        $('.select-subject').select2({
+                            placeholder: "Seleccione la asignatura"
+                        });
+                        CloseLoadingModal();
+                    },
+                    error: function (xhr, status, error) {
+                        CloseLoadingModal();
+                        console.log(xhr, status, error);
+                    }
+                });
+            }
+        }
+    </script>
+}

@@ -1,0 +1,142 @@
+﻿@model NavigationListViewModel<FacultyModel>
+
+@{
+    ViewData["Title"] = "Facultades";
+    var items = Model.Items;
+    bool facultyCreated = (bool?)TempData["faculty-created"] ?? false;
+    bool facultyEdited = (bool?)TempData["faculty-edited"] ?? false;
+    bool facultyDeleted = (bool?)TempData["faculty-deleted"] ?? false;
+}
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start justify-content-between">
+        <div class="d-flex flex-column">
+            <div class="banner-title">Facultades</div>
+            <div class="banner-subtitle">Listado de facultades generales del sistema</div>
+        </div>
+    </div>
+    <div>
+        <a asp-action="Create" class="btn btn-success"><span class="fa fa-plus-circle"></span> Crear nueva</a>
+    </div>
+</div>
+
+@if (facultyCreated)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-info-circle"></span> Facultad creada</strong> Se ha creado una nueva facultad satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (facultyEdited)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-pencil-square"></span> Facultad actualizada</strong> Se ha actualizado los datos de la facultad satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (facultyDeleted)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-trash-can"></span> Facultad eliminada</strong> Se ha eliminado una facultad satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (Model.ItemsCount > 0)
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>
+                        Nombre
+                    </th>
+                    <th>
+                        Sede
+                    </th>
+                    <th>
+                        Id interno
+                    </th>
+                    <th>
+                        Deparamentos
+                    </th>
+                    <th>
+                        Carreras
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in items)
+                {
+                    <tr id="@item.Id">
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Name)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Campus)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.InternalId)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.DepartmentCount)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.CareersCount)
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">
+                                <span class="fa fa-info-circle"></span>
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
+                                <span class="fa fa-edit" />
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">
+                                <span class="fa fa-trash" />
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Navigation -->
+
+    <partial name="_PageNavigation" model="Model" />
+
+    <!-- Modals -->
+
+    <div class="modal fade" id="deleteFacultyModal" tabindex="-1" aria-labelledby="deleteFacultyModalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteFacultyModalTitle"><span class="fa fa-trash"></span> Eliminar facultad</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="modal-delete-content" class="modal-body">
+                    ¿Esta seguro que desea eliminar la facultad?
+                </div>
+                <div id="deleteModalFooter" class="modal-footer">
+                    <div id="deleteModalLoadingSpinner" class="spinner-border text-primary" role="status" hidden>
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <button id="modal-delete-primarybutton" type="button" class="btn btn-danger"><span class="fa fa-trash-can"></span> Eliminar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span class="fa fa-ban"></span> Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    @section Scripts {
+        <script src="~/js/faculties-index.js"></script>
+    }
+}
+else
+{
+    <partial name="_NoItems" model="@("No existen facultades registradas en el sistema.")" />
+}

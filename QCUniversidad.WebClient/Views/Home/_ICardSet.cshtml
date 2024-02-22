@@ -1,0 +1,8 @@
+﻿@model IList<StatisticItemModel>
+
+<div class="icard-set">
+    @foreach (var item in Model)
+    {
+        <partial name="_ICard" model="@item" />
+    }
+</div>

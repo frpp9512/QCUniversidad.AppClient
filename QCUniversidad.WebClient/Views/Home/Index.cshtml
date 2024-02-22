@@ -1,0 +1,114 @@
+﻿@using QCUniversidad.WebClient.Services.Platform
+@model IndexViewModel
+
+@{
+    ViewData["Title"] = "Inicio";
+}
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-3">
+    <div class="d-flex flex-column flex-sm-row gap-3 align-items-center text-center text-sm-start">
+        <img src="/img/site/logo.svg" width="50" />
+        <div class="d-flex flex-column">
+            <div class="banner-title">Bienvenido a QC Universidad</div>
+            <div class="banner-subtitle">Plataforma para la planificación y distribución de carga docente</div>
+        </div>
+    </div>
+    @if (Model.SchoolYear is not null)
+    {
+        <div class="d-flex flex-column align-items-center schoolyear-header">
+            <div class="index-schoolyearheader">
+                Año escolar
+            </div>
+            <div class="index-schoolyearname">
+                @Model.SchoolYear.Name
+            </div>
+            @if (!string.IsNullOrEmpty(Model.SchoolYear.Description))
+            {
+                <div class="index-schoolyeardesc">
+                    @Model.SchoolYear.Description
+                </div>
+            }
+        </div>
+    }
+</div>
+
+
+@if  (User.IsAdmin())
+{
+    <div class="d-flex flex-column text-center text-sm-start mb-5">
+        <div class="index-name">Administración del sistema</div>
+        <div class="index-desc">Gestión de todos los elementos y generación de informes globales</div>
+    </div>
+}
+else if (User.IsDepartmentManager())
+{
+    <div class="d-flex flex-column text-center text-sm-start mb-5">
+        <div class="index-department-name">@Model.Department.Name</div>
+        <div class="index-department-desc">@Model.Department.Description</div>
+    </div>
+} 
+else
+{
+    <div class="d-flex flex-column text-center text-sm-start mb-5">
+        <div class="index-name">Planificador de facultad</div>
+        <div class="index-desc">@Model.Faculty.Name</div>
+    </div>
+}
+
+
+<div id="global-statistics" class="text-center mb-3">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p>Cargando estadísticas globales</p>
+</div>
+
+<div id="cards" class="cards">
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p>Cargando tarjetas</p>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/charter.js"></script>
+    <script src="~/lib/chart-js/chart.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            LoadGlobalStatistics();
+            LoadBirthdays();
+        });
+
+        function LoadGlobalStatistics() {
+            const statisticsDiv = document.getElementById("global-statistics");
+            $.ajax({
+                url: `/home/GetGlobalStatistics`,
+                type: "GET",
+                success: function (data) {
+                    statisticsDiv.innerHTML = data;
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr, status, error);
+                    statisticsDiv.innerHTML = '<center class="text-warning m-5" style="font-weight: 500;"><span class="fa fa-warning m-2"></span>Error recibiendo estadísticas <br /> <button class="btn btn-sm btn-outline-warning" onclick="LoadGlobalStatistics()"><span class="fa fa-refresh"></span> Reintentar</button></center>';
+                }
+            });
+        }
+
+        function LoadBirthdays() {
+            const cards = document.getElementById("cards");
+            $.ajax({
+                url: `/home/GetWeekBirthdays`,
+                type: "GET",
+                success: function (data) {
+                    cards.innerHTML = data;
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr, status, error);
+                    cards.innerHTML = '<center class="text-warning m-5" style="font-weight: 500;"><span class="fa fa-warning m-2"></span>Error recibiendo estadísticas <br /> <button class="btn btn-sm btn-outline-warning" onclick="LoadBirthdays()"><span class="fa fa-refresh"></span> Reintentar</button></center>';
+                }
+            });
+        }
+    </script>
+}

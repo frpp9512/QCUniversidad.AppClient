@@ -1,0 +1,92 @@
+﻿@using QCUniversidad.Api.Shared.Enums
+@model (TeachingPlanItemModel planItem, int index)
+@{
+    var itemIndex = Model.index;
+}
+<div class="load-item" data-planitem-id="@Model.planItem.Id" data-planitem-type="@Model.planItem.Type" data-planitem-subject="@Model.planItem.SubjectId">
+    <div class="load-item-header">
+        <div class="load-item-header-title">
+            <div class="load-item-course">
+                @Model.planItem.Course?.Denomination
+            </div>
+            <div class="load-item-title">
+                @Model.planItem.Subject?.Name <small><span class="fa fa-circle-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Asignatura</small></div> <div><b>@Model.planItem.Subject?.Name</b></div> <div><i>@Model.planItem.Subject?.Description</i></div><div><b>@Model.planItem.Subject?.Discipline?.Name</b></div>"></span></small>
+            </div>
+            <div class="load-item-subtitle">@Html.DisplayFor(m => Model.planItem.Type)</div>
+        </div>
+        <div class="load-item-header-dynamic">
+            <div class="load-item-header-value-container">
+                <div class="load-item-header-value">
+                    <div class="load-item-value">
+                        @if (Model.planItem.FromPostgraduateCourse == true)
+                        {
+                            <small>
+                                <span class="fa fa-user-graduate" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Postgrado</small></div> <div><b>Es curso de postgrado</b></div> <div><i>Este elemento pertenece a un curso de postgrado y se le aplicará el coefeiciente de cálculo correspondiente.</i></div>"></span>
+                            </small>
+                        }
+                        @(Model.planItem.TotalHoursPlanned)h
+                    </div>
+                </div>
+                <div class="load-item-header-supvalue">
+                    @{
+                        var tooltip = "<div><small><span class='fa fa-info-circle'></span> Carga distribuida</small></div> <div><i>Representa el porciento (%) de la carga distribuida a profesores de este elemento.</i></div>";
+                    }
+                    <partial name="_CircleIndicator" model="(Model.planItem.LoadCoveredPercent.Value, 30, tooltip)" />
+                    <div class="load-item-loadcount" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Profesores asignados</small></div> <div>Cantidad de profesores que se encuentran asignados cubriendo el elemento de planificación.</div>"><span class="fa fa-users"></span> @Model.planItem.LoadItems.Count</div>
+                </div>
+            </div>
+            <div class="load-item-header-buttons">
+                <button onclick="RiseAddLoadModal('@Model.planItem.Id', '@Model.planItem.Subject?.DisciplineId')" @(!Model.planItem.AllowLoad.Value ? "disabled" : "")><span class="fa fa-user-plus"></span></button>
+                <button class="pi-toggle-btn" data-bs-toggle="collapse" data-bs-target="#pi@(itemIndex)" aria-expanded="false"><span class="fa fa-chevron-down"></span></button>
+            </div>
+        </div>
+    </div>
+    <div class="load-item-body collapse" id="pi@(itemIndex)">
+        <div class="load-item-body-rows">
+            @if (Model.planItem.LoadItems is not null)
+            {
+                foreach (var loadItem in Model.planItem.LoadItems)
+                {
+                    <div class="load-item-row">
+                        <div class="load-item-row-key">
+                            @loadItem.Teacher?.Fullname <span class="fa fa-info-circle" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Profesor</small></div> <div><b>@loadItem.Teacher.Fullname</b></div> <div>@loadItem.Teacher.PersonalId</div> <div><small>@loadItem.Teacher.Position</small></div>"></span>
+                            <span class="font-heavy" style="color: @(loadItem.Teacher.Load.Status switch { TeacherLoadStatus.Acceptable => "#a5b800", TeacherLoadStatus.Balanced => "#179b18", _ => "#ff0000" })">@(loadItem.Teacher.Load.LoadPercent)%</span>
+                        </div>
+                        <div class="load-item-row-valuesection">
+                            <div class="load-item-row-btns">
+                                <button class="load-item-deletebtn" onclick="DeleteLoadItem('@loadItem.Id')"><span class="fa fa-trash"></span></button>
+                            </div>
+                            <div class="load-item-row-value">
+                                @loadItem.HoursCovered
+                            </div>
+                        </div>
+                    </div>
+                }
+                <div class="load-item-row">
+                    <div class="load-item-row-key">
+                        <b>Total cubierto</b>
+                    </div>
+                    <div class="load-item-row-value">
+                        @Model.planItem.TotalLoadCovered
+                    </div>
+                </div>
+            }
+            <div class="load-item-row">
+                <div class="load-item-row-key">
+                    <b>Horas planificadas</b>
+                </div>
+                <div class="load-item-row-value">
+                    @(Model.planItem.HoursPlanned)
+                </div>
+            </div>
+            <div class="load-item-row">
+                <div class="load-item-row-key">
+                    <b>Cantidad de grupos</b>
+                </div>
+                <div class="load-item-row-value">
+                    @(Model.planItem.GroupsAmount)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

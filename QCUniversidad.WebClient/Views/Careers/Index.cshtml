@@ -1,0 +1,138 @@
+﻿@model NavigationListViewModel<CareerModel>
+@{
+    ViewData["Title"] = "Carreras";
+    bool careerCreated = (bool?)TempData["career-created"] ?? false;
+    bool careerEdited = (bool?)TempData["career-edited"] ?? false;
+    bool careerDeleted = (bool?)TempData["career-deleted"] ?? false;
+}
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-sm-row gap-2 align-items-center text-center text-sm-start justify-content-between">
+        <div class="d-flex flex-column">
+            <div class="banner-title">Carreras</div>
+            <div class="banner-subtitle">Listado de carreras generales del sistema</div>
+        </div>
+    </div>
+    <div>
+        <a asp-action="Create" class="btn btn-success"><span class="fa fa-plus-circle"></span> Crear nueva</a>
+    </div>
+</div>
+
+@if (careerCreated)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-info-circle"></span> Carrera creada</strong> Se ha creado una nueva carrera satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (careerEdited)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-pencil-square"></span> Carrera editada</strong> Se ha editado una carrera satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (careerDeleted)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong><span class="fa fa-trash-can"></span> Carrera eliminada</strong> Se ha eliminado una carrera satisfactoriamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (Model.ItemsCount > 0)
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Facultad</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr id="@item.Id">
+                        <td align="center">
+                            @if (item.PostgraduateCourse)
+                            {
+                                <span class="fa fa-user-graduate text-success" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Postgrado</small></div> <div>Esta carrera es un postgrado</div>"></span>
+                            }
+                        </td>
+                        <td>
+                            @item.Name
+                        </td>
+                        <td>
+                            @item.Description
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-controller="Faculties" asp-route-id="@item.Faculty?.Id" class="link-info" data-bs-toggle="tooltip" data-bs-html="true" title="<div><small><span class='fa fa-info-circle'></span> Facultad</small></div> <div><b>@item.Faculty?.Name</b></div> <div><i>@item.Faculty?.Campus</i></div><div><b>@item.Faculty?.InternalId</b></div>">
+                                @item.Faculty?.Name <small><span class="fa fa-info-circle"></span></small>
+                            </a>
+                        </td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
+                                <span class="fa fa-edit" />
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger" onclick="RiseDeleteModal('@item.Id')">
+                                <span class="fa fa-trash" />
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Navigation -->
+
+    <partial name="_PageNavigation" model="Model" />
+
+    <!-- Modals -->
+
+    <div class="modal fade" id="deleteCareerModal" tabindex="-1" aria-labelledby="deleteCareerModalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteCareerModalTitle"><span class="fa fa-trash"></span> Eliminar carrera</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="modal-delete-content" class="modal-body">
+                    ¿Esta seguro que desea eliminar la carrera?
+                </div>
+                <div id="deleteModalFooter" class="modal-footer">
+                    <div id="deleteModalLoadingSpinner" class="spinner-border text-primary" role="status" hidden>
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <button id="modal-delete-primarybutton" type="button" class="btn btn-danger"><span class="fa fa-trash-can"></span> Eliminar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><span class="fa fa-ban"></span> Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+    <script src="~/js/career-index.js"></script>
+    <script src="~/lib/popper/popper.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            LoadTooltips();
+        });
+
+        function LoadTooltips() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+    </script>
+    }
+}
+else
+{
+    <partial name="_NoItems" model="@("No existen carreras registradas en el sistema")" />
+}

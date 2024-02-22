@@ -1,0 +1,11 @@
+﻿@model SelectCardModel
+
+<div class="select-card" selection-group='@Model.GroupName' id='@Model.Id' value='@Model.Value' @(Model.Selected ? "selected" : "")>
+    <div class="select-card-indicator"></div>
+    <div class="select-card-content">
+        <div class="select-card-title">@Model.Title</div>
+        <div class="select-card-description">
+            @Model.Description
+        </div>
+    </div>
+</div>
