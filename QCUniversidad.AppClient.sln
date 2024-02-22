@@ -17,8 +17,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartB1t.Security.WebSecuri
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartB1t.Web.Extensions", "SmartB1t.Web.Extensions\SmartB1t.Web.Extensions.csproj", "{932AABF1-74B0-45AE-985B-B0691B763F58}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdServer", "IdServer\IdServer.csproj", "{6B1CB4F8-E801-4F8B-88BE-631D6B9DEFA9}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,10 +51,6 @@ Global
 		{932AABF1-74B0-45AE-985B-B0691B763F58}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{932AABF1-74B0-45AE-985B-B0691B763F58}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{932AABF1-74B0-45AE-985B-B0691B763F58}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6B1CB4F8-E801-4F8B-88BE-631D6B9DEFA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6B1CB4F8-E801-4F8B-88BE-631D6B9DEFA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6B1CB4F8-E801-4F8B-88BE-631D6B9DEFA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6B1CB4F8-E801-4F8B-88BE-631D6B9DEFA9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

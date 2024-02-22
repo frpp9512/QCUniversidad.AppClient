@@ -1,0 +1,31 @@
+#See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+USER app
+WORKDIR /app
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["QCUniversidad.WebClient/QCUniversidad.WebClient.csproj", "QCUniversidad.WebClient/"]
+COPY ["QCUniversidad.Api.Shared/QCUniversidad.Api.Shared.csproj", "QCUniversidad.Api.Shared/"]
+COPY ["SmartB1t.Security.Extensions/SmartB1t.Security.Extensions.csproj", "SmartB1t.Security.Extensions/"]
+COPY ["SmartB1t.Security.WebSecurity.Local/SmartB1t.Security.WebSecurity.Local.csproj", "SmartB1t.Security.WebSecurity.Local/"]
+COPY ["SmartB1t.Security/SmartB1t.Security.csproj", "SmartB1t.Security/"]
+COPY ["SmartB1t.Web.Extensions/SmartB1t.Web.Extensions.csproj", "SmartB1t.Web.Extensions/"]
+RUN dotnet restore "./QCUniversidad.WebClient/QCUniversidad.WebClient.csproj"
+COPY . .
+WORKDIR "/src/QCUniversidad.WebClient"
+RUN dotnet build "./QCUniversidad.WebClient.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+FROM build AS bundle
+WORKDIR /bundle
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="$PATH:/root/.dotnet/tools"
+RUN dotnet ef migrations bundle --verbose --self-contained -r linux-x64 -o /bundle/efbundle --project /src/QCUniversidad.WebClient/QCUniversidad.WebClient.csproj
+
+FROM base AS final
+WORKDIR /app
+COPY --from=bundle /bundle/efbundle /app/efbundle
+
+CMD [ "./efbundle", "-v", "--connection", "Server=postgres_db;Port=5432;Database=QCUWebClient;User Id=postgres;Password=mr.hyde;" ]
