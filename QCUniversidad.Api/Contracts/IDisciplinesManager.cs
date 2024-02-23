@@ -4,7 +4,7 @@ namespace QCUniversidad.Api.Contracts;
 
 public interface IDisciplinesManager
 {
-    Task<bool> CreateDisciplineAsync(DisciplineModel discipline);
+    Task<DisciplineModel?> CreateDisciplineAsync(DisciplineModel discipline);
     Task<bool> ExistsDisciplineAsync(Guid id);
     Task<bool> ExistsDisciplineAsync(string name);
     Task<int> GetDisciplinesCountAsync();

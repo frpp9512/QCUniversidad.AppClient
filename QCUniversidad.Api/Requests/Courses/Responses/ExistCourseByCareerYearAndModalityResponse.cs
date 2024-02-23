@@ -3,7 +3,7 @@ using QCUniversidad.Api.Shared.Enums;
 
 namespace QCUniversidad.Api.Requests.Courses.Responses;
 
-public record ExistCourseByCareerYearAndModalityResponse : ResponseBase
+public record ExistCourseByCareerYearAndModalityResponse : RequestResponseBase
 {
     public Guid CareerId { get; set; }
     public int CareerYear { get; set; }

@@ -3,4 +3,4 @@ using QCUniversidad.Api.Shared.Dtos.Department;
 
 namespace QCUniversidad.Api.Requests.Departments.Responses;
 
-public record CreateDepartmentResponse : CreatedResponseBase<Guid, DepartmentDto> { }
+public record CreateDepartmentResponse : CreatedRequestResponseBase<Guid, DepartmentDto> { }

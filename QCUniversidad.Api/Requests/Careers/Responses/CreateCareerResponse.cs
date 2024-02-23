@@ -3,4 +3,4 @@ using QCUniversidad.Api.Shared.Dtos.Career;
 
 namespace QCUniversidad.Api.Requests.Careers.Responses;
 
-public record CreateCareerResponse : CreatedResponseBase<Guid, CareerDto> { }
+public record CreateCareerResponse : CreatedRequestResponseBase<Guid, CareerDto> { }

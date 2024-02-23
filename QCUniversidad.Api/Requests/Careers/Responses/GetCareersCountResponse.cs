@@ -2,7 +2,7 @@
 
 namespace QCUniversidad.Api.Requests.Careers.Responses;
 
-public record GetCareersCountResponse : ResponseBase
+public record GetCareersCountResponse : RequestResponseBase
 {
     public int CareersCount { get; set; }
 

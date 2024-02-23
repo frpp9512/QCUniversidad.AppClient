@@ -2,7 +2,7 @@
 
 namespace QCUniversidad.Api.Requests.Courses.Responses;
 
-public record ExistsCourseResponse : ResponseBase
+public record ExistsCourseResponse : RequestResponseBase
 {
     public Guid CourseId { get; set; }
     public bool ExistCourse { get; set; }
