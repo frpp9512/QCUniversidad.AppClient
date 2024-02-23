@@ -2,7 +2,7 @@
 
 namespace QCUniversidad.Api.Requests.Departments.Responses;
 
-public record GetDepartmentsCountOfFacultyResponse : ResponseBase
+public record GetDepartmentsCountOfFacultyResponse : RequestResponseBase
 {
     public Guid FacultyId { get; set; }
     public int Count { get; set; }

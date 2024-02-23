@@ -4,7 +4,7 @@ using System.Security.Principal;
 
 namespace QCUniversidad.Api.Requests.Careers.Responses;
 
-public record GetCareersByFacultyResponse : ResponseBase
+public record GetCareersByFacultyResponse : RequestResponseBase
 {
     public List<CareerDto>? FacultyCareers { get; set; }
 

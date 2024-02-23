@@ -2,7 +2,7 @@
 
 namespace QCUniversidad.Api.Requests.Departments.Responses;
 
-public record ExistDepartmentResponse : ResponseBase
+public record ExistDepartmentResponse : RequestResponseBase
 {
     public Guid DepartmentId { get; set; }
     public bool Exist { get; set; }

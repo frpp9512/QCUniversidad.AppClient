@@ -3,7 +3,7 @@ using QCUniversidad.Api.Shared.Dtos.Department;
 
 namespace QCUniversidad.Api.Requests.Departments.Responses;
 
-public record GetDepartmentsWithLoadInfoInPeriodResponse : ResponseBase
+public record GetDepartmentsWithLoadInfoInPeriodResponse : RequestResponseBase
 {
     public Guid PeriodId { get; set; }
     public List<DepartmentDto>? Departments { get; set; }

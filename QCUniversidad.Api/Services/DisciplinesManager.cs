@@ -14,13 +14,13 @@ public class DisciplinesManager(QCUniversidadContext context,
     private readonly IDepartmentsManager _departmentsManager = departmentsManager;
     private readonly ITeachersManager _teachersManager = teachersManager;
 
-    public async Task<bool> CreateDisciplineAsync(DisciplineModel discipline)
+    public async Task<DisciplineModel?> CreateDisciplineAsync(DisciplineModel discipline)
     {
         ArgumentNullException.ThrowIfNull(discipline);
 
         _ = await _context.Disciplines.AddAsync(discipline);
         int result = await _context.SaveChangesAsync();
-        return result > 0;
+        return result > 0 ? discipline : null;
     }
 
     public async Task<bool> ExistsDisciplineAsync(Guid id)

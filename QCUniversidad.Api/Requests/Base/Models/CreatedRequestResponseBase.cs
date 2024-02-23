@@ -1,6 +1,6 @@
 ﻿namespace QCUniversidad.Api.Requests.Base.Models;
 
-public abstract record CreatedResponseBase<TId, TEntity> : ResponseBase
+public abstract record CreatedRequestResponseBase<TId, TEntity> : RequestResponseBase
 {
     public TId CreatedId { get; set; } = default!;
     public TEntity? CreatedEntity { get; set; }

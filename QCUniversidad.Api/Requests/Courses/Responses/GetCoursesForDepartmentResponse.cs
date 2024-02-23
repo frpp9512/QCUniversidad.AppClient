@@ -3,7 +3,7 @@ using QCUniversidad.Api.Shared.Dtos.Course;
 
 namespace QCUniversidad.Api.Requests.Courses.Responses;
 
-public record GetCoursesForDepartmentResponse : ResponseBase
+public record GetCoursesForDepartmentResponse : RequestResponseBase
 {
     public List<CourseDto>? Courses { get; set; }
 

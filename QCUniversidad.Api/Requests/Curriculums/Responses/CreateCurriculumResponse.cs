@@ -3,4 +3,4 @@ using QCUniversidad.Api.Shared.Dtos.Curriculum;
 
 namespace QCUniversidad.Api.Requests.Curriculums.Responses;
 
-public record CreateCurriculumResponse : CreatedResponseBase<Guid, CurriculumDto> { }
+public record CreateCurriculumResponse : CreatedRequestResponseBase<Guid, CurriculumDto> { }

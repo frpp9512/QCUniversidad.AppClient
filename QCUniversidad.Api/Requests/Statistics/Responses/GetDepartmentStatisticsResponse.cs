@@ -3,7 +3,7 @@ using QCUniversidad.Api.Shared.Dtos.Statistics;
 
 namespace QCUniversidad.Api.Requests.Statistics.Responses;
 
-public record GetDepartmentStatisticsResponse : ResponseBase
+public record GetDepartmentStatisticsResponse : RequestResponseBase
 {
     public List<StatisticItemDto>? StatisticItems { get; set; }
 

@@ -2,7 +2,7 @@
 
 namespace QCUniversidad.Api.Requests.Base.Models;
 
-public abstract record ResponseBase
+public abstract record RequestResponseBase
 {
     public bool Success => !Error;
     public bool Error => ErrorMessages.Count > 0;

@@ -3,7 +3,7 @@ using QCUniversidad.Api.Shared.Dtos.Curriculum;
 
 namespace QCUniversidad.Api.Requests.Curriculums.Responses;
 
-public record GetCurriculumByIdResponse : ResponseBase
+public record GetCurriculumByIdResponse : RequestResponseBase
 {
     public Guid CurriculumId { get; set; }
     public CurriculumDto? Curriculum { get; set; }

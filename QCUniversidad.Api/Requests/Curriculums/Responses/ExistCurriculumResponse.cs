@@ -2,7 +2,7 @@
 
 namespace QCUniversidad.Api.Requests.Curriculums.Responses;
 
-public record ExistCurriculumResponse : ResponseBase
+public record ExistCurriculumResponse : RequestResponseBase
 {
     public bool ExistCurriculum { get; set; }
 
