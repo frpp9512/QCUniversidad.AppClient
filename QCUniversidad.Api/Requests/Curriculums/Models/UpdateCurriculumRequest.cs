@@ -4,7 +4,7 @@ using QCUniversidad.Api.Shared.Dtos.Curriculum;
 
 namespace QCUniversidad.Api.Requests.Curriculums.Models;
 
-public class UpdateCurriculumRequest : IRequest<UpdateCurriculumResponse>
+public class UpdateCurriculumRequest : IRequest<UpdateCurriculumRequestResponse>
 {
     public EditCurriculumDto? CurriculumToUpdate { get; set; }
 }

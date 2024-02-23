@@ -11,14 +11,14 @@ namespace QCUniversidad.Api.Requests.Courses.Handlers;
 public class GetCoursesBySchoolYearOfFacultyHandler(ICoursesManager coursesManager,
                                                     ISchoolYearsManager schoolYearsManager,
                                                     IFacultiesManager facultiesManager,
-                                                    IMapper mapper) : IRequestHandler<GetCoursesBySchoolYearOfFacultyRequest, GetCoursesBySchoolYearOfFacultyResponse>
+                                                    IMapper mapper) : IRequestHandler<GetCoursesBySchoolYearOfFacultyRequest, GetCoursesBySchoolYearOfFacultyRequestResponse>
 {
     private readonly ICoursesManager _coursesManager = coursesManager;
     private readonly ISchoolYearsManager _schoolYearsManager = schoolYearsManager;
     private readonly IFacultiesManager _facultiesManager = facultiesManager;
     private readonly IMapper _mapper = mapper;
 
-    public async Task<GetCoursesBySchoolYearOfFacultyResponse> Handle(GetCoursesBySchoolYearOfFacultyRequest request, CancellationToken cancellationToken)
+    public async Task<GetCoursesBySchoolYearOfFacultyRequestResponse> Handle(GetCoursesBySchoolYearOfFacultyRequest request, CancellationToken cancellationToken)
     {
         try
         {

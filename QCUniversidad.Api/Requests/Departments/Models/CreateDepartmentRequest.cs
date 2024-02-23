@@ -4,7 +4,7 @@ using QCUniversidad.Api.Shared.Dtos.Department;
 
 namespace QCUniversidad.Api.Requests.Departments.Models;
 
-public class CreateDepartmentRequest : IRequest<CreateDepartmentResponse>
+public class CreateDepartmentRequest : IRequest<CreateDepartmentRequestResponse>
 {
     public NewDepartmentDto? Department { get; set; }
 }
