@@ -2,7 +2,7 @@
 
 namespace QCUniversidad.Api.Requests.Careers.Responses;
 
-public record ExistsCareerResponse : ResponseBase
+public record ExistsCareerResponse : RequestResponseBase
 {
     public Guid CareerId { get; set; }
     public bool CareerExists { get; set; }

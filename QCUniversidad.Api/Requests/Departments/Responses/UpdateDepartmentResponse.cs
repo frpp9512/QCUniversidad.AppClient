@@ -2,7 +2,7 @@
 
 namespace QCUniversidad.Api.Requests.Departments.Responses;
 
-public record UpdateDepartmentResponse : ResponseBase
+public record UpdateDepartmentResponse : RequestResponseBase
 {
     public bool Updated { get; set; }
 

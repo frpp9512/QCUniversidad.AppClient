@@ -2,7 +2,7 @@
 
 namespace QCUniversidad.Api.Requests.Careers.Responses;
 
-public record DeleteCareerResponse : ResponseBase
+public record DeleteCareerResponse : RequestResponseBase
 {
     public Guid CareerId { get; set; }
     public bool Deleted { get; set; }

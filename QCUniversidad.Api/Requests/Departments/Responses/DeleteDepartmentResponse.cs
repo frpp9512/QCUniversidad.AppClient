@@ -2,7 +2,7 @@
 
 namespace QCUniversidad.Api.Requests.Departments.Responses;
 
-public record DeleteDepartmentResponse : ResponseBase
+public record DeleteDepartmentResponse : RequestResponseBase
 {
     public bool Deleted { get; set; }
 

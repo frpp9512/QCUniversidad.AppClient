@@ -3,7 +3,7 @@ using QCUniversidad.Api.Shared.Dtos.TeachingPlan;
 
 namespace QCUniversidad.Api.Requests.Planning.Responses;
 
-public record GetPlanningForDepartmentResponse : ResponseBase
+public record GetPlanningForDepartmentResponse : RequestResponseBase
 {
     public List<TeachingPlanItemDto>? PlanningItems { get; set; }
 

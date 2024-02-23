@@ -3,6 +3,6 @@ using QCUniversidad.Api.Shared.Dtos.Course;
 
 namespace QCUniversidad.Api.Requests.Courses.Responses;
 
-public record CreateCourseResponse : CreatedResponseBase<Guid, CourseDto>
+public record CreateCourseResponse : CreatedRequestResponseBase<Guid, CourseDto>
 {
 }

@@ -2,7 +2,7 @@
 
 namespace QCUniversidad.Api.Requests.SchoolYears.Responses;
 
-public record GetSchoolYearPeriodsCountResponse : ResponseBase
+public record GetSchoolYearPeriodsCountResponse : RequestResponseBase
 {
     public Guid SchoolYearId { get; set; }
     public int PeriodsCount { get; set; }
