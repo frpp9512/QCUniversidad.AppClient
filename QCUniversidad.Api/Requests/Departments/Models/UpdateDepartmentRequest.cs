@@ -4,7 +4,7 @@ using QCUniversidad.Api.Shared.Dtos.Department;
 
 namespace QCUniversidad.Api.Requests.Departments.Models;
 
-public class UpdateDepartmentRequest : IRequest<UpdateDepartmentResponse>
+public class UpdateDepartmentRequest : IRequest<UpdateDepartmentRequestResponse>
 {
     public EditDepartmentDto? DepartmentToUpdate { get; set; }
 }

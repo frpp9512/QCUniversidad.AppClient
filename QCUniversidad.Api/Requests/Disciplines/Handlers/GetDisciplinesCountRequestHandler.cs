@@ -5,11 +5,11 @@ using QCUniversidad.Api.Requests.Disciplines.Models;
 
 namespace QCUniversidad.Api.Requests.Disciplines.Handlers;
 
-public class GetDisciplinesCountRequestHandler(IDisciplinesManager disciplinesManager) : IRequestHandler<GetDisciplinesCountRequest, GetDepartmentDisciplinesCountResponse>
+public class GetDisciplinesCountRequestHandler(IDisciplinesManager disciplinesManager) : IRequestHandler<GetDisciplinesCountRequest, GetDepartmentDisciplinesCountRequestResponse>
 {
     private readonly IDisciplinesManager _disciplinesManager = disciplinesManager;
 
-    public async Task<GetDepartmentDisciplinesCountResponse> Handle(GetDisciplinesCountRequest request, CancellationToken cancellationToken)
+    public async Task<GetDepartmentDisciplinesCountRequestResponse> Handle(GetDisciplinesCountRequest request, CancellationToken cancellationToken)
     {
         try
         {

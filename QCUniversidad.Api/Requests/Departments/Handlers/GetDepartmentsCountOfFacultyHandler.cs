@@ -6,11 +6,11 @@ using QCUniversidad.Api.Requests.Departments.Responses;
 
 namespace QCUniversidad.Api.Requests.Departments.Handlers;
 
-public class GetDepartmentsCountOfFacultyHandler(IDepartmentsManager departmentsManager) : IRequestHandler<GetDepartmentsCountOfFacultyRequest, GetDepartmentsCountOfFacultyResponse>
+public class GetDepartmentsCountOfFacultyHandler(IDepartmentsManager departmentsManager) : IRequestHandler<GetDepartmentsCountOfFacultyRequest, GetDepartmentsCountOfFacultyRequestResponse>
 {
     private readonly IDepartmentsManager _departmentsManager = departmentsManager;
 
-    public async Task<GetDepartmentsCountOfFacultyResponse> Handle(GetDepartmentsCountOfFacultyRequest request, CancellationToken cancellationToken)
+    public async Task<GetDepartmentsCountOfFacultyRequestResponse> Handle(GetDepartmentsCountOfFacultyRequest request, CancellationToken cancellationToken)
     {
         try
         {

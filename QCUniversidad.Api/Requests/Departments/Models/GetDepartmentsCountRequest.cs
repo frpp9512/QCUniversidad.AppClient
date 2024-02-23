@@ -3,4 +3,4 @@ using QCUniversidad.Api.Requests.Departments.Responses;
 
 namespace QCUniversidad.Api.Requests.Departments.Models;
 
-public class GetDepartmentsCountRequest : IRequest<GetDepartmentsCountResponse> { }
+public class GetDepartmentsCountRequest : IRequest<GetDepartmentsCountRequestResponse> { }
