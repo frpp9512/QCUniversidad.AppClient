@@ -4,7 +4,7 @@ using QCUniversidad.Api.Shared.Enums;
 
 namespace QCUniversidad.Api.Requests.Courses.Models;
 
-public class ExistCourseByCareerYearAndModalityRequest : IRequest<ExistCourseByCareerYearAndModalityResponse>
+public class ExistCourseByCareerYearAndModalityRequest : IRequest<ExistCourseByCareerYearAndModalityRequestResponse>
 {
     public Guid CareerId { get; set; }
     public int CareerYear { get; set; }
