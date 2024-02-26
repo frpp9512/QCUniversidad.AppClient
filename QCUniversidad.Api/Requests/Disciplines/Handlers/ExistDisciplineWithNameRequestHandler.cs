@@ -15,6 +15,7 @@ public class ExistDisciplineWithNameRequestHandler(IDisciplinesManager disciplin
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = ["Should provide a discipline name."],
                 StatusCode = System.Net.HttpStatusCode.BadRequest
             };
@@ -25,6 +26,7 @@ public class ExistDisciplineWithNameRequestHandler(IDisciplinesManager disciplin
             bool result = await _disciplinesManager.ExistsDisciplineAsync(request.Name);
             return new()
             {
+                RequestId = request.RequestId,
                 Name = request.Name,
                 Exist = result
             };
@@ -33,6 +35,7 @@ public class ExistDisciplineWithNameRequestHandler(IDisciplinesManager disciplin
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while determining if the discipline with name {request.Name}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

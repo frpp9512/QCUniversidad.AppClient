@@ -17,6 +17,7 @@ public class DeleteDisciplineRequestHandler(IDisciplinesManager disciplinesManag
             bool result = await _disciplinesManager.DeleteDisciplineAsync(request.DisciplineId);
             return new()
             {
+                RequestId = request.RequestId,
                 Deleted = result,
                 StatusCode = result ? System.Net.HttpStatusCode.OK : System.Net.HttpStatusCode.InternalServerError,
                 ErrorMessages = result ? [] : [$"Error while deleting the discipline {request.DisciplineId}"]
@@ -26,6 +27,7 @@ public class DeleteDisciplineRequestHandler(IDisciplinesManager disciplinesManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"The discipline with id {request.DisciplineId} was not found."],
                 StatusCode = System.Net.HttpStatusCode.NotFound
             };
@@ -34,6 +36,7 @@ public class DeleteDisciplineRequestHandler(IDisciplinesManager disciplinesManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while deleting the discipline with id {request.DisciplineId}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

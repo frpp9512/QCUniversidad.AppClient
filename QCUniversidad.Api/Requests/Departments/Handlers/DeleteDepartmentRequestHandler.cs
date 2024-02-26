@@ -16,6 +16,7 @@ public class DeleteDepartmentRequestHandler(IDepartmentsManager departmentsManag
             bool result = await _departmentsManager.DeleteDepartmentAsync(request.DepartmentId);
             return new()
             {
+                RequestId = request.RequestId,
                 Deleted = result,
                 StatusCode = result ? System.Net.HttpStatusCode.OK : System.Net.HttpStatusCode.NotFound,
             };
@@ -24,6 +25,7 @@ public class DeleteDepartmentRequestHandler(IDepartmentsManager departmentsManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while deleting the department {request.DepartmentId}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

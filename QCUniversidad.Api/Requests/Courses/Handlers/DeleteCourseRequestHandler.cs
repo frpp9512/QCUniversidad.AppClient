@@ -17,9 +17,11 @@ public class DeleteCourseRequestHandler(ICoursesManager coursesManager) : IReque
             bool result = await _coursesManager.DeleteCourseAsync(request.CourseId);
             return result ? new()
             {
+                RequestId = request.RequestId,
                 Deleted = true
             } : new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"The course with id: {request.CourseId} couldn't be removed."],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };
@@ -28,6 +30,7 @@ public class DeleteCourseRequestHandler(ICoursesManager coursesManager) : IReque
         {
             return new()
             {
+                RequestId = request.RequestId,
                 StatusCode = System.Net.HttpStatusCode.NotFound,
                 ErrorMessages = [$"The course with id: {request.CourseId} was not found."]
             };
@@ -36,6 +39,7 @@ public class DeleteCourseRequestHandler(ICoursesManager coursesManager) : IReque
         {
             return new()
             {
+                RequestId = request.RequestId,
                 StatusCode = System.Net.HttpStatusCode.InternalServerError,
                 ErrorMessages = [$"Error while trying to delete the course with id {request.CourseId}. Error message: {ex.Message}"]
             };

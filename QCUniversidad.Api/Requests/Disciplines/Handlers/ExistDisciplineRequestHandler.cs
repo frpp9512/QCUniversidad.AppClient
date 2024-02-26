@@ -16,6 +16,7 @@ public class ExistDisciplineRequestHandler(IDisciplinesManager disciplinesManage
             bool result = await _disciplinesManager.ExistsDisciplineAsync(request.DisciplineId);
             return new()
             {
+                RequestId = request.RequestId,
                 DisciplineId = request.DisciplineId,
                 Exist = result
             };
@@ -24,6 +25,7 @@ public class ExistDisciplineRequestHandler(IDisciplinesManager disciplinesManage
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while determining if the discipline {request.DisciplineId} exists. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

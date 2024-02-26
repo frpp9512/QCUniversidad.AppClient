@@ -16,6 +16,7 @@ public class GetDepartmentsCountRequestHandler(IDepartmentsManager departmentsMa
             int count = await _departmentsManager.GetDepartmentsCountAsync();
             return new()
             {
+                RequestId = request.RequestId,
                 Count = count
             };
         }
@@ -23,6 +24,7 @@ public class GetDepartmentsCountRequestHandler(IDepartmentsManager departmentsMa
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while fetching the count of departments. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

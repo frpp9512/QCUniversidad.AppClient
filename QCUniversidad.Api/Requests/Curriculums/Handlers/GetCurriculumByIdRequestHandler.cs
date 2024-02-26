@@ -26,6 +26,7 @@ public class GetCurriculumByIdRequestHandler(ICurriculumsManager curriculumsMana
                                            .ToList();
             return new()
             {
+                RequestId = request.RequestId,
                 CurriculumId = request.CurriculumId,
                 Curriculum = dto
             };
@@ -34,6 +35,7 @@ public class GetCurriculumByIdRequestHandler(ICurriculumsManager curriculumsMana
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"The curriculum with id {request.CurriculumId} was not found."],
                 StatusCode = System.Net.HttpStatusCode.NotFound
             };
@@ -42,6 +44,7 @@ public class GetCurriculumByIdRequestHandler(ICurriculumsManager curriculumsMana
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while fetching the curriculum with id {request.CurriculumId}. Error message: {ex.Message}"]
             };
         }

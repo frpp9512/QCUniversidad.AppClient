@@ -17,6 +17,7 @@ public class DeleteCareerRequestHandler(ICareersManager careersManager) : IReque
             bool result = await _careersManager.DeleteCareerAsync(request.CareerId);
             return new()
             {
+                RequestId = request.RequestId,
                 CareerId = request.CareerId,
                 Deleted = result
             };
@@ -25,6 +26,7 @@ public class DeleteCareerRequestHandler(ICareersManager careersManager) : IReque
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"The career with id {request.CareerId} was not found in database."],
                 StatusCode = System.Net.HttpStatusCode.NotFound
             };
@@ -33,6 +35,7 @@ public class DeleteCareerRequestHandler(ICareersManager careersManager) : IReque
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [ex.Message],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

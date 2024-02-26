@@ -21,6 +21,7 @@ public class GetCoursesRangeRequestHandler(ICoursesManager coursesManager, IMapp
             var dtos = courses.Select(_mapper.Map<CourseDto>).ToList();
             return new()
             {
+                RequestId = request.RequestId,
                 From = request.From,
                 To = request.To,
                 CoursesRange = dtos
@@ -30,6 +31,7 @@ public class GetCoursesRangeRequestHandler(ICoursesManager coursesManager, IMapp
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [ ex.Message ],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

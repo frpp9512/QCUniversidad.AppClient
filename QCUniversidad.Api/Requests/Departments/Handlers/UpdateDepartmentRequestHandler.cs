@@ -18,6 +18,7 @@ public class UpdateDepartmentRequestHandler(IDepartmentsManager departmentsManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = ["Should provide the department update data."],
                 StatusCode = System.Net.HttpStatusCode.BadRequest
             };
@@ -29,6 +30,7 @@ public class UpdateDepartmentRequestHandler(IDepartmentsManager departmentsManag
             bool result = await _departmentsManager.UpdateDeparmentAsync(model);
             return new()
             {
+                RequestId = request.RequestId,
                 Updated = result,
                 StatusCode = result ? System.Net.HttpStatusCode.OK : System.Net.HttpStatusCode.InternalServerError
             };
@@ -37,6 +39,7 @@ public class UpdateDepartmentRequestHandler(IDepartmentsManager departmentsManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while updating a department. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

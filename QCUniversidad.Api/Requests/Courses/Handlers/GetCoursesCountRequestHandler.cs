@@ -14,12 +14,17 @@ public class GetCoursesCountRequestHandler(ICoursesManager coursesManager) : IRe
         try
         {
             int count = await _coursesManager.GetCoursesCountAsync();
-            return new() { CoursesCount = count };
+            return new()
+            {
+                RequestId = request.RequestId,
+                CoursesCount = count
+            };
         }
         catch (Exception ex)
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [ ex.Message ],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

@@ -18,6 +18,7 @@ public class UpdateCurriculumRequestHandler(ICurriculumsManager curriculumsManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = ["The curriculum cannot be null."],
                 StatusCode = System.Net.HttpStatusCode.BadRequest
             };
@@ -29,6 +30,7 @@ public class UpdateCurriculumRequestHandler(ICurriculumsManager curriculumsManag
             bool result = await _curriculumsManager.UpdateCurriculumAsync(model);
             return new()
             {
+                RequestId = request.RequestId,
                 Updated = result
             };
         }
@@ -36,6 +38,7 @@ public class UpdateCurriculumRequestHandler(ICurriculumsManager curriculumsManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while updating the curriculum. Error message: {ex.Message}"]
             };
         }

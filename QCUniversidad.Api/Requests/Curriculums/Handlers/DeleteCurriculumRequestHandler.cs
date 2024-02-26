@@ -17,6 +17,7 @@ public class DeleteCurriculumRequestHandler(ICurriculumsManager curriculumsManag
             bool result = await _curriculumsManager.DeleteCurriculumAsync(request.CurriculumId);
             return new()
             {
+                RequestId = request.RequestId,
                 Deleted = result,
                 StatusCode = result ? System.Net.HttpStatusCode.OK : System.Net.HttpStatusCode.InternalServerError
             };
@@ -25,6 +26,7 @@ public class DeleteCurriculumRequestHandler(ICurriculumsManager curriculumsManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"The curriculum with id: {request.CurriculumId} was not found."],
                 StatusCode = System.Net.HttpStatusCode.NotFound
             };
@@ -33,6 +35,7 @@ public class DeleteCurriculumRequestHandler(ICurriculumsManager curriculumsManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while deleting the curriculum: {request.CurriculumId}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

@@ -14,12 +14,17 @@ public class ExistsCareerRequestHandler(ICareersManager careersManager) : IReque
         try
         {
             bool result = await _careersManager.ExistsCareerAsync(request.CareerId);
-            return new() { CareerExists = result };
+            return new()
+            {
+                RequestId = request.RequestId,
+                CareerExists = result
+            };
         }
         catch (Exception ex)
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [ex.Message],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

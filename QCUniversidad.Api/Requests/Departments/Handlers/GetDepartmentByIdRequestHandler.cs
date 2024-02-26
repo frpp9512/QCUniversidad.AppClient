@@ -22,6 +22,7 @@ public class GetDepartmentByIdRequestHandler(IDepartmentsManager departmentsMana
             DepartmentDto dto = _mapper.Map<DepartmentDto>(department);
             return new()
             {
+                RequestId = request.RequestId,
                 DepartmentId = request.DepartmentId,
                 Department = dto
             };
@@ -30,6 +31,7 @@ public class GetDepartmentByIdRequestHandler(IDepartmentsManager departmentsMana
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"The department with id '{request.DepartmentId}' was not found."],
                 StatusCode = System.Net.HttpStatusCode.NotFound
             };
@@ -38,6 +40,7 @@ public class GetDepartmentByIdRequestHandler(IDepartmentsManager departmentsMana
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while fetching the department with id: {request.DepartmentId}. Error messages: {ex.Message}"]
             };
         }

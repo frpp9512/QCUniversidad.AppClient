@@ -98,6 +98,7 @@ public class GetDepartmentStatisticsHandler(IPeriodsManager periodsManager, ITea
 
             return new()
             {
+                RequestId = request.RequestId,
                 StatisticItems = stats
             };
         }
@@ -105,6 +106,7 @@ public class GetDepartmentStatisticsHandler(IPeriodsManager periodsManager, ITea
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while fetching the statistics for department {request.DepartmentId} in the period {request.PeriodId}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

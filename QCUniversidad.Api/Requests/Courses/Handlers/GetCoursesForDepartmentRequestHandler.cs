@@ -19,12 +19,17 @@ public class GetCoursesForDepartmentRequestHandler(ICoursesManager coursesManage
         {
             IList<CourseModel> result = await _coursesManager.GetCoursesForDepartmentAsync(request.DepartmentId, request.SchoolYearId);
             var dtos = result.Select(_mapper.Map<CourseDto>).ToList();
-            return new() { Courses = dtos };
+            return new()
+            {
+                Courses = dtos,
+                RequestId = request.RequestId
+            };
         }
         catch (Exception ex)
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [ $"Error while loading the courses for department: {request.DepartmentId} in the school year: {request.SchoolYearId}. Error message: {ex.Message}" ],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

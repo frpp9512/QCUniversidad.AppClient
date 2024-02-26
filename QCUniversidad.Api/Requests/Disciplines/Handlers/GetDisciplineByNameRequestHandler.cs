@@ -20,6 +20,7 @@ public class GetDisciplineByNameRequestHandler(IDisciplinesManager disciplinesMa
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Must provide a discipline name."],
                 StatusCode = System.Net.HttpStatusCode.BadRequest
             };
@@ -33,6 +34,7 @@ public class GetDisciplineByNameRequestHandler(IDisciplinesManager disciplinesMa
             dto.TeachersCount = await _disciplinesManager.GetDisciplineTeachersCountAsync(dto.Id);
             return new()
             {
+                RequestId = request.RequestId,
                 DisciplineName = request.DisciplineName,
                 Discipline = dto
             };
@@ -41,6 +43,7 @@ public class GetDisciplineByNameRequestHandler(IDisciplinesManager disciplinesMa
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"The discipline with name {request.DisciplineName} was not found."],
                 StatusCode = System.Net.HttpStatusCode.NotFound
             };
@@ -49,6 +52,7 @@ public class GetDisciplineByNameRequestHandler(IDisciplinesManager disciplinesMa
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while fetching the discipline with name {request.DisciplineName}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

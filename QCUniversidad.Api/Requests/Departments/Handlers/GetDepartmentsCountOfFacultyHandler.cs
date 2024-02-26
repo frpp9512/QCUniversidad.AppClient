@@ -17,6 +17,7 @@ public class GetDepartmentsCountOfFacultyHandler(IDepartmentsManager departments
             int count = await _departmentsManager.GetDepartmentsCountAsync(request.FacultyId);
             return new()
             {
+                RequestId = request.RequestId,
                 Count = count
             };
         }
@@ -24,6 +25,7 @@ public class GetDepartmentsCountOfFacultyHandler(IDepartmentsManager departments
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"The faculty with id {request.FacultyId} was not found."],
                 StatusCode = System.Net.HttpStatusCode.NotFound
             };
@@ -32,6 +34,7 @@ public class GetDepartmentsCountOfFacultyHandler(IDepartmentsManager departments
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while fetching the departments count the faculty {request.FacultyId}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

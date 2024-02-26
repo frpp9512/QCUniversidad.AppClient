@@ -18,6 +18,7 @@ public class UpdateDisciplineRequestHandler(IDisciplinesManager disciplinesManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Must provide the discipline data to update."],
                 StatusCode = System.Net.HttpStatusCode.BadRequest
             };
@@ -28,6 +29,7 @@ public class UpdateDisciplineRequestHandler(IDisciplinesManager disciplinesManag
             bool result = await _disciplinesManager.UpdateDisciplineAsync(_mapper.Map<DisciplineModel>(request.DisciplineToUpdate));
             return new()
             {
+                RequestId = request.RequestId,
                 Updated = result,
                 StatusCode = result ? System.Net.HttpStatusCode.OK : System.Net.HttpStatusCode.InternalServerError,
                 ErrorMessages = result ? [] : [$"Error while updating a discipline."]
@@ -37,6 +39,7 @@ public class UpdateDisciplineRequestHandler(IDisciplinesManager disciplinesManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while updating a discipline. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

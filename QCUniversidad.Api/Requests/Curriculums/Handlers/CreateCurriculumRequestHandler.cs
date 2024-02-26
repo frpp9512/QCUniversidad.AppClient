@@ -19,6 +19,7 @@ public class CreateCurriculumRequestHandler(ICurriculumsManager curriculumsManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = ["Must provide the curriculum data."],
                 StatusCode = System.Net.HttpStatusCode.BadRequest
             };
@@ -30,6 +31,7 @@ public class CreateCurriculumRequestHandler(ICurriculumsManager curriculumsManag
             var result = await _curriculumsManager.CreateCurriculumAsync(_mapper.Map<CurriculumModel>(request.NewCurriculum));
             return new()
             {
+                RequestId = request.RequestId,
                 CreatedEntity = _mapper.Map<CurriculumDto>(result),
                 CreatedId = result.Id,
                 ApiEntityEndpointAction = "GetById"
@@ -39,6 +41,7 @@ public class CreateCurriculumRequestHandler(ICurriculumsManager curriculumsManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while creating a curriculum. Error message: {ex.Message}"]
             };
         }

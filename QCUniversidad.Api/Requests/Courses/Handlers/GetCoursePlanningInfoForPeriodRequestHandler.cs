@@ -37,6 +37,7 @@ public class GetCoursePlanningInfoForPeriodRequestHandler(ICoursesManager course
             };
             return new()
             {
+                RequestId = request.RequestId,
                 PlanningInfo = dto
             };
         }
@@ -44,6 +45,7 @@ public class GetCoursePlanningInfoForPeriodRequestHandler(ICoursesManager course
         {
             return new()
             {
+                RequestId = request.RequestId,
                 StatusCode = System.Net.HttpStatusCode.BadRequest,
                 ErrorMessages = [$"Error with request argument. Error message: {ex.Message}"]
             };
@@ -52,6 +54,7 @@ public class GetCoursePlanningInfoForPeriodRequestHandler(ICoursesManager course
         {
             return new()
             {
+                RequestId = request.RequestId,
                 StatusCode = System.Net.HttpStatusCode.NotFound,
                 ErrorMessages = [$"The course with id: {request.CourseId} was not found."]
             };
@@ -60,6 +63,7 @@ public class GetCoursePlanningInfoForPeriodRequestHandler(ICoursesManager course
         {
             return new()
             {
+                RequestId = request.RequestId,
                 StatusCode = System.Net.HttpStatusCode.NotFound,
                 ErrorMessages = [$"The period with id: {request.PeriodId} was not found."]
             };
@@ -68,6 +72,7 @@ public class GetCoursePlanningInfoForPeriodRequestHandler(ICoursesManager course
         {
             return new()
             {
+                RequestId = request.RequestId,
                 StatusCode = System.Net.HttpStatusCode.InternalServerError,
                 ErrorMessages = [$"Error while trying to get the planning info of course: {request.CourseId} in the period: {request.PeriodId}. Error message: {ex.Message}"]
             };

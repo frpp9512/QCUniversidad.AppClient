@@ -54,6 +54,7 @@ public class GetPlanningForDepartmentHandler(IPlanningManager planningManager,
 
             return new()
             {
+                RequestId = request.RequestId,
                 PlanningItems = dtos
             };
         }
@@ -61,6 +62,7 @@ public class GetPlanningForDepartmentHandler(IPlanningManager planningManager,
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error with the request arguments. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.BadRequest
             };
@@ -69,6 +71,7 @@ public class GetPlanningForDepartmentHandler(IPlanningManager planningManager,
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error fetching the department {request.DepartmentId} planning for period {request.PeriodId} and course {request.CourseId} and with only load items {request.OnlyLoadItems}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

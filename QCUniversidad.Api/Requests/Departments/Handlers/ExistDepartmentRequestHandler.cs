@@ -16,6 +16,7 @@ public class ExistDepartmentRequestHandler(IDepartmentsManager departmentsManage
             bool result = await _departmentsManager.ExistDepartmentAsync(request.DepartmentId);
             return new()
             {
+                RequestId = request.RequestId,
                 DepartmentId = request.DepartmentId,
                 Exist = result,
                 StatusCode = result ? System.Net.HttpStatusCode.OK : System.Net.HttpStatusCode.NotFound
@@ -25,6 +26,7 @@ public class ExistDepartmentRequestHandler(IDepartmentsManager departmentsManage
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while determining the existence of department {request.DepartmentId}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

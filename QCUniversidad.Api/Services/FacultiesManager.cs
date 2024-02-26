@@ -37,13 +37,13 @@ public class FacultiesManager(QCUniversidadContext context) : IFacultiesManager
         return result;
     }
 
-    public async Task<bool> CreateFacultyAsync(FacultyModel faculty)
+    public async Task<FacultyModel?> CreateFacultyAsync(FacultyModel faculty)
     {
         ArgumentNullException.ThrowIfNull(faculty);
 
         _ = await _context.AddAsync(faculty);
         int result = await _context.SaveChangesAsync();
-        return result > 0;
+        return result > 0 ? faculty : null;
     }
 
     public async Task<bool> UpdateFacultyAsync(FacultyModel faculty)

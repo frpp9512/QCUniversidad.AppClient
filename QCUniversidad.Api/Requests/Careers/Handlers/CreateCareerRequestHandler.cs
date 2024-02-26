@@ -22,6 +22,7 @@ public class CreateCareerRequestHandler(ICareersManager careersManager, IMapper 
             var careerDto = _mapper.Map<CareerDto>(createdCareer);
             return new CreateCareerRequestResponse
             {
+                RequestId = request.RequestId,
                 CreatedEntity = careerDto,
                 CreatedId = createdCareer.Id,
                 ApiEntityEndpointAction = "GetById"
@@ -31,6 +32,7 @@ public class CreateCareerRequestHandler(ICareersManager careersManager, IMapper 
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [ ex.Message ],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };
