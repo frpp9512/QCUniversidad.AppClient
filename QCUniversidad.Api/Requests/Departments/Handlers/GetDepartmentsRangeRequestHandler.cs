@@ -26,6 +26,7 @@ public class GetDepartmentsRangeRequestHandler(IDepartmentsManager departmentsMa
 
             return new()
             {
+                RequestId = request.RequestId,
                 From = request.From,
                 To = request.To,
                 Departments = dtos
@@ -35,6 +36,7 @@ public class GetDepartmentsRangeRequestHandler(IDepartmentsManager departmentsMa
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [ $"Error while fetching the departments range from: {request.From} to: {request.To}. Error message: {ex.Message}" ],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

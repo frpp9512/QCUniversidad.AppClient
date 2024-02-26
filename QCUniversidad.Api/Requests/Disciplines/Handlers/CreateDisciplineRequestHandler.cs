@@ -19,6 +19,7 @@ public class CreateDisciplineRequestHandler(IDisciplinesManager disciplinesManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Must provide the discipline data."],
                 StatusCode = System.Net.HttpStatusCode.BadRequest
             };
@@ -29,6 +30,7 @@ public class CreateDisciplineRequestHandler(IDisciplinesManager disciplinesManag
             var result = await _disciplinesManager.CreateDisciplineAsync(_mapper.Map<DisciplineModel>(request.NewDiscipline));
             return new()
             {
+                RequestId = request.RequestId,
                 CreatedEntity = _mapper.Map<SimpleDisciplineDto>(result),
                 ApiEntityEndpointAction = "GetById",
                 CreatedId = result?.Id ?? Guid.Empty,
@@ -40,6 +42,7 @@ public class CreateDisciplineRequestHandler(IDisciplinesManager disciplinesManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while trying to add the discipline. Error message: {ex.Message}"]
             };
         }

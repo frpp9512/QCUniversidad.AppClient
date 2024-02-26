@@ -14,12 +14,17 @@ public class GetCareersCountRequestHandler(ICareersManager careersManager) : IRe
 		try
 		{
 			var count = await _careersManager.GetCareersCountAsync();
-			return new() { CareersCount = count };
+			return new()
+			{
+                RequestId = request.RequestId,
+				CareersCount = count
+            };
 		}
 		catch (Exception ex)
 		{
 			return new()
 			{
+                RequestId = request.RequestId,
 				ErrorMessages = [ ex.Message ],
 				StatusCode = System.Net.HttpStatusCode.InternalServerError
 			};

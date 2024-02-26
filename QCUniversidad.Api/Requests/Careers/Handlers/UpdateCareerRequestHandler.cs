@@ -20,12 +20,17 @@ public class UpdateCareerRequestHandler(ICareersManager careersManager, IMapper 
         {
             CareerModel model = _mapper.Map<CareerModel>(request.Career);
             var updated = await _careersManager.UpdateCareerAsync(model);
-            return new() { CareerUpdated = _mapper.Map<CareerDto>(updated) };
+            return new()
+            {
+                RequestId = request.RequestId,
+                CareerUpdated = _mapper.Map<CareerDto>(updated)
+            };
         }
         catch (CareerNotFoundException)
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"The career with id {request.Career.Id} was not found in database."],
                 StatusCode = System.Net.HttpStatusCode.NotFound
             };
@@ -34,6 +39,7 @@ public class UpdateCareerRequestHandler(ICareersManager careersManager, IMapper 
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [ex.Message],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

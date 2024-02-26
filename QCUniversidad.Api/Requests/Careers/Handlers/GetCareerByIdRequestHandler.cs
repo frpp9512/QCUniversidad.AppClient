@@ -20,12 +20,17 @@ public class GetCareerByIdRequestHandler(ICareersManager careersManager, IMapper
         {
             CareerModel career = await _careersManager.GetCareerAsync(request.CareerId);
             CareerDto dto = _mapper.Map<CareerDto>(career);
-            return new() { Career = dto };
+            return new()
+            {
+                RequestId = request.RequestId,
+                Career = dto
+            };
         }
         catch (CareerNotFoundException)
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"The career with id {request.CareerId} was not found."],
                 StatusCode = System.Net.HttpStatusCode.NotFound
             };
@@ -34,6 +39,7 @@ public class GetCareerByIdRequestHandler(ICareersManager careersManager, IMapper
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [ ex.Message ],
                 StatusCode= System.Net.HttpStatusCode.InternalServerError
             };

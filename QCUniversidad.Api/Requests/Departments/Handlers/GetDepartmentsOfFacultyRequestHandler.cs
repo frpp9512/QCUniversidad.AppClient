@@ -27,6 +27,7 @@ public class GetDepartmentsOfFacultyRequestHandler(IDepartmentsManager departmen
 
             return new()
             {
+                RequestId = request.RequestId,
                 FacultyId = request.FacultyId,
                 Departments = dtos
             };
@@ -35,6 +36,7 @@ public class GetDepartmentsOfFacultyRequestHandler(IDepartmentsManager departmen
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"The faculty with id {request.FacultyId} do not exists."],
                 StatusCode = System.Net.HttpStatusCode.NotFound
             };
@@ -43,6 +45,7 @@ public class GetDepartmentsOfFacultyRequestHandler(IDepartmentsManager departmen
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while fetching the departments of faculty {request.FacultyId}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

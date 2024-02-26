@@ -21,6 +21,7 @@ public class CreateCourseRequestHandler(ICoursesManager coursesManager, IMapper 
             var createdCourse = await _coursesManager.CreateCourseAsync(model);
             return new CreateCourseRequestResponse()
             {
+                RequestId = request.RequestId,
                 CreatedId = createdCourse.Id,
                 CreatedEntity = _mapper.Map<CourseDto>(createdCourse),
                 ApiEntityEndpointAction = "GetById"
@@ -30,6 +31,7 @@ public class CreateCourseRequestHandler(ICoursesManager coursesManager, IMapper 
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [ ex.Message ],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

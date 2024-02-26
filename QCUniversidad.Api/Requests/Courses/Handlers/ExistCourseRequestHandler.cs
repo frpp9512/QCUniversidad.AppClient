@@ -16,6 +16,7 @@ public class ExistCourseRequestHandler(ICoursesManager coursesManager) : IReques
             bool result = await _coursesManager.ExistsCourseAsync(request.CourseId);
             return new()
             {
+                RequestId = request.RequestId,
                 CourseId = request.CourseId,
                 ExistCourse = result
             };
@@ -24,6 +25,7 @@ public class ExistCourseRequestHandler(ICoursesManager coursesManager) : IReques
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [ex.Message],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

@@ -29,9 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Requests\Faculties\Handlers\" />
-    <Folder Include="Requests\Faculties\Models\" />
-    <Folder Include="Requests\Faculties\Responses\" />
     <Folder Include="Requests\Periods\Handlers\" />
     <Folder Include="Requests\Periods\Models\" />
     <Folder Include="Requests\Periods\Responses\" />

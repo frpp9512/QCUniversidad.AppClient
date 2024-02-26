@@ -19,6 +19,7 @@ public class CreateDepartmentRequestHandler(IDepartmentsManager departmentsManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"You should provide the department data."],
                 StatusCode = System.Net.HttpStatusCode.BadRequest
             };
@@ -30,6 +31,7 @@ public class CreateDepartmentRequestHandler(IDepartmentsManager departmentsManag
             var createdDepartment = await _departmentsManager.CreateDepartmentAsync(model);
             return new()
             {
+                RequestId = request.RequestId,
                 CreatedEntity = _mapper.Map<DepartmentDto>(createdDepartment),
                 ApiEntityEndpointAction = "GetById",
                 CreatedId = createdDepartment.Id
@@ -39,6 +41,7 @@ public class CreateDepartmentRequestHandler(IDepartmentsManager departmentsManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while creating a department. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

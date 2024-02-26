@@ -22,6 +22,7 @@ public class GetCurriculumsForCareerRequestHandler(ICurriculumsManager curriculu
             var dtos = curriculums.Select(_mapper.Map<CurriculumDto>).ToList();
             return new()
             {
+                RequestId = request.RequestId,
                 CareerCurriculums = dtos
             };
         }
@@ -29,6 +30,7 @@ public class GetCurriculumsForCareerRequestHandler(ICurriculumsManager curriculu
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"The career {request.CareerId} do not exist."],
                 StatusCode = System.Net.HttpStatusCode.NotFound
             };
@@ -37,6 +39,7 @@ public class GetCurriculumsForCareerRequestHandler(ICurriculumsManager curriculu
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while fetching the curriculums for the career: {request.CareerId}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

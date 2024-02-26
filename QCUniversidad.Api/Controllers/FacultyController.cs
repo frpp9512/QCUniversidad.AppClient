@@ -1,117 +1,69 @@
-﻿using AutoMapper;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using QCUniversidad.Api.Contracts;
-using QCUniversidad.Api.Data.Models;
-using QCUniversidad.Api.Exceptions;
+using QCUniversidad.Api.Requests.Faculties.Models;
 using QCUniversidad.Api.Shared.Dtos.Faculty;
 
 namespace QCUniversidad.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class FacultyController(IFacultiesManager facultiesManager,
-                               IMapper mapper) : ControllerBase
+public class FacultyController(IMediator mediator) : ApiControllerBase
 {
-    private readonly IFacultiesManager _facultiesManager = facultiesManager;
-    private readonly IMapper _mapper = mapper;
+    private readonly IMediator _mediator = mediator;
 
     [HttpGet("list")]
-    public async Task<IActionResult> GetListAsync(int from = 0, int to = 0)
+    public async Task<IActionResult> GetListAsync(int from = 0, int to = 0, CancellationToken cancellationToken = default)
     {
-        IList<FacultyModel> faculties = await _facultiesManager.GetFacultiesAsync(from, to);
-        IEnumerable<FacultyDto> dtos = faculties.Select(f => GetFacultyDto(f).GetAwaiter().GetResult());
-        return Ok(dtos);
+        var request = new GetFacultiesRangeRequest { From = from, To = to };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet("count")]
-    public async Task<IActionResult> CountAsync()
+    public async Task<IActionResult> CountAsync(CancellationToken cancellationToken)
     {
-        int total = await _facultiesManager.GetFacultiesTotalAsync();
-        return Ok(total);
+        var request = new GetFacultiesCountRequest();
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpGet("exists")]
-    public async Task<IActionResult> ExistsAsync(Guid id)
+    public async Task<IActionResult> ExistsAsync(Guid id, CancellationToken cancellationToken)
     {
-        try
-        {
-            bool result = await _facultiesManager.ExistFacultyAsync(id);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return Problem(ex.Message);
-        }
+        var request = new ExistFacultyRequest { FacultyId = id };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpPut]
-    public async Task<IActionResult> CreateAsync(FacultyDto facultyDto)
+    public async Task<IActionResult> CreateAsync(FacultyDto facultyDto, CancellationToken cancellationToken)
     {
-        if (facultyDto is not null)
-        {
-            bool result = await _facultiesManager.CreateFacultyAsync(_mapper.Map<FacultyModel>(facultyDto));
-            return result ? Ok() : BadRequest("An error has occured creating the faculty.");
-        }
-
-        return BadRequest("The faculty cannot be null.");
+        var request = new CreateFacultyRequest { Faculty = facultyDto };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetCreatedResponseResult(response);
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetByIdAsync(Guid id)
+    public async Task<IActionResult> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        if (id == Guid.Empty)
-        {
-            return BadRequest("You must provide an id.");
-        }
-
-        try
-        {
-            FacultyModel result = await _facultiesManager.GetFacultyAsync(id);
-            FacultyDto dto = await GetFacultyDto(result);
-            return Ok(dto);
-        }
-        catch (FacultyNotFoundException)
-        {
-            return NotFound($"The faculty with id {id} was not found.");
-        }
-    }
-
-    private async Task<FacultyDto> GetFacultyDto(FacultyModel model)
-    {
-        FacultyDto dto = _mapper.Map<FacultyDto>(model);
-        dto.CareersCount = await _facultiesManager.GetFacultyCareerCountAsync(model.Id);
-        dto.DepartmentCount = await _facultiesManager.GetFacultyDepartmentCountAsync(model.Id);
-        return dto;
+        var request = new GetFacultyByIdRequest { FacultyId = id };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpPost("update")]
-    public async Task<IActionResult> UpdateAsync(FacultyDto faculty)
+    public async Task<IActionResult> UpdateAsync(FacultyDto faculty, CancellationToken cancellationToken)
     {
-        if (faculty is null)
-        {
-            return BadRequest("The faculty cannot be null.");
-        }
-
-        bool result = await _facultiesManager.UpdateFacultyAsync(_mapper.Map<FacultyModel>(faculty));
-        return Ok(result);
+        var request = new UpdateFacultyRequest { Faculty = faculty };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 
     [HttpDelete]
-    public async Task<IActionResult> DeleteFaculty(Guid id)
+    public async Task<IActionResult> DeleteFaculty(Guid id, CancellationToken cancellationToken)
     {
-        if (id == Guid.Empty)
-        {
-            return BadRequest("You must provide an id.");
-        }
-
-        try
-        {
-            bool result = await _facultiesManager.DeleteFacultyAsync(id);
-            return Ok(result);
-        }
-        catch (FacultyNotFoundException)
-        {
-            return NotFound($"The faculty with id '{id}' was not found.");
-        }
+        var request = new DeleteFacultyRequest { FacultyId = id };
+        var response = await _mediator.Send(request, cancellationToken);
+        return GetResponseResult(response);
     }
 }

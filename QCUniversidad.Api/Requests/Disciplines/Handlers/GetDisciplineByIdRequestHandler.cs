@@ -24,6 +24,7 @@ public class GetDisciplineByIdRequestHandler(IDisciplinesManager disciplinesMana
             dto.TeachersCount = await _disciplinesManager.GetDisciplineTeachersCountAsync(dto.Id);
             return new()
             {
+                RequestId = request.RequestId,
                 Discipline = dto,
                 DisciplineId = dto.Id
             };
@@ -32,6 +33,7 @@ public class GetDisciplineByIdRequestHandler(IDisciplinesManager disciplinesMana
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"The discipline with id {request.DisciplineId} do not exist."],
                 StatusCode = System.Net.HttpStatusCode.NotFound
             };
@@ -40,6 +42,7 @@ public class GetDisciplineByIdRequestHandler(IDisciplinesManager disciplinesMana
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while fetching the discipline with id {request.DisciplineId}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

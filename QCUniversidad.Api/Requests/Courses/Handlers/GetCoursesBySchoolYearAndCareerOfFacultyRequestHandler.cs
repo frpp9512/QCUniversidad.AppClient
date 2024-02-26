@@ -27,6 +27,7 @@ public class GetCoursesBySchoolYearAndCareerOfFacultyRequestHandler(ICoursesMana
             {
                 return new()
                 {
+                    RequestId = request.RequestId,
                     ErrorMessages = [$"The career with id {request.CareerId} doesn't exists."],
                     StatusCode = System.Net.HttpStatusCode.NotFound
                 };
@@ -36,6 +37,7 @@ public class GetCoursesBySchoolYearAndCareerOfFacultyRequestHandler(ICoursesMana
             {
                 return new()
                 {
+                    RequestId = request.RequestId,
                     ErrorMessages = [$"The school year with id {request.SchoolYearId} doesn't exists."],
                     StatusCode = System.Net.HttpStatusCode.NotFound
                 };
@@ -45,6 +47,7 @@ public class GetCoursesBySchoolYearAndCareerOfFacultyRequestHandler(ICoursesMana
             {
                 return new()
                 {
+                    RequestId = request.RequestId,
                     ErrorMessages = [$"The faculty with id {request.FacultyId} doesn't exists."],
                     StatusCode = System.Net.HttpStatusCode.NotFound
                 };
@@ -54,6 +57,7 @@ public class GetCoursesBySchoolYearAndCareerOfFacultyRequestHandler(ICoursesMana
             var dtos = result.Select(_mapper.Map<CourseDto>).OrderBy(dto => dto.CareerId).ThenBy(dto => dto.CareerYear).ToList();
             return new()
             {
+                RequestId = request.RequestId,
                 CareerId = request.CareerId,
                 FacultyId = request.FacultyId,
                 SchoolYearId = request.SchoolYearId,
@@ -64,6 +68,7 @@ public class GetCoursesBySchoolYearAndCareerOfFacultyRequestHandler(ICoursesMana
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [ex.Message],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

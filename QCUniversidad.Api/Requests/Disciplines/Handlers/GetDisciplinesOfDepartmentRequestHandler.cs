@@ -27,6 +27,7 @@ public class GetDisciplinesOfDepartmentRequestHandler(IDisciplinesManager discip
 
             return new()
             {
+                RequestId = request.RequestId,
                 DepartmentId = request.DepartmentId,
                 Disciplines = dtos
             };
@@ -35,6 +36,7 @@ public class GetDisciplinesOfDepartmentRequestHandler(IDisciplinesManager discip
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while fetching the disciplines of department {request.DepartmentId}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

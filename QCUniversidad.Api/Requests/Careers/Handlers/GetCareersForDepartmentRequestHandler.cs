@@ -22,6 +22,7 @@ public class GetCareersForDepartmentRequestHandler(ICareersManager careersManage
             List<CareerDto> dtos = careers.Select(_mapper.Map<CareerDto>).ToList();
             return new()
             {
+                RequestId = request.RequestId,
                 DepartmentCareers = dtos
             };
         }
@@ -29,6 +30,7 @@ public class GetCareersForDepartmentRequestHandler(ICareersManager careersManage
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"The faculty with the id {request.DepartmentId} was not found."],
                 StatusCode = System.Net.HttpStatusCode.NotFound
             };
@@ -37,6 +39,7 @@ public class GetCareersForDepartmentRequestHandler(ICareersManager careersManage
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [ex.Message],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

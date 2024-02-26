@@ -16,6 +16,7 @@ public class GetSchoolYearPeriodsCountHandler(IPeriodsManager periodsManager) : 
             int count = await _periodsManager.GetSchoolYearPeriodsCountAsync(request.SchoolYearId);
             return new()
             {
+                RequestId = request.RequestId,
                 SchoolYearId = request.SchoolYearId,
                 PeriodsCount = count
             };
@@ -24,6 +25,7 @@ public class GetSchoolYearPeriodsCountHandler(IPeriodsManager periodsManager) : 
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [ ex.Message ]
             };
         }

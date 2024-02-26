@@ -16,6 +16,7 @@ public class GetDisciplinesCountRequestHandler(IDisciplinesManager disciplinesMa
             int count = await _disciplinesManager.GetDisciplinesCountAsync();
             return new()
             {
+                RequestId = request.RequestId,
                 Count = count
             };
         }
@@ -23,6 +24,7 @@ public class GetDisciplinesCountRequestHandler(IDisciplinesManager disciplinesMa
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while fetching the disciplines count. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

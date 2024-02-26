@@ -19,6 +19,7 @@ public class ExistCourseByCareerYearAndModalityRequestHandler(ICareersManager ca
             {
                 return new()
                 {
+                    RequestId = request.RequestId,
                     ErrorMessages = [$"The career with id: {request.CareerId} doesn't exists."],
                     StatusCode = System.Net.HttpStatusCode.NotFound
                 };
@@ -28,6 +29,7 @@ public class ExistCourseByCareerYearAndModalityRequestHandler(ICareersManager ca
             {
                 return new()
                 {
+                    RequestId = request.RequestId,
                     ErrorMessages = [$"The career year has an invalid value ({request.CareerYear})."],
                     StatusCode = System.Net.HttpStatusCode.BadRequest
                 };
@@ -36,6 +38,7 @@ public class ExistCourseByCareerYearAndModalityRequestHandler(ICareersManager ca
             bool result = await _coursesManager.CheckCourseExistenceByCareerYearAndModality(request.CareerId, request.CareerYear, request.Modality);
             return new()
             {
+                RequestId = request.RequestId,
                 CareerId = request.CareerId,
                 TeachingModality = request.Modality,
                 CareerYear = request.CareerYear,
@@ -46,6 +49,7 @@ public class ExistCourseByCareerYearAndModalityRequestHandler(ICareersManager ca
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [ex.Message],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

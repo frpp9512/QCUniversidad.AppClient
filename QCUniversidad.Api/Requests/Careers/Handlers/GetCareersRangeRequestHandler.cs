@@ -21,7 +21,8 @@ public class GetCareersRangeRequestHandler(ICareersManager careersManager, IMapp
 			List<CareerDto> dtos = careers.Select(_mapper.Map<CareerDto>).ToList();
 			return new()
 			{
-				Careers = dtos,
+                RequestId = request.RequestId,
+                Careers = dtos,
 				From = request.From,
 				To = request.To,
 			};
@@ -30,7 +31,8 @@ public class GetCareersRangeRequestHandler(ICareersManager careersManager, IMapp
 		{
 			return new()
 			{
-				ErrorMessages = [ ex.Message ],
+                RequestId = request.RequestId,
+                ErrorMessages = [ ex.Message ],
 				StatusCode = System.Net.HttpStatusCode.InternalServerError
 			};
 		}

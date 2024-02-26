@@ -16,7 +16,11 @@ public class UpdateCourseRequestHandler(ICoursesManager coursesManager, IMapper 
     {
         if (request.CourseToUpdate is null)
         {
-            return new() { ErrorMessages = [$"Must be provided a course data."] };
+            return new()
+            {
+                RequestId = request.RequestId,
+                ErrorMessages = [$"Must be provided a course data."]
+            };
         }
 
         try
@@ -25,15 +29,21 @@ public class UpdateCourseRequestHandler(ICoursesManager coursesManager, IMapper 
             return !result
                 ? new()
                 {
+                    RequestId = request.RequestId,
                     ErrorMessages = [$"The course couldn't be updated."],
                     StatusCode = System.Net.HttpStatusCode.InternalServerError
                 }
-                : new() { UpdatedCourse = request.CourseToUpdate };
+                : new()
+                {
+                    RequestId = request.RequestId,
+                    UpdatedCourse = request.CourseToUpdate
+                };
         }
         catch (Exception ex)
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while updating the course. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

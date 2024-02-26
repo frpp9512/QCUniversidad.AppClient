@@ -27,6 +27,7 @@ public class GetDisciplinesRangeRequestHandler(IDisciplinesManager disciplinesMa
 
             return new()
             {
+                RequestId = request.RequestId,
                 From = request.From,
                 To = request.To,
                 Disciplines = dtos
@@ -36,6 +37,7 @@ public class GetDisciplinesRangeRequestHandler(IDisciplinesManager disciplinesMa
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while fetching the disciplines range from {request.From} to {request.To}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

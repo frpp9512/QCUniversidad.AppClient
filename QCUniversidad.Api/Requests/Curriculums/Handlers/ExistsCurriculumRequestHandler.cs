@@ -16,6 +16,7 @@ public class ExistsCurriculumRequestHandler(ICurriculumsManager curriculumsManag
             bool result = await _curriculumsManager.ExistsCurriculumAsync(request.CurriculumId);
             return new()
             {
+                RequestId = request.RequestId,
                 ExistCurriculum = result,
                 StatusCode = result ? System.Net.HttpStatusCode.OK : System.Net.HttpStatusCode.NotFound
             };
@@ -24,6 +25,7 @@ public class ExistsCurriculumRequestHandler(ICurriculumsManager curriculumsManag
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error fetching the count of curriculums. Error messages: {ex.Message}"]
             };
         }

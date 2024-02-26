@@ -17,6 +17,7 @@ public class GetDepartmentDisciplinesCountRequestHandler(IDepartmentsManager dep
             int count = await _departmentsManager.GetDepartmentsCountAsync(request.DepartmentId);
             return new()
             {
+                RequestId = request.RequestId,
                 Count = count
             };
         }
@@ -24,6 +25,7 @@ public class GetDepartmentDisciplinesCountRequestHandler(IDepartmentsManager dep
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"The department with id {request.DepartmentId} was not found."],
                 StatusCode = System.Net.HttpStatusCode.NotFound
             };
@@ -32,6 +34,7 @@ public class GetDepartmentDisciplinesCountRequestHandler(IDepartmentsManager dep
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while fetching the count of the disciplines of the department {request.DepartmentId}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

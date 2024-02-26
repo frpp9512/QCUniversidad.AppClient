@@ -21,6 +21,7 @@ public class GetCurriculumsRangeRequestHandler(ICurriculumsManager curriculumsMa
             var dtos = curriculums.Select(_mapper.Map<CurriculumDto>).ToList();
             return new()
             {
+                RequestId = request.RequestId,
                 Curriculums = dtos,
                 From = request.From,
                 To = request.To
@@ -30,6 +31,7 @@ public class GetCurriculumsRangeRequestHandler(ICurriculumsManager curriculumsMa
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error while fetching the curriculums in the range from: {request.From} to {request.To}. Error message: {ex.Message}"],
                 StatusCode = System.Net.HttpStatusCode.InternalServerError
             };

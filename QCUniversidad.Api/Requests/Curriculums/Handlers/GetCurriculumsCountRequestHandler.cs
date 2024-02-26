@@ -14,12 +14,17 @@ public class GetCurriculumsCountRequestHandler(ICurriculumsManager curriculumsMa
         try
         {
             int count = await _curriculumsManager.GetCurriculumsCountAsync();
-            return new() { CurriculumsCount = count };
+            return new()
+            {
+                RequestId = request.RequestId,
+                CurriculumsCount = count
+            };
         }
         catch (Exception ex)
         {
             return new()
             {
+                RequestId = request.RequestId,
                 ErrorMessages = [$"Error fetching the count of the curriculums. Error message: {ex.Message}"]
             };
         }
